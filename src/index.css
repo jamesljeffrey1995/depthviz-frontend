@@ -1,0 +1,76 @@
+:root {
+  --ocean-deep: #020d14;
+  --ocean-mid: #041e2e;
+  --ocean-surface: #072840;
+  --brine: #0a3d5c;
+  --danger: #c0392b;
+  --warn: #d4850a;
+  --good: #1a8a5a;
+  --excellent: #0fb37a;
+  --text: #8bb8cc;
+  --text-bright: #d4eaf5;
+  --accent: #00c9ff;
+  --font-mono: 'Space Mono', monospace;
+  --font-display: 'Bebas Neue', sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  min-height: 100vh;
+}
+
+body {
+  background: var(--ocean-deep);
+  color: var(--text);
+  font-family: var(--font-mono);
+  overflow-x: hidden;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 80%, rgba(4, 30, 46, 0.9) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 80% at 80% 20%, rgba(2, 13, 20, 0.95) 0%, transparent 60%),
+    linear-gradient(180deg, #020d14 0%, #041e2e 40%, #072840 70%, #041e2e 100%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background-image:
+    radial-gradient(ellipse 3px 8px at 20% 15%, rgba(0, 201, 255, 0.03) 0%, transparent 100%),
+    radial-gradient(ellipse 8px 3px at 60% 35%, rgba(0, 201, 255, 0.04) 0%, transparent 100%),
+    radial-gradient(ellipse 4px 10px at 80% 20%, rgba(0, 201, 255, 0.02) 0%, transparent 100%),
+    radial-gradient(ellipse 6px 4px at 35% 60%, rgba(0, 201, 255, 0.03) 0%, transparent 100%);
+  animation: caustics 8s ease-in-out infinite alternate;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@keyframes caustics {
+  0%   { transform: translate(0, 0) rotate(0deg); opacity: 0.5; }
+  100% { transform: translate(30px, 20px) rotate(2deg); opacity: 1; }
+}
+
+button {
+  cursor: pointer;
+  font-family: var(--font-mono);
+}
+
+input {
+  font-family: var(--font-mono);
+}

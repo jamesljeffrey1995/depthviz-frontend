@@ -1,0 +1,288 @@
+.card {
+  background: rgba(4, 30, 46, 0.6);
+  border: 1px solid rgba(0, 201, 255, 0.1);
+  padding: 28px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.3;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.dateBlock {}
+
+.dateLine {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.45;
+  margin-bottom: 4px;
+}
+
+.forecastBadge {
+  display: inline-block;
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  border: 1px solid rgba(0, 201, 255, 0.3);
+  color: var(--accent);
+  padding: 2px 6px;
+  margin-top: 4px;
+}
+
+.visBlock {
+  text-align: right;
+}
+
+.visNumber {
+  font-family: var(--font-display);
+  font-size: clamp(56px, 16vw, 96px);
+  line-height: 1;
+  transition: color 0.4s;
+}
+
+.visUnit {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
+.correctedNote {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  opacity: 0.5;
+  margin-top: 2px;
+}
+
+.verdict {
+  font-family: var(--font-display);
+  font-size: 24px;
+  letter-spacing: 0.15em;
+  margin-bottom: 20px;
+}
+
+/* Temps row */
+.tempsRow {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.tempCard {
+  flex: 1;
+  background: rgba(2, 13, 20, 0.4);
+  border: 1px solid rgba(0, 201, 255, 0.06);
+  padding: 12px;
+}
+
+.tempLabel {
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.4;
+  margin-bottom: 6px;
+}
+
+.tempValue {
+  font-family: var(--font-display);
+  font-size: 24px;
+  color: var(--text-bright);
+}
+
+/* Algae */
+.algaeCard {
+  background: rgba(2, 13, 20, 0.4);
+  border: 1px solid rgba(0, 201, 255, 0.06);
+  padding: 14px 16px;
+  margin-bottom: 20px;
+}
+
+.algaeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.algaeLabel {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.4;
+}
+
+.algaeRisk {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.algaeLow      { color: var(--good); }
+.algaeModerate { color: var(--warn); }
+.algaeHigh     { color: var(--danger); }
+
+.algaeDrivers {
+  font-size: 10px;
+  opacity: 0.55;
+  line-height: 1.8;
+}
+
+/* Factors */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.factorCard {
+  background: rgba(2, 13, 20, 0.5);
+  border: 1px solid rgba(0, 201, 255, 0.07);
+  padding: 14px;
+  position: relative;
+}
+
+.factorName {
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  opacity: 0.45;
+  margin-bottom: 6px;
+}
+
+.factorValue {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--text-bright);
+  margin-bottom: 2px;
+}
+
+.factorNote {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  opacity: 0.45;
+  margin-bottom: 3px;
+}
+
+.factorImpact {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.factorBar {
+  position: absolute;
+  bottom: 0; left: 0;
+  height: 2px;
+  transition: width 0.6s ease;
+}
+
+/* Color classes */
+.blocked   { color: #4a4a5a; }
+.poor      { color: var(--danger); }
+.marginal  { color: var(--warn); }
+.decent    { color: #7fb87a; }
+.good      { color: var(--good); }
+.excellent { color: var(--excellent); }
+
+/* Bar vis */
+.barContainer { margin-bottom: 20px; }
+.barLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  opacity: 0.35;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+.barTrack {
+  height: 6px;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.04);
+  overflow: hidden;
+}
+.barFill {
+  height: 100%;
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.bg_blocked   { background: #4a4a5a; }
+.bg_poor      { background: var(--danger); }
+.bg_marginal  { background: var(--warn); }
+.bg_decent    { background: #7fb87a; }
+.bg_good      { background: var(--good); }
+.bg_excellent { background: var(--excellent); }
+
+.waterQualityCard {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  padding: 12px 16px;
+  margin-bottom: 12px;
+}
+.waterQualityHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.waterQualityLabelText {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.waterQualityBadge {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.waterQualityBar {
+  height: 3px;
+  background: var(--border);
+  margin-bottom: 8px;
+}
+.waterQualityFill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+.waterQualitySub {
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+.waterQualityNote {
+  font-size: 11px;
+  margin-top: 6px;
+  letter-spacing: 0.03em;
+}
+
+.waterQualityMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  margin-top: 4px;
+  letter-spacing: 0.04em;
+}
+
+.waterQualityPenalty {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: #c0392b;
+}
