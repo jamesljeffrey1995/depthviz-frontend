@@ -1,38 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { getCurrents } from '../lib/api'
 import styles from './HuntingMap.module.css'
-
-const API = import.meta.env.VITE_API_URL ?? '/api'
-
-interface CurrentCell {
-  lat: number
-  lon: number
-  u: number
-  v: number
-  speed: number
-  heading: number
-  hunting_score: number
-}
-
-interface TidalHour {
-  hour: number
-  speed: number
-  heading: number
-}
-
-interface CurrentsData {
-  date: string
-  lat: number
-  lon: number
-  grid: CurrentCell[]
-  peak_speed: number
-  hunting_zones: number
-  tidal_profile: TidalHour[]
-  peak_tidal_hour: number | null
-  model: string
-  estimated: boolean
-}
 
 interface Props {
   lat: number
@@ -44,18 +14,18 @@ export function HuntingMap({ lat, lon, locationName }: Props) {
   const mapRef = useRef<HTMLDivElement>(null)
   const leafletMapRef = useRef<L.Map | null>(null)
   const overlayLayersRef = useRef<L.Layer[]>([])
-  const [data, setData] = useState<CurrentsData | null>(null)
+  const [data, setData] = useState<Awaited<ReturnType<typeof getCurrents>> | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split('T')[0]
   )
 
-  const dateOptions = Array.from({ length: 8 }, (_, i) => {
+  const dateOptions = useMemo(() => Array.from({ length: 8 }, (_, i) => {
     const d = new Date()
     d.setDate(d.getDate() + i)
     return d.toISOString().split('T')[0]
-  })
+  }), [])
 
   // Init map on mount
   useEffect(() => {
@@ -90,16 +60,11 @@ export function HuntingMap({ lat, lon, locationName }: Props) {
 
   // Fetch data when location or date changes
   useEffect(() => {
-    if (!lat || !lon) return
     setLoading(true)
     setError(null)
-    fetch(`${API}/currents?lat=${lat}&lon=${lon}&date=${selectedDate}`)
-      .then(r => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`)
-        return r.json()
-      })
+    getCurrents(lat, lon, selectedDate)
       .then(d => { setData(d); setLoading(false) })
-      .catch(e => { setError(e.message); setLoading(false) })
+      .catch(e => { setError(e instanceof Error ? e.message : 'Failed to fetch'); setLoading(false) })
   }, [lat, lon, selectedDate])
 
   // Draw overlays when data changes

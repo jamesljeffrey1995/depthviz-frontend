@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { getMyProfile, updateProfile, getMyReports, getLeaderboard } from '../lib/api'
+import type { UserProfile, ReportRead, LeaderboardEntry } from '../types'
 import styles from './ProfilePanel.module.css'
 
 interface ProfilePanelProps {
@@ -9,9 +10,9 @@ interface ProfilePanelProps {
 
 export function ProfilePanel({ onClose }: ProfilePanelProps) {
   const { user, signOut } = useAuth()
-  const [profile, setProfile] = useState<any>(null)
-  const [reports, setReports] = useState<any[]>([])
-  const [leaderboard, setLeaderboard] = useState<any[]>([])
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [reports, setReports] = useState<ReportRead[]>([])
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [editName, setEditName] = useState(false)
   const [nameInput, setNameInput] = useState('')
   const [tab, setTab] = useState<'mine' | 'board'>('mine')
@@ -25,7 +26,7 @@ export function ProfilePanel({ onClose }: ProfilePanelProps) {
 
   const saveName = async () => {
     await updateProfile(nameInput)
-    setProfile((p: any) => ({ ...p, display_name: nameInput }))
+    setProfile(p => p ? { ...p, display_name: nameInput } : p)
     setEditName(false)
   }
 

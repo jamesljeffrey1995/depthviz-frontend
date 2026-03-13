@@ -1,19 +1,11 @@
 import type { DayForecast } from '../types'
+import { getImpact } from '../lib/visibility'
 import styles from './DayDetail.module.css'
 
 interface Props {
   day: DayForecast
   locationName: string
   reportCount: number
-}
-
-function getImpact(penalty: number, maxPenalty: number): { label: string; color: string } {
-  const ratio = Math.abs(penalty) / maxPenalty
-  if (ratio === 0)   return { label: 'NO IMPACT',   color: '#1a8a5a' }
-  if (ratio < 0.3)   return { label: 'LOW IMPACT',  color: '#d4850a' }
-  if (ratio < 0.6)   return { label: 'MODERATE',    color: '#e06c00' }
-  if (ratio < 0.85)  return { label: 'HIGH IMPACT', color: '#c0392b' }
-  return               { label: 'SEVERE',            color: '#c0392b' }
 }
 
 function getWaterQuality(factor: number): { label: string; color: string; description: string } {
