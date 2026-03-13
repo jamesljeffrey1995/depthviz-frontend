@@ -98,6 +98,10 @@ export interface GeocodingResult {
   longitude: number
 }
 
+export function formatLocationName(r: GeocodingResult): string {
+  return [r.name, r.admin1, r.country].filter(Boolean).join(', ')
+}
+
 export type ImpactLevel = 'NO IMPACT' | 'LOW IMPACT' | 'MODERATE' | 'HIGH IMPACT' | 'SEVERE'
 export type VerdictLabel = 'STAY ASHORE' | 'NOT WORTH IT' | 'VERY POOR' | 'MARGINAL' | 'DECENT' | 'GOOD' | 'EXCELLENT'
 

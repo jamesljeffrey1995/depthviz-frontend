@@ -11,6 +11,7 @@ import { ProfilePanel } from './components/ProfilePanel'
 import { LocationHistory } from './components/LocationHistory'
 import { HuntingMap } from './components/HuntingMap'
 import { getLocations, createLocation, geocode } from './lib/api'
+import { formatLocationName } from './types'
 import type { Location, AppView } from './types'
 import styles from './App.module.css'
 
@@ -61,7 +62,7 @@ export default function App() {
       const loc = results[0]
       setCurrentLat(loc.latitude)
       setCurrentLon(loc.longitude)
-      const name = [loc.name, loc.admin1, loc.country].filter(Boolean).join(', ')
+      const name = formatLocationName(loc)
       setCurrentName(name)
       const matched = locations.find(l => Math.abs(l.lat - loc.latitude) < 0.01 && Math.abs(l.lon - loc.longitude) < 0.01)
       setSelectedLocationId(matched?.id ?? null)
@@ -72,7 +73,7 @@ export default function App() {
   }
 
   const handleSaveLocation = async () => {
-    if (!currentLat || !currentLon || !currentName) return
+    if (currentLat === null || currentLon === null || !currentName) return
     if (!user) { setShowAuth(true); return }
     try {
       const loc = await createLocation(currentName, currentLat, currentLon)
@@ -114,7 +115,7 @@ export default function App() {
         onLocate={handleLocate}
         getSuggestions={async (q) => geocode(q)}
         onSelectSuggestion={async (r) => {
-          const name = [r.name, r.admin1, r.country].filter(Boolean).join(', ')
+          const name = formatLocationName(r)
           setCurrentLat(r.latitude)
           setCurrentLon(r.longitude)
           setCurrentName(name)
@@ -210,7 +211,7 @@ export default function App() {
                 />
               )}
 
-              {view === 'hunting' && currentLat && currentLon && (
+              {view === 'hunting' && currentLat !== null && currentLon !== null && (
                 <HuntingMap
                   lat={currentLat}
                   lon={currentLon}

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { getForecast, geocode } from '../lib/api'
+import { formatLocationName } from '../types'
 import type { ForecastResponse } from '../types'
 
 interface State {
@@ -17,7 +18,7 @@ export function useConditions() {
       const results = await geocode(query)
       if (!results.length) throw new Error('Location not found')
       const loc = results[0]
-      const name = [loc.name, loc.admin1, loc.country].filter(Boolean).join(', ')
+      const name = formatLocationName(loc)
       const forecast = await getForecast(loc.latitude, loc.longitude, name)
       setState(s => ({ ...s, status: 'success', forecast }))
     } catch (e) {

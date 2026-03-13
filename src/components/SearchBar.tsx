@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { formatLocationName } from '../types'
 import type { GeocodingResult } from '../types'
 import styles from './SearchBar.module.css'
 
@@ -30,7 +31,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
   }, [getSuggestions])
 
   const handleSelect = useCallback((result: GeocodingResult) => {
-    const name = [result.name, result.admin1, result.country].filter(Boolean).join(', ')
+    const name = formatLocationName(result)
     setQuery(name)
     setSelectedResult(result)
     setSuggestions([])
@@ -46,6 +47,11 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
       onSearch(query)
     }
   }, [query, onSearch, onSelectSuggestion, selectedResult])
+
+  // Clear debounce on unmount
+  useEffect(() => {
+    return () => clearTimeout(debounceRef.current)
+  }, [])
 
   // Close suggestions on outside click
   useEffect(() => {
@@ -73,7 +79,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
         {showSuggestions && (
           <ul className={styles.suggestions}>
             {suggestions.map((r, i) => {
-              const name = [r.name, r.admin1, r.country].filter(Boolean).join(', ')
+              const name = formatLocationName(r)
               return (
                 <li key={i} className={styles.suggestion} onClick={() => handleSelect(r)}>
                   {name}
