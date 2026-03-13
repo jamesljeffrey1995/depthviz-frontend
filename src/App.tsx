@@ -9,12 +9,15 @@ import { ReportForm } from './components/ReportForm'
 import { AuthModal } from './components/AuthModal'
 import { ProfilePanel } from './components/ProfilePanel'
 import { LocationHistory } from './components/LocationHistory'
+import { CookieBanner } from './components/CookieBanner'
+import { LegalPage } from './components/LegalPage'
+import type { LegalPageType } from './components/LegalPage'
 import { getLocations, createLocation, geocode } from './lib/api'
 import { formatLocationName } from './types'
 import type { Location, AppView } from './types'
 import styles from './App.module.css'
 
-type ExtView = AppView | 'profile' | 'history'
+type ExtView = AppView | 'profile' | 'history' | 'legal'
 
 export default function App() {
   const { user, loading: authLoading } = useAuth()
@@ -28,6 +31,7 @@ export default function App() {
   const [currentName, setCurrentName] = useState('')
   const [showAuth, setShowAuth] = useState(false)
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null)
+  const [legalPage, setLegalPage] = useState<LegalPageType>('privacy')
 
   useEffect(() => {
     getLocations().then(setLocations).catch(() => {})
@@ -132,8 +136,13 @@ export default function App() {
         <ProfilePanel onClose={() => setView('forecast')} />
       )}
 
-      {/* All forecast/search content hidden while profile is open */}
-      {view !== 'profile' && (
+      {/* Legal pages */}
+      {view === 'legal' && (
+        <LegalPage page={legalPage} onBack={() => setView('forecast')} />
+      )}
+
+      {/* All forecast/search content hidden while profile or legal page is open */}
+      {view !== 'profile' && view !== 'legal' && (
         <>
           {status === 'loading' && (
             <div className={styles.loading}>
@@ -213,9 +222,26 @@ export default function App() {
       )}
 
       <footer className={styles.footer}>
-        Data: Open-Meteo Weather · Copernicus Marine · North Sea baseline<br />
-        Not a substitute for local knowledge · Always dive with a buddy
+        <div>Data: Open-Meteo Weather · Copernicus Marine · North Sea baseline</div>
+        <div>Not a substitute for local knowledge · Always dive with a buddy</div>
+        <div className={styles.footerLinks}>
+          {(['privacy', 'terms', 'cookies', 'security', 'contact', 'accessibility'] as LegalPageType[]).map(p => (
+            <button key={p} className={styles.footerLink} onClick={() => { setLegalPage(p); setView('legal') }}>
+              {p === 'privacy' ? 'Privacy' : p === 'terms' ? 'Terms' : p === 'cookies' ? 'Cookies' : p === 'security' ? 'Security' : p === 'contact' ? 'Contact' : 'Accessibility'}
+            </button>
+          ))}
+        </div>
+        <a
+          href="https://buymeacoffee.com/depthviz"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.bmcLink}
+        >
+          Buy me a coffee
+        </a>
       </footer>
+
+      <CookieBanner onNavigate={(p) => { setLegalPage(p as LegalPageType); setView('legal') }} />
     </div>
   )
 }
