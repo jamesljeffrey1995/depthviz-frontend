@@ -9,13 +9,12 @@ import { ReportForm } from './components/ReportForm'
 import { AuthModal } from './components/AuthModal'
 import { ProfilePanel } from './components/ProfilePanel'
 import { LocationHistory } from './components/LocationHistory'
-import { HuntingMap } from './components/HuntingMap'
 import { getLocations, createLocation, geocode } from './lib/api'
 import { formatLocationName } from './types'
 import type { Location, AppView } from './types'
 import styles from './App.module.css'
 
-type ExtView = AppView | 'profile' | 'history' | 'hunting'
+type ExtView = AppView | 'profile' | 'history'
 
 export default function App() {
   const { user, loading: authLoading } = useAuth()
@@ -164,12 +163,6 @@ export default function App() {
                   </button>
                 ))}
                 <button
-                  className={`${styles.navBtn} ${view === 'hunting' ? styles.navActive : ''}`}
-                  onClick={() => setView('hunting')}
-                >
-                  Hunting Map
-                </button>
-                <button
                   className={`${styles.navBtn} ${selectedLocationId ? styles.navActive : ''}`}
                   onClick={handleSaveLocation}
                   disabled={!!selectedLocationId}
@@ -208,14 +201,6 @@ export default function App() {
                   allDays={forecast.days}
                   locations={locations}
                   onSubmitted={() => setView('forecast')}
-                />
-              )}
-
-              {view === 'hunting' && currentLat !== null && currentLon !== null && (
-                <HuntingMap
-                  lat={currentLat}
-                  lon={currentLon}
-                  locationName={currentName}
                 />
               )}
 

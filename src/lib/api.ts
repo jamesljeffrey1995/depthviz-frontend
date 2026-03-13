@@ -90,30 +90,6 @@ export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
   return apiFetch<LeaderboardEntry[]>('/profile/leaderboard')
 }
 
-// Tidal currents
-export async function getCurrents(lat: number, lon: number, date: string) {
-  return apiFetch<{
-    date: string
-    lat: number
-    lon: number
-    grid: Array<{
-      lat: number
-      lon: number
-      u: number
-      v: number
-      speed: number
-      heading: number
-      hunting_score: number
-    }>
-    peak_speed: number
-    hunting_zones: number
-    tidal_profile: Array<{ hour: number; speed: number; heading: number }>
-    peak_tidal_hour: number | null
-    model: string
-    estimated: boolean
-  }>(`/currents?lat=${lat}&lon=${lon}&date=${date}`)
-}
-
 // Location history
 export async function getLocationHistory(locationId: number) {
   return apiFetch<{
