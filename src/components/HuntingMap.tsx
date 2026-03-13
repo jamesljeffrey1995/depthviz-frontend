@@ -10,6 +10,22 @@ interface Props {
   locationName: string
 }
 
+function createArrowIcon(heading: number, colour: string, speed: number): L.DivIcon {
+  const size = 18 + Math.min(speed / 0.8, 1) * 10
+  const svg = `<svg width="${size}" height="${size}" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <g transform="rotate(${heading}, 12, 12)">
+      <line x1="12" y1="20" x2="12" y2="4" stroke="${colour}" stroke-width="2.5" stroke-linecap="round"/>
+      <polyline points="7,9 12,4 17,9" fill="none" stroke="${colour}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </svg>`
+  return L.divIcon({
+    html: svg,
+    className: '',
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+  })
+}
+
 export function HuntingMap({ lat, lon, locationName }: Props) {
   const mapRef = useRef<HTMLDivElement>(null)
   const leafletMapRef = useRef<L.Map | null>(null)
@@ -33,7 +49,7 @@ export function HuntingMap({ lat, lon, locationName }: Props) {
 
     const map = L.map(mapRef.current, {
       center: [lat, lon],
-      zoom: 9,
+      zoom: 12,
       zoomControl: true,
     })
 
@@ -58,6 +74,13 @@ export function HuntingMap({ lat, lon, locationName }: Props) {
     }
   }, [])
 
+  // Re-center map when location changes
+  useEffect(() => {
+    if (leafletMapRef.current) {
+      leafletMapRef.current.setView([lat, lon], 12)
+    }
+  }, [lat, lon])
+
   // Fetch data when location or date changes
   useEffect(() => {
     setLoading(true)
@@ -76,18 +99,31 @@ export function HuntingMap({ lat, lon, locationName }: Props) {
     overlayLayersRef.current.forEach(l => map.removeLayer(l))
     overlayLayersRef.current = []
 
-    data.grid.forEach(cell => {
-      if (cell.speed < 0.01) return
+    // Thin out the grid — skip points too close together at this zoom
+    const placed: Array<[number, number]> = []
+    const minSpacing = 0.015 // ~1.5km minimum between arrows
 
-      // Hunting zone glow
+    const sortedGrid = [...data.grid].sort((a, b) => b.speed - a.speed)
+
+    sortedGrid.forEach(cell => {
+      if (cell.speed < 0.02) return
+
+      // Check if too close to an already-placed arrow
+      const tooClose = placed.some(
+        ([pLat, pLon]) => Math.abs(cell.lat - pLat) < minSpacing && Math.abs(cell.lon - pLon) < minSpacing
+      )
+      if (tooClose) return
+      placed.push([cell.lat, cell.lon])
+
+      // Hunting zone glow — smaller, tighter zones
       if (cell.hunting_score > 0.6) {
-        const opacity = 0.2 + cell.hunting_score * 0.4
-        const radius = 4000 + cell.hunting_score * 4000
+        const opacity = 0.15 + cell.hunting_score * 0.25
+        const radius = 600 + cell.hunting_score * 800
         const zone = L.circle([cell.lat, cell.lon], {
           radius,
           color: '#ff6b00',
           fillColor: '#ff6b00',
-          fillOpacity: opacity * 0.4,
+          fillOpacity: opacity * 0.5,
           weight: 1,
           opacity,
         }).addTo(map)
@@ -101,30 +137,25 @@ export function HuntingMap({ lat, lon, locationName }: Props) {
       const b = Math.round(200 - t * 200)
       const colour = `rgb(${r},${g},${b})`
 
-      // Scale length by speed — 0.015 deg ≈ ~1.5km at zoom 9, readable without dominating
-      const arrowLen = 0.015 + cell.speed * 0.02
-      const rad = (cell.heading * Math.PI) / 180
-      const endLat = cell.lat + arrowLen * Math.cos(rad)
-      const endLon = cell.lon + arrowLen * Math.sin(rad)
-
-      const arrow = L.polyline([[cell.lat, cell.lon], [endLat, endLon]], {
-        color: colour,
-        weight: 3,
-        opacity: 0.9,
+      // Proper arrow marker with SVG arrowhead
+      const arrow = L.marker([cell.lat, cell.lon], {
+        icon: createArrowIcon(cell.heading, colour, cell.speed),
+        interactive: false,
       }).addTo(map)
       overlayLayersRef.current.push(arrow)
-
-      const tip = L.circleMarker([endLat, endLon], {
-        radius: 3,
-        color: colour,
-        fillColor: colour,
-        fillOpacity: 1,
-        weight: 0,
-      }).addTo(map)
-      overlayLayersRef.current.push(tip)
     })
 
-    map.setView([data.lat, data.lon], 9)
+    // Add a marker for the search location
+    const locMarker = L.circleMarker([data.lat, data.lon], {
+      radius: 5,
+      color: '#fff',
+      fillColor: '#00bcd4',
+      fillOpacity: 1,
+      weight: 2,
+    }).addTo(map)
+    overlayLayersRef.current.push(locMarker)
+
+    map.setView([data.lat, data.lon], 12)
   }, [data])
 
   const formatDate = (d: string) => {
