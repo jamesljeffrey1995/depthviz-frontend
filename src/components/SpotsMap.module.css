@@ -254,6 +254,13 @@
   margin-bottom: 10px;
 }
 
+.popupCreator {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: #888;
+  margin-bottom: 8px;
+}
+
 .popupBtn {
   display: block;
   width: 100%;

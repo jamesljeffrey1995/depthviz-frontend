@@ -13,7 +13,8 @@ interface DiveSpot {
   userAdded?: boolean
   id?: string
   isPublic?: boolean
-  votes?: number
+  createdBy?: string
+  createdAt?: number
 }
 
 interface Props {
@@ -43,14 +44,24 @@ function loadVotes(): Record<string, number> {
     const raw = localStorage.getItem(VOTES_STORAGE_KEY)
     if (!raw) return {}
     const parsed = JSON.parse(raw)
-    return typeof parsed === 'object' && parsed !== null ? parsed : {}
+    if (typeof parsed !== 'object' || parsed === null) return {}
+    const sanitised: Record<string, number> = {}
+    for (const [k, v] of Object.entries(parsed)) {
+      const n = Number(v)
+      if (Number.isFinite(n) && n >= 0) sanitised[k] = n
+    }
+    return sanitised
   } catch {
     return {}
   }
 }
 
 function saveVotes(votes: Record<string, number>) {
-  localStorage.setItem(VOTES_STORAGE_KEY, JSON.stringify(votes))
+  try {
+    localStorage.setItem(VOTES_STORAGE_KEY, JSON.stringify(votes))
+  } catch {
+    // storage full or disabled — vote persists in memory only
+  }
 }
 
 function spotKey(spot: DiveSpot): string {
@@ -188,14 +199,19 @@ function loadUserSpots(): DiveSpot[] {
     if (!raw) return []
     const parsed = JSON.parse(raw)
     if (!Array.isArray(parsed)) return []
-    return parsed.filter(
-      (s: unknown) =>
-        s !== null &&
-        typeof s === 'object' &&
-        typeof (s as DiveSpot).name === 'string' &&
-        typeof (s as DiveSpot).lat === 'number' &&
-        typeof (s as DiveSpot).lon === 'number'
-    )
+    return parsed
+      .filter(
+        (s: unknown) =>
+          s !== null &&
+          typeof s === 'object' &&
+          typeof (s as DiveSpot).name === 'string' &&
+          typeof (s as DiveSpot).lat === 'number' &&
+          typeof (s as DiveSpot).lon === 'number'
+      )
+      .map((s: DiveSpot) => ({
+        ...s,
+        isPublic: s.isPublic === true, // normalise to strict boolean
+      }))
   } catch {
     return []
   }
@@ -252,15 +268,17 @@ export function SpotsMap({ onSelectSpot }: Props) {
       description: newDesc.trim() || 'User-added dive spot',
       userAdded: true,
       isPublic,
-      votes: 0,
+      createdBy: 'You',
+      createdAt: Date.now(),
     }
 
-    // If public, also push to the backend
+    // If public, also push to the backend; downgrade to private on failure
     if (isPublic) {
       try {
         await createLocation(spot.name, spot.lat, spot.lon, true)
       } catch {
-        setSyncWarning('Spot saved locally but failed to sync — it may not be visible to other users')
+        spot.isPublic = false
+        setSyncWarning('Could not publish spot — saved as private instead. Try again later.')
       }
     }
 
@@ -290,6 +308,16 @@ export function SpotsMap({ onSelectSpot }: Props) {
       : userSpots.filter(s => !(s.name === spot.name && s.lat === spot.lat && s.lon === spot.lon))
     setUserSpots(updated)
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+
+    // Clean up stale vote entry
+    const key = spotKey(spot)
+    setVotes(prev => {
+      if (!(key in prev)) return prev
+      const next = { ...prev }
+      delete next[key]
+      saveVotes(next)
+      return next
+    })
   }
 
   const handleVote = (spot: DiveSpot, delta: 1 | -1) => {
@@ -349,11 +377,14 @@ export function SpotsMap({ onSelectSpot }: Props) {
                   </div>
                   <div className={styles.popupName}>{spot.name}</div>
                   <div className={styles.popupDesc}>{spot.description}</div>
+                  {spot.createdBy && (
+                    <div className={styles.popupCreator}>Added by {spot.createdBy}</div>
+                  )}
                   <div className={styles.voteRow}>
                     <button
                       className={styles.voteBtn}
                       onClick={() => handleVote(spot, 1)}
-                      title="Upvote"
+                      aria-label="Upvote this spot"
                     >
                       👍
                     </button>
@@ -361,7 +392,7 @@ export function SpotsMap({ onSelectSpot }: Props) {
                     <button
                       className={styles.voteBtn}
                       onClick={() => handleVote(spot, -1)}
-                      title="Downvote"
+                      aria-label="Downvote this spot"
                     >
                       👎
                     </button>
@@ -402,7 +433,7 @@ export function SpotsMap({ onSelectSpot }: Props) {
           <div className={styles.addFormTitle}>Add a Dive Spot</div>
           <div className={styles.addFormPrivacy}>
             {isPublic
-              ? '🌍 This spot will be visible to all users'
+              ? '🌍 This spot will be submitted for public visibility'
               : '🔒 Saved to this browser only — not visible to other users'}
           </div>
           {!pendingPos ? (
