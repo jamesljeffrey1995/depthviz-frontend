@@ -7,8 +7,12 @@ import '@fontsource/bebas-neue/400.css'
 import './index.css'
 
 // Clickjacking defense: break out of frames
-if (window.self !== window.top) {
-  window.top!.location.href = window.self.location.href
+try {
+  if (window.self !== window.top) {
+    window.top!.location.href = window.self.location.href
+  }
+} catch {
+  // Cross-origin frame detected — rely on server-side X-Frame-Options / CSP headers
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
