@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaf
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import styles from './SpotsMap.module.css'
+import { createLocation } from '../lib/api'
 
 interface DiveSpot {
   name: string
@@ -11,6 +12,8 @@ interface DiveSpot {
   description: string
   userAdded?: boolean
   id?: string
+  isPublic?: boolean
+  votes?: number
 }
 
 interface Props {
@@ -18,6 +21,41 @@ interface Props {
 }
 
 const STORAGE_KEY = 'depthviz_user_spots'
+const VOTES_STORAGE_KEY = 'depthviz_spot_votes'
+
+/** Haversine distance in metres between two lat/lon points */
+function haversineMetres(
+  lat1: number, lon1: number,
+  lat2: number, lon2: number,
+): number {
+  const R = 6_371_000
+  const toRad = (d: number) => (d * Math.PI) / 180
+  const dLat = toRad(lat2 - lat1)
+  const dLon = toRad(lon2 - lon1)
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+function loadVotes(): Record<string, number> {
+  try {
+    const raw = localStorage.getItem(VOTES_STORAGE_KEY)
+    if (!raw) return {}
+    const parsed = JSON.parse(raw)
+    return typeof parsed === 'object' && parsed !== null ? parsed : {}
+  } catch {
+    return {}
+  }
+}
+
+function saveVotes(votes: Record<string, number>) {
+  localStorage.setItem(VOTES_STORAGE_KEY, JSON.stringify(votes))
+}
+
+function spotKey(spot: DiveSpot): string {
+  return spot.id ?? `${spot.name}-${spot.lat}-${spot.lon}`
+}
 
 const UK_DIVE_SPOTS: DiveSpot[] = [
   // Northeast England
@@ -114,6 +152,19 @@ const userSpotIcon = new L.Icon({
   popupAnchor: [0, -36],
 })
 
+// User-added PUBLIC spot marker (green)
+const publicSpotIcon = new L.Icon({
+  iconUrl: 'data:image/svg+xml,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="36" viewBox="0 0 24 36">' +
+    '<path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#2ecc71"/>' +
+    '<circle cx="12" cy="12" r="5" fill="#020d14"/>' +
+    '</svg>'
+  ),
+  iconSize: [24, 36],
+  iconAnchor: [12, 36],
+  popupAnchor: [0, -36],
+})
+
 // Pending position marker (orange)
 const pendingIcon = new L.Icon({
   iconUrl: 'data:image/svg+xml,' + encodeURIComponent(
@@ -165,14 +216,33 @@ export function SpotsMap({ onSelectSpot }: Props) {
   const [pendingPos, setPendingPos] = useState<{ lat: number; lon: number } | null>(null)
   const [newName, setNewName] = useState('')
   const [newDesc, setNewDesc] = useState('')
+  const [isPublic, setIsPublic] = useState(false)
+  const [proximityError, setProximityError] = useState('')
+  const [votes, setVotes] = useState<Record<string, number>>(loadVotes)
 
   const handleMapClick = useCallback((lat: number, lon: number) => {
     if (!adding) return
     setPendingPos({ lat, lon })
+    setProximityError('')
   }, [adding])
 
-  const handleSaveSpot = () => {
+  const handleSaveSpot = async () => {
     if (!pendingPos || !newName.trim()) return
+
+    // 100m proximity check for public custom spots
+    if (isPublic) {
+      const allPublicCustom = userSpots.filter(s => s.isPublic)
+      const tooClose = allPublicCustom.find(
+        s => haversineMetres(s.lat, s.lon, pendingPos.lat, pendingPos.lon) < 100,
+      )
+      if (tooClose) {
+        setProximityError(
+          `Too close to existing public spot "${tooClose.name}" (must be ≥ 100 m apart)`,
+        )
+        return
+      }
+    }
+
     const spot: DiveSpot = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       name: newName.trim(),
@@ -180,7 +250,19 @@ export function SpotsMap({ onSelectSpot }: Props) {
       lon: pendingPos.lon,
       description: newDesc.trim() || 'User-added dive spot',
       userAdded: true,
+      isPublic,
+      votes: 0,
     }
+
+    // If public, also push to the backend
+    if (isPublic) {
+      try {
+        await createLocation(spot.name, spot.lat, spot.lon, true)
+      } catch {
+        // Silently fall back to local-only save
+      }
+    }
+
     const updated = [...userSpots, spot]
     setUserSpots(updated)
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
@@ -188,6 +270,8 @@ export function SpotsMap({ onSelectSpot }: Props) {
     setPendingPos(null)
     setNewName('')
     setNewDesc('')
+    setIsPublic(false)
+    setProximityError('')
   }
 
   const handleCancelAdd = () => {
@@ -195,6 +279,8 @@ export function SpotsMap({ onSelectSpot }: Props) {
     setPendingPos(null)
     setNewName('')
     setNewDesc('')
+    setIsPublic(false)
+    setProximityError('')
   }
 
   const handleRemoveUserSpot = (spot: DiveSpot) => {
@@ -203,6 +289,15 @@ export function SpotsMap({ onSelectSpot }: Props) {
       : userSpots.filter(s => !(s.name === spot.name && s.lat === spot.lat && s.lon === spot.lon))
     setUserSpots(updated)
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+  }
+
+  const handleVote = (spot: DiveSpot, delta: 1 | -1) => {
+    const key = spotKey(spot)
+    setVotes(prev => {
+      const next = { ...prev, [key]: (prev[key] ?? 0) + delta }
+      saveVotes(next)
+      return next
+    })
   }
 
   return (
@@ -238,12 +333,35 @@ export function SpotsMap({ onSelectSpot }: Props) {
             </Marker>
           ))}
           {userSpots.map((spot) => (
-            <Marker key={spot.id ?? `user-${spot.name}-${spot.lat}-${spot.lon}`} position={[spot.lat, spot.lon]} icon={userSpotIcon}>
+            <Marker
+              key={spot.id ?? `user-${spot.name}-${spot.lat}-${spot.lon}`}
+              position={[spot.lat, spot.lon]}
+              icon={spot.isPublic ? publicSpotIcon : userSpotIcon}
+            >
               <Popup>
                 <div className={styles.popup}>
-                  <div className={styles.popupUserBadge}>My Spot (private)</div>
+                  <div className={spot.isPublic ? styles.popupPublicBadge : styles.popupUserBadge}>
+                    {spot.isPublic ? 'Public Spot' : 'My Spot (private)'}
+                  </div>
                   <div className={styles.popupName}>{spot.name}</div>
                   <div className={styles.popupDesc}>{spot.description}</div>
+                  <div className={styles.voteRow}>
+                    <button
+                      className={styles.voteBtn}
+                      onClick={() => handleVote(spot, 1)}
+                      title="Upvote"
+                    >
+                      👍
+                    </button>
+                    <span className={styles.voteCount}>{(spot.votes ?? 0) + (votes[spotKey(spot)] ?? 0)}</span>
+                    <button
+                      className={styles.voteBtn}
+                      onClick={() => handleVote(spot, -1)}
+                      title="Downvote"
+                    >
+                      👎
+                    </button>
+                  </div>
                   <button
                     className={styles.popupBtn}
                     onClick={() => onSelectSpot(spot.lat, spot.lon, spot.name)}
@@ -278,7 +396,11 @@ export function SpotsMap({ onSelectSpot }: Props) {
       {adding ? (
         <div className={styles.addForm}>
           <div className={styles.addFormTitle}>Add a Dive Spot</div>
-          <div className={styles.addFormPrivacy}>🔒 Saved to this browser only — not visible to other users</div>
+          <div className={styles.addFormPrivacy}>
+            {isPublic
+              ? '🌍 This spot will be visible to all users'
+              : '🔒 Saved to this browser only — not visible to other users'}
+          </div>
           {!pendingPos ? (
             <div className={styles.addFormHint}>↑ Click anywhere on the map to place your spot</div>
           ) : (
@@ -286,6 +408,33 @@ export function SpotsMap({ onSelectSpot }: Props) {
               📍 {pendingPos.lat.toFixed(4)}°, {pendingPos.lon.toFixed(4)}° — tap map to reposition
             </div>
           )}
+          {proximityError && (
+            <div className={styles.addFormError}>{proximityError}</div>
+          )}
+          <div className={styles.addFormField}>
+            <label className={styles.addFormLabel}>Visibility</label>
+            <div className={styles.toggleRow}>
+              <button
+                className={`${styles.toggleBtn} ${!isPublic ? styles.toggleBtnActive : ''}`}
+                onClick={() => { setIsPublic(false); setProximityError('') }}
+                type="button"
+              >
+                🔒 Private
+              </button>
+              <button
+                className={`${styles.toggleBtn} ${isPublic ? styles.toggleBtnActivePublic : ''}`}
+                onClick={() => { setIsPublic(true); setProximityError('') }}
+                type="button"
+              >
+                🌍 Public
+              </button>
+            </div>
+            {isPublic && (
+              <div className={styles.addFormHint}>
+                Public spots must be ≥ 100 m from other public custom spots
+              </div>
+            )}
+          </div>
           <div className={styles.addFormField}>
             <label className={styles.addFormLabel}>Spot name</label>
             <input
@@ -327,7 +476,10 @@ export function SpotsMap({ onSelectSpot }: Props) {
             + Add a Spot
           </button>
           {userSpots.length > 0 && (
-            <span className={styles.userSpotsCount}>{userSpots.length} custom spot{userSpots.length !== 1 ? 's' : ''} (private)</span>
+            <span className={styles.userSpotsCount}>
+              {userSpots.length} custom spot{userSpots.length !== 1 ? 's' : ''}
+              {' '}({userSpots.filter(s => s.isPublic).length} public, {userSpots.filter(s => !s.isPublic).length} private)
+            </span>
           )}
         </div>
       )}
