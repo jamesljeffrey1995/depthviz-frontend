@@ -92,6 +92,16 @@ export default function App() {
     setView('report')
   }
 
+  const handleSpotSelect = async (lat: number, lon: number, name: string) => {
+    setCurrentLat(lat)
+    setCurrentLon(lon)
+    setCurrentName(name)
+    const matched = locations.find(l => Math.abs(l.lat - lat) < 0.01 && Math.abs(l.lon - lon) < 0.01)
+    setSelectedLocationId(matched?.id ?? null)
+    await searchByCoords(lat, lon, name, matched?.id)
+    setView('forecast')
+  }
+
   const todayIndex = forecast?.days.findIndex(d => d.date === new Date().toISOString().split('T')[0]) ?? -1
 
   if (authLoading) return (
@@ -173,15 +183,7 @@ export default function App() {
           )}
 
           {view === 'map' && (
-            <SpotsMap onSelectSpot={async (lat, lon, name) => {
-              setCurrentLat(lat)
-              setCurrentLon(lon)
-              setCurrentName(name)
-              const matched = locations.find(l => Math.abs(l.lat - lat) < 0.01 && Math.abs(l.lon - lon) < 0.01)
-              setSelectedLocationId(matched?.id ?? null)
-              await searchByCoords(lat, lon, name, matched?.id)
-              setView('forecast')
-            }} />
+            <SpotsMap onSelectSpot={handleSpotSelect} />
           )}
 
           {status === 'success' && forecast && (
