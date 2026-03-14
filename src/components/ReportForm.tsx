@@ -42,13 +42,18 @@ export function ReportForm({ day, allDays, locations, onSubmitted }: Props) {
 
   const handleSubmit = async () => {
     if (!locationId || !actualVis || !activeDay) return
+    const vis = parseFloat(actualVis)
+    if (isNaN(vis) || vis < 0 || vis > 50) {
+      setError('Visibility must be a number between 0 and 50')
+      return
+    }
     setSubmitting(true)
     setError('')
     try {
       await submitReport({
         location_id: Number(locationId),
         report_date: selectedDate,
-        actual_vis: parseFloat(actualVis),
+        actual_vis: vis,
         predicted_vis: activeDay.vis_estimate,
         wave_height: activeDay.wave_height,
         swell_height: activeDay.swell_height,
@@ -58,7 +63,7 @@ export function ReportForm({ day, allDays, locations, onSubmitted }: Props) {
         air_temp: activeDay.air_temp,
         sea_temp: activeDay.sea_temp,
         algae_risk: activeDay.algae.risk,
-        notes: notes || undefined,
+        notes: notes.slice(0, 500) || undefined,
       })
       setDone(true)
       setTimeout(onSubmitted, 1500)
@@ -136,6 +141,7 @@ export function ReportForm({ day, allDays, locations, onSubmitted }: Props) {
           value={notes}
           onChange={e => setNotes(e.target.value)}
           rows={3}
+          maxLength={500}
         />
       </div>
 
