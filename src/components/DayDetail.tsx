@@ -1,0 +1,172 @@
+import type { DayForecast } from '../types'
+import { getImpact } from '../lib/visibility'
+import styles from './DayDetail.module.css'
+
+interface Props {
+  day: DayForecast
+  locationName: string
+  reportCount: number
+}
+
+function getWaterQuality(factor: number): { label: string; color: string; description: string } {
+  if (factor < 0.3)  return { label: 'Nutrient-poor',      color: '#1a8a5a', description: 'Oligotrophic — algae blooms rare' }
+  if (factor < 0.6)  return { label: 'Moderate nutrients', color: '#d4850a', description: 'Some bloom potential in warm conditions' }
+  if (factor < 0.8)  return { label: 'Nutrient-rich',      color: '#e06c00', description: 'Eutrophic — elevated bloom risk when warm' }
+  return               { label: 'Highly eutrophic',         color: '#c0392b', description: 'High nutrient load — bloom penalty fully applied' }
+}
+
+function getTurbidity(penalty: number): { label: string; color: string; spm: string; description: string } {
+  if (penalty < 0.3)  return { label: 'Clear',        color: '#1a8a5a', spm: '< 2 mg/l',   description: 'Low sediment — minimal impact on visibility' }
+  if (penalty < 1.0)  return { label: 'Slight haze',  color: '#d4850a', spm: '2–5 mg/l',   description: 'Some particulates — slight reduction in viz' }
+  if (penalty < 2.0)  return { label: 'Turbid',       color: '#e06c00', spm: '5–15 mg/l',  description: 'Elevated sediment — noticeable viz reduction' }
+  if (penalty < 3.5)  return { label: 'Very turbid',  color: '#c0392b', spm: '15–50 mg/l', description: 'High sediment load — likely post-swell resuspension' }
+  return               { label: 'Extreme turbidity',   color: '#8b0000', spm: '> 50 mg/l',  description: 'Storm/estuary levels — severe viz impact' }
+}
+
+export function DayDetail({ day, locationName, reportCount }: Props) {
+  const vis = day.vis_corrected ?? day.vis_estimate
+  const pct = (vis / 15) * 100
+  const dateLabel = new Date(day.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
+
+  const waterQuality = day.nutrient_factor != null ? getWaterQuality(day.nutrient_factor) : null
+  const turbidity = day.turbidity_penalty != null && day.turbidity_penalty > 0
+    ? getTurbidity(day.turbidity_penalty)
+    : null
+
+  return (
+    <div className={styles.card}>
+      <div className={styles.header}>
+        <div className={styles.dateBlock}>
+          <div className={styles.dateLine}>{locationName}</div>
+          <div className={styles.dateLine}>{dateLabel}</div>
+          {day.is_forecast && <div className={styles.forecastBadge}>Forecast</div>}
+        </div>
+        <div className={styles.visBlock}>
+          <div className={`${styles.visNumber} ${styles[day.color_class]}`}>{vis.toFixed(1)}</div>
+          <div className={styles.visUnit}>metres</div>
+          {day.vis_corrected !== null && (
+            <div className={styles.correctedNote}>AI-corrected ({reportCount} reports)</div>
+          )}
+        </div>
+      </div>
+
+      <div className={`${styles.verdict} ${styles[day.color_class]}`}>{day.verdict}</div>
+
+      <div className={styles.barContainer}>
+        <div className={styles.barLabels}>
+          <span>0m</span><span>5m</span><span>10m</span><span>15m</span>
+        </div>
+        <div className={styles.barTrack}>
+          <div className={`${styles.barFill} ${styles[`bg_${day.color_class}`]}`} style={{ width: `${pct}%` }} />
+        </div>
+      </div>
+
+      {/* Temperatures */}
+      <div className={styles.tempsRow}>
+        <div className={styles.tempCard}>
+          <div className={styles.tempLabel}>Air Temp</div>
+          <div className={styles.tempValue}>{day.air_temp.toFixed(1)}°C</div>
+        </div>
+        <div className={styles.tempCard}>
+          <div className={styles.tempLabel}>Sea Temp</div>
+          <div className={styles.tempValue}>{day.sea_temp !== null ? `${day.sea_temp.toFixed(1)}°C` : 'N/A'}</div>
+        </div>
+        <div className={styles.tempCard}>
+          <div className={styles.tempLabel}>Humidity</div>
+          <div className={styles.tempValue}>{Math.round(day.humidity)}%</div>
+        </div>
+      </div>
+
+      {/* Algae bloom risk */}
+      {(day.algae.risk !== 'low' || day.algae.drivers.length > 0) && (
+        <div className={styles.algaeCard}>
+          <div className={styles.algaeHeader}>
+            <div className={styles.algaeLabel}>Algae Bloom Risk</div>
+            <div className={`${styles.algaeRisk} ${styles[`algae${day.algae.risk.charAt(0).toUpperCase() + day.algae.risk.slice(1)}`]}`}>
+              {day.algae.risk.toUpperCase()}
+            </div>
+          </div>
+          {day.algae.drivers.length > 0 && (
+            <div className={styles.algaeDrivers}>{day.algae.drivers.join(' · ')}</div>
+          )}
+          {waterQuality && (
+            <div className={styles.waterQualityNote} style={{ color: waterQuality.color }}>
+              {waterQuality.description}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Water quality indicator (Option B) */}
+      {waterQuality && (
+        <div className={styles.waterQualityCard}>
+          <div className={styles.waterQualityHeader}>
+            <div className={styles.waterQualityLabelText}>Water Quality</div>
+            <div className={styles.waterQualityBadge} style={{ color: waterQuality.color }}>
+              {waterQuality.label.toUpperCase()}
+            </div>
+          </div>
+          <div className={styles.waterQualityBar}>
+            <div
+              className={styles.waterQualityFill}
+              style={{
+                width: `${Math.round(day.nutrient_factor! * 100)}%`,
+                background: waterQuality.color,
+              }}
+            />
+          </div>
+          <div className={styles.waterQualitySub}>
+            Based on satellite chlorophyll-a · affects algae bloom penalty
+          </div>
+        </div>
+      )}
+
+      {/* Turbidity (SPM) card */}
+      {turbidity && (
+        <div className={styles.waterQualityCard}>
+          <div className={styles.waterQualityHeader}>
+            <div className={styles.waterQualityLabelText}>Turbidity</div>
+            <div className={styles.waterQualityBadge} style={{ color: turbidity.color }}>
+              {turbidity.label.toUpperCase()}
+            </div>
+          </div>
+          <div className={styles.waterQualityBar}>
+            <div
+              className={styles.waterQualityFill}
+              style={{
+                width: `${Math.min(100, Math.round((day.turbidity_penalty! / 5.0) * 100))}%`,
+                background: turbidity.color,
+              }}
+            />
+          </div>
+          <div className={styles.waterQualityMeta}>
+            <span style={{ color: turbidity.color }}>{turbidity.spm} suspended matter</span>
+            <span className={styles.waterQualityPenalty}>−{day.turbidity_penalty!.toFixed(1)}m viz</span>
+          </div>
+          <div className={styles.waterQualitySub}>
+            {turbidity.description} · Based on satellite SPM
+          </div>
+        </div>
+      )}
+
+      {/* Factor grid */}
+      <div className={styles.grid}>
+        {day.factors.map(f => {
+          const { label, color } = getImpact(f.penalty, f.max_penalty)
+          const barPct = Math.min(100, (Math.abs(f.penalty) / f.max_penalty) * 100)
+          const ratio = Math.abs(f.penalty) / f.max_penalty
+          const barColor = ratio === 0 ? '#1a6b4a' : ratio < 0.4 ? '#d4850a' : ratio < 0.75 ? '#e06c00' : '#c0392b'
+          return (
+            <div key={f.name} className={styles.factorCard}>
+              <div className={styles.factorName}>{f.name}</div>
+              <div className={styles.factorValue}>{f.value}</div>
+              {f.note && <div className={styles.factorNote}>{f.note}</div>}
+              <div className={styles.factorImpact} style={{ color }}>{label}</div>
+              <div className={styles.factorBar} style={{ width: `${barPct}%`, background: barColor }} />
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}

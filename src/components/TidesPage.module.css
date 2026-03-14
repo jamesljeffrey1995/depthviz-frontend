@@ -1,0 +1,237 @@
+.card {
+  background: rgba(4, 30, 46, 0.6);
+  border: 1px solid rgba(0, 201, 255, 0.1);
+  padding: 24px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.3;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.headerLeft {}
+
+.locationLabel {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.45;
+  margin-bottom: 4px;
+}
+
+.datumLabel {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.3;
+}
+
+.headerRight {
+  text-align: right;
+}
+
+.currentBadge {
+  font-family: var(--font-display);
+  font-size: 28px;
+  letter-spacing: 0.1em;
+  line-height: 1;
+}
+
+.currentDirection {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  margin-top: 4px;
+}
+
+/* Date navigator */
+.dateNav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.dateBtn {
+  background: rgba(4, 30, 46, 0.6);
+  border: 1px solid rgba(0, 201, 255, 0.15);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.dateBtn:hover {
+  border-color: rgba(0, 201, 255, 0.4);
+  background: rgba(0, 201, 255, 0.1);
+}
+
+.dateLabel {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-bright);
+  min-width: 200px;
+  text-align: center;
+}
+
+/* Section label */
+.sectionLabel {
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  opacity: 0.4;
+  margin-bottom: 16px;
+}
+
+/* Chart */
+.chartWrapper {
+  width: 100%;
+  overflow: hidden;
+}
+
+.chart {
+  width: 100%;
+  height: auto;
+}
+
+/* Events grid */
+.eventsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.eventCard {
+  background: rgba(2, 13, 20, 0.5);
+  border: 1px solid rgba(0, 201, 255, 0.07);
+  padding: 14px;
+  text-align: center;
+}
+
+.eventType {
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.eventHeight {
+  font-family: var(--font-display);
+  font-size: 28px;
+  color: var(--text-bright);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.eventTime {
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  opacity: 0.5;
+}
+
+/* Tidal range */
+.rangeRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.rangeInfo {}
+
+.rangeValue {
+  font-family: var(--font-display);
+  font-size: 36px;
+  color: var(--text-bright);
+  line-height: 1;
+}
+
+.rangeBadge {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.rangeBar {
+  height: 4px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+
+.rangeFill {
+  height: 100%;
+  transition: width 0.6s ease;
+}
+
+.rangeScale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 8px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.3;
+}
+
+/* Loading & error states */
+.loadingState {
+  text-align: center;
+  padding: 32px;
+}
+
+.loadingPulse {
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(0, 201, 255, 0.3);
+  border-radius: 50%;
+  margin: 0 auto 16px;
+  animation: tidePulse 1.5s ease-out infinite;
+}
+
+@keyframes tidePulse {
+  0%   { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+.loadingText {
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  animation: textPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes textPulse {
+  0%, 100% { opacity: 0.3; }
+  50%      { opacity: 0.7; }
+}
+
+.errorState {
+  text-align: center;
+  padding: 32px;
+  font-size: 11px;
+  color: var(--danger);
+  letter-spacing: 0.1em;
+}

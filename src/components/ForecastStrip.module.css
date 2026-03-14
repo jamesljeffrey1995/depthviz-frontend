@@ -1,0 +1,92 @@
+.strip {
+  margin-bottom: 24px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.row {
+  display: flex;
+  gap: 6px;
+  min-width: max-content;
+  padding-bottom: 4px;
+}
+
+.day {
+  background: rgba(4, 30, 46, 0.6);
+  border: 1px solid rgba(0, 201, 255, 0.08);
+  padding: 12px 10px;
+  width: 72px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.day:hover {
+  border-color: rgba(0, 201, 255, 0.25);
+  background: rgba(4, 30, 46, 0.9);
+}
+
+.day.active {
+  border-color: rgba(0, 201, 255, 0.5);
+  background: rgba(7, 40, 64, 0.9);
+}
+
+.day.forecast::after {
+  content: 'FCST';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 6px;
+  letter-spacing: 0.1em;
+  opacity: 0.35;
+}
+
+.dateLabel {
+  font-size: 8px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.4;
+  margin-bottom: 6px;
+}
+
+.vis {
+  font-family: var(--font-display);
+  font-size: 28px;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.unit {
+  font-size: 8px;
+  opacity: 0.4;
+  letter-spacing: 0.1em;
+}
+
+.verdict {
+  font-size: 7px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 6px;
+  opacity: 0.7;
+}
+
+.algaePip {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  margin-left: 3px;
+  vertical-align: middle;
+}
+
+.algaeLow      { background: transparent; }
+.algaeModerate { background: #d4850a; }
+.algaeHigh     { background: #c0392b; }
+
+.blocked  { color: #4a4a5a; }
+.poor     { color: var(--danger); }
+.marginal { color: var(--warn); }
+.decent   { color: #7fb87a; }
+.good     { color: var(--good); }
+.excellent { color: var(--excellent); }

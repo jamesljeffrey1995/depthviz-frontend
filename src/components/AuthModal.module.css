@@ -1,0 +1,73 @@
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(2, 13, 20, 0.88);
+  backdrop-filter: blur(6px);
+  z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+
+.modal {
+  background: var(--ocean-mid);
+  border: 1px solid rgba(0, 201, 255, 0.2);
+  padding: 32px 28px;
+  width: 100%; max-width: 380px;
+  position: relative;
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.close {
+  position: absolute; top: 16px; right: 16px;
+  background: none; border: none;
+  color: var(--text); opacity: .5; cursor: pointer; font-size: 14px;
+  padding: 4px 8px;
+}
+.close:hover { opacity: 1; }
+
+.title {
+  font-family: var(--font-display);
+  font-size: 36px; letter-spacing: 0.12em;
+  color: var(--text-bright); margin-bottom: 6px;
+}
+
+.sub {
+  font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+  opacity: .4; margin-bottom: 28px; line-height: 1.8;
+}
+
+.field { margin-bottom: 16px; }
+.label { display: block; font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; opacity: .45; margin-bottom: 8px; }
+
+.input {
+  width: 100%; background: rgba(10, 61, 92, 0.3);
+  border: 1px solid rgba(0, 201, 255, 0.2);
+  color: var(--text-bright); font-family: var(--font-mono); font-size: 13px;
+  padding: 13px 16px; outline: none;
+}
+.input:focus { border-color: rgba(0, 201, 255, 0.5); }
+
+.error { font-size: 11px; color: var(--danger); margin-bottom: 12px; }
+
+.btn {
+  width: 100%; background: rgba(0, 201, 255, 0.12);
+  border: 1px solid rgba(0, 201, 255, 0.4);
+  color: var(--accent); font-family: var(--font-mono);
+  font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
+  padding: 14px; cursor: pointer; margin-bottom: 16px; transition: all 0.15s;
+}
+.btn:hover:not(:disabled) { background: rgba(0, 201, 255, 0.22); }
+.btn:disabled { opacity: .35; cursor: not-allowed; }
+
+.why { font-size: 9px; opacity: .35; line-height: 1.8; letter-spacing: 0.05em; text-align: center; }
+
+/* Sent state */
+.sent { text-align: center; padding: 20px 0; }
+.sentIcon { font-size: 40px; margin-bottom: 16px; }
+.sentText { color: var(--text-bright); font-size: 13px; margin-bottom: 10px; line-height: 1.6; }
+.sentText strong { color: var(--accent); }
+.sentHint { font-size: 10px; opacity: .45; letter-spacing: 0.08em; line-height: 1.8; }
