@@ -109,6 +109,7 @@ export default function App() {
         <button
           className={styles.authBtn}
           onClick={() => user ? setView('profile') : setShowAuth(true)}
+          title={user ? (user.email?.split('@')[0] ?? 'Profile') : 'Sign in'}
         >
           {user ? (user.email?.split('@')[0] ?? 'Profile') : 'Sign in'}
         </button>
