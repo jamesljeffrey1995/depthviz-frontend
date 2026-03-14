@@ -25,8 +25,11 @@ export function ProfilePanel({ onClose }: ProfilePanelProps) {
   }, [user])
 
   const saveName = async () => {
-    await updateProfile(nameInput)
-    setProfile(p => p ? { ...p, display_name: nameInput } : p)
+    const trimmed = nameInput.trim().slice(0, 50)
+    if (!trimmed) return
+    await updateProfile(trimmed)
+    setProfile(p => p ? { ...p, display_name: trimmed } : p)
+    setNameInput(trimmed)
     setEditName(false)
   }
 
@@ -58,6 +61,7 @@ export function ProfilePanel({ onClose }: ProfilePanelProps) {
                 onChange={e => setNameInput(e.target.value)}
                 autoFocus
                 onKeyDown={e => e.key === 'Enter' && saveName()}
+                maxLength={50}
               />
               <button className={styles.nameSave} onClick={saveName}>Save</button>
             </div>
