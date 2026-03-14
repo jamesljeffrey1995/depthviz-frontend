@@ -218,6 +218,7 @@ export function SpotsMap({ onSelectSpot }: Props) {
   const [newDesc, setNewDesc] = useState('')
   const [isPublic, setIsPublic] = useState(false)
   const [proximityError, setProximityError] = useState('')
+  const [syncWarning, setSyncWarning] = useState('')
   const [votes, setVotes] = useState<Record<string, number>>(loadVotes)
 
   const handleMapClick = useCallback((lat: number, lon: number) => {
@@ -259,7 +260,7 @@ export function SpotsMap({ onSelectSpot }: Props) {
       try {
         await createLocation(spot.name, spot.lat, spot.lon, true)
       } catch {
-        // Silently fall back to local-only save
+        setSyncWarning('Spot saved locally but failed to sync — it may not be visible to other users')
       }
     }
 
@@ -294,7 +295,10 @@ export function SpotsMap({ onSelectSpot }: Props) {
   const handleVote = (spot: DiveSpot, delta: 1 | -1) => {
     const key = spotKey(spot)
     setVotes(prev => {
-      const next = { ...prev, [key]: (prev[key] ?? 0) + delta }
+      const current = prev[key] ?? 0
+      const updated = current + delta
+      if (updated < 0) return prev // prevent negative vote totals
+      const next = { ...prev, [key]: updated }
       saveVotes(next)
       return next
     })
@@ -353,7 +357,7 @@ export function SpotsMap({ onSelectSpot }: Props) {
                     >
                       👍
                     </button>
-                    <span className={styles.voteCount}>{(spot.votes ?? 0) + (votes[spotKey(spot)] ?? 0)}</span>
+                    <span className={styles.voteCount}>{votes[spotKey(spot)] ?? 0}</span>
                     <button
                       className={styles.voteBtn}
                       onClick={() => handleVote(spot, -1)}
@@ -475,12 +479,28 @@ export function SpotsMap({ onSelectSpot }: Props) {
           <button className={styles.addSpotBtn} onClick={() => setAdding(true)}>
             + Add a Spot
           </button>
-          {userSpots.length > 0 && (
-            <span className={styles.userSpotsCount}>
-              {userSpots.length} custom spot{userSpots.length !== 1 ? 's' : ''}
-              {' '}({userSpots.filter(s => s.isPublic).length} public, {userSpots.filter(s => !s.isPublic).length} private)
-            </span>
-          )}
+          {userSpots.length > 0 && (() => {
+            const publicCount = userSpots.filter(s => s.isPublic).length
+            return (
+              <span className={styles.userSpotsCount}>
+                {userSpots.length} custom spot{userSpots.length !== 1 ? 's' : ''}
+                {' '}({publicCount} public, {userSpots.length - publicCount} private)
+              </span>
+            )
+          })()}
+        </div>
+      )}
+
+      {syncWarning && (
+        <div className={styles.addFormError}>
+          {syncWarning}
+          <button
+            className={styles.addFormCancelBtn}
+            onClick={() => setSyncWarning('')}
+            style={{ marginLeft: 8, padding: '4px 10px' }}
+          >
+            Dismiss
+          </button>
         </div>
       )}
 
