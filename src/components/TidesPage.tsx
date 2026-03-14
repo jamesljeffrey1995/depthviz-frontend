@@ -36,9 +36,11 @@ function getRangeColor(category: string): string {
   }
 }
 
-function buildChartPath(hourly: { time: string; height: number }[]): { path: string; fillPath: string; minH: number; maxH: number; points: { x: number; y: number; height: number; time: string }[] } {
-  if (hourly.length === 0) return { path: '', fillPath: '', minH: 0, maxH: 1, points: [] }
-  const heights = hourly.map(h => h.height)
+function buildChartPath(hourly: { time: string; height: number | null }[]): { path: string; fillPath: string; minH: number; maxH: number; points: { x: number; y: number; height: number; time: string }[] } {
+  // Filter out entries with null heights
+  const valid = hourly.filter((h): h is { time: string; height: number } => h.height != null)
+  if (valid.length === 0) return { path: '', fillPath: '', minH: 0, maxH: 1, points: [] }
+  const heights = valid.map(h => h.height)
   const minH = Math.min(...heights) - 0.3
   const maxH = Math.max(...heights) + 0.3
   const range = maxH - minH || 1
@@ -49,8 +51,8 @@ function buildChartPath(hourly: { time: string; height: number }[]): { path: str
   const padBot = 30
   const chartH = H - padTop - padBot
 
-  const points = hourly.map((h, i) => ({
-    x: (i / (hourly.length - 1)) * W,
+  const points = valid.map((h, i) => ({
+    x: (i / (valid.length - 1)) * W,
     y: padTop + chartH - ((h.height - minH) / range) * chartH,
     height: h.height,
     time: h.time,
@@ -75,20 +77,22 @@ function buildChartPath(hourly: { time: string; height: number }[]): { path: str
   return { path, fillPath, minH, maxH, points }
 }
 
-function findEventPositions(events: TideEvent[], hourly: { time: string; height: number }[], chartPoints: { x: number; y: number; height: number; time: string }[]) {
-  return events.map(ev => {
+function findEventPositions(events: TideEvent[], chartPoints: { x: number; y: number; height: number; time: string }[]) {
+  if (chartPoints.length === 0) return []
+  return events.filter(ev => ev.height != null).map(ev => {
     const evTime = new Date(ev.time).getTime()
-    // Find closest hourly point
+    // Find closest chart point
     let closestIdx = 0
     let closestDiff = Infinity
-    for (let i = 0; i < hourly.length; i++) {
-      const diff = Math.abs(new Date(hourly[i].time).getTime() - evTime)
+    for (let i = 0; i < chartPoints.length; i++) {
+      const diff = Math.abs(new Date(chartPoints[i].time).getTime() - evTime)
       if (diff < closestDiff) { closestDiff = diff; closestIdx = i }
     }
     return {
       ...ev,
-      x: chartPoints[closestIdx]?.x ?? 0,
-      y: chartPoints[closestIdx]?.y ?? 0,
+      height: ev.height as number,
+      x: chartPoints[closestIdx].x,
+      y: chartPoints[closestIdx].y,
     }
   })
 }
@@ -138,16 +142,16 @@ export function TidesPage({ lat, lon, locationName }: Props) {
   if (!tides) return null
 
   const { path, fillPath, minH, maxH, points } = buildChartPath(tides.hourly)
-  const eventPositions = findEventPositions(tides.events, tides.hourly, points)
+  const eventPositions = findEventPositions(tides.events, points)
 
   // Current time marker
   const now = new Date()
   const todayStr = new Date().toISOString().split('T')[0]
   const isToday = selectedDate === todayStr
   let nowX: number | null = null
-  if (isToday && tides.hourly.length > 1) {
-    const startTime = new Date(tides.hourly[0].time).getTime()
-    const endTime = new Date(tides.hourly[tides.hourly.length - 1].time).getTime()
+  if (isToday && points.length > 1) {
+    const startTime = new Date(points[0].time).getTime()
+    const endTime = new Date(points[points.length - 1].time).getTime()
     const nowTime = now.getTime()
     if (nowTime >= startTime && nowTime <= endTime) {
       nowX = ((nowTime - startTime) / (endTime - startTime)) * 600
@@ -161,10 +165,11 @@ export function TidesPage({ lat, lon, locationName }: Props) {
     yTicks.push(Math.round(v * 10) / 10)
   }
 
-  // Generate time labels for X axis
-  const timeLabels = tides.hourly.filter((_, i) => i % 3 === 0).map((h, idx) => ({
-    label: formatTime(h.time),
-    x: points[idx * 3]?.x ?? 0,
+  // Generate time labels for X axis (evenly spaced from chart points)
+  const labelInterval = Math.max(1, Math.floor(points.length / 8))
+  const timeLabels = points.filter((_, i) => i % labelInterval === 0).map(p => ({
+    label: formatTime(p.time),
+    x: p.x,
   }))
 
   return (
@@ -243,7 +248,7 @@ export function TidesPage({ lat, lon, locationName }: Props) {
                   fontSize="9"
                   fontFamily="var(--font-mono)"
                 >
-                  {ev.height.toFixed(1)}m
+                  {ev.height != null ? `${ev.height.toFixed(1)}m` : ''}
                 </text>
               </g>
             ))}
@@ -267,7 +272,7 @@ export function TidesPage({ lat, lon, locationName }: Props) {
               <div className={styles.eventType} style={{ color: ev.type === 'high' ? 'var(--accent)' : 'var(--warn)' }}>
                 {ev.type === 'high' ? 'HIGH' : 'LOW'}
               </div>
-              <div className={styles.eventHeight}>{ev.height.toFixed(2)}m</div>
+              <div className={styles.eventHeight}>{ev.height != null ? `${ev.height.toFixed(2)}m` : 'N/A'}</div>
               <div className={styles.eventTime}>{formatTime(ev.time)}</div>
             </div>
           ))}
@@ -279,7 +284,7 @@ export function TidesPage({ lat, lon, locationName }: Props) {
         <div className={styles.rangeRow}>
           <div className={styles.rangeInfo}>
             <div className={styles.sectionLabel}>Tidal Range</div>
-            <div className={styles.rangeValue}>{tides.tidal_range_m.toFixed(1)}m</div>
+            <div className={styles.rangeValue}>{tides.tidal_range_m != null ? `${tides.tidal_range_m.toFixed(1)}m` : 'N/A'}</div>
           </div>
           <div className={styles.rangeBadge} style={{ color: getRangeColor(tides.range_category) }}>
             {tides.range_category === 'micro' ? 'MICRO-TIDAL' :
@@ -290,7 +295,7 @@ export function TidesPage({ lat, lon, locationName }: Props) {
           <div
             className={styles.rangeFill}
             style={{
-              width: `${Math.min(100, (tides.tidal_range_m / 8) * 100)}%`,
+              width: `${Math.min(100, ((tides.tidal_range_m ?? 0) / 8) * 100)}%`,
               background: getRangeColor(tides.range_category),
             }}
           />
