@@ -153,13 +153,13 @@ export type ColorClass = 'blocked' | 'poor' | 'marginal' | 'decent' | 'good' | '
 // Tides & Currents
 export interface TideEvent {
   time: string
-  height: number
+  height: number | null
   type: 'high' | 'low'
 }
 
 export interface HourlyTide {
   time: string
-  height: number
+  height: number | null
 }
 
 export interface CurrentState {
