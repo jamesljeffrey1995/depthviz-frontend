@@ -182,7 +182,8 @@ export default function App() {
             </div>
           )}
 
-          {view === 'map' && (
+          {/* Map when no forecast loaded */}
+          {view === 'map' && status !== 'success' && (
             <SpotsMap onSelectSpot={handleSpotSelect} />
           )}
 
@@ -247,6 +248,11 @@ export default function App() {
 
               {view === 'history' && selectedLocationId && (
                 <LocationHistory locationId={selectedLocationId} locationName={currentName} />
+              )}
+
+              {/* Map when forecast is loaded — renders after nav bar */}
+              {view === 'map' && (
+                <SpotsMap onSelectSpot={handleSpotSelect} />
               )}
             </>
           )}

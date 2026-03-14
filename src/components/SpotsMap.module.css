@@ -17,6 +17,28 @@
   position: relative;
 }
 
+/* Ensure Leaflet internals render correctly despite global * reset */
+.mapContainer :global(.leaflet-pane),
+.mapContainer :global(.leaflet-tile),
+.mapContainer :global(.leaflet-marker-icon),
+.mapContainer :global(.leaflet-marker-shadow),
+.mapContainer :global(.leaflet-tile-container) {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.mapContainer :global(.leaflet-tile),
+.mapContainer :global(.leaflet-tile-container img) {
+  max-width: none !important;
+  max-height: none !important;
+}
+
+.mapContainer :global(.leaflet-container) {
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .mapContainer::before {
   content: '';
   position: absolute;
