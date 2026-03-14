@@ -241,7 +241,7 @@ export function SpotsMap({ onSelectSpot }: Props) {
             <Marker key={spot.id ?? `user-${spot.name}-${spot.lat}-${spot.lon}`} position={[spot.lat, spot.lon]} icon={userSpotIcon}>
               <Popup>
                 <div className={styles.popup}>
-                  <div className={styles.popupUserBadge}>My Spot</div>
+                  <div className={styles.popupUserBadge}>My Spot (private)</div>
                   <div className={styles.popupName}>{spot.name}</div>
                   <div className={styles.popupDesc}>{spot.description}</div>
                   <button
@@ -278,6 +278,7 @@ export function SpotsMap({ onSelectSpot }: Props) {
       {adding ? (
         <div className={styles.addForm}>
           <div className={styles.addFormTitle}>Add a Dive Spot</div>
+          <div className={styles.addFormPrivacy}>🔒 Saved to this browser only — not visible to other users</div>
           {!pendingPos ? (
             <div className={styles.addFormHint}>↑ Click anywhere on the map to place your spot</div>
           ) : (
@@ -326,7 +327,7 @@ export function SpotsMap({ onSelectSpot }: Props) {
             + Add a Spot
           </button>
           {userSpots.length > 0 && (
-            <span className={styles.userSpotsCount}>{userSpots.length} custom spot{userSpots.length !== 1 ? 's' : ''}</span>
+            <span className={styles.userSpotsCount}>{userSpots.length} custom spot{userSpots.length !== 1 ? 's' : ''} (private)</span>
           )}
         </div>
       )}
