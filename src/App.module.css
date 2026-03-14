@@ -176,6 +176,7 @@
 
 .nav {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 20px;
 }
@@ -216,7 +217,28 @@
   color: var(--accent); font-family: var(--font-mono); font-size: 9px;
   letter-spacing: 0.2em; text-transform: uppercase; padding: 7px 12px; cursor: pointer;
   transition: all 0.15s;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .authBtn:hover { background: rgba(0,201,255,0.16); }
 
 .lockIcon { font-size: 9px; opacity: .6; }
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+  .navBtn {
+    padding: 8px 10px;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+  }
+
+  .authBtn {
+    max-width: 110px;
+    font-size: 8px;
+    padding: 6px 8px;
+    top: 20px;
+    right: 10px;
+  }
+}

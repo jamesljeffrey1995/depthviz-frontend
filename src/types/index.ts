@@ -181,4 +181,4 @@ export interface TidesResponse {
   range_category: 'micro' | 'meso' | 'macro'
 }
 
-export type AppView = 'forecast' | 'locations' | 'report' | 'tides'
+export type AppView = 'forecast' | 'locations' | 'report' | 'tides' | 'map'

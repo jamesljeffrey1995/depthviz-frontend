@@ -10,6 +10,7 @@ import { AuthModal } from './components/AuthModal'
 import { ProfilePanel } from './components/ProfilePanel'
 import { LocationHistory } from './components/LocationHistory'
 import { TidesPage } from './components/TidesPage'
+import { SpotsMap } from './components/SpotsMap'
 import { CookieBanner } from './components/CookieBanner'
 import { LegalPage } from './components/LegalPage'
 import type { LegalPageType } from './components/LegalPage'
@@ -91,6 +92,16 @@ export default function App() {
     setView('report')
   }
 
+  const handleSpotSelect = async (lat: number, lon: number, name: string) => {
+    setCurrentLat(lat)
+    setCurrentLon(lon)
+    setCurrentName(name)
+    const matched = locations.find(l => Math.abs(l.lat - lat) < 0.01 && Math.abs(l.lon - lon) < 0.01)
+    setSelectedLocationId(matched?.id ?? null)
+    await searchByCoords(lat, lon, name, matched?.id)
+    setView('forecast')
+  }
+
   const todayIndex = forecast?.days.findIndex(d => d.date === new Date().toISOString().split('T')[0]) ?? -1
 
   if (authLoading) return (
@@ -145,30 +156,47 @@ export default function App() {
       {/* All forecast/search content hidden while profile or legal page is open */}
       {view !== 'profile' && view !== 'legal' && (
         <>
-          {status === 'loading' && (
+          {/* Map button — always visible when no forecast loaded */}
+          {view !== 'map' && status !== 'loading' && status !== 'success' && (
+            <div className={styles.nav}>
+              <button
+                className={styles.navBtn}
+                onClick={() => setView('map')}
+              >
+                Map
+              </button>
+            </div>
+          )}
+
+          {status === 'loading' && view !== 'map' && (
             <div className={styles.loading}>
               <div className={styles.sonar} />
               <div className={styles.loadingText}>Reading conditions...</div>
             </div>
           )}
 
-          {status === 'idle' && (
+          {status === 'idle' && view !== 'map' && (
             <div className={styles.empty}>
               <div className={styles.emptyIcon}>🤿</div>
               <div className={styles.emptyText}>Enter a location to check<br />underwater visibility conditions</div>
             </div>
           )}
 
+          {/* Map when no forecast loaded */}
+          {view === 'map' && status !== 'success' && (
+            <SpotsMap onSelectSpot={handleSpotSelect} />
+          )}
+
           {status === 'success' && forecast && (
             <>
               <div className={styles.nav}>
-                {(['forecast', 'tides', 'report'] as ExtView[]).map(v => (
+                {(['forecast', 'tides', 'report', 'map'] as ExtView[]).map(v => (
                   <button
                     key={v}
                     className={`${styles.navBtn} ${view === v ? styles.navActive : ''}`}
                     onClick={() => v === 'report' ? handleReportClick() : setView(v)}
                   >
-                    {v === 'forecast' ? 'Forecast' : v === 'tides' ? 'Tides' : 'Log Dive'}
+                    {v === 'forecast' ? 'Forecast' : v === 'tides' ? 'Tides' : v === 'map' ? 'Map' : 'Log Dive'}
                     {v === 'report' && !user && <span className={styles.lockIcon}> 🔒</span>}
                   </button>
                 ))}
@@ -220,6 +248,11 @@ export default function App() {
 
               {view === 'history' && selectedLocationId && (
                 <LocationHistory locationId={selectedLocationId} locationName={currentName} />
+              )}
+
+              {/* Map when forecast is loaded — renders after nav bar */}
+              {view === 'map' && (
+                <SpotsMap onSelectSpot={handleSpotSelect} />
               )}
             </>
           )}
