@@ -26,7 +26,7 @@ export default function App() {
   const { status, forecast, error, search, searchByCoords } = useConditions()
   const { getLocation } = useGeolocation()
   const [selectedDay, setSelectedDay] = useState(0)
-  const [view, setView] = useState<ExtView>('forecast')
+  const [view, setView] = useState<ExtView>('map')
   const [locations, setLocations] = useState<Location[]>([])
   const [currentLat, setCurrentLat] = useState<number | null>(null)
   const [currentLon, setCurrentLon] = useState<number | null>(null)
