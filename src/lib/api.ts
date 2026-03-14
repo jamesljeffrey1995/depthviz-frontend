@@ -51,7 +51,7 @@ export async function getLocations(): Promise<Location[]> {
   return apiFetch<Location[]>('/locations')
 }
 
-export async function createLocation(name: string, lat: number, lon: number, isPublic = true): Promise<Location> {
+export async function createLocation(name: string, lat: number, lon: number, isPublic = false): Promise<Location> {
   return apiFetch<Location>('/locations', {
     method: 'POST',
     body: JSON.stringify({ name, lat, lon, is_public: isPublic }),

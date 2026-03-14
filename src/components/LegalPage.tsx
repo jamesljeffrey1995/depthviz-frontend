@@ -84,6 +84,7 @@ function CookiePolicy() {
         <ul>
           <li><span className={styles.highlight}>Supabase auth token</span> — keeps you signed in between sessions (localStorage)</li>
           <li><span className={styles.highlight}>Cookie consent preference</span> — remembers your cookie banner choice (localStorage)</li>
+          <li><span className={styles.highlight}>Custom dive spots</span> — stores your user-added map spots locally in your browser (localStorage). These are never sent to our servers and are not visible to other users.</li>
         </ul>
       </div>
 
