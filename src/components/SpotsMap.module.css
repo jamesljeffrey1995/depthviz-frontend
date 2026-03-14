@@ -17,6 +17,14 @@
   position: relative;
 }
 
+.mapAdding {
+  cursor: crosshair;
+}
+
+.mapAdding :global(.leaflet-container) {
+  cursor: crosshair !important;
+}
+
 /* Ensure Leaflet internals render correctly despite global * reset */
 .mapContainer :global(.leaflet-pane),
 .mapContainer :global(.leaflet-tile),
@@ -71,10 +79,155 @@
   margin-top: 10px;
 }
 
+/* Add Spot row */
+.addSpotRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.addSpotBtn {
+  background: rgba(0, 201, 255, 0.08);
+  border: 1px solid rgba(0, 201, 255, 0.25);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.addSpotBtn:hover {
+  background: rgba(0, 201, 255, 0.15);
+  border-color: rgba(0, 201, 255, 0.5);
+}
+
+.userSpotsCount {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.4;
+  color: #ffb800;
+}
+
+/* Add Spot form */
+.addForm {
+  margin-top: 12px;
+  background: rgba(4, 30, 46, 0.7);
+  border: 1px solid rgba(0, 201, 255, 0.15);
+  padding: 16px;
+}
+
+.addFormTitle {
+  font-family: var(--font-display);
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.addFormHint {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  opacity: 0.6;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.addFormField {
+  margin-bottom: 10px;
+}
+
+.addFormLabel {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  opacity: 0.45;
+  margin-bottom: 6px;
+}
+
+.addFormInput {
+  width: 100%;
+  background: rgba(10, 61, 92, 0.3);
+  border: 1px solid rgba(0, 201, 255, 0.2);
+  color: var(--text-bright);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 10px 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.addFormInput:focus {
+  border-color: rgba(0, 201, 255, 0.5);
+}
+
+.addFormActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.addFormSaveBtn {
+  flex: 1;
+  background: rgba(0, 201, 255, 0.12);
+  border: 1px solid rgba(0, 201, 255, 0.4);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.addFormSaveBtn:hover:not(:disabled) {
+  background: rgba(0, 201, 255, 0.22);
+}
+
+.addFormSaveBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.addFormCancelBtn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.addFormCancelBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
 /* Popup styling */
 .popup {
   font-family: var(--font-mono);
   min-width: 180px;
+}
+
+.popupUserBadge {
+  display: inline-block;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #ffb800;
+  border: 1px solid rgba(255, 184, 0, 0.4);
+  padding: 2px 6px;
+  margin-bottom: 6px;
 }
 
 .popupName {
@@ -107,9 +260,32 @@
   cursor: pointer;
   transition: all 0.15s;
   text-align: center;
+  margin-bottom: 6px;
 }
 
 .popupBtn:hover {
   background: rgba(0, 201, 255, 0.15);
   border-color: rgba(0, 201, 255, 0.5);
 }
+
+.popupRemoveBtn {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: 1px solid rgba(255, 80, 80, 0.3);
+  color: #ff5050;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+
+.popupRemoveBtn:hover {
+  background: rgba(255, 80, 80, 0.1);
+  border-color: rgba(255, 80, 80, 0.5);
+}
+
