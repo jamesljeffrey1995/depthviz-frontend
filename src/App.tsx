@@ -9,6 +9,7 @@ import { ReportForm } from './components/ReportForm'
 import { AuthModal } from './components/AuthModal'
 import { ProfilePanel } from './components/ProfilePanel'
 import { LocationHistory } from './components/LocationHistory'
+import { TidesPage } from './components/TidesPage'
 import { CookieBanner } from './components/CookieBanner'
 import { LegalPage } from './components/LegalPage'
 import type { LegalPageType } from './components/LegalPage'
@@ -161,13 +162,13 @@ export default function App() {
           {status === 'success' && forecast && (
             <>
               <div className={styles.nav}>
-                {(['forecast', 'report'] as ExtView[]).map(v => (
+                {(['forecast', 'tides', 'report'] as ExtView[]).map(v => (
                   <button
                     key={v}
                     className={`${styles.navBtn} ${view === v ? styles.navActive : ''}`}
                     onClick={() => v === 'report' ? handleReportClick() : setView(v)}
                   >
-                    {v === 'forecast' ? 'Forecast' : 'Log Dive'}
+                    {v === 'forecast' ? 'Forecast' : v === 'tides' ? 'Tides' : 'Log Dive'}
                     {v === 'report' && !user && <span className={styles.lockIcon}> 🔒</span>}
                   </button>
                 ))}
@@ -202,6 +203,10 @@ export default function App() {
                     reportCount={forecast.report_count}
                   />
                 </>
+              )}
+
+              {view === 'tides' && currentLat !== null && currentLon !== null && (
+                <TidesPage lat={currentLat} lon={currentLon} locationName={currentName} />
               )}
 
               {view === 'report' && user && (

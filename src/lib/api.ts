@@ -6,6 +6,7 @@ import type {
   Location,
   ReportCreate,
   ReportRead,
+  TidesResponse,
   UserProfile,
 } from '../types'
 
@@ -88,6 +89,15 @@ export async function updateProfile(displayName: string) {
 
 export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
   return apiFetch<LeaderboardEntry[]>('/profile/leaderboard')
+}
+
+// Tides & Currents
+export async function getTides(lat: number, lon: number, name: string, date?: string): Promise<TidesResponse> {
+  const params = new URLSearchParams({
+    lat: String(lat), lon: String(lon), name,
+    ...(date ? { date } : {}),
+  })
+  return apiFetch<TidesResponse>(`/tides?${params}`)
 }
 
 // Location history
