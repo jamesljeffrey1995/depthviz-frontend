@@ -150,4 +150,35 @@ export interface ConditionsData {
 }
 
 export type ColorClass = 'blocked' | 'poor' | 'marginal' | 'decent' | 'good' | 'excellent'
-export type AppView = 'forecast' | 'locations' | 'report'
+// Tides & Currents
+export interface TideEvent {
+  time: string
+  height: number
+  type: 'high' | 'low'
+}
+
+export interface HourlyTide {
+  time: string
+  height: number
+}
+
+export interface CurrentState {
+  state: 'slack' | 'weak' | 'moderate' | 'strong'
+  direction: 'flooding' | 'ebbing' | 'slack'
+  speed_knots: number | null
+}
+
+export interface TidesResponse {
+  location_name: string
+  lat: number
+  lon: number
+  date: string
+  datum: string
+  events: TideEvent[]
+  hourly: HourlyTide[]
+  current: CurrentState
+  tidal_range_m: number
+  range_category: 'micro' | 'meso' | 'macro'
+}
+
+export type AppView = 'forecast' | 'locations' | 'report' | 'tides'
