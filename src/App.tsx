@@ -10,20 +10,20 @@ import { AuthModal } from './components/AuthModal'
 import { ProfilePanel } from './components/ProfilePanel'
 import { LocationHistory } from './components/LocationHistory'
 import { TidesPage } from './components/TidesPage'
-import { SpotsMap } from './components/SpotsMap'
+import { SpotsMap, UK_DIVE_SPOTS } from './components/SpotsMap'
 import { CookieBanner } from './components/CookieBanner'
 import { LegalPage } from './components/LegalPage'
 import type { LegalPageType } from './components/LegalPage'
-import { getLocations, createLocation, geocode } from './lib/api'
+import { getLocations, createLocation } from './lib/api'
 import { formatLocationName } from './types'
-import type { Location, AppView } from './types'
+import type { GeocodingResult, Location, AppView } from './types'
 import styles from './App.module.css'
 
 type ExtView = AppView | 'profile' | 'history' | 'legal'
 
 export default function App() {
   const { user, loading: authLoading } = useAuth()
-  const { status, forecast, error, search, searchByCoords } = useConditions()
+  const { status, forecast, error, searchByCoords } = useConditions()
   const { getLocation } = useGeolocation()
   const [selectedDay, setSelectedDay] = useState(0)
   const [view, setView] = useState<ExtView>('map')
@@ -47,6 +47,25 @@ export default function App() {
     }
   }, [forecast])
 
+  const getLocalSuggestions = (query: string): GeocodingResult[] => {
+    const q = query.toLowerCase()
+    const seen = new Set<string>()
+    const results: GeocodingResult[] = []
+    for (const l of locations) {
+      if (l.name.toLowerCase().includes(q) && !seen.has(l.name)) {
+        seen.add(l.name)
+        results.push({ name: l.name, latitude: l.lat, longitude: l.lon })
+      }
+    }
+    for (const s of UK_DIVE_SPOTS) {
+      if (s.name.toLowerCase().includes(q) && !seen.has(s.name)) {
+        seen.add(s.name)
+        results.push({ name: s.name, latitude: s.lat, longitude: s.lon })
+      }
+    }
+    return results.slice(0, 8)
+  }
+
   const handleLocate = async () => {
     try {
       const coords = await getLocation()
@@ -62,7 +81,7 @@ export default function App() {
   }
 
   const handleSearch = async (query: string) => {
-    const results = await geocode(query)
+    const results = getLocalSuggestions(query)
     if (results.length) {
       const loc = results[0]
       setCurrentLat(loc.latitude)
@@ -72,8 +91,6 @@ export default function App() {
       const matched = locations.find(l => Math.abs(l.lat - loc.latitude) < 0.01 && Math.abs(l.lon - loc.longitude) < 0.01)
       setSelectedLocationId(matched?.id ?? null)
       await searchByCoords(loc.latitude, loc.longitude, name, matched?.id)
-    } else {
-      await search(query)
     }
   }
 
@@ -128,7 +145,7 @@ export default function App() {
       <SearchBar
         onSearch={handleSearch}
         onLocate={handleLocate}
-        getSuggestions={async (q) => geocode(q)}
+        getSuggestions={async (q) => getLocalSuggestions(q)}
         onSelectSuggestion={async (r) => {
           const name = formatLocationName(r)
           setCurrentLat(r.latitude)
