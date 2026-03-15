@@ -68,7 +68,7 @@ function spotKey(spot: DiveSpot): string {
   return spot.id ?? `${spot.name}-${spot.lat}-${spot.lon}`
 }
 
-const UK_DIVE_SPOTS: DiveSpot[] = [
+export const UK_DIVE_SPOTS: DiveSpot[] = [
   // Northeast England
   { name: 'St Abbs', lat: 55.897, lon: -2.138, description: 'Marine reserve with excellent visibility and diverse marine life' },
   { name: 'Eyemouth', lat: 55.871, lon: -2.090, description: 'Kelp forests and scenic wall dives' },
