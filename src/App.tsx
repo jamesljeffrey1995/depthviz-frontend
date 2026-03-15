@@ -200,7 +200,7 @@ export default function App() {
 
           {/* Map when no forecast loaded */}
           {view === 'map' && status !== 'success' && (
-            <SpotsMap onSelectSpot={handleSpotSelect} />
+            <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} />
           )}
 
           {status === 'success' && forecast && (
@@ -268,7 +268,7 @@ export default function App() {
 
               {/* Map when forecast is loaded — renders after nav bar */}
               {view === 'map' && (
-                <SpotsMap onSelectSpot={handleSpotSelect} />
+                <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} />
               )}
             </>
           )}
