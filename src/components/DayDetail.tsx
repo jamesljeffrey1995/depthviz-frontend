@@ -296,6 +296,11 @@ export function DayDetail({ day, locationName, reportCount }: Props) {
               Satellite observation: {day.water_quality.erddap_obs_date}
             </div>
           )}
+          {day.water_quality.bgc_source?.toUpperCase() === 'FALLBACK' && (
+            <div className={styles.waterQualitySub}>
+              No recent satellite or float data available — values estimated from regional baseline.
+            </div>
+          )}
         </div>
       )}
 
