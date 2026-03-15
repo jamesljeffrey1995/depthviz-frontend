@@ -49,17 +49,16 @@ export default function App() {
 
   const getLocalSuggestions = (query: string): GeocodingResult[] => {
     const q = query.toLowerCase()
-    const seen = new Set<string>()
     const results: GeocodingResult[] = []
+    const isNearExisting = (lat: number, lon: number) =>
+      results.some(r => Math.abs(r.latitude - lat) < 0.01 && Math.abs(r.longitude - lon) < 0.01)
     for (const l of locations) {
-      if (l.name.toLowerCase().includes(q) && !seen.has(l.name)) {
-        seen.add(l.name)
+      if (l.name.toLowerCase().includes(q) && !isNearExisting(l.lat, l.lon)) {
         results.push({ name: l.name, latitude: l.lat, longitude: l.lon })
       }
     }
     for (const s of UK_DIVE_SPOTS) {
-      if (s.name.toLowerCase().includes(q) && !seen.has(s.name)) {
-        seen.add(s.name)
+      if (s.name.toLowerCase().includes(q) && !isNearExisting(s.lat, s.lon)) {
         results.push({ name: s.name, latitude: s.lat, longitude: s.lon })
       }
     }
