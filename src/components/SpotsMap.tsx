@@ -19,6 +19,7 @@ interface DiveSpot {
 
 interface Props {
   onSelectSpot: (lat: number, lon: number, name: string) => void
+  center?: [number, number]
 }
 
 const STORAGE_KEY = 'depthviz_user_spots'
@@ -226,7 +227,7 @@ function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lon: number
   return null
 }
 
-export function SpotsMap({ onSelectSpot }: Props) {
+export function SpotsMap({ onSelectSpot, center }: Props) {
   const [userSpots, setUserSpots] = useState<DiveSpot[]>(loadUserSpots)
   const [adding, setAdding] = useState(false)
   const [pendingPos, setPendingPos] = useState<{ lat: number; lon: number } | null>(null)
@@ -337,8 +338,8 @@ export function SpotsMap({ onSelectSpot }: Props) {
       <div className={styles.label}>UK Dive Spots</div>
       <div className={`${styles.mapContainer} ${adding ? styles.mapAdding : ''}`}>
         <MapContainer
-          center={UK_CENTER}
-          zoom={UK_ZOOM}
+          center={center ?? UK_CENTER}
+          zoom={center ? 11 : UK_ZOOM}
           className={styles.map}
           scrollWheelZoom={true}
           attributionControl={true}
