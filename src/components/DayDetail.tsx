@@ -251,7 +251,10 @@ export function DayDetail({ day, locationName, reportCount }: Props) {
           <div className={styles.waterQualityHeader}>
             <div className={styles.waterQualityLabelText}>Water Clarity Data</div>
             {day.water_quality.bgc_source && (
-              <div className={styles.waterQualityBadge} style={{ color: '#00c9ff' }}>
+              <div
+                className={styles.waterQualityBadge}
+                style={{ color: day.water_quality.bgc_source.toUpperCase() === 'FALLBACK' ? '#d4850a' : '#00c9ff' }}
+              >
                 {day.water_quality.bgc_source.toUpperCase()}
               </div>
             )}
@@ -291,6 +294,11 @@ export function DayDetail({ day, locationName, reportCount }: Props) {
           {day.water_quality.erddap_obs_date && (
             <div className={styles.waterQualitySub}>
               Satellite observation: {day.water_quality.erddap_obs_date}
+            </div>
+          )}
+          {day.water_quality.bgc_source?.toUpperCase() === 'FALLBACK' && (
+            <div className={styles.waterQualitySub}>
+              No recent satellite or float data available — values estimated from regional baseline.
             </div>
           )}
         </div>
