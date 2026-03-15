@@ -12,6 +12,34 @@ export interface VisibilityFactor {
   max_penalty: number
 }
 
+export interface Resuspension {
+  depth_m: number | null
+  bottom_orbital_velocity: number | null
+  bed_shear_stress: number | null
+  risk_level: string
+  penalty: number
+  note: string | null
+}
+
+export interface RiverDischarge {
+  discharge_m3s: number | null
+  discharge_mean: number | null
+  discharge_ratio: number | null
+  risk_level: string
+  penalty: number
+  note: string | null
+}
+
+export interface WaterQuality {
+  bgc_kd: number | null
+  bgc_kd_vis: number | null
+  bgc_source: string | null
+  erddap_chlorophyll: number | null
+  erddap_kd490: number | null
+  erddap_kd490_vis: number | null
+  erddap_obs_date: string | null
+}
+
 export interface DayForecast {
   date: string
   is_forecast: boolean
@@ -32,6 +60,9 @@ export interface DayForecast {
   factors: VisibilityFactor[]
   nutrient_factor: number | null
   turbidity_penalty: number | null
+  resuspension: Resuspension | null
+  river_discharge: RiverDischarge | null
+  water_quality: WaterQuality | null
 }
 
 export interface ForecastResponse {
