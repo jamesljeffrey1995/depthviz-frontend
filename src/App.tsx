@@ -11,6 +11,7 @@ import { ProfilePanel } from './components/ProfilePanel'
 import { LocationHistory } from './components/LocationHistory'
 import { TidesPage } from './components/TidesPage'
 import { SpotsMap, UK_DIVE_SPOTS } from './components/SpotsMap'
+import { BestVisibility } from './components/BestVisibility'
 import { CookieBanner } from './components/CookieBanner'
 import { LegalPage } from './components/LegalPage'
 import type { LegalPageType } from './components/LegalPage'
@@ -172,8 +173,8 @@ export default function App() {
       {/* All forecast/search content hidden while profile or legal page is open */}
       {view !== 'profile' && view !== 'legal' && (
         <>
-          {/* Map button — always visible when no forecast loaded */}
-          {view !== 'map' && status !== 'loading' && status !== 'success' && (
+          {/* Nav buttons — always visible when no forecast loaded */}
+          {view !== 'map' && view !== 'best' && status !== 'loading' && status !== 'success' && (
             <div className={styles.nav}>
               <button
                 className={styles.navBtn}
@@ -181,17 +182,40 @@ export default function App() {
               >
                 Map
               </button>
+              <button
+                className={styles.navBtn}
+                onClick={() => setView('best')}
+              >
+                Best Vis
+              </button>
             </div>
           )}
 
-          {status === 'loading' && view !== 'map' && (
+          {(view === 'map' || view === 'best') && status !== 'success' && (
+            <div className={styles.nav}>
+              <button
+                className={`${styles.navBtn} ${view === 'map' ? styles.navActive : ''}`}
+                onClick={() => setView('map')}
+              >
+                Map
+              </button>
+              <button
+                className={`${styles.navBtn} ${view === 'best' ? styles.navActive : ''}`}
+                onClick={() => setView('best')}
+              >
+                Best Vis
+              </button>
+            </div>
+          )}
+
+          {status === 'loading' && view !== 'map' && view !== 'best' && (
             <div className={styles.loading}>
               <div className={styles.sonar} />
               <div className={styles.loadingText}>Reading conditions...</div>
             </div>
           )}
 
-          {status === 'idle' && view !== 'map' && (
+          {status === 'idle' && view !== 'map' && view !== 'best' && (
             <div className={styles.empty}>
               <div className={styles.emptyIcon}>🤿</div>
               <div className={styles.emptyText}>Enter a location to check<br />underwater visibility conditions</div>
@@ -203,16 +227,21 @@ export default function App() {
             <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} />
           )}
 
+          {/* Best Visibility when no forecast loaded */}
+          {view === 'best' && status !== 'success' && (
+            <BestVisibility onSelectSpot={handleSpotSelect} />
+          )}
+
           {status === 'success' && forecast && (
             <>
               <div className={styles.nav}>
-                {(['forecast', 'tides', 'report', 'map'] as ExtView[]).map(v => (
+                {(['forecast', 'tides', 'report', 'map', 'best'] as ExtView[]).map(v => (
                   <button
                     key={v}
                     className={`${styles.navBtn} ${view === v ? styles.navActive : ''}`}
                     onClick={() => v === 'report' ? handleReportClick() : setView(v)}
                   >
-                    {v === 'forecast' ? 'Forecast' : v === 'tides' ? 'Tides' : v === 'map' ? 'Map' : 'Log Dive'}
+                    {v === 'forecast' ? 'Forecast' : v === 'tides' ? 'Tides' : v === 'map' ? 'Map' : v === 'best' ? 'Best Vis' : 'Log Dive'}
                     {v === 'report' && !user && <span className={styles.lockIcon}> 🔒</span>}
                   </button>
                 ))}
@@ -269,6 +298,11 @@ export default function App() {
               {/* Map when forecast is loaded — renders after nav bar */}
               {view === 'map' && (
                 <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} />
+              )}
+
+              {/* Best Visibility when forecast is loaded */}
+              {view === 'best' && (
+                <BestVisibility onSelectSpot={handleSpotSelect} />
               )}
             </>
           )}
