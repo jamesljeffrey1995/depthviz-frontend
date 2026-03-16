@@ -1,0 +1,143 @@
+.panel {
+  background: rgba(4, 30, 46, 0.6);
+  border: 1px solid rgba(0, 201, 255, 0.1);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.userCard {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 20px;
+}
+
+.avatar {
+  width: 44px; height: 44px; flex-shrink: 0;
+  background: rgba(0, 201, 255, 0.12);
+  border: 1px solid rgba(0, 201, 255, 0.25);
+  font-family: var(--font-display); font-size: 22px;
+  color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.userInfo { flex: 1; min-width: 0; }
+
+.displayName {
+  font-size: 13px; color: var(--text-bright); letter-spacing: 0.05em;
+  cursor: pointer; margin-bottom: 3px;
+}
+.editHint { opacity: .4; font-size: 11px; }
+
+.nameEdit { display: flex; gap: 6px; margin-bottom: 3px; }
+.nameInput {
+  flex: 1; background: rgba(10,61,92,0.3); border: 1px solid rgba(0,201,255,0.2);
+  color: var(--text-bright); font-family: var(--font-mono); font-size: 12px; padding: 5px 8px; outline: none;
+}
+.nameSave {
+  background: rgba(0,201,255,0.1); border: 1px solid rgba(0,201,255,0.3);
+  color: var(--accent); font-family: var(--font-mono); font-size: 10px; padding: 4px 10px; cursor: pointer;
+}
+
+.email { font-size: 9px; opacity: .35; letter-spacing: 0.1em; }
+
+.signOut {
+  background: none; border: 1px solid rgba(192,57,43,0.3);
+  color: var(--danger); font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 0.15em; text-transform: uppercase; padding: 7px 12px; cursor: pointer; flex-shrink: 0;
+  opacity: .7; transition: opacity 0.15s;
+}
+.signOut:hover { opacity: 1; }
+
+.statsRow {
+  display: flex; gap: 8px; margin-bottom: 20px;
+}
+.stat {
+  flex: 1; background: rgba(2,13,20,0.4); border: 1px solid rgba(0,201,255,0.06); padding: 12px 10px; text-align: center;
+}
+.statVal { font-family: var(--font-display); font-size: 20px; color: var(--text-bright); margin-bottom: 3px; }
+.statLbl { font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; opacity: .4; }
+
+.tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+.tab {
+  flex: 1; background: rgba(4,30,46,0.6); border: 1px solid rgba(0,201,255,0.08);
+  color: var(--text); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.2em;
+  text-transform: uppercase; padding: 8px; cursor: pointer;
+}
+.tab.tabActive { border-color: rgba(0,201,255,0.35); color: var(--accent); background: rgba(0,201,255,0.08); }
+
+.reportList { display: flex; flex-direction: column; gap: 6px; }
+.reportRow {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(2,13,20,0.4); border: 1px solid rgba(0,201,255,0.05); padding: 10px 12px;
+  font-size: 11px;
+}
+.reportRow.quarantined { opacity: .45; }
+.reportDate { opacity: .4; font-size: 10px; letter-spacing: 0.1em; flex-shrink: 0; }
+.reportVis { color: var(--text-bright); font-family: var(--font-display); font-size: 15px; }
+.reportPred { opacity: .35; font-size: 10px; flex: 1; }
+.qTag {
+  font-size: 8px; letter-spacing: 0.15em; text-transform: uppercase;
+  border: 1px solid rgba(192,57,43,0.4); color: var(--danger); padding: 2px 6px;
+}
+
+.rank { font-family: var(--font-display); font-size: 18px; color: var(--accent); opacity: .5; width: 32px; flex-shrink: 0; }
+.boardName { flex: 1; font-size: 12px; color: var(--text-bright); }
+.trustedBadge { color: var(--excellent); margin-left: 5px; font-size: 11px; }
+.boardReports { font-size: 10px; opacity: .45; }
+.boardAcc { font-size: 10px; color: var(--excellent); opacity: .7; min-width: 50px; text-align: right; }
+
+.empty { font-size: 11px; opacity: .4; letter-spacing: 0.1em; padding: 20px 0; text-align: center; }
+
+.locationRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.locationName {
+  font-size: 14px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.locationCoords {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+.locationInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.deleteBtn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.deleteBtn:hover {
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+.backBtn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  padding: 0 0 16px 0;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+.backBtn:hover {
+  opacity: 1;
+}
