@@ -213,3 +213,23 @@ export interface TidesResponse {
 }
 
 export type AppView = 'forecast' | 'locations' | 'report' | 'tides' | 'map' | 'best'
+
+export interface LocationHistoryLog {
+  id: number
+  date: string
+  diver: string
+  actual_vis: number
+  predicted_vis: number
+  error: number
+  wave_height: number | null
+  swell_height: number | null
+  wind_speed: number | null
+  notes: string | null
+}
+
+export interface LocationHistoryResponse {
+  location_id: number
+  location_name: string
+  report_count: number
+  logs: LocationHistoryLog[]
+}

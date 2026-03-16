@@ -5,6 +5,7 @@ import type {
   GeocodingResult,
   LeaderboardEntry,
   Location,
+  LocationHistoryResponse,
   ReportCreate,
   ReportRead,
   TidesResponse,
@@ -155,28 +156,12 @@ export async function getTides(lat: number, lon: number, name: string, date?: st
 }
 
 // Location history
-export async function getLocationHistory(locationId: number) {
+export async function getLocationHistory(locationId: number): Promise<LocationHistoryResponse> {
   const key = `history:${locationId}`
-  const cached = cacheGet(key)
+  const cached = cacheGet<LocationHistoryResponse>(key)
   if (cached) return cached
 
-  const result = await apiFetch<{
-    location_id: number
-    location_name: string
-    report_count: number
-    logs: Array<{
-      id: number
-      date: string
-      diver: string
-      actual_vis: number
-      predicted_vis: number
-      error: number
-      wave_height: number | null
-      swell_height: number | null
-      wind_speed: number | null
-      notes: string | null
-    }>
-  }>(`/reports/location/${locationId}/history`)
+  const result = await apiFetch<LocationHistoryResponse>(`/reports/location/${locationId}/history`)
   cacheSet(key, result, TTL.HISTORY)
   return result
 }
