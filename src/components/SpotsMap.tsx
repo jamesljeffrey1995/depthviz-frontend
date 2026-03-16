@@ -357,36 +357,43 @@ export function SpotsMap({ onSelectSpot, center }: Props) {
   const handleVote = (spot: DiveSpot, delta: 1 | -1) => {
     const key = spotKey(spot)
     const direction = delta === 1 ? 'up' : 'down'
-    const existing = userVoteChoices[key]
 
-    let voteDelta: number
-    let nextChoices: Record<string, 'up' | 'down'>
+    setUserVoteChoices(prevChoices => {
+      const existing = prevChoices[key]
 
-    if (existing === direction) {
-      // Clicking same button again — toggle off (remove vote)
-      voteDelta = direction === 'up' ? -1 : 1
-      nextChoices = { ...userVoteChoices }
-      delete nextChoices[key]
-    } else if (existing) {
-      // Switching vote (e.g. up → down): reverse previous + apply new
-      voteDelta = direction === 'up' ? 2 : -2
-      nextChoices = { ...userVoteChoices, [key]: direction }
-    } else {
-      // Fresh vote
-      voteDelta = delta
-      nextChoices = { ...userVoteChoices, [key]: direction }
-    }
+      let voteDelta: number
+      let nextChoices: Record<string, 'up' | 'down'>
 
-    setVotes(prev => {
-      const current = prev[key] ?? 0
-      const updated = current + voteDelta
-      if (updated < 0) return prev // prevent negative vote totals
-      const next = { ...prev, [key]: updated }
-      saveVotes(next)
-      return next
+      if (existing === direction) {
+        // Clicking same button again — toggle off (remove vote)
+        voteDelta = direction === 'up' ? -1 : 1
+        nextChoices = { ...prevChoices }
+        delete nextChoices[key]
+      } else if (existing) {
+        // Switching vote (e.g. up → down): reverse previous + apply new
+        voteDelta = direction === 'up' ? 2 : -2
+        nextChoices = { ...prevChoices, [key]: direction }
+      } else {
+        // Fresh vote
+        voteDelta = delta
+        nextChoices = { ...prevChoices, [key]: direction }
+      }
+
+      // Check whether the vote total would go negative before committing
+      const currentTotal = votes[key] ?? 0
+      if (currentTotal + voteDelta < 0) return prevChoices
+
+      setVotes(prevVotes => {
+        const current = prevVotes[key] ?? 0
+        const updated = current + voteDelta
+        if (updated < 0) return prevVotes // safety guard
+        const next = { ...prevVotes, [key]: updated }
+        saveVotes(next)
+        return next
+      })
+      saveUserVoteChoices(nextChoices)
+      return nextChoices
     })
-    setUserVoteChoices(nextChoices)
-    saveUserVoteChoices(nextChoices)
   }
 
   return (
@@ -442,6 +449,7 @@ export function SpotsMap({ onSelectSpot, center }: Props) {
                       className={`${styles.voteBtn} ${userVoteChoices[spotKey(spot)] === 'up' ? styles.voteBtnActive : ''}`}
                       onClick={() => handleVote(spot, 1)}
                       aria-label="Upvote this spot"
+                      aria-pressed={userVoteChoices[spotKey(spot)] === 'up'}
                     >
                       👍
                     </button>
@@ -450,6 +458,7 @@ export function SpotsMap({ onSelectSpot, center }: Props) {
                       className={`${styles.voteBtn} ${userVoteChoices[spotKey(spot)] === 'down' ? styles.voteBtnActive : ''}`}
                       onClick={() => handleVote(spot, -1)}
                       aria-label="Downvote this spot"
+                      aria-pressed={userVoteChoices[spotKey(spot)] === 'down'}
                     >
                       👎
                     </button>
