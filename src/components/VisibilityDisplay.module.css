@@ -1,0 +1,197 @@
+.card {
+  background: rgba(4, 30, 46, 0.6);
+  border: 1px solid rgba(0, 201, 255, 0.1);
+  padding: 36px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.3;
+}
+
+.location {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.45;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(0, 201, 255, 0.07);
+}
+
+.depthRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.number {
+  font-family: var(--font-display);
+  font-size: clamp(72px, 20vw, 120px);
+  line-height: 1;
+  transition: color 0.6s;
+}
+
+.unitBlock {
+  margin-bottom: 16px;
+}
+
+.unitLabel {
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  margin-bottom: 4px;
+}
+
+.unit {
+  font-size: 14px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+/* Bar */
+.barContainer {
+  margin-bottom: 32px;
+}
+
+.barLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  opacity: 0.4;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.barTrack {
+  height: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  width: 0%;
+  transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.barFill::after {
+  content: '';
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 20px;
+  background: rgba(255, 255, 255, 0.3);
+  filter: blur(4px);
+}
+
+.barMarkers {
+  position: relative;
+  height: 16px;
+  margin-top: 4px;
+}
+
+.marker {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 8px;
+  opacity: 0.3;
+  letter-spacing: 0.1em;
+}
+
+/* Verdict */
+.verdict {
+  font-family: var(--font-display);
+  font-size: 28px;
+  letter-spacing: 0.15em;
+  margin-bottom: 6px;
+}
+
+/* Alert */
+.alert {
+  background: rgba(192, 57, 43, 0.08);
+  border: 1px solid rgba(192, 57, 43, 0.25);
+  padding: 14px 18px;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  line-height: 1.7;
+  margin-top: 16px;
+}
+
+/* Color classes */
+.blocked  { color: #4a4a5a; }
+.poor     { color: var(--danger); }
+.marginal { color: var(--warn); }
+.decent   { color: #7fb87a; }
+.good     { color: var(--good); }
+.excellent { color: var(--excellent); }
+
+.bg_blocked  { background: #4a4a5a; }
+.bg_poor     { background: var(--danger); }
+.bg_marginal { background: var(--warn); }
+.bg_decent   { background: #7fb87a; }
+.bg_good     { background: var(--good); }
+.bg_excellent { background: var(--excellent); }
+
+/* Factor grid */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.factorCard {
+  background: rgba(2, 13, 20, 0.5);
+  border: 1px solid rgba(0, 201, 255, 0.07);
+  padding: 16px;
+  position: relative;
+}
+
+.factorName {
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  opacity: 0.45;
+  margin-bottom: 8px;
+}
+
+.factorValue {
+  font-family: var(--font-display);
+  font-size: 20px;
+  letter-spacing: 0.08em;
+  color: var(--text-bright);
+  margin-bottom: 2px;
+}
+
+.factorNote {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  opacity: 0.5;
+  margin-bottom: 3px;
+}
+
+.factorImpact {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+}
+
+.factorBar {
+  position: absolute;
+  bottom: 0; left: 0;
+  height: 2px;
+  transition: width 0.8s ease;
+}
