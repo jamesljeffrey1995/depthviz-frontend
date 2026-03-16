@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getForecast } from '../lib/api'
-import { UK_DIVE_SPOTS } from './SpotsMap'
+import { UK_DIVE_SPOTS } from '../data/diveSpots'
 import type { DayForecast } from '../types'
 import styles from './BestVisibility.module.css'
 
