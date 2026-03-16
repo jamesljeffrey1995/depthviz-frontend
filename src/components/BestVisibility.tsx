@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { getForecast } from '../lib/api'
 import { UK_DIVE_SPOTS } from './SpotsMap'
 import type { DayForecast } from '../types'
@@ -18,9 +18,9 @@ interface Props {
 /** Concurrency-limited parallel fetch of forecasts for all UK dive spots. */
 async function fetchAllForecasts(
   signal: AbortSignal,
+  today: string,
   onProgress: (done: number, total: number) => void,
 ): Promise<SpotForecast[]> {
-  const today = new Date().toISOString().split('T')[0]
   const results: SpotForecast[] = []
   let done = 0
   const total = UK_DIVE_SPOTS.length
@@ -50,18 +50,25 @@ async function fetchAllForecasts(
   return results
 }
 
+const COLOR_CLASSES = new Set(['blocked', 'poor', 'marginal', 'decent', 'good', 'excellent'])
+function safeColorClass(cls: string | undefined): string {
+  return cls && COLOR_CLASSES.has(cls) ? cls : 'decent'
+}
+
 export function BestVisibility({ onSelectSpot }: Props) {
   const [spots, setSpots] = useState<SpotForecast[]>([])
   const [loading, setLoading] = useState(true)
   const [progress, setProgress] = useState({ done: 0, total: UK_DIVE_SPOTS.length })
   const [error, setError] = useState('')
-  const abortRef = useRef<AbortController | null>(null)
+
+  // Compute today's date once at mount to avoid drift across midnight
+  const [todayISO] = useState(() => new Date().toISOString().split('T')[0])
+  const todayDisplay = new Date(todayISO + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
 
   useEffect(() => {
     const controller = new AbortController()
-    abortRef.current = controller
 
-    fetchAllForecasts(controller.signal, (done, total) => {
+    fetchAllForecasts(controller.signal, todayISO, (done, total) => {
       setProgress({ done, total })
     })
       .then(results => {
@@ -82,9 +89,7 @@ export function BestVisibility({ onSelectSpot }: Props) {
       })
 
     return () => { controller.abort() }
-  }, [])
-
-  const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
+  }, [todayISO])
 
   return (
     <div className={styles.wrapper}>
@@ -109,11 +114,11 @@ export function BestVisibility({ onSelectSpot }: Props) {
 
       {!loading && !error && spots.length > 0 && (
         <>
-          <div className={styles.dateLabel}>{today}</div>
+          <div className={styles.dateLabel}>{todayDisplay}</div>
           <div className={styles.list}>
             {spots.map((spot, i) => {
               const vis = spot.day.vis_corrected ?? spot.day.vis_estimate
-              const colorClass = spot.day.color_class
+              const cc = safeColorClass(spot.day.color_class)
               return (
                 <div
                   key={`${spot.lat}-${spot.lon}`}
@@ -124,11 +129,11 @@ export function BestVisibility({ onSelectSpot }: Props) {
                   <div className={styles.spotInfo}>
                     <div className={styles.spotName}>{spot.name}</div>
                     <div className={styles.verdict}>
-                      <span className={styles[colorClass] ?? ''}>{spot.day.verdict}</span>
+                      <span className={styles[cc]}>{spot.day.verdict}</span>
                     </div>
                   </div>
                   <div className={styles.visBlock}>
-                    <div className={`${styles.visValue} ${styles[colorClass] ?? ''}`}>
+                    <div className={`${styles.visValue} ${styles[cc]}`}>
                       {vis.toFixed(1)}
                     </div>
                     <div className={styles.visUnit}>metres</div>
