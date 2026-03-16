@@ -74,8 +74,8 @@ export default function App() {
       setCurrentName(name)
       const matched = locations.find(l => Math.abs(l.lat - coords.latitude) < 0.01 && Math.abs(l.lon - coords.longitude) < 0.01)
       setSelectedLocationId(matched?.id ?? null)
-      await searchByCoords(coords.latitude, coords.longitude, name, matched?.id)
       setView('forecast')
+      await searchByCoords(coords.latitude, coords.longitude, name, matched?.id)
     } catch (e) { console.error(e) }
   }
 
@@ -114,8 +114,8 @@ export default function App() {
     setCurrentName(name)
     const matched = locations.find(l => Math.abs(l.lat - lat) < 0.01 && Math.abs(l.lon - lon) < 0.01)
     setSelectedLocationId(matched?.id ?? null)
-    await searchByCoords(lat, lon, name, matched?.id)
     setView('forecast')
+    await searchByCoords(lat, lon, name, matched?.id)
   }
 
   const todayIndex = forecast?.days.findIndex(d => d.date === new Date().toISOString().split('T')[0]) ?? -1
@@ -152,8 +152,8 @@ export default function App() {
           setCurrentName(name)
           const matched = locations.find(l => Math.abs(l.lat - r.latitude) < 0.01 && Math.abs(l.lon - r.longitude) < 0.01)
           setSelectedLocationId(matched?.id ?? null)
-          await searchByCoords(r.latitude, r.longitude, name, matched?.id)
           setView('forecast')
+          await searchByCoords(r.latitude, r.longitude, name, matched?.id)
         }}
       />
 
