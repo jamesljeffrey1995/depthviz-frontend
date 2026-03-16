@@ -340,6 +340,11 @@
   border-color: rgba(0, 0, 0, 0.25);
 }
 
+.voteBtnActive {
+  background: rgba(0, 201, 255, 0.15);
+  border-color: #00c9ff;
+}
+
 .voteCount {
   font-family: var(--font-mono);
   font-size: 12px;

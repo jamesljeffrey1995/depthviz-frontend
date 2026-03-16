@@ -24,6 +24,7 @@ interface Props {
 
 const STORAGE_KEY = 'depthviz_user_spots'
 const VOTES_STORAGE_KEY = 'depthviz_spot_votes'
+const USER_VOTES_STORAGE_KEY = 'depthviz_user_vote_choices'
 
 /** Haversine distance in metres between two lat/lon points */
 function haversineMetres(
@@ -62,6 +63,30 @@ function saveVotes(votes: Record<string, number>) {
     localStorage.setItem(VOTES_STORAGE_KEY, JSON.stringify(votes))
   } catch {
     // storage full or disabled — vote persists in memory only
+  }
+}
+
+function loadUserVoteChoices(): Record<string, 'up' | 'down'> {
+  try {
+    const raw = localStorage.getItem(USER_VOTES_STORAGE_KEY)
+    if (!raw) return {}
+    const parsed = JSON.parse(raw)
+    if (typeof parsed !== 'object' || parsed === null) return {}
+    const sanitised: Record<string, 'up' | 'down'> = {}
+    for (const [k, v] of Object.entries(parsed)) {
+      if (v === 'up' || v === 'down') sanitised[k] = v
+    }
+    return sanitised
+  } catch {
+    return {}
+  }
+}
+
+function saveUserVoteChoices(choices: Record<string, 'up' | 'down'>) {
+  try {
+    localStorage.setItem(USER_VOTES_STORAGE_KEY, JSON.stringify(choices))
+  } catch {
+    // storage full or disabled — persists in memory only
   }
 }
 
@@ -237,6 +262,7 @@ export function SpotsMap({ onSelectSpot, center }: Props) {
   const [proximityError, setProximityError] = useState('')
   const [syncWarning, setSyncWarning] = useState('')
   const [votes, setVotes] = useState<Record<string, number>>(loadVotes)
+  const [userVoteChoices, setUserVoteChoices] = useState<Record<string, 'up' | 'down'>>(loadUserVoteChoices)
 
   const handleMapClick = useCallback((lat: number, lon: number) => {
     if (!adding) return
@@ -310,7 +336,7 @@ export function SpotsMap({ onSelectSpot, center }: Props) {
     setUserSpots(updated)
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
 
-    // Clean up stale vote entry
+    // Clean up stale vote and user vote choice entries
     const key = spotKey(spot)
     setVotes(prev => {
       if (!(key in prev)) return prev
@@ -319,18 +345,48 @@ export function SpotsMap({ onSelectSpot, center }: Props) {
       saveVotes(next)
       return next
     })
+    setUserVoteChoices(prev => {
+      if (!(key in prev)) return prev
+      const next = { ...prev }
+      delete next[key]
+      saveUserVoteChoices(next)
+      return next
+    })
   }
 
   const handleVote = (spot: DiveSpot, delta: 1 | -1) => {
     const key = spotKey(spot)
+    const direction = delta === 1 ? 'up' : 'down'
+    const existing = userVoteChoices[key]
+
+    let voteDelta: number
+    let nextChoices: Record<string, 'up' | 'down'>
+
+    if (existing === direction) {
+      // Clicking same button again — toggle off (remove vote)
+      voteDelta = direction === 'up' ? -1 : 1
+      nextChoices = { ...userVoteChoices }
+      delete nextChoices[key]
+    } else if (existing) {
+      // Switching vote (e.g. up → down): reverse previous + apply new
+      voteDelta = direction === 'up' ? 2 : -2
+      nextChoices = { ...userVoteChoices, [key]: direction }
+    } else {
+      // Fresh vote
+      voteDelta = delta
+      nextChoices = { ...userVoteChoices, [key]: direction }
+    }
+
     setVotes(prev => {
       const current = prev[key] ?? 0
-      const updated = current + delta
+      const updated = current + voteDelta
       if (updated < 0) return prev // prevent negative vote totals
       const next = { ...prev, [key]: updated }
       saveVotes(next)
       return next
     })
+    setUserVoteChoices(nextChoices)
+    saveUserVoteChoices(nextChoices)
   }
 
   return (
@@ -383,7 +439,7 @@ export function SpotsMap({ onSelectSpot, center }: Props) {
                   )}
                   <div className={styles.voteRow}>
                     <button
-                      className={styles.voteBtn}
+                      className={`${styles.voteBtn} ${userVoteChoices[spotKey(spot)] === 'up' ? styles.voteBtnActive : ''}`}
                       onClick={() => handleVote(spot, 1)}
                       aria-label="Upvote this spot"
                     >
@@ -391,7 +447,7 @@ export function SpotsMap({ onSelectSpot, center }: Props) {
                     </button>
                     <span className={styles.voteCount}>{votes[spotKey(spot)] ?? 0}</span>
                     <button
-                      className={styles.voteBtn}
+                      className={`${styles.voteBtn} ${userVoteChoices[spotKey(spot)] === 'down' ? styles.voteBtnActive : ''}`}
                       onClick={() => handleVote(spot, -1)}
                       aria-label="Downvote this spot"
                     >
