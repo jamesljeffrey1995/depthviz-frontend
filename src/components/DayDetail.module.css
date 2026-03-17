@@ -82,13 +82,14 @@
   gap: 8px;
   margin-bottom: 16px;
   flex-wrap: wrap;
+  align-items: stretch;
 }
 
 .metricChip {
   background: rgba(2, 13, 20, 0.4);
   border: 1px solid;
   padding: 6px 10px;
-  min-width: 60px;
+  flex: 1;
 }
 
 .metricChipLabel {
@@ -97,6 +98,7 @@
   text-transform: uppercase;
   opacity: 0.5;
   margin-bottom: 3px;
+  white-space: nowrap;
 }
 
 .metricChipValue {
