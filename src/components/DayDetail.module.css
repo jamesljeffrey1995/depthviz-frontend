@@ -89,7 +89,7 @@
   background: rgba(2, 13, 20, 0.4);
   border: 1px solid;
   padding: 6px 10px;
-  min-width: 72px;
+  flex: 1;
 }
 
 .metricChipLabel {
