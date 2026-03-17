@@ -21,6 +21,7 @@ const TidesPage = lazy(() => import('./components/TidesPage').then(m => ({ defau
 const SpotsMap = lazy(() => import('./components/SpotsMap').then(m => ({ default: m.SpotsMap })))
 const BestVisibility = lazy(() => import('./components/BestVisibility').then(m => ({ default: m.BestVisibility })))
 const LegalPage = lazy(() => import('./components/LegalPage').then(m => ({ default: m.LegalPage })))
+const SavedPlaces = lazy(() => import('./components/SavedPlaces').then(m => ({ default: m.SavedPlaces })))
 
 type ExtView = AppView | 'profile' | 'history' | 'legal'
 
@@ -182,7 +183,7 @@ export default function App() {
       {view !== 'profile' && view !== 'legal' && (
         <>
           {/* Nav buttons — always visible when no forecast loaded */}
-          {view !== 'map' && view !== 'best' && status !== 'loading' && status !== 'success' && (
+          {view !== 'map' && view !== 'best' && view !== 'locations' && status !== 'loading' && status !== 'success' && (
             <div className={styles.nav}>
               <button
                 className={styles.navBtn}
@@ -196,10 +197,18 @@ export default function App() {
               >
                 Best Vis
               </button>
+              {user && (
+                <button
+                  className={styles.navBtn}
+                  onClick={() => setView('locations')}
+                >
+                  My Places
+                </button>
+              )}
             </div>
           )}
 
-          {(view === 'map' || view === 'best') && status !== 'success' && (
+          {(view === 'map' || view === 'best' || view === 'locations') && status !== 'success' && (
             <div className={styles.nav}>
               <button
                 className={`${styles.navBtn} ${view === 'map' ? styles.navActive : ''}`}
@@ -213,17 +222,25 @@ export default function App() {
               >
                 Best Vis
               </button>
+              {user && (
+                <button
+                  className={`${styles.navBtn} ${view === 'locations' ? styles.navActive : ''}`}
+                  onClick={() => setView('locations')}
+                >
+                  My Places
+                </button>
+              )}
             </div>
           )}
 
-          {status === 'loading' && view !== 'map' && view !== 'best' && (
+          {status === 'loading' && view !== 'map' && view !== 'best' && view !== 'locations' && (
             <div className={styles.loading}>
               <div className={styles.sonar} />
               <div className={styles.loadingText}>Reading conditions...</div>
             </div>
           )}
 
-          {status === 'idle' && view !== 'map' && view !== 'best' && (
+          {status === 'idle' && view !== 'map' && view !== 'best' && view !== 'locations' && (
             <div className={styles.empty}>
               <div className={styles.emptyIcon}>🤿</div>
               <div className={styles.emptyText}>Enter a location to check<br />underwater visibility conditions</div>
@@ -241,6 +258,17 @@ export default function App() {
           {view === 'best' && status !== 'success' && (
             <Suspense fallback={null}>
               <BestVisibility onSelectSpot={handleSpotSelect} />
+            </Suspense>
+          )}
+
+          {/* Saved places when no forecast loaded */}
+          {view === 'locations' && status !== 'success' && (
+            <Suspense fallback={null}>
+              <SavedPlaces
+                locations={locations}
+                onSelectLocation={handleSpotSelect}
+                onDelete={id => setLocations(prev => prev.filter(l => l.id !== id))}
+              />
             </Suspense>
           )}
 
@@ -270,6 +298,14 @@ export default function App() {
                     onClick={() => setView('history')}
                   >
                     Dive Logs
+                  </button>
+                )}
+                {user && (
+                  <button
+                    className={`${styles.navBtn} ${view === 'locations' ? styles.navActive : ''}`}
+                    onClick={() => setView('locations')}
+                  >
+                    My Places
                   </button>
                 )}
               </div>
@@ -303,6 +339,7 @@ export default function App() {
                     allDays={forecast.days}
                     locations={locations}
                     onSubmitted={() => setView('forecast')}
+                    initialLocationId={selectedLocationId}
                   />
                 </Suspense>
               )}
@@ -324,6 +361,17 @@ export default function App() {
               {view === 'best' && (
                 <Suspense fallback={null}>
                   <BestVisibility onSelectSpot={handleSpotSelect} />
+                </Suspense>
+              )}
+
+              {/* Saved places when forecast is loaded */}
+              {view === 'locations' && (
+                <Suspense fallback={null}>
+                  <SavedPlaces
+                    locations={locations}
+                    onSelectLocation={handleSpotSelect}
+                    onDelete={id => setLocations(prev => prev.filter(l => l.id !== id))}
+                  />
                 </Suspense>
               )}
             </>
