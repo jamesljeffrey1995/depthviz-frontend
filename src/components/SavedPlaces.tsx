@@ -11,9 +11,15 @@ interface Props {
 
 export function SavedPlaces({ locations, onSelectLocation, onDelete }: Props) {
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [confirmId, setConfirmId] = useState<number | null>(null)
   const [deleteError, setDeleteError] = useState('')
 
-  const handleDelete = async (id: number) => {
+  const handleDeleteRequest = (id: number) => {
+    setConfirmId(id)
+  }
+
+  const handleDeleteConfirm = async (id: number) => {
+    setConfirmId(null)
     setDeletingId(id)
     setDeleteError('')
     try {
@@ -25,6 +31,10 @@ export function SavedPlaces({ locations, onSelectLocation, onDelete }: Props) {
     } finally {
       setDeletingId(null)
     }
+  }
+
+  const handleDeleteCancel = () => {
+    setConfirmId(null)
   }
 
   if (locations.length === 0) {
@@ -39,7 +49,7 @@ export function SavedPlaces({ locations, onSelectLocation, onDelete }: Props) {
   return (
     <div className={styles.container}>
       <div className={styles.heading}>My Saved Places</div>
-      {deleteError && <div className={styles.error}>{deleteError}</div>}
+      {deleteError && <div className={styles.error} role="alert">{deleteError}</div>}
       <div className={styles.list}>
         {locations.map(loc => (
           <div key={loc.id} className={styles.row}>
@@ -50,19 +60,43 @@ export function SavedPlaces({ locations, onSelectLocation, onDelete }: Props) {
               </div>
             </div>
             <div className={styles.actions}>
-              <button
-                className={styles.forecastBtn}
-                onClick={() => onSelectLocation(loc.lat, loc.lon, loc.name)}
-              >
-                Forecast
-              </button>
-              <button
-                className={styles.deleteBtn}
-                onClick={() => handleDelete(loc.id)}
-                disabled={deletingId === loc.id}
-              >
-                {deletingId === loc.id ? '…' : '✕'}
-              </button>
+              {confirmId === loc.id ? (
+                <div className={styles.confirmRow} role="group" aria-label={`Confirm removal of ${loc.name}`}>
+                  <span className={styles.confirmText}>Remove?</span>
+                  <button
+                    className={styles.confirmYes}
+                    onClick={() => handleDeleteConfirm(loc.id)}
+                    aria-label={`Yes, remove ${loc.name}`}
+                  >
+                    Yes
+                  </button>
+                  <button
+                    className={styles.confirmNo}
+                    onClick={handleDeleteCancel}
+                    aria-label="Cancel removal"
+                  >
+                    No
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <button
+                    className={styles.forecastBtn}
+                    onClick={() => onSelectLocation(loc.lat, loc.lon, loc.name)}
+                    aria-label={`View forecast for ${loc.name}`}
+                  >
+                    Forecast
+                  </button>
+                  <button
+                    className={styles.deleteBtn}
+                    onClick={() => handleDeleteRequest(loc.id)}
+                    disabled={deletingId === loc.id}
+                    aria-label={`Remove ${loc.name} from saved places`}
+                  >
+                    {deletingId === loc.id ? '…' : '✕'}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         ))}
