@@ -76,32 +76,41 @@
   margin-bottom: 20px;
 }
 
-/* Temps row */
-.tempsRow {
+/* Metrics top bar */
+.metricsBar {
   display: flex;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 
-.tempCard {
-  flex: 1;
+.metricChip {
   background: rgba(2, 13, 20, 0.4);
-  border: 1px solid rgba(0, 201, 255, 0.06);
-  padding: 12px;
+  border: 1px solid;
+  padding: 6px 10px;
+  min-width: 60px;
 }
 
-.tempLabel {
-  font-size: 8px;
+.metricChipLabel {
+  font-size: 7px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  opacity: 0.4;
-  margin-bottom: 6px;
+  opacity: 0.5;
+  margin-bottom: 3px;
 }
 
-.tempValue {
+.metricChipValue {
   font-family: var(--font-display);
-  font-size: 24px;
-  color: var(--text-bright);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.metricChipNote {
+  font-size: 7px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.85;
+  margin-top: 2px;
 }
 
 /* Algae */
