@@ -23,6 +23,24 @@ function getTurbidity(penalty: number): { label: string; color: string; spm: str
   return               { label: 'Extreme turbidity',   color: '#8b0000', spm: '> 50 mg/l',  description: 'Storm/estuary levels — severe viz impact' }
 }
 
+function getAirTempSeverity(temp: number): { color: string; note: string | null } {
+  if (temp < 4)  return { color: '#c0392b', note: 'fog risk' }
+  if (temp < 10) return { color: '#d4850a', note: null }
+  return { color: '#1a8a5a', note: null }
+}
+
+function getSeaTempSeverity(temp: number): { color: string; note: string | null } {
+  if (temp > 20) return { color: '#c0392b', note: 'bloom risk' }
+  if (temp > 15) return { color: '#d4850a', note: 'algae risk' }
+  return { color: '#1a8a5a', note: null }
+}
+
+function getHumiditySeverity(humidity: number): { color: string; note: string | null } {
+  if (humidity > 94) return { color: '#c0392b', note: null }
+  if (humidity > 88) return { color: '#d4850a', note: null }
+  return { color: '#1a8a5a', note: null }
+}
+
 function getRiskColor(level: string): string {
   switch (level) {
     case 'none': return '#1a8a5a'
@@ -43,6 +61,10 @@ export function DayDetail({ day, locationName, reportCount }: Props) {
     ? getTurbidity(day.turbidity_penalty)
     : null
 
+  const airSev  = getAirTempSeverity(day.air_temp)
+  const seaSev  = day.sea_temp != null ? getSeaTempSeverity(day.sea_temp) : null
+  const humSev  = getHumiditySeverity(day.humidity)
+
   return (
     <div className={styles.card}>
       <div className={styles.header}>
@@ -60,6 +82,27 @@ export function DayDetail({ day, locationName, reportCount }: Props) {
         </div>
       </div>
 
+      {/* Metrics top bar */}
+      <div className={styles.metricsBar}>
+        <div className={styles.metricChip} style={{ borderColor: `${airSev.color}40` }}>
+          <div className={styles.metricChipLabel}>Air Temp</div>
+          <div className={styles.metricChipValue} style={{ color: airSev.color }}>{day.air_temp.toFixed(1)}°C</div>
+          {airSev.note && <div className={styles.metricChipNote} style={{ color: airSev.color }}>{airSev.note}</div>}
+        </div>
+        {seaSev && day.sea_temp != null && (
+          <div className={styles.metricChip} style={{ borderColor: `${seaSev.color}40` }}>
+            <div className={styles.metricChipLabel}>Sea Temp</div>
+            <div className={styles.metricChipValue} style={{ color: seaSev.color }}>{day.sea_temp.toFixed(1)}°C</div>
+            {seaSev.note && <div className={styles.metricChipNote} style={{ color: seaSev.color }}>{seaSev.note}</div>}
+          </div>
+        )}
+        <div className={styles.metricChip} style={{ borderColor: `${humSev.color}40` }}>
+          <div className={styles.metricChipLabel}>Humidity</div>
+          <div className={styles.metricChipValue} style={{ color: humSev.color }}>{Math.round(day.humidity)}%</div>
+          {humSev.note && <div className={styles.metricChipNote} style={{ color: humSev.color }}>{humSev.note}</div>}
+        </div>
+      </div>
+
       <div className={`${styles.verdict} ${styles[day.color_class]}`}>{day.verdict}</div>
 
       <div className={styles.barContainer}>
@@ -68,22 +111,6 @@ export function DayDetail({ day, locationName, reportCount }: Props) {
         </div>
         <div className={styles.barTrack}>
           <div className={`${styles.barFill} ${styles[`bg_${day.color_class}`]}`} style={{ width: `${pct}%` }} />
-        </div>
-      </div>
-
-      {/* Temperatures */}
-      <div className={styles.tempsRow}>
-        <div className={styles.tempCard}>
-          <div className={styles.tempLabel}>Air Temp</div>
-          <div className={styles.tempValue}>{day.air_temp.toFixed(1)}°C</div>
-        </div>
-        <div className={styles.tempCard}>
-          <div className={styles.tempLabel}>Sea Temp</div>
-          <div className={styles.tempValue}>{day.sea_temp !== null ? `${day.sea_temp.toFixed(1)}°C` : 'N/A'}</div>
-        </div>
-        <div className={styles.tempCard}>
-          <div className={styles.tempLabel}>Humidity</div>
-          <div className={styles.tempValue}>{Math.round(day.humidity)}%</div>
         </div>
       </div>
 
