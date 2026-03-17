@@ -36,8 +36,8 @@ function getSeaTempSeverity(temp: number): { color: string; note: string | null 
 }
 
 function getHumiditySeverity(humidity: number): { color: string; note: string | null } {
-  if (humidity > 94) return { color: '#c0392b', note: '−1m viz' }
-  if (humidity > 88) return { color: '#d4850a', note: '−0.5m viz' }
+  if (humidity > 94) return { color: '#c0392b', note: null }
+  if (humidity > 88) return { color: '#d4850a', note: null }
   return { color: '#1a8a5a', note: null }
 }
 
