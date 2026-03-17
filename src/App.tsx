@@ -95,6 +95,7 @@ export default function App() {
       const matched = locations.find(l => Math.abs(l.lat - loc.latitude) < 0.01 && Math.abs(l.lon - loc.longitude) < 0.01)
       setSelectedLocationId(matched?.id ?? null)
       await searchByCoords(loc.latitude, loc.longitude, name, matched?.id)
+      setView('forecast')
     }
   }
 
@@ -221,6 +222,12 @@ export default function App() {
             </div>
           )}
 
+          {status === 'loading' && (view === 'map' || view === 'best' || view === 'locations') && (
+            <div className={styles.loadingBar} role="status" aria-live="polite" aria-label="Loading conditions">
+              Reading conditions…
+            </div>
+          )}
+
           {status === 'loading' && view !== 'map' && view !== 'best' && view !== 'locations' && (
             <div className={styles.loading} role="status" aria-live="polite" aria-label="Loading conditions">
               <div className={styles.sonar} aria-hidden="true" />
@@ -291,6 +298,7 @@ export default function App() {
                   <button
                     className={`${styles.navBtn} ${view === 'history' ? styles.navActive : ''}`}
                     onClick={() => setView('history')}
+                    aria-current={view === 'history' ? 'page' : undefined}
                   >
                     Dive Logs
                   </button>
@@ -299,6 +307,7 @@ export default function App() {
                   <button
                     className={`${styles.navBtn} ${view === 'locations' ? styles.navActive : ''}`}
                     onClick={() => setView('locations')}
+                    aria-current={view === 'locations' ? 'page' : undefined}
                   >
                     My Places
                   </button>
