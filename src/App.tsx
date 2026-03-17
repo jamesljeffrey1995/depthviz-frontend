@@ -137,11 +137,12 @@ export default function App() {
       </Suspense>
 
       <header className={styles.header}>
-        <div className={styles.logo}>DEPTH<span>VIZ</span></div>
+        <div className={styles.logo} aria-label="DepthViz">DEPTH<span>VIZ</span></div>
         <div className={styles.tagline}>Underwater visibility forecast</div>
         <button
           className={styles.authBtn}
           onClick={() => user ? setView('profile') : setShowAuth(true)}
+          aria-label={user ? `View profile for ${user.email?.split('@')[0] ?? 'user'}` : 'Sign in to your account'}
         >
           {user ? (user.email?.split('@')[0] ?? 'Profile') : 'Sign in'}
         </button>
@@ -163,7 +164,7 @@ export default function App() {
         }}
       />
 
-      {error && <div className={styles.error}>{error}</div>}
+      {error && <div className={styles.error} role="alert">{error}</div>}
 
       {/* Profile page — always accessible, independent of forecast state */}
       {view === 'profile' && user && (
@@ -234,8 +235,8 @@ export default function App() {
           )}
 
           {status === 'loading' && view !== 'map' && view !== 'best' && view !== 'locations' && (
-            <div className={styles.loading}>
-              <div className={styles.sonar} />
+            <div className={styles.loading} role="status" aria-live="polite" aria-label="Loading conditions">
+              <div className={styles.sonar} aria-hidden="true" />
               <div className={styles.loadingText}>Reading conditions...</div>
             </div>
           )}
@@ -275,22 +276,29 @@ export default function App() {
           {status === 'success' && forecast && (
             <>
               <div className={styles.nav}>
-                {(['forecast', 'tides', 'report', 'map', 'best'] as ExtView[]).map(v => (
-                  <button
-                    key={v}
-                    className={`${styles.navBtn} ${view === v ? styles.navActive : ''}`}
-                    onClick={() => v === 'report' ? handleReportClick() : setView(v)}
-                  >
-                    {v === 'forecast' ? 'Forecast' : v === 'tides' ? 'Tides' : v === 'map' ? 'Map' : v === 'best' ? 'Best Vis' : 'Log Dive'}
-                    {v === 'report' && !user && <span className={styles.lockIcon}> 🔒</span>}
-                  </button>
-                ))}
+                {(['forecast', 'tides', 'report', 'map', 'best'] as ExtView[]).map(v => {
+                  const label = v === 'forecast' ? 'Forecast' : v === 'tides' ? 'Tides' : v === 'map' ? 'Map' : v === 'best' ? 'Best Vis' : 'Log Dive'
+                  return (
+                    <button
+                      key={v}
+                      className={`${styles.navBtn} ${view === v ? styles.navActive : ''}`}
+                      onClick={() => v === 'report' ? handleReportClick() : setView(v)}
+                      aria-current={view === v ? 'page' : undefined}
+                      aria-label={v === 'report' && !user ? `${label} (sign in required)` : label}
+                    >
+                      {label}
+                      {v === 'report' && !user && <span className={styles.lockIcon} aria-hidden="true"> 🔒</span>}
+                    </button>
+                  )
+                })}
                 <button
                   className={`${styles.navBtn} ${selectedLocationId ? styles.navActive : ''}`}
                   onClick={handleSaveLocation}
                   disabled={!!selectedLocationId}
+                  aria-label={selectedLocationId ? 'Location already saved' : !user ? 'Save this location (sign in required)' : 'Save this location'}
+                  aria-pressed={!!selectedLocationId}
                 >
-                  {selectedLocationId ? 'Saved ✓' : <>+ Save{!user && <span className={styles.lockIcon}> 🔒</span>}</>}
+                  {selectedLocationId ? 'Saved ✓' : <>+ Save{!user && <span className={styles.lockIcon} aria-hidden="true"> 🔒</span>}</>}
                 </button>
                 {selectedLocationId && (
                   <button
