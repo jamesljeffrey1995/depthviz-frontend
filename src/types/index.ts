@@ -74,6 +74,17 @@ export interface ForecastResponse {
   report_count: number
 }
 
+export interface BestVisSpot {
+  name: string
+  lat: number
+  lon: number
+  day: DayForecast
+}
+
+export interface BestVisResponse {
+  spots: BestVisSpot[]
+}
+
 export interface Location {
   id: number
   name: string
