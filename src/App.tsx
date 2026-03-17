@@ -38,6 +38,7 @@ export default function App() {
   const [showAuth, setShowAuth] = useState(false)
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null)
   const [legalPage, setLegalPage] = useState<LegalPageType>('privacy')
+  const [prevView, setPrevView] = useState<ExtView>('map')
 
   useEffect(() => {
     getLocations().then(setLocations).catch(() => {})
@@ -94,6 +95,7 @@ export default function App() {
       const matched = locations.find(l => Math.abs(l.lat - loc.latitude) < 0.01 && Math.abs(l.lon - loc.longitude) < 0.01)
       setSelectedLocationId(matched?.id ?? null)
       await searchByCoords(loc.latitude, loc.longitude, name, matched?.id)
+      setView('forecast')
     }
   }
 
@@ -137,11 +139,19 @@ export default function App() {
       </Suspense>
 
       <header className={styles.header}>
-        <div className={styles.logo} aria-label="DepthViz">DEPTH<span>VIZ</span></div>
+        <div
+          className={styles.logo}
+          aria-label="DepthViz — go to home"
+          role="button"
+          tabIndex={0}
+          style={{ cursor: 'pointer' }}
+          onClick={() => setView(status === 'success' ? 'forecast' : 'map')}
+          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setView(status === 'success' ? 'forecast' : 'map') }}
+        >DEPTH<span>VIZ</span></div>
         <div className={styles.tagline}>Underwater visibility forecast</div>
         <button
           className={styles.authBtn}
-          onClick={() => user ? setView('profile') : setShowAuth(true)}
+          onClick={() => { if (user) { setPrevView(view); setView('profile') } else setShowAuth(true) }}
           aria-label={user ? `View profile for ${user.email?.split('@')[0] ?? 'user'}` : 'Sign in to your account'}
         >
           {user ? (user.email?.split('@')[0] ?? 'Profile') : 'Sign in'}
@@ -169,14 +179,14 @@ export default function App() {
       {/* Profile page — always accessible, independent of forecast state */}
       {view === 'profile' && user && (
         <Suspense fallback={null}>
-          <ProfilePanel onClose={() => setView('forecast')} />
+          <ProfilePanel onClose={() => setView(prevView !== 'profile' ? prevView : status === 'success' ? 'forecast' : 'map')} />
         </Suspense>
       )}
 
       {/* Legal pages */}
       {view === 'legal' && (
         <Suspense fallback={null}>
-          <LegalPage page={legalPage} onBack={() => setView('forecast')} />
+          <LegalPage page={legalPage} onBack={() => setView(prevView !== 'legal' ? prevView : status === 'success' ? 'forecast' : 'map')} />
         </Suspense>
       )}
 
@@ -184,42 +194,19 @@ export default function App() {
       {view !== 'profile' && view !== 'legal' && (
         <>
           {/* Nav buttons — always visible when no forecast loaded */}
-          {view !== 'map' && view !== 'best' && view !== 'locations' && status !== 'loading' && status !== 'success' && (
-            <div className={styles.nav}>
-              <button
-                className={styles.navBtn}
-                onClick={() => setView('map')}
-              >
-                Map
-              </button>
-              <button
-                className={styles.navBtn}
-                onClick={() => setView('best')}
-              >
-                Best Vis
-              </button>
-              {user && (
-                <button
-                  className={styles.navBtn}
-                  onClick={() => setView('locations')}
-                >
-                  My Places
-                </button>
-              )}
-            </div>
-          )}
-
-          {(view === 'map' || view === 'best' || view === 'locations') && status !== 'success' && (
+          {status !== 'success' && (
             <div className={styles.nav}>
               <button
                 className={`${styles.navBtn} ${view === 'map' ? styles.navActive : ''}`}
                 onClick={() => setView('map')}
+                aria-current={view === 'map' ? 'page' : undefined}
               >
                 Map
               </button>
               <button
                 className={`${styles.navBtn} ${view === 'best' ? styles.navActive : ''}`}
                 onClick={() => setView('best')}
+                aria-current={view === 'best' ? 'page' : undefined}
               >
                 Best Vis
               </button>
@@ -227,10 +214,17 @@ export default function App() {
                 <button
                   className={`${styles.navBtn} ${view === 'locations' ? styles.navActive : ''}`}
                   onClick={() => setView('locations')}
+                  aria-current={view === 'locations' ? 'page' : undefined}
                 >
                   My Places
                 </button>
               )}
+            </div>
+          )}
+
+          {status === 'loading' && (view === 'map' || view === 'best' || view === 'locations') && (
+            <div className={styles.loadingBar} role="status" aria-live="polite" aria-label="Loading conditions">
+              Reading conditions…
             </div>
           )}
 
@@ -304,6 +298,7 @@ export default function App() {
                   <button
                     className={`${styles.navBtn} ${view === 'history' ? styles.navActive : ''}`}
                     onClick={() => setView('history')}
+                    aria-current={view === 'history' ? 'page' : undefined}
                   >
                     Dive Logs
                   </button>
@@ -312,6 +307,7 @@ export default function App() {
                   <button
                     className={`${styles.navBtn} ${view === 'locations' ? styles.navActive : ''}`}
                     onClick={() => setView('locations')}
+                    aria-current={view === 'locations' ? 'page' : undefined}
                   >
                     My Places
                   </button>
@@ -392,7 +388,7 @@ export default function App() {
         <div>Not a substitute for local knowledge · Always dive with a buddy</div>
         <div className={styles.footerLinks}>
           {(['privacy', 'terms', 'cookies', 'security', 'contact', 'accessibility'] as LegalPageType[]).map(p => (
-            <button key={p} className={styles.footerLink} onClick={() => { setLegalPage(p); setView('legal') }}>
+            <button key={p} className={styles.footerLink} onClick={() => { setPrevView(view); setLegalPage(p); setView('legal') }}>
               {p === 'privacy' ? 'Privacy' : p === 'terms' ? 'Terms' : p === 'cookies' ? 'Cookies' : p === 'security' ? 'Security' : p === 'contact' ? 'Contact' : 'Accessibility'}
             </button>
           ))}
@@ -407,7 +403,7 @@ export default function App() {
         </a>
       </footer>
 
-      <CookieBanner onNavigate={(p) => { setLegalPage(p as LegalPageType); setView('legal') }} />
+      <CookieBanner onNavigate={(p) => { setPrevView(view); setLegalPage(p as LegalPageType); setView('legal') }} />
     </div>
   )
 }
