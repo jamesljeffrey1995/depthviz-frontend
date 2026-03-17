@@ -45,7 +45,7 @@ export function ProfilePanel({ onClose }: ProfilePanelProps) {
       {/* Back button */}
       {onClose && (
         <button className={styles.backBtn} onClick={onClose}>
-          ← Back to forecast
+          ← Back
         </button>
       )}
 

@@ -66,7 +66,11 @@ export function BestVisibility({ onSelectSpot }: Props) {
                 <div
                   key={`${spot.lat}-${spot.lon}`}
                   className={styles.spotRow}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`View forecast for ${spot.name}`}
                   onClick={() => onSelectSpot(spot.lat, spot.lon, spot.name)}
+                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectSpot(spot.lat, spot.lon, spot.name) } }}
                 >
                   <div className={styles.rank}>{i + 1}</div>
                   <div className={styles.spotInfo}>
