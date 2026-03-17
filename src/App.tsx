@@ -1,24 +1,26 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { useAuth } from './hooks/useAuth'
 import { useConditions } from './hooks/useConditions'
 import { useGeolocation } from './hooks/useGeolocation'
 import { SearchBar } from './components/SearchBar'
 import { ForecastStrip } from './components/ForecastStrip'
 import { DayDetail } from './components/DayDetail'
-import { ReportForm } from './components/ReportForm'
-import { AuthModal } from './components/AuthModal'
-import { ProfilePanel } from './components/ProfilePanel'
-import { LocationHistory } from './components/LocationHistory'
-import { TidesPage } from './components/TidesPage'
-import { SpotsMap, UK_DIVE_SPOTS } from './components/SpotsMap'
-import { BestVisibility } from './components/BestVisibility'
 import { CookieBanner } from './components/CookieBanner'
-import { LegalPage } from './components/LegalPage'
-import type { LegalPageType } from './components/LegalPage'
+import { UK_DIVE_SPOTS } from './data/diveSpots'
 import { getLocations, createLocation } from './lib/api'
 import { formatLocationName } from './types'
 import type { GeocodingResult, Location, AppView } from './types'
+import type { LegalPageType } from './components/LegalPage'
 import styles from './App.module.css'
+
+const ReportForm = lazy(() => import('./components/ReportForm').then(m => ({ default: m.ReportForm })))
+const AuthModal = lazy(() => import('./components/AuthModal').then(m => ({ default: m.AuthModal })))
+const ProfilePanel = lazy(() => import('./components/ProfilePanel').then(m => ({ default: m.ProfilePanel })))
+const LocationHistory = lazy(() => import('./components/LocationHistory').then(m => ({ default: m.LocationHistory })))
+const TidesPage = lazy(() => import('./components/TidesPage').then(m => ({ default: m.TidesPage })))
+const SpotsMap = lazy(() => import('./components/SpotsMap').then(m => ({ default: m.SpotsMap })))
+const BestVisibility = lazy(() => import('./components/BestVisibility').then(m => ({ default: m.BestVisibility })))
+const LegalPage = lazy(() => import('./components/LegalPage').then(m => ({ default: m.LegalPage })))
 
 type ExtView = AppView | 'profile' | 'history' | 'legal'
 
@@ -129,7 +131,9 @@ export default function App() {
 
   return (
     <div className={styles.container}>
-      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+      <Suspense fallback={null}>
+        {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+      </Suspense>
 
       <header className={styles.header}>
         <div className={styles.logo}>DEPTH<span>VIZ</span></div>
@@ -162,12 +166,16 @@ export default function App() {
 
       {/* Profile page — always accessible, independent of forecast state */}
       {view === 'profile' && user && (
-        <ProfilePanel onClose={() => setView('forecast')} />
+        <Suspense fallback={null}>
+          <ProfilePanel onClose={() => setView('forecast')} />
+        </Suspense>
       )}
 
       {/* Legal pages */}
       {view === 'legal' && (
-        <LegalPage page={legalPage} onBack={() => setView('forecast')} />
+        <Suspense fallback={null}>
+          <LegalPage page={legalPage} onBack={() => setView('forecast')} />
+        </Suspense>
       )}
 
       {/* All forecast/search content hidden while profile or legal page is open */}
@@ -224,12 +232,16 @@ export default function App() {
 
           {/* Map when no forecast loaded */}
           {view === 'map' && status !== 'success' && (
-            <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} />
+            <Suspense fallback={null}>
+              <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} />
+            </Suspense>
           )}
 
           {/* Best Visibility when no forecast loaded */}
           {view === 'best' && status !== 'success' && (
-            <BestVisibility onSelectSpot={handleSpotSelect} />
+            <Suspense fallback={null}>
+              <BestVisibility onSelectSpot={handleSpotSelect} />
+            </Suspense>
           )}
 
           {status === 'success' && forecast && (
@@ -279,30 +291,40 @@ export default function App() {
               )}
 
               {view === 'tides' && currentLat !== null && currentLon !== null && (
-                <TidesPage lat={currentLat} lon={currentLon} locationName={currentName} />
+                <Suspense fallback={null}>
+                  <TidesPage lat={currentLat} lon={currentLon} locationName={currentName} />
+                </Suspense>
               )}
 
               {view === 'report' && user && (
-                <ReportForm
-                  day={forecast.days[todayIndex] ?? forecast.days[selectedDay]}
-                  allDays={forecast.days}
-                  locations={locations}
-                  onSubmitted={() => setView('forecast')}
-                />
+                <Suspense fallback={null}>
+                  <ReportForm
+                    day={forecast.days[todayIndex] ?? forecast.days[selectedDay]}
+                    allDays={forecast.days}
+                    locations={locations}
+                    onSubmitted={() => setView('forecast')}
+                  />
+                </Suspense>
               )}
 
               {view === 'history' && selectedLocationId && (
-                <LocationHistory locationId={selectedLocationId} locationName={currentName} />
+                <Suspense fallback={null}>
+                  <LocationHistory locationId={selectedLocationId} locationName={currentName} />
+                </Suspense>
               )}
 
               {/* Map when forecast is loaded — renders after nav bar */}
               {view === 'map' && (
-                <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} />
+                <Suspense fallback={null}>
+                  <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} />
+                </Suspense>
               )}
 
               {/* Best Visibility when forecast is loaded */}
               {view === 'best' && (
-                <BestVisibility onSelectSpot={handleSpotSelect} />
+                <Suspense fallback={null}>
+                  <BestVisibility onSelectSpot={handleSpotSelect} />
+                </Suspense>
               )}
             </>
           )}
