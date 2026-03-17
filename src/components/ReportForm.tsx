@@ -8,6 +8,7 @@ interface Props {
   allDays: DayForecast[]
   locations: Location[]
   onSubmitted: () => void
+  initialLocationId?: number | null
 }
 
 function buildDateOptions(): { value: string; label: string }[] {
@@ -24,10 +25,10 @@ function buildDateOptions(): { value: string; label: string }[] {
   return options
 }
 
-export function ReportForm({ day, allDays, locations, onSubmitted }: Props) {
+export function ReportForm({ day, allDays, locations, onSubmitted, initialLocationId }: Props) {
   const todayStr = new Date().toISOString().split('T')[0]
   const [selectedDate, setSelectedDate] = useState(day?.date ?? todayStr)
-  const [locationId, setLocationId] = useState<number | ''>('')
+  const [locationId, setLocationId] = useState<number | ''>(initialLocationId ?? '')
   const [actualVis, setActualVis] = useState('')
   const [notes, setNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
