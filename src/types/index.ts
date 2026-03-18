@@ -83,6 +83,7 @@ export interface BestVisSpot {
 
 export interface BestVisResponse {
   spots: BestVisSpot[]
+  failedCount?: number
 }
 
 export interface Location {
