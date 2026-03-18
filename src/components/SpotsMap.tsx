@@ -274,10 +274,13 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth }: Props) {
   }, [adding])
 
   const handleAddSpotClick = () => {
-    if (user) {
+    if (user || !onShowAuth) {
+      // If user is logged in, or no auth handler is provided (backwards compatibility),
+      // just enter add mode.
       setAdding(true)
     } else {
-      onShowAuth?.()
+      // If an auth handler is provided and no user is logged in, trigger auth.
+      onShowAuth()
     }
   }
 
