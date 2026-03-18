@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import type { User } from '@supabase/supabase-js'
 import styles from './SpotsMap.module.css'
 import { createLocation } from '../lib/api'
 
@@ -20,6 +21,8 @@ interface DiveSpot {
 interface Props {
   onSelectSpot: (lat: number, lon: number, name: string) => void
   center?: [number, number]
+  user?: User | null
+  onShowAuth?: () => void
 }
 
 const STORAGE_KEY = 'depthviz_user_spots'
@@ -252,7 +255,7 @@ function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lon: number
   return null
 }
 
-export function SpotsMap({ onSelectSpot, center }: Props) {
+export function SpotsMap({ onSelectSpot, center, user, onShowAuth }: Props) {
   const [userSpots, setUserSpots] = useState<DiveSpot[]>(loadUserSpots)
   const [adding, setAdding] = useState(false)
   const [pendingPos, setPendingPos] = useState<{ lat: number; lon: number } | null>(null)
@@ -269,6 +272,17 @@ export function SpotsMap({ onSelectSpot, center }: Props) {
     setPendingPos({ lat, lon })
     setProximityError('')
   }, [adding])
+
+  const handleAddSpotClick = () => {
+    if (user || !onShowAuth) {
+      // If user is logged in, or no auth handler is provided (backwards compatibility),
+      // just enter add mode.
+      setAdding(true)
+    } else {
+      // If an auth handler is provided and no user is logged in, trigger auth.
+      onShowAuth()
+    }
+  }
 
   const handleSaveSpot = async () => {
     if (!pendingPos || !newName.trim()) return
@@ -295,7 +309,7 @@ export function SpotsMap({ onSelectSpot, center }: Props) {
       description: newDesc.trim() || 'User-added dive spot',
       userAdded: true,
       isPublic,
-      createdBy: 'You',
+      createdBy: user ? 'You' : undefined,
       createdAt: Date.now(),
     }
 
@@ -564,7 +578,7 @@ export function SpotsMap({ onSelectSpot, center }: Props) {
         </div>
       ) : (
         <div className={styles.addSpotRow}>
-          <button className={styles.addSpotBtn} onClick={() => setAdding(true)}>
+          <button className={styles.addSpotBtn} onClick={handleAddSpotClick}>
             + Add a Spot
           </button>
           {userSpots.length > 0 && (() => {
