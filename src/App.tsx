@@ -252,7 +252,7 @@ export default function App() {
           {/* Best Visibility when no forecast loaded */}
           {view === 'best' && status !== 'success' && (
             <Suspense fallback={null}>
-              <BestVisibility onSelectSpot={handleSpotSelect} />
+              <BestVisibility onSelectSpot={handleSpotSelect} locations={locations} />
             </Suspense>
           )}
 
@@ -364,7 +364,7 @@ export default function App() {
               {/* Best Visibility when forecast is loaded */}
               {view === 'best' && (
                 <Suspense fallback={null}>
-                  <BestVisibility onSelectSpot={handleSpotSelect} />
+                  <BestVisibility onSelectSpot={handleSpotSelect} locations={locations} />
                 </Suspense>
               )}
 
