@@ -309,7 +309,7 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth }: Props) {
       description: newDesc.trim() || 'User-added dive spot',
       userAdded: true,
       isPublic,
-      createdBy: user?.email ?? 'You',
+      createdBy: user ? 'You' : undefined,
       createdAt: Date.now(),
     }
 
