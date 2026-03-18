@@ -20,6 +20,13 @@
   transition: border-color 0.15s, background 0.15s;
   position: relative;
   flex-shrink: 0;
+  text-align: left;
+  font-family: var(--font-mono);
+}
+
+.day:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .day:hover {
@@ -64,15 +71,13 @@
 }
 
 .verdict {
-  font-size: 9px;
-  letter-spacing: 0.08em;
+  font-size: 7px;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   margin-top: 6px;
-  opacity: 1;
-  line-height: 1.4;
-  word-spacing: 0.05em;
-  overflow-wrap: anywhere;
+  opacity: 0.7;
   word-break: break-word;
+  line-height: 1.3;
 }
 
 .algaePip {
@@ -88,7 +93,7 @@
 .algaeModerate { background: #d4850a; }
 .algaeHigh     { background: #c0392b; }
 
-.blocked  { color: #4a4a5a; }
+.blocked  { color: #7a8a9a; }
 .poor     { color: var(--danger); }
 .marginal { color: var(--warn); }
 .decent   { color: #7fb87a; }

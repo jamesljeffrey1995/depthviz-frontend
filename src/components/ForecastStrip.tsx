@@ -31,17 +31,23 @@ export function ForecastStrip({ days, selectedIndex, onSelect }: Props) {
           ].join(' ')
 
           return (
-            <div key={day.date} className={cls} onClick={() => onSelect(i)}>
+            <button
+              key={day.date}
+              className={cls}
+              onClick={() => onSelect(i)}
+              aria-pressed={i === selectedIndex}
+              aria-label={`${formatDate(day.date)}: ${vis.toFixed(1)} metres visibility, ${day.verdict}${day.algae.risk !== 'low' ? `, algae risk ${day.algae.risk}` : ''}`}
+            >
               <div className={styles.dateLabel}>{formatDate(day.date)}</div>
-              <div className={`${styles.vis} ${styles[day.color_class]}`}>{vis.toFixed(1)}</div>
-              <div className={styles.unit}>metres</div>
-              <div className={styles.verdict}>
+              <div className={`${styles.vis} ${styles[day.color_class]}`} aria-hidden="true">{vis.toFixed(1)}</div>
+              <div className={styles.unit} aria-hidden="true">metres</div>
+              <div className={styles.verdict} title={day.verdict} aria-hidden="true">
                 {day.verdict}
                 {day.algae.risk !== 'low' && (
-                  <span className={`${styles.algaePip} ${styles[`algae${day.algae.risk.charAt(0).toUpperCase() + day.algae.risk.slice(1)}`]}`} title={`Algae risk: ${day.algae.risk}`} />
+                  <span className={`${styles.algaePip} ${styles[`algae${day.algae.risk.charAt(0).toUpperCase() + day.algae.risk.slice(1)}`]}`} />
                 )}
               </div>
-            </div>
+            </button>
           )
         })}
       </div>
