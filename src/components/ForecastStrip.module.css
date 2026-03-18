@@ -64,11 +64,15 @@
 }
 
 .verdict {
-  font-size: 7px;
-  letter-spacing: 0.1em;
+  font-size: 9px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   margin-top: 6px;
-  opacity: 0.7;
+  opacity: 1;
+  line-height: 1.4;
+  word-spacing: 0.05em;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .algaePip {
