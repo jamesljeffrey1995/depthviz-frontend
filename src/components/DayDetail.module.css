@@ -240,8 +240,8 @@
 .bg_excellent { background: var(--excellent); }
 
 .waterQualityCard {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
+  background: rgba(2, 13, 20, 0.4);
+  border: 1px solid rgba(0, 201, 255, 0.08);
   padding: 12px 16px;
   margin-bottom: 12px;
 }
@@ -254,7 +254,8 @@
 .waterQualityLabelText {
   font-size: 11px;
   letter-spacing: 0.1em;
-  color: var(--text-muted);
+  color: var(--text);
+  opacity: 0.6;
   text-transform: uppercase;
 }
 .waterQualityBadge {
@@ -264,7 +265,7 @@
 }
 .waterQualityBar {
   height: 3px;
-  background: var(--border);
+  background: rgba(0, 201, 255, 0.1);
   margin-bottom: 8px;
 }
 .waterQualityFill {
@@ -273,7 +274,8 @@
 }
 .waterQualitySub {
   font-size: 10px;
-  color: var(--text-muted);
+  color: var(--text);
+  opacity: 0.5;
   letter-spacing: 0.05em;
 }
 .waterQualityNote {
@@ -305,7 +307,8 @@
   gap: 8px 16px;
   font-size: 10px;
   letter-spacing: 0.06em;
-  color: var(--text-muted);
+  color: var(--text);
+  opacity: 0.55;
   margin-bottom: 6px;
 }
 
