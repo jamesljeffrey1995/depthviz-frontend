@@ -81,9 +81,6 @@
   opacity: 1;
   line-height: 1.3;
   font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .algaePip {
