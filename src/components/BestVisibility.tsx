@@ -71,9 +71,27 @@ export function BestVisibility({ onSelectSpot, locations }: Props) {
   useEffect(() => {
     const controller = new AbortController()
 
-    fetchAllForecasts(controller.signal, todayISO, (done, total) => {
-      setProgress({ done, total })
-    }, locations)
+    // Reset state whenever the inputs change so we can refetch with fresh locations
+    setSpots([])
+    setError('')
+    setProgress({ done: 0, total: UK_DIVE_SPOTS.length })
+    setLoading(true)
+
+    // If locations have not loaded yet, wait until they are available
+    if (!locations || locations.length === 0) {
+      return () => {
+        controller.abort()
+      }
+    }
+
+    fetchAllForecasts(
+      controller.signal,
+      todayISO,
+      (done, total) => {
+        setProgress({ done, total })
+      },
+      locations,
+    )
       .then(results => {
         if (controller.signal.aborted) return
         results.sort((a, b) => {
@@ -91,8 +109,10 @@ export function BestVisibility({ onSelectSpot, locations }: Props) {
         }
       })
 
-    return () => { controller.abort() }
-  }, [todayISO])
+    return () => {
+      controller.abort()
+    }
+  }, [todayISO, locations.length])
 
   return (
     <div className={styles.wrapper}>
