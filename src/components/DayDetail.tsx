@@ -306,7 +306,7 @@ export function DayDetail({ day, locationName, reportCount }: Props) {
 
       {/* Factor grid */}
       <div className={styles.grid}>
-        {day.factors.map(f => {
+        {day.factors.filter(f => f.max_penalty > 0).map(f => {
           const { label, color } = getImpact(f.penalty, f.max_penalty)
           const barPct = Math.min(100, (Math.abs(f.penalty) / f.max_penalty) * 100)
           const ratio = Math.abs(f.penalty) / f.max_penalty
