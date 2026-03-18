@@ -16,6 +16,20 @@ interface Props {
   locations: Location[]
 }
 
+const LOCATION_MATCH_EPSILON_DEG = 0.01
+
+function findMatchingLocation(
+  locations: Location[],
+  lat: number,
+  lon: number,
+): Location | undefined {
+  return locations.find(
+    (l) =>
+      Math.abs(l.lat - lat) < LOCATION_MATCH_EPSILON_DEG &&
+      Math.abs(l.lon - lon) < LOCATION_MATCH_EPSILON_DEG,
+  )
+}
+
 /** Concurrency-limited parallel fetch of forecasts for all UK dive spots. */
 async function fetchAllForecasts(
   signal: AbortSignal,
@@ -35,7 +49,7 @@ async function fetchAllForecasts(
       const spot = queue.shift()
       if (!spot) return
       try {
-        const matched = locations.find(l => Math.abs(l.lat - spot.lat) < 0.01 && Math.abs(l.lon - spot.lon) < 0.01)
+        const matched = findMatchingLocation(locations, spot.lat, spot.lon)
         const resp = await getForecast(spot.lat, spot.lon, spot.name, matched?.id)
         const todayForecast = resp.days.find(d => d.date === today)
         if (todayForecast) {
