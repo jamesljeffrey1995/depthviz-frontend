@@ -155,6 +155,17 @@
   padding: 32px 0;
 }
 
+/* Failed spots note */
+.failedNote {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text);
+  opacity: 0.4;
+  text-align: center;
+  margin-top: 12px;
+}
+
 /* Date label */
 .dateLabel {
   font-size: 9px;

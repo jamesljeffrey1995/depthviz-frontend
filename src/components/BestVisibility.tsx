@@ -16,7 +16,7 @@ interface Props {
   locations: Location[]
 }
 
-const LOCATION_MATCH_EPSILON_DEG = 0.01
+const LOCATION_MATCH_EPSILON_DEG = 0.05
 
 function findMatchingLocation(
   locations: Location[],
@@ -30,15 +30,29 @@ function findMatchingLocation(
   )
 }
 
+/** Find the closest day to `today` from the forecast response, falling back to exact match first. */
+function findClosestDay(days: DayForecast[], today: string): DayForecast | undefined {
+  const exact = days.find(d => d.date === today)
+  if (exact) return exact
+  if (days.length === 0) return undefined
+  const todayMs = new Date(today).getTime()
+  return days.reduce((closest, d) => {
+    const dDiff = Math.abs(new Date(d.date).getTime() - todayMs)
+    const closestDiff = Math.abs(new Date(closest.date).getTime() - todayMs)
+    return dDiff < closestDiff ? d : closest
+  })
+}
+
 /** Concurrency-limited parallel fetch of forecasts for all UK dive spots. */
 async function fetchAllForecasts(
   signal: AbortSignal,
   today: string,
   onProgress: (done: number, total: number) => void,
   locations: Location[],
-): Promise<SpotForecast[]> {
+): Promise<{ spots: SpotForecast[]; failedCount: number }> {
   const results: SpotForecast[] = []
   let done = 0
+  let failedCount = 0
   const total = UK_DIVE_SPOTS.length
   const CONCURRENCY = 6
 
@@ -51,12 +65,16 @@ async function fetchAllForecasts(
       try {
         const matched = findMatchingLocation(locations, spot.lat, spot.lon)
         const resp = await getForecast(spot.lat, spot.lon, spot.name, matched?.id)
-        const todayForecast = resp.days.find(d => d.date === today)
+        const todayForecast = findClosestDay(resp.days, today)
         if (todayForecast) {
           results.push({ name: spot.name, lat: spot.lat, lon: spot.lon, day: todayForecast })
+        } else {
+          failedCount++
+          console.warn(`[BestVisibility] No forecast day found for ${spot.name}`)
         }
-      } catch {
-        // Skip spots whose forecast fails — network / API errors are non-fatal
+      } catch (err) {
+        failedCount++
+        console.warn(`[BestVisibility] Failed to fetch forecast for ${spot.name}:`, err)
       }
       done++
       onProgress(done, total)
@@ -64,7 +82,7 @@ async function fetchAllForecasts(
   }
 
   await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()))
-  return results
+  return { spots: results, failedCount }
 }
 
 const COLOR_CLASSES = new Set(['blocked', 'poor', 'marginal', 'decent', 'good', 'excellent'])
@@ -77,6 +95,7 @@ export function BestVisibility({ onSelectSpot, locations }: Props) {
   const [loading, setLoading] = useState(true)
   const [progress, setProgress] = useState({ done: 0, total: UK_DIVE_SPOTS.length })
   const [error, setError] = useState('')
+  const [failedCount, setFailedCount] = useState(0)
 
   // Compute today's date once at mount to avoid drift across midnight
   const [todayISO] = useState(() => new Date().toISOString().split('T')[0])
@@ -88,6 +107,7 @@ export function BestVisibility({ onSelectSpot, locations }: Props) {
     // Reset state whenever the inputs change so we can refetch with fresh locations
     setSpots([])
     setError('')
+    setFailedCount(0)
     setProgress({ done: 0, total: UK_DIVE_SPOTS.length })
     setLoading(true)
 
@@ -106,7 +126,7 @@ export function BestVisibility({ onSelectSpot, locations }: Props) {
       },
       locations,
     )
-      .then(results => {
+      .then(({ spots: results, failedCount: failed }) => {
         if (controller.signal.aborted) return
         results.sort((a, b) => {
           const visA = a.day.vis_corrected ?? a.day.vis_estimate
@@ -114,6 +134,7 @@ export function BestVisibility({ onSelectSpot, locations }: Props) {
           return visB - visA
         })
         setSpots(results)
+        setFailedCount(failed)
         setLoading(false)
       })
       .catch(() => {
@@ -184,6 +205,12 @@ export function BestVisibility({ onSelectSpot, locations }: Props) {
 
       {!loading && !error && spots.length === 0 && (
         <div className={styles.error}>No visibility data available for today</div>
+      )}
+
+      {!loading && failedCount > 0 && (
+        <div className={styles.failedNote}>
+          {failedCount} spot{failedCount !== 1 ? 's' : ''} could not be loaded — try refreshing
+        </div>
       )}
     </div>
   )
