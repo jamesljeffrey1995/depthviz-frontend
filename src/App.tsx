@@ -229,7 +229,7 @@ export default function App() {
 
           {/* Best Visibility when no forecast loaded */}
           {view === 'best' && status !== 'success' && (
-            <BestVisibility onSelectSpot={handleSpotSelect} />
+            <BestVisibility onSelectSpot={handleSpotSelect} locations={locations} />
           )}
 
           {status === 'success' && forecast && (
@@ -302,7 +302,7 @@ export default function App() {
 
               {/* Best Visibility when forecast is loaded */}
               {view === 'best' && (
-                <BestVisibility onSelectSpot={handleSpotSelect} />
+                <BestVisibility onSelectSpot={handleSpotSelect} locations={locations} />
               )}
             </>
           )}

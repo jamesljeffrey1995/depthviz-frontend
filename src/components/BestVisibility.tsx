@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getForecast } from '../lib/api'
 import { UK_DIVE_SPOTS } from './SpotsMap'
-import type { DayForecast } from '../types'
+import type { DayForecast, Location } from '../types'
 import styles from './BestVisibility.module.css'
 
 interface SpotForecast {
@@ -13,6 +13,7 @@ interface SpotForecast {
 
 interface Props {
   onSelectSpot: (lat: number, lon: number, name: string) => void
+  locations: Location[]
 }
 
 /** Concurrency-limited parallel fetch of forecasts for all UK dive spots. */
@@ -20,6 +21,7 @@ async function fetchAllForecasts(
   signal: AbortSignal,
   today: string,
   onProgress: (done: number, total: number) => void,
+  locations: Location[],
 ): Promise<SpotForecast[]> {
   const results: SpotForecast[] = []
   let done = 0
@@ -33,7 +35,8 @@ async function fetchAllForecasts(
       const spot = queue.shift()
       if (!spot) return
       try {
-        const resp = await getForecast(spot.lat, spot.lon, spot.name)
+        const matched = locations.find(l => Math.abs(l.lat - spot.lat) < 0.01 && Math.abs(l.lon - spot.lon) < 0.01)
+        const resp = await getForecast(spot.lat, spot.lon, spot.name, matched?.id)
         const todayForecast = resp.days.find(d => d.date === today)
         if (todayForecast) {
           results.push({ name: spot.name, lat: spot.lat, lon: spot.lon, day: todayForecast })
@@ -55,7 +58,7 @@ function safeColorClass(cls: string | undefined): string {
   return cls && COLOR_CLASSES.has(cls) ? cls : 'decent'
 }
 
-export function BestVisibility({ onSelectSpot }: Props) {
+export function BestVisibility({ onSelectSpot, locations }: Props) {
   const [spots, setSpots] = useState<SpotForecast[]>([])
   const [loading, setLoading] = useState(true)
   const [progress, setProgress] = useState({ done: 0, total: UK_DIVE_SPOTS.length })
@@ -70,7 +73,7 @@ export function BestVisibility({ onSelectSpot }: Props) {
 
     fetchAllForecasts(controller.signal, todayISO, (done, total) => {
       setProgress({ done, total })
-    })
+    }, locations)
       .then(results => {
         if (controller.signal.aborted) return
         results.sort((a, b) => {
