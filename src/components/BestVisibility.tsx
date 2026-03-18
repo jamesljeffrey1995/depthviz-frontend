@@ -5,6 +5,34 @@ import styles from './BestVisibility.module.css'
 
 interface Props {
   onSelectSpot: (lat: number, lon: number, name: string) => void
+  locations: Location[]
+}
+
+const LOCATION_MATCH_EPSILON_DEG = 0.05
+
+function findMatchingLocation(
+  locations: Location[],
+  lat: number,
+  lon: number,
+): Location | undefined {
+  return locations.find(
+    (l) =>
+      Math.abs(l.lat - lat) < LOCATION_MATCH_EPSILON_DEG &&
+      Math.abs(l.lon - lon) < LOCATION_MATCH_EPSILON_DEG,
+  )
+}
+
+/** Find the closest day to `today` from the forecast response, falling back to exact match first. */
+function findClosestDay(days: DayForecast[], today: string): DayForecast | undefined {
+  const exact = days.find(d => d.date === today)
+  if (exact) return exact
+  if (days.length === 0) return undefined
+  const todayMs = new Date(today).getTime()
+  return days.reduce((closest, d) => {
+    const dDiff = Math.abs(new Date(d.date).getTime() - todayMs)
+    const closestDiff = Math.abs(new Date(closest.date).getTime() - todayMs)
+    return dDiff < closestDiff ? d : closest
+  })
 }
 
 const COLOR_CLASSES = new Set(['blocked', 'poor', 'marginal', 'decent', 'good', 'excellent'])
@@ -16,6 +44,7 @@ export function BestVisibility({ onSelectSpot }: Props) {
   const [spots, setSpots] = useState<BestVisSpot[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [failedCount, setFailedCount] = useState(0)
 
   // Compute today's date once at mount to avoid drift across midnight
   const [todayISO] = useState(() => new Date().toISOString().split('T')[0])
@@ -94,6 +123,12 @@ export function BestVisibility({ onSelectSpot }: Props) {
 
       {!loading && !error && spots.length === 0 && (
         <div className={styles.error}>No visibility data available for today</div>
+      )}
+
+      {!loading && failedCount > 0 && (
+        <div className={styles.failedNote}>
+          {failedCount} spot{failedCount !== 1 ? 's' : ''} could not be loaded — try refreshing
+        </div>
       )}
     </div>
   )
