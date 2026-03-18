@@ -36,7 +36,7 @@ export function ForecastStrip({ days, selectedIndex, onSelect }: Props) {
               <div className={`${styles.vis} ${styles[day.color_class]}`}>{vis.toFixed(1)}</div>
               <div className={styles.unit}>metres</div>
               <div className={styles.verdict}>
-                {day.verdict.split(' ')[0]}
+                {day.verdict}
                 {day.algae.risk !== 'low' && (
                   <span className={`${styles.algaePip} ${styles[`algae${day.algae.risk.charAt(0).toUpperCase() + day.algae.risk.slice(1)}`]}`} title={`Algae risk: ${day.algae.risk}`} />
                 )}
