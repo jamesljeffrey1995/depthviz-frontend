@@ -53,12 +53,12 @@ export function getImpact(penalty: number, maxPenalty: number): { label: ImpactL
 
 export function getVerdict(vis: number): Verdict {
   const map: Array<[number, VerdictLabel, ColorClass, string | null]> = [
-    [0,  'STAY ASHORE',  'blocked',  '⚠ Sea state makes this dive unsafe. Do not enter the water.'],
-    [2,  'NOT WORTH IT', 'poor',     null],
-    [4,  'VERY POOR',    'poor',     null],
-    [6,  'MARGINAL',     'marginal', null],
-    [9,  'DECENT',       'decent',   null],
-    [12, 'GOOD',         'good',     null],
+    [0,  'STAY ASHORE', 'blocked',  '⚠ Sea state makes this dive unsafe. Do not enter the water.'],
+    [1,  'POOR',        'poor',     null],
+    [3,  'LIMITED',     'poor',     null],
+    [5,  'MARGINAL',    'marginal', null],
+    [8,  'DECENT',      'decent',   null],
+    [12, 'GOOD',        'good',     null],
   ]
   for (const [threshold, label, colorClass, alert] of map) {
     if (vis <= threshold) return { label, colorClass, alert }
