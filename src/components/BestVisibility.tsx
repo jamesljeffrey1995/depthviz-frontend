@@ -1,15 +1,7 @@
 import { useState, useEffect } from 'react'
-import { getForecast } from '../lib/api'
-import { UK_DIVE_SPOTS } from './SpotsMap'
-import type { DayForecast, Location } from '../types'
+import { getBestVisibility } from '../lib/api'
+import type { BestVisSpot } from '../types'
 import styles from './BestVisibility.module.css'
-
-interface SpotForecast {
-  name: string
-  lat: number
-  lon: number
-  day: DayForecast
-}
 
 interface Props {
   onSelectSpot: (lat: number, lon: number, name: string) => void
@@ -43,57 +35,14 @@ function findClosestDay(days: DayForecast[], today: string): DayForecast | undef
   })
 }
 
-/** Concurrency-limited parallel fetch of forecasts for all UK dive spots. */
-async function fetchAllForecasts(
-  signal: AbortSignal,
-  today: string,
-  onProgress: (done: number, total: number) => void,
-  locations: Location[],
-): Promise<{ spots: SpotForecast[]; failedCount: number }> {
-  const results: SpotForecast[] = []
-  let done = 0
-  let failedCount = 0
-  const total = UK_DIVE_SPOTS.length
-  const CONCURRENCY = 6
-
-  const queue = [...UK_DIVE_SPOTS]
-  async function worker() {
-    while (queue.length > 0) {
-      if (signal.aborted) return
-      const spot = queue.shift()
-      if (!spot) return
-      try {
-        const matched = findMatchingLocation(locations, spot.lat, spot.lon)
-        const resp = await getForecast(spot.lat, spot.lon, spot.name, matched?.id)
-        const todayForecast = findClosestDay(resp.days, today)
-        if (todayForecast) {
-          results.push({ name: spot.name, lat: spot.lat, lon: spot.lon, day: todayForecast })
-        } else {
-          failedCount++
-          console.warn(`[BestVisibility] No forecast day found for ${spot.name}`)
-        }
-      } catch (err) {
-        failedCount++
-        console.warn(`[BestVisibility] Failed to fetch forecast for ${spot.name}:`, err)
-      }
-      done++
-      onProgress(done, total)
-    }
-  }
-
-  await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()))
-  return { spots: results, failedCount }
-}
-
 const COLOR_CLASSES = new Set(['blocked', 'poor', 'marginal', 'decent', 'good', 'excellent'])
 function safeColorClass(cls: string | undefined): string {
   return cls && COLOR_CLASSES.has(cls) ? cls : 'decent'
 }
 
-export function BestVisibility({ onSelectSpot, locations }: Props) {
-  const [spots, setSpots] = useState<SpotForecast[]>([])
+export function BestVisibility({ onSelectSpot }: Props) {
+  const [spots, setSpots] = useState<BestVisSpot[]>([])
   const [loading, setLoading] = useState(true)
-  const [progress, setProgress] = useState({ done: 0, total: UK_DIVE_SPOTS.length })
   const [error, setError] = useState('')
   const [failedCount, setFailedCount] = useState(0)
 
@@ -104,37 +53,10 @@ export function BestVisibility({ onSelectSpot, locations }: Props) {
   useEffect(() => {
     const controller = new AbortController()
 
-    // Reset state whenever the inputs change so we can refetch with fresh locations
-    setSpots([])
-    setError('')
-    setFailedCount(0)
-    setProgress({ done: 0, total: UK_DIVE_SPOTS.length })
-    setLoading(true)
-
-    // If locations have not loaded yet, wait until they are available
-    if (!locations || locations.length === 0) {
-      return () => {
-        controller.abort()
-      }
-    }
-
-    fetchAllForecasts(
-      controller.signal,
-      todayISO,
-      (done, total) => {
-        setProgress({ done, total })
-      },
-      locations,
-    )
-      .then(({ spots: results, failedCount: failed }) => {
+    getBestVisibility()
+      .then(response => {
         if (controller.signal.aborted) return
-        results.sort((a, b) => {
-          const visA = a.day.vis_corrected ?? a.day.vis_estimate
-          const visB = b.day.vis_corrected ?? b.day.vis_estimate
-          return visB - visA
-        })
-        setSpots(results)
-        setFailedCount(failed)
+        setSpots(response.spots)
         setLoading(false)
       })
       .catch(() => {
@@ -144,10 +66,8 @@ export function BestVisibility({ onSelectSpot, locations }: Props) {
         }
       })
 
-    return () => {
-      controller.abort()
-    }
-  }, [todayISO, locations.length])
+    return () => { controller.abort() }
+  }, [])
 
   return (
     <div className={styles.wrapper}>
@@ -156,14 +76,8 @@ export function BestVisibility({ onSelectSpot, locations }: Props) {
 
       {loading && (
         <div className={styles.loading}>
-          <div className={styles.progressBar}>
-            <div
-              className={styles.progressFill}
-              style={{ width: `${progress.total ? (progress.done / progress.total) * 100 : 0}%` }}
-            />
-          </div>
           <div className={styles.loadingText}>
-            Scanning {progress.done} / {progress.total} spots…
+            Loading visibility data…
           </div>
         </div>
       )}
@@ -181,7 +95,11 @@ export function BestVisibility({ onSelectSpot, locations }: Props) {
                 <div
                   key={`${spot.lat}-${spot.lon}`}
                   className={styles.spotRow}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`View forecast for ${spot.name}`}
                   onClick={() => onSelectSpot(spot.lat, spot.lon, spot.name)}
+                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectSpot(spot.lat, spot.lon, spot.name) } }}
                 >
                   <div className={styles.rank}>{i + 1}</div>
                   <div className={styles.spotInfo}>

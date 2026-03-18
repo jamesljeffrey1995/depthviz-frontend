@@ -74,6 +74,17 @@ export interface ForecastResponse {
   report_count: number
 }
 
+export interface BestVisSpot {
+  name: string
+  lat: number
+  lon: number
+  day: DayForecast
+}
+
+export interface BestVisResponse {
+  spots: BestVisSpot[]
+}
+
 export interface Location {
   id: number
   name: string
@@ -134,7 +145,7 @@ export function formatLocationName(r: GeocodingResult): string {
 }
 
 export type ImpactLevel = 'NO IMPACT' | 'LOW IMPACT' | 'MODERATE' | 'HIGH IMPACT' | 'SEVERE'
-export type VerdictLabel = 'STAY ASHORE' | 'NOT WORTH IT' | 'VERY POOR' | 'MARGINAL' | 'DECENT' | 'GOOD' | 'EXCELLENT'
+export type VerdictLabel = 'STAY ASHORE' | 'POOR' | 'LIMITED' | 'MARGINAL' | 'DECENT' | 'GOOD' | 'EXCELLENT'
 
 export interface Verdict {
   label: VerdictLabel
