@@ -71,6 +71,8 @@
   opacity: 1;
   line-height: 1.4;
   word-spacing: 0.05em;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .algaePip {
