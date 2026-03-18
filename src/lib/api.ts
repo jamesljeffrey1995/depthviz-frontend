@@ -1,6 +1,7 @@
 import { supabase } from './supabase'
 import { cacheGet, cacheSet, cacheDelete } from './cache'
 import type {
+  BestVisResponse,
   ForecastResponse,
   GeocodingResult,
   LeaderboardEntry,
@@ -163,5 +164,16 @@ export async function getLocationHistory(locationId: number): Promise<LocationHi
 
   const result = await apiFetch<LocationHistoryResponse>(`/reports/location/${locationId}/history`)
   cacheSet(key, result, TTL.HISTORY)
+  return result
+}
+
+// Best Visibility
+export async function getBestVisibility(): Promise<BestVisResponse> {
+  const key = 'best-vis'
+  const cached = cacheGet<BestVisResponse>(key)
+  if (cached) return cached
+
+  const result = await apiFetch<BestVisResponse>('/forecast/best')
+  cacheSet(key, result, TTL.FORECAST)
   return result
 }
