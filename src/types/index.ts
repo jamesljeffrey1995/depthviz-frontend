@@ -1,3 +1,11 @@
+// Re-export underwater visibility types for convenience
+export type {
+  FrameResult,
+  VisibilityStats,
+  VisibilityReport as UnderwaterVisibilityReport,
+  AnalyseOptions,
+} from '../lib/underwaterVisibility'
+
 export interface AlgaeRisk {
   risk: 'low' | 'moderate' | 'high'
   score: number
