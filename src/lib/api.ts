@@ -96,6 +96,21 @@ export async function deleteLocation(id: number): Promise<void> {
   cacheDelete('locations')
 }
 
+export async function voteLocation(id: number, direction: 'up' | 'down'): Promise<Location> {
+  const result = await apiFetch<Location>(`/locations/${id}/vote`, {
+    method: 'PUT',
+    body: JSON.stringify({ direction }),
+  })
+  cacheDelete('locations')
+  return result
+}
+
+export async function removeVote(id: number): Promise<Location> {
+  const result = await apiFetch<Location>(`/locations/${id}/vote`, { method: 'DELETE' })
+  cacheDelete('locations')
+  return result
+}
+
 // Reports
 export async function submitReport(report: ReportCreate): Promise<void> {
   await apiFetch('/reports', { method: 'POST', body: JSON.stringify(report) })

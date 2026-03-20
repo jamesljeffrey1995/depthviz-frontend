@@ -48,7 +48,7 @@ export default function App() {
     if (forecast) {
       const today = new Date().toISOString().split('T')[0]
       const todayIdx = forecast.days.findIndex(d => d.date === today)
-      setSelectedDay(todayIdx >= 0 ? todayIdx : 14)
+      setSelectedDay(todayIdx >= 0 ? todayIdx : Math.max(0, forecast.days.length - 1))
     }
   }, [forecast])
 
@@ -245,7 +245,7 @@ export default function App() {
           {/* Map when no forecast loaded */}
           {view === 'map' && status !== 'success' && (
             <Suspense fallback={null}>
-              <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} />
+              <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} locations={locations} />
             </Suspense>
           )}
 
@@ -322,11 +322,13 @@ export default function App() {
                     </div>
                   )}
                   <ForecastStrip days={forecast.days} selectedIndex={selectedDay} onSelect={setSelectedDay} />
-                  <DayDetail
-                    day={forecast.days[selectedDay]}
-                    locationName={forecast.location_name}
-                    reportCount={forecast.report_count}
-                  />
+                  {forecast.days[selectedDay] && (
+                    <DayDetail
+                      day={forecast.days[selectedDay]}
+                      locationName={forecast.location_name}
+                      reportCount={forecast.report_count}
+                    />
+                  )}
                 </>
               )}
 
@@ -357,7 +359,7 @@ export default function App() {
               {/* Map when forecast is loaded — renders after nav bar */}
               {view === 'map' && (
                 <Suspense fallback={null}>
-                  <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} />
+                  <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} locations={locations} />
                 </Suspense>
               )}
 

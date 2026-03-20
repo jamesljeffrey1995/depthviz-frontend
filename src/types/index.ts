@@ -91,6 +91,8 @@ export interface Location {
   name: string
   lat: number
   lon: number
+  vote_count: number
+  user_vote: 'up' | 'down' | null
 }
 
 export interface ReportCreate {
