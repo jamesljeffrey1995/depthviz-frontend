@@ -190,17 +190,31 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
   const [votes, setVotes] = useState<Record<string, number>>(loadVotes)
   const [userVoteChoices, setUserVoteChoices] = useState<Record<string, 'up' | 'down'>>(loadUserVoteChoices)
   // DB-backed vote state: keyed by location.id (number), seeded from locations prop
+  const makeDbVoteCounts = (locs: Location[]): Record<number, number> => {
+    const result: Record<number, number> = {}
+    for (const l of locs) {
+      result[l.id] = l.vote_count
+    }
+    return result
+  }
+  const makeDbUserVotes = (locs: Location[]): Record<number, 'up' | 'down' | null> => {
+    const result: Record<number, 'up' | 'down' | null> = {}
+    for (const l of locs) {
+      result[l.id] = l.user_vote
+    }
+    return result
+  }
   const [dbVoteCounts, setDbVoteCounts] = useState<Record<number, number>>(() =>
-    Object.fromEntries(locations.map(l => [l.id, l.vote_count]))
+    makeDbVoteCounts(locations)
   )
   const [dbUserVotes, setDbUserVotes] = useState<Record<number, 'up' | 'down' | null>>(() =>
-    Object.fromEntries(locations.map(l => [l.id, l.user_vote]))
+    makeDbUserVotes(locations)
   )
 
   // Keep DB vote state in sync when locations prop refreshes (e.g. after login)
   useEffect(() => {
-    setDbVoteCounts(Object.fromEntries(locations.map(l => [l.id, l.vote_count])))
-    setDbUserVotes(Object.fromEntries(locations.map(l => [l.id, l.user_vote])))
+    setDbVoteCounts(makeDbVoteCounts(locations))
+    setDbUserVotes(makeDbUserVotes(locations))
   }, [locations])
 
   /** Find the DB Location matching a user spot by proximity (within ~50m). */
