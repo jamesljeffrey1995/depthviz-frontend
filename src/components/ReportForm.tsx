@@ -1,6 +1,8 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import type { DayForecast, Location } from '../types'
+import type { VisibilityReport } from '../lib/underwaterVisibility'
 import { submitReport } from '../lib/api'
+import VisibilityAnalyser from './VisibilityAnalyser'
 import styles from './ReportForm.module.css'
 
 interface Props {
@@ -31,9 +33,18 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
   const [locationId, setLocationId] = useState<number | ''>(initialLocationId ?? '')
   const [actualVis, setActualVis] = useState('')
   const [notes, setNotes] = useState('')
+  const [videoReport, setVideoReport] = useState<VisibilityReport | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
+
+  const onVideoResult = useCallback((report: VisibilityReport) => {
+    setVideoReport(report)
+    // Auto-fill actual_vis with the video median if user hasn't typed one
+    if (!actualVis) {
+      setActualVis(report.visibility_m.median.toFixed(1))
+    }
+  }, [actualVis])
 
   const dateOptions = useMemo(() => buildDateOptions(), [])
   const activeDay = useMemo(
@@ -65,6 +76,14 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
         sea_temp: activeDay.sea_temp,
         algae_risk: activeDay.algae.risk,
         notes: notes.slice(0, 500) || undefined,
+        // Attach video DCP analysis if user analysed a dive video
+        ...(videoReport ? {
+          video_vis_median: videoReport.visibility_m.median,
+          video_vis_p10: videoReport.visibility_m.p10,
+          video_vis_p90: videoReport.visibility_m.p90,
+          video_t_median: videoReport.t_median,
+          video_frame_count: videoReport.frameCount,
+        } : {}),
       })
       setDone(true)
       setTimeout(onSubmitted, 1500)
@@ -144,6 +163,17 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
           rows={3}
           maxLength={500}
         />
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.label}>Dive video analysis (optional)</label>
+        <VisibilityAnalyser onResult={onVideoResult} />
+        {videoReport && (
+          <div className={styles.hint}>
+            Video analysis: {videoReport.visibility_m.median.toFixed(1)}m median
+            ({videoReport.frameCount} frames) — this boosts report trust
+          </div>
+        )}
       </div>
 
       {error && <div className={styles.error}>{error}</div>}
