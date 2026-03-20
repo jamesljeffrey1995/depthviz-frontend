@@ -329,10 +329,10 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
         }
         setDbVoteCounts(prev => ({ ...prev, [dbLocation.id]: updated.vote_count }))
         setDbUserVotes(prev => ({ ...prev, [dbLocation.id]: updated.user_vote }))
+        return
       } catch {
         // Fall through to localStorage on error
       }
-      return
     }
 
     // localStorage fallback for private spots with no DB record
