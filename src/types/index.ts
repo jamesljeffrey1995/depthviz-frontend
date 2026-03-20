@@ -1,3 +1,11 @@
+// Re-export underwater visibility types for convenience
+export type {
+  FrameResult,
+  VisibilityStats,
+  VisibilityReport as UnderwaterVisibilityReport,
+  AnalyseOptions,
+} from '../lib/underwaterVisibility'
+
 export interface AlgaeRisk {
   risk: 'low' | 'moderate' | 'high'
   score: number
@@ -109,6 +117,12 @@ export interface ReportCreate {
   sea_temp?: number | null
   algae_risk?: string
   notes?: string
+  // Video-derived visibility (client-side DCP analysis)
+  video_vis_median?: number
+  video_vis_p10?: number
+  video_vis_p90?: number
+  video_t_median?: number
+  video_frame_count?: number
 }
 
 export interface ReportRead extends ReportCreate {
