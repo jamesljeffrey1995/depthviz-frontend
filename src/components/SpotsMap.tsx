@@ -206,7 +206,7 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
   /** Find the DB Location matching a user spot by proximity (within ~50m). */
   const findDbLocation = useCallback((spot: DiveSpot): Location | undefined => {
     return locations.find(
-      l => Math.abs(l.lat - spot.lat) < 0.001 && Math.abs(l.lon - spot.lon) < 0.001
+      l => haversineMetres(spot.lat, spot.lon, l.lat, l.lon) < 50
     )
   }, [locations])
 
