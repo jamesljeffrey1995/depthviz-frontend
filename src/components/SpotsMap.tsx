@@ -1,18 +1,20 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { User } from '@supabase/supabase-js'
 import styles from './SpotsMap.module.css'
-import { createLocation } from '../lib/api'
+import { createLocation, voteLocation, removeVote } from '../lib/api'
 import { UK_DIVE_SPOTS } from '../data/diveSpots'
 import type { DiveSpot } from '../data/diveSpots'
+import type { Location } from '../types'
 
 interface Props {
   onSelectSpot: (lat: number, lon: number, name: string) => void
   center?: [number, number]
   user?: User | null
   onShowAuth?: () => void
+  locations?: Location[]
 }
 
 const STORAGE_KEY = 'depthviz_user_spots'
@@ -176,7 +178,7 @@ function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lon: number
   return null
 }
 
-export function SpotsMap({ onSelectSpot, center, user, onShowAuth }: Props) {
+export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [] }: Props) {
   const [userSpots, setUserSpots] = useState<DiveSpot[]>(loadUserSpots)
   const [adding, setAdding] = useState(false)
   const [pendingPos, setPendingPos] = useState<{ lat: number; lon: number } | null>(null)
@@ -187,6 +189,40 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth }: Props) {
   const [syncWarning, setSyncWarning] = useState('')
   const [votes, setVotes] = useState<Record<string, number>>(loadVotes)
   const [userVoteChoices, setUserVoteChoices] = useState<Record<string, 'up' | 'down'>>(loadUserVoteChoices)
+  // DB-backed vote state: keyed by location.id (number), seeded from locations prop
+  const makeDbVoteCounts = (locs: Location[]): Record<number, number> => {
+    const result: Record<number, number> = {}
+    for (const l of locs) {
+      result[l.id] = l.vote_count
+    }
+    return result
+  }
+  const makeDbUserVotes = (locs: Location[]): Record<number, 'up' | 'down' | null> => {
+    const result: Record<number, 'up' | 'down' | null> = {}
+    for (const l of locs) {
+      result[l.id] = l.user_vote
+    }
+    return result
+  }
+  const [dbVoteCounts, setDbVoteCounts] = useState<Record<number, number>>(() =>
+    makeDbVoteCounts(locations)
+  )
+  const [dbUserVotes, setDbUserVotes] = useState<Record<number, 'up' | 'down' | null>>(() =>
+    makeDbUserVotes(locations)
+  )
+
+  // Keep DB vote state in sync when locations prop refreshes (e.g. after login)
+  useEffect(() => {
+    setDbVoteCounts(makeDbVoteCounts(locations))
+    setDbUserVotes(makeDbUserVotes(locations))
+  }, [locations])
+
+  /** Find the DB Location matching a user spot by proximity (within ~50m). */
+  const findDbLocation = useCallback((spot: DiveSpot): Location | undefined => {
+    return locations.find(
+      l => haversineMetres(spot.lat, spot.lon, l.lat, l.lon) < 50
+    )
+  }, [locations])
 
   const handleMapClick = useCallback((lat: number, lon: number) => {
     if (!adding) return
@@ -289,25 +325,45 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth }: Props) {
     })
   }
 
-  const handleVote = (spot: DiveSpot, delta: 1 | -1) => {
-    const key = spotKey(spot)
+  const handleVote = async (spot: DiveSpot, delta: 1 | -1) => {
     const direction = delta === 1 ? 'up' : 'down'
+    const dbLocation = findDbLocation(spot)
+
+    if (dbLocation) {
+      // API-backed voting for DB locations
+      const existing = dbUserVotes[dbLocation.id]
+      try {
+        let updated: Location
+        if (existing === direction) {
+          // Toggle off — remove vote
+          updated = await removeVote(dbLocation.id)
+        } else {
+          // New vote or switch direction
+          updated = await voteLocation(dbLocation.id, direction)
+        }
+        setDbVoteCounts(prev => ({ ...prev, [dbLocation.id]: updated.vote_count }))
+        setDbUserVotes(prev => ({ ...prev, [dbLocation.id]: updated.user_vote }))
+        return
+      } catch {
+        // Fall through to localStorage on error
+      }
+    }
+
+    // localStorage fallback for private spots with no DB record
+    const key = spotKey(spot)
     const existing = userVoteChoices[key]
 
     let voteDelta: number
     let nextChoices: Record<string, 'up' | 'down'>
 
     if (existing === direction) {
-      // Clicking same button again — toggle off (remove vote)
       voteDelta = direction === 'up' ? -1 : 1
       nextChoices = { ...userVoteChoices }
       delete nextChoices[key]
     } else if (existing) {
-      // Switching vote (e.g. up → down): reverse previous + apply new
       voteDelta = direction === 'up' ? 2 : -2
       nextChoices = { ...userVoteChoices, [key]: direction }
     } else {
-      // Fresh vote
       voteDelta = delta
       nextChoices = { ...userVoteChoices, [key]: direction }
     }
@@ -315,7 +371,7 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth }: Props) {
     setVotes(prev => {
       const current = prev[key] ?? 0
       const updated = current + voteDelta
-      if (updated < 0) return prev // prevent negative vote totals
+      if (updated < 0) return prev
       const next = { ...prev, [key]: updated }
       saveVotes(next)
       return next
@@ -356,55 +412,60 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth }: Props) {
               </Popup>
             </Marker>
           ))}
-          {userSpots.map((spot) => (
-            <Marker
-              key={spot.id ?? `user-${spot.name}-${spot.lat}-${spot.lon}`}
-              position={[spot.lat, spot.lon]}
-              icon={spot.isPublic ? publicSpotIcon : userSpotIcon}
-            >
-              <Popup>
-                <div className={styles.popup}>
-                  <div className={spot.isPublic ? styles.popupPublicBadge : styles.popupUserBadge}>
-                    {spot.isPublic ? 'Public Spot' : 'My Spot (private)'}
-                  </div>
-                  <div className={styles.popupName}>{spot.name}</div>
-                  <div className={styles.popupDesc}>{spot.description}</div>
-                  {spot.createdBy && (
-                    <div className={styles.popupCreator}>Added by {spot.createdBy}</div>
-                  )}
-                  <div className={styles.voteRow}>
+          {userSpots.map((spot) => {
+            const dbLoc = findDbLocation(spot)
+            const voteCount = dbLoc ? (dbVoteCounts[dbLoc.id] ?? 0) : (votes[spotKey(spot)] ?? 0)
+            const userVote = dbLoc ? dbUserVotes[dbLoc.id] : userVoteChoices[spotKey(spot)]
+            return (
+              <Marker
+                key={spot.id ?? `user-${spot.name}-${spot.lat}-${spot.lon}`}
+                position={[spot.lat, spot.lon]}
+                icon={spot.isPublic ? publicSpotIcon : userSpotIcon}
+              >
+                <Popup>
+                  <div className={styles.popup}>
+                    <div className={spot.isPublic ? styles.popupPublicBadge : styles.popupUserBadge}>
+                      {spot.isPublic ? 'Public Spot' : 'My Spot (private)'}
+                    </div>
+                    <div className={styles.popupName}>{spot.name}</div>
+                    <div className={styles.popupDesc}>{spot.description}</div>
+                    {spot.createdBy && (
+                      <div className={styles.popupCreator}>Added by {spot.createdBy}</div>
+                    )}
+                    <div className={styles.voteRow}>
+                      <button
+                        className={`${styles.voteBtn} ${userVote === 'up' ? styles.voteBtnActive : ''}`}
+                        onClick={() => handleVote(spot, 1)}
+                        aria-label="Upvote this spot"
+                      >
+                        👍
+                      </button>
+                      <span className={styles.voteCount}>{voteCount}</span>
+                      <button
+                        className={`${styles.voteBtn} ${userVote === 'down' ? styles.voteBtnActive : ''}`}
+                        onClick={() => handleVote(spot, -1)}
+                        aria-label="Downvote this spot"
+                      >
+                        👎
+                      </button>
+                    </div>
                     <button
-                      className={`${styles.voteBtn} ${userVoteChoices[spotKey(spot)] === 'up' ? styles.voteBtnActive : ''}`}
-                      onClick={() => handleVote(spot, 1)}
-                      aria-label="Upvote this spot"
+                      className={styles.popupBtn}
+                      onClick={() => onSelectSpot(spot.lat, spot.lon, spot.name)}
                     >
-                      👍
+                      View Forecast &rsaquo;
                     </button>
-                    <span className={styles.voteCount}>{votes[spotKey(spot)] ?? 0}</span>
                     <button
-                      className={`${styles.voteBtn} ${userVoteChoices[spotKey(spot)] === 'down' ? styles.voteBtnActive : ''}`}
-                      onClick={() => handleVote(spot, -1)}
-                      aria-label="Downvote this spot"
+                      className={styles.popupRemoveBtn}
+                      onClick={() => handleRemoveUserSpot(spot)}
                     >
-                      👎
+                      Remove Spot
                     </button>
                   </div>
-                  <button
-                    className={styles.popupBtn}
-                    onClick={() => onSelectSpot(spot.lat, spot.lon, spot.name)}
-                  >
-                    View Forecast &rsaquo;
-                  </button>
-                  <button
-                    className={styles.popupRemoveBtn}
-                    onClick={() => handleRemoveUserSpot(spot)}
-                  >
-                    Remove Spot
-                  </button>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
+                </Popup>
+              </Marker>
+            )
+          })}
           {pendingPos && (
             <Marker position={[pendingPos.lat, pendingPos.lon]} icon={pendingIcon}>
               <Popup>
