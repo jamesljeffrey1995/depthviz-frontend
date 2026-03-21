@@ -261,3 +261,57 @@ export interface LocationHistoryResponse {
   report_count: number
   logs: LocationHistoryLog[]
 }
+
+// Admin types
+export interface AdminStats {
+  total_reports: number
+  quarantined_reports: number
+  active_reports: number
+  quarantine_rate: number
+  total_locations: number
+}
+
+export interface OutlierPreview {
+  total_reports: number
+  locations: number
+  would_quarantine: OutlierPreviewItem[]
+  would_restore: OutlierPreviewItem[]
+  would_quarantine_count: number
+  would_restore_count: number
+}
+
+export interface OutlierPreviewItem {
+  id: number
+  location_id: number
+  report_date: string
+  actual_vis: number
+  user_id: string
+}
+
+export interface CleaningResult {
+  total_reports_scanned: number
+  locations_scanned: number
+  newly_quarantined: number
+  newly_restored: number
+  trust_weights_updated: number
+  quarantined_report_ids: number[]
+  restored_report_ids: number[]
+}
+
+export interface QuarantinedReport {
+  id: number
+  location_id: number
+  location_name: string
+  user_id: string
+  report_date: string
+  actual_vis: number
+  predicted_vis: number
+  trust_weight: number
+  notes: string | null
+  created_at: string
+}
+
+export interface QuarantinedListResponse {
+  count: number
+  reports: QuarantinedReport[]
+}

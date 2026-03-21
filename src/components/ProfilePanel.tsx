@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { getMyProfile, updateProfile, getMyReports, getLeaderboard } from '../lib/api'
 import type { UserProfile, ReportRead, LeaderboardEntry } from '../types'
 import styles from './ProfilePanel.module.css'
+
+const AdminPanel = lazy(() => import('./AdminPanel').then(m => ({ default: m.AdminPanel })))
 
 interface ProfilePanelProps {
   onClose?: () => void
@@ -15,7 +17,7 @@ export function ProfilePanel({ onClose }: ProfilePanelProps) {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [editName, setEditName] = useState(false)
   const [nameInput, setNameInput] = useState('')
-  const [tab, setTab] = useState<'mine' | 'board'>('mine')
+  const [tab, setTab] = useState<'mine' | 'board' | 'admin'>('mine')
 
   useEffect(() => {
     if (!user) return
@@ -102,6 +104,9 @@ export function ProfilePanel({ onClose }: ProfilePanelProps) {
       <div className={styles.tabs}>
         <button className={`${styles.tab} ${tab === 'mine' ? styles.tabActive : ''}`} onClick={() => setTab('mine')}>My Reports</button>
         <button className={`${styles.tab} ${tab === 'board' ? styles.tabActive : ''}`} onClick={() => setTab('board')}>Leaderboard</button>
+        {profile?.trusted && (
+          <button className={`${styles.tab} ${tab === 'admin' ? styles.tabActive : ''}`} onClick={() => setTab('admin')}>Admin</button>
+        )}
       </div>
 
       {tab === 'mine' && (
@@ -132,6 +137,12 @@ export function ProfilePanel({ onClose }: ProfilePanelProps) {
             </div>
           ))}
         </div>
+      )}
+
+      {tab === 'admin' && profile?.trusted && (
+        <Suspense fallback={null}>
+          <AdminPanel />
+        </Suspense>
       )}
     </div>
   )

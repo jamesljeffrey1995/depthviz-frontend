@@ -1,12 +1,16 @@
 import { supabase } from './supabase'
 import { cacheGet, cacheSet, cacheDelete } from './cache'
 import type {
+  AdminStats,
   BestVisResponse,
+  CleaningResult,
   ForecastResponse,
   GeocodingResult,
   LeaderboardEntry,
   Location,
   LocationHistoryResponse,
+  OutlierPreview,
+  QuarantinedListResponse,
   ReportCreate,
   ReportRead,
   TidesResponse,
@@ -191,4 +195,42 @@ export async function getBestVisibility(): Promise<BestVisResponse> {
   const result = await apiFetch<BestVisResponse>('/forecast/best')
   cacheSet(key, result, TTL.FORECAST)
   return result
+}
+
+// Admin — Outlier Management
+export async function getAdminStats(): Promise<AdminStats> {
+  return apiFetch<AdminStats>('/admin/stats')
+}
+
+export async function getOutlierPreview(): Promise<OutlierPreview> {
+  return apiFetch<OutlierPreview>('/admin/outliers/preview')
+}
+
+export async function runOutlierCleaning(): Promise<CleaningResult> {
+  const result = await apiFetch<CleaningResult>('/admin/outliers/clean', { method: 'POST' })
+  // Outlier cleaning changes report quarantine state; invalidate related cached views
+  cacheDelete('stats:')
+  cacheDelete('history:')
+  cacheDelete('leaderboard')
+  return result
+}
+
+export async function getQuarantinedReports(locationId?: number): Promise<QuarantinedListResponse> {
+  const params = locationId
+    ? `?${new URLSearchParams({ location_id: String(locationId) }).toString()}`
+    : ''
+  return apiFetch<QuarantinedListResponse>(`/admin/outliers/quarantined${params}`)
+}
+
+export async function restoreReport(reportId: number): Promise<void> {
+  await apiFetch(`/admin/outliers/restore/${reportId}`, { method: 'POST' })
+  // Restoring a report can affect stats, history, and leaderboard views.
+  // Invalidate relevant cached entries so subsequent reads are fresh.
+  cacheDelete('stats:')
+  cacheDelete('history:')
+  cacheDelete('leaderboard')
+}
+
+export async function quarantineReport(reportId: number): Promise<void> {
+  await apiFetch(`/admin/outliers/quarantine/${reportId}`, { method: 'POST' })
 }
