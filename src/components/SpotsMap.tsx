@@ -5,12 +5,20 @@ import 'leaflet/dist/leaflet.css'
 import type { User } from '@supabase/supabase-js'
 import styles from './SpotsMap.module.css'
 import { createLocation, voteLocation, removeVote } from '../lib/api'
-import { UK_DIVE_SPOTS } from '../data/diveSpots'
-import type { DiveSpot } from '../data/diveSpots'
 import type { Location } from '../types'
 
+/** Shape of a private user spot stored in localStorage. */
+interface PrivateSpot {
+  id?: string
+  name: string
+  lat: number
+  lon: number
+  description: string
+  createdAt?: number
+}
+
 interface Props {
-  onSelectSpot: (lat: number, lon: number, name: string) => void
+  onSelectSpot: (lat: number, lon: number, name: string, locationId?: number) => void
   center?: [number, number]
   user?: User | null
   onShowAuth?: () => void
@@ -18,8 +26,6 @@ interface Props {
 }
 
 const STORAGE_KEY = 'depthviz_user_spots'
-const VOTES_STORAGE_KEY = 'depthviz_spot_votes'
-const USER_VOTES_STORAGE_KEY = 'depthviz_user_vote_choices'
 
 /** Haversine distance in metres between two lat/lon points */
 function haversineMetres(
@@ -36,61 +42,8 @@ function haversineMetres(
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
-function loadVotes(): Record<string, number> {
-  try {
-    const raw = localStorage.getItem(VOTES_STORAGE_KEY)
-    if (!raw) return {}
-    const parsed = JSON.parse(raw)
-    if (typeof parsed !== 'object' || parsed === null) return {}
-    const sanitised: Record<string, number> = {}
-    for (const [k, v] of Object.entries(parsed)) {
-      const n = Number(v)
-      if (Number.isFinite(n) && n >= 0) sanitised[k] = n
-    }
-    return sanitised
-  } catch {
-    return {}
-  }
-}
-
-function saveVotes(votes: Record<string, number>) {
-  try {
-    localStorage.setItem(VOTES_STORAGE_KEY, JSON.stringify(votes))
-  } catch {
-    // storage full or disabled — vote persists in memory only
-  }
-}
-
-function loadUserVoteChoices(): Record<string, 'up' | 'down'> {
-  try {
-    const raw = localStorage.getItem(USER_VOTES_STORAGE_KEY)
-    if (!raw) return {}
-    const parsed = JSON.parse(raw)
-    if (typeof parsed !== 'object' || parsed === null) return {}
-    const sanitised: Record<string, 'up' | 'down'> = {}
-    for (const [k, v] of Object.entries(parsed)) {
-      if (v === 'up' || v === 'down') sanitised[k] = v
-    }
-    return sanitised
-  } catch {
-    return {}
-  }
-}
-
-function saveUserVoteChoices(choices: Record<string, 'up' | 'down'>) {
-  try {
-    localStorage.setItem(USER_VOTES_STORAGE_KEY, JSON.stringify(choices))
-  } catch {
-    // storage full or disabled — persists in memory only
-  }
-}
-
-function spotKey(spot: DiveSpot): string {
-  return spot.id ?? `${spot.name}-${spot.lat}-${spot.lon}`
-}
-
-// Built-in spot marker (cyan)
-const spotIcon = new L.Icon({
+// Predefined spot marker (cyan)
+const predefinedIcon = new L.Icon({
   iconUrl: 'data:image/svg+xml,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="36" viewBox="0 0 24 36">' +
     '<path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#00c9ff"/>' +
@@ -102,8 +55,8 @@ const spotIcon = new L.Icon({
   popupAnchor: [0, -36],
 })
 
-// User-added spot marker (amber)
-const userSpotIcon = new L.Icon({
+// User-added private spot marker (amber)
+const privateSpotIcon = new L.Icon({
   iconUrl: 'data:image/svg+xml,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="36" viewBox="0 0 24 36">' +
     '<path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#ffb800"/>' +
@@ -115,7 +68,7 @@ const userSpotIcon = new L.Icon({
   popupAnchor: [0, -36],
 })
 
-// User-added PUBLIC spot marker (green)
+// Public spot marker (green)
 const publicSpotIcon = new L.Icon({
   iconUrl: 'data:image/svg+xml,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="36" viewBox="0 0 24 36">' +
@@ -145,25 +98,20 @@ const pendingIcon = new L.Icon({
 const UK_CENTER: [number, number] = [54.5, -3.5]
 const UK_ZOOM = 5
 
-function loadUserSpots(): DiveSpot[] {
+function loadPrivateSpots(): PrivateSpot[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return []
     const parsed = JSON.parse(raw)
     if (!Array.isArray(parsed)) return []
-    return parsed
-      .filter(
-        (s: unknown) =>
-          s !== null &&
-          typeof s === 'object' &&
-          typeof (s as DiveSpot).name === 'string' &&
-          typeof (s as DiveSpot).lat === 'number' &&
-          typeof (s as DiveSpot).lon === 'number'
-      )
-      .map((s: DiveSpot) => ({
-        ...s,
-        isPublic: s.isPublic === true, // normalise to strict boolean
-      }))
+    return parsed.filter(
+      (s: unknown) =>
+        s !== null &&
+        typeof s === 'object' &&
+        typeof (s as PrivateSpot).name === 'string' &&
+        typeof (s as PrivateSpot).lat === 'number' &&
+        typeof (s as PrivateSpot).lon === 'number'
+    )
   } catch {
     return []
   }
@@ -179,7 +127,7 @@ function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lon: number
 }
 
 export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [] }: Props) {
-  const [userSpots, setUserSpots] = useState<DiveSpot[]>(loadUserSpots)
+  const [privateSpots, setPrivateSpots] = useState<PrivateSpot[]>(loadPrivateSpots)
   const [adding, setAdding] = useState(false)
   const [pendingPos, setPendingPos] = useState<{ lat: number; lon: number } | null>(null)
   const [newName, setNewName] = useState('')
@@ -187,21 +135,16 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
   const [isPublic, setIsPublic] = useState(false)
   const [proximityError, setProximityError] = useState('')
   const [syncWarning, setSyncWarning] = useState('')
-  const [votes, setVotes] = useState<Record<string, number>>(loadVotes)
-  const [userVoteChoices, setUserVoteChoices] = useState<Record<string, 'up' | 'down'>>(loadUserVoteChoices)
-  // DB-backed vote state: keyed by location.id (number), seeded from locations prop
+
+  // DB-backed vote state: keyed by location.id
   const makeDbVoteCounts = (locs: Location[]): Record<number, number> => {
     const result: Record<number, number> = {}
-    for (const l of locs) {
-      result[l.id] = l.vote_count
-    }
+    for (const l of locs) result[l.id] = l.vote_count
     return result
   }
   const makeDbUserVotes = (locs: Location[]): Record<number, 'up' | 'down' | null> => {
     const result: Record<number, 'up' | 'down' | null> = {}
-    for (const l of locs) {
-      result[l.id] = l.user_vote
-    }
+    for (const l of locs) result[l.id] = l.user_vote
     return result
   }
   const [dbVoteCounts, setDbVoteCounts] = useState<Record<number, number>>(() =>
@@ -211,18 +154,26 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
     makeDbUserVotes(locations)
   )
 
-  // Keep DB vote state in sync when locations prop refreshes (e.g. after login)
+  // Keep DB vote state in sync when locations prop refreshes
   useEffect(() => {
     setDbVoteCounts(makeDbVoteCounts(locations))
     setDbUserVotes(makeDbUserVotes(locations))
   }, [locations])
 
-  /** Find the DB Location matching a user spot by proximity (within ~50m). */
-  const findDbLocation = useCallback((spot: DiveSpot): Location | undefined => {
-    return locations.find(
-      l => haversineMetres(spot.lat, spot.lon, l.lat, l.lon) < 50
-    )
-  }, [locations])
+  // Migrate: strip any old public/userAdded spots from localStorage
+  // (they now live exclusively in the DB)
+  useEffect(() => {
+    const cleaned = privateSpots.filter((s: PrivateSpot & { isPublic?: boolean; userAdded?: boolean }) => !s.isPublic)
+    if (cleaned.length !== privateSpots.length) {
+      setPrivateSpots(cleaned)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned))
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  /** DB locations not already covered by a private localStorage spot */
+  const dbLocations = locations.filter(loc =>
+    !privateSpots.some(s => haversineMetres(s.lat, s.lon, loc.lat, loc.lon) < 50)
+  )
 
   const handleMapClick = useCallback((lat: number, lon: number) => {
     if (!adding) return
@@ -232,11 +183,8 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
 
   const handleAddSpotClick = () => {
     if (user || !onShowAuth) {
-      // If user is logged in, or no auth handler is provided (backwards compatibility),
-      // just enter add mode.
       setAdding(true)
     } else {
-      // If an auth handler is provided and no user is logged in, trigger auth.
       onShowAuth()
     }
   }
@@ -244,45 +192,42 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
   const handleSaveSpot = async () => {
     if (!pendingPos || !newName.trim()) return
 
-    // 100m proximity check for public custom spots
+    // 100m proximity check for public spots against all DB locations
     if (isPublic) {
-      const allPublicCustom = userSpots.filter(s => s.isPublic)
-      const tooClose = allPublicCustom.find(
-        s => haversineMetres(s.lat, s.lon, pendingPos.lat, pendingPos.lon) < 100,
+      const tooCloseDb = locations.find(
+        l => l.is_public && haversineMetres(l.lat, l.lon, pendingPos.lat, pendingPos.lon) < 100,
       )
-      if (tooClose) {
+      if (tooCloseDb) {
         setProximityError(
-          `Too close to existing public spot "${tooClose.name}" (must be ≥ 100 m apart)`,
+          `Too close to existing public spot "${tooCloseDb.name}" (must be \u2265 100 m apart)`,
         )
         return
       }
     }
 
-    const spot: DiveSpot = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      name: newName.trim(),
-      lat: pendingPos.lat,
-      lon: pendingPos.lon,
-      description: newDesc.trim() || 'User-added dive spot',
-      userAdded: true,
-      isPublic,
-      createdBy: user ? 'You' : undefined,
-      createdAt: Date.now(),
-    }
-
-    // If public, also push to the backend; downgrade to private on failure
     if (isPublic) {
+      // Public spots go straight to the DB — no localStorage
       try {
-        await createLocation(spot.name, spot.lat, spot.lon, true)
+        await createLocation(newName.trim(), pendingPos.lat, pendingPos.lon, true)
       } catch {
-        spot.isPublic = false
-        setSyncWarning('Could not publish spot — saved as private instead. Try again later.')
+        setSyncWarning('Could not publish spot — try again later.')
+        return
       }
+    } else {
+      // Private spots are localStorage-only
+      const spot: PrivateSpot = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        name: newName.trim(),
+        lat: pendingPos.lat,
+        lon: pendingPos.lon,
+        description: newDesc.trim() || 'User-added dive spot',
+        createdAt: Date.now(),
+      }
+      const updated = [...privateSpots, spot]
+      setPrivateSpots(updated)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
     }
 
-    const updated = [...userSpots, spot]
-    setUserSpots(updated)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
     setAdding(false)
     setPendingPos(null)
     setNewName('')
@@ -300,85 +245,29 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
     setProximityError('')
   }
 
-  const handleRemoveUserSpot = (spot: DiveSpot) => {
+  const handleRemovePrivateSpot = (spot: PrivateSpot) => {
     const updated = spot.id
-      ? userSpots.filter(s => s.id !== spot.id)
-      : userSpots.filter(s => !(s.name === spot.name && s.lat === spot.lat && s.lon === spot.lon))
-    setUserSpots(updated)
+      ? privateSpots.filter(s => s.id !== spot.id)
+      : privateSpots.filter(s => !(s.name === spot.name && s.lat === spot.lat && s.lon === spot.lon))
+    setPrivateSpots(updated)
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
-
-    // Clean up stale vote and user vote choice entries
-    const key = spotKey(spot)
-    setVotes(prev => {
-      if (!(key in prev)) return prev
-      const next = { ...prev }
-      delete next[key]
-      saveVotes(next)
-      return next
-    })
-    setUserVoteChoices(prev => {
-      if (!(key in prev)) return prev
-      const next = { ...prev }
-      delete next[key]
-      saveUserVoteChoices(next)
-      return next
-    })
   }
 
-  const handleVote = async (spot: DiveSpot, delta: 1 | -1) => {
-    const direction = delta === 1 ? 'up' : 'down'
-    const dbLocation = findDbLocation(spot)
-
-    if (dbLocation) {
-      // API-backed voting for DB locations
-      const existing = dbUserVotes[dbLocation.id]
-      try {
-        let updated: Location
-        if (existing === direction) {
-          // Toggle off — remove vote
-          updated = await removeVote(dbLocation.id)
-        } else {
-          // New vote or switch direction
-          updated = await voteLocation(dbLocation.id, direction)
-        }
-        setDbVoteCounts(prev => ({ ...prev, [dbLocation.id]: updated.vote_count }))
-        setDbUserVotes(prev => ({ ...prev, [dbLocation.id]: updated.user_vote }))
-        return
-      } catch {
-        // Fall through to localStorage on error
+  const handleDbVote = useCallback(async (locationId: number, direction: 'up' | 'down') => {
+    const existing = dbUserVotes[locationId]
+    try {
+      let updated: Location
+      if (existing === direction) {
+        updated = await removeVote(locationId)
+      } else {
+        updated = await voteLocation(locationId, direction)
       }
+      setDbVoteCounts(prev => ({ ...prev, [locationId]: updated.vote_count }))
+      setDbUserVotes(prev => ({ ...prev, [locationId]: updated.user_vote }))
+    } catch {
+      // Silently fail — user can retry
     }
-
-    // localStorage fallback for private spots with no DB record
-    const key = spotKey(spot)
-    const existing = userVoteChoices[key]
-
-    let voteDelta: number
-    let nextChoices: Record<string, 'up' | 'down'>
-
-    if (existing === direction) {
-      voteDelta = direction === 'up' ? -1 : 1
-      nextChoices = { ...userVoteChoices }
-      delete nextChoices[key]
-    } else if (existing) {
-      voteDelta = direction === 'up' ? 2 : -2
-      nextChoices = { ...userVoteChoices, [key]: direction }
-    } else {
-      voteDelta = delta
-      nextChoices = { ...userVoteChoices, [key]: direction }
-    }
-
-    setVotes(prev => {
-      const current = prev[key] ?? 0
-      const updated = current + voteDelta
-      if (updated < 0) return prev
-      const next = { ...prev, [key]: updated }
-      saveVotes(next)
-      return next
-    })
-    setUserVoteChoices(nextChoices)
-    saveUserVoteChoices(nextChoices)
-  }
+  }, [dbUserVotes])
 
   return (
     <div className={styles.wrapper}>
@@ -396,10 +285,61 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           {adding && <MapClickHandler onMapClick={handleMapClick} />}
-          {UK_DIVE_SPOTS.map(spot => (
-            <Marker key={spot.name} position={[spot.lat, spot.lon]} icon={spotIcon}>
+          {/* DB locations: predefined (cyan) and user-created public (green) */}
+          {dbLocations.map(loc => {
+            const voteCount = dbVoteCounts[loc.id] ?? 0
+            const userVote = dbUserVotes[loc.id]
+            const icon = loc.is_predefined ? predefinedIcon : publicSpotIcon
+            return (
+              <Marker
+                key={`db-${loc.id}`}
+                position={[loc.lat, loc.lon]}
+                icon={icon}
+              >
+                <Popup>
+                  <div className={styles.popup}>
+                    {!loc.is_predefined && (
+                      <div className={styles.popupPublicBadge}>Public Spot</div>
+                    )}
+                    <div className={styles.popupName}>{loc.name}</div>
+                    <div className={styles.voteRow}>
+                      <button
+                        className={`${styles.voteBtn} ${userVote === 'up' ? styles.voteBtnActive : ''}`}
+                        onClick={() => handleDbVote(loc.id, 'up')}
+                        aria-label="Upvote this spot"
+                      >
+                        👍
+                      </button>
+                      <span className={styles.voteCount}>{voteCount}</span>
+                      <button
+                        className={`${styles.voteBtn} ${userVote === 'down' ? styles.voteBtnActive : ''}`}
+                        onClick={() => handleDbVote(loc.id, 'down')}
+                        aria-label="Downvote this spot"
+                      >
+                        👎
+                      </button>
+                    </div>
+                    <button
+                      className={styles.popupBtn}
+                      onClick={() => onSelectSpot(loc.lat, loc.lon, loc.name, loc.id)}
+                    >
+                      View Forecast &rsaquo;
+                    </button>
+                  </div>
+                </Popup>
+              </Marker>
+            )
+          })}
+          {/* Private localStorage spots (amber) */}
+          {privateSpots.map(spot => (
+            <Marker
+              key={spot.id ?? `priv-${spot.name}-${spot.lat}-${spot.lon}`}
+              position={[spot.lat, spot.lon]}
+              icon={privateSpotIcon}
+            >
               <Popup>
                 <div className={styles.popup}>
+                  <div className={styles.popupUserBadge}>My Spot (private)</div>
                   <div className={styles.popupName}>{spot.name}</div>
                   <div className={styles.popupDesc}>{spot.description}</div>
                   <button
@@ -408,70 +348,22 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
                   >
                     View Forecast &rsaquo;
                   </button>
+                  <button
+                    className={styles.popupRemoveBtn}
+                    onClick={() => handleRemovePrivateSpot(spot)}
+                  >
+                    Remove Spot
+                  </button>
                 </div>
               </Popup>
             </Marker>
           ))}
-          {userSpots.map((spot) => {
-            const dbLoc = findDbLocation(spot)
-            const voteCount = dbLoc ? (dbVoteCounts[dbLoc.id] ?? 0) : (votes[spotKey(spot)] ?? 0)
-            const userVote = dbLoc ? dbUserVotes[dbLoc.id] : userVoteChoices[spotKey(spot)]
-            return (
-              <Marker
-                key={spot.id ?? `user-${spot.name}-${spot.lat}-${spot.lon}`}
-                position={[spot.lat, spot.lon]}
-                icon={spot.isPublic ? publicSpotIcon : userSpotIcon}
-              >
-                <Popup>
-                  <div className={styles.popup}>
-                    <div className={spot.isPublic ? styles.popupPublicBadge : styles.popupUserBadge}>
-                      {spot.isPublic ? 'Public Spot' : 'My Spot (private)'}
-                    </div>
-                    <div className={styles.popupName}>{spot.name}</div>
-                    <div className={styles.popupDesc}>{spot.description}</div>
-                    {spot.createdBy && (
-                      <div className={styles.popupCreator}>Added by {spot.createdBy}</div>
-                    )}
-                    <div className={styles.voteRow}>
-                      <button
-                        className={`${styles.voteBtn} ${userVote === 'up' ? styles.voteBtnActive : ''}`}
-                        onClick={() => handleVote(spot, 1)}
-                        aria-label="Upvote this spot"
-                      >
-                        👍
-                      </button>
-                      <span className={styles.voteCount}>{voteCount}</span>
-                      <button
-                        className={`${styles.voteBtn} ${userVote === 'down' ? styles.voteBtnActive : ''}`}
-                        onClick={() => handleVote(spot, -1)}
-                        aria-label="Downvote this spot"
-                      >
-                        👎
-                      </button>
-                    </div>
-                    <button
-                      className={styles.popupBtn}
-                      onClick={() => onSelectSpot(spot.lat, spot.lon, spot.name)}
-                    >
-                      View Forecast &rsaquo;
-                    </button>
-                    <button
-                      className={styles.popupRemoveBtn}
-                      onClick={() => handleRemoveUserSpot(spot)}
-                    >
-                      Remove Spot
-                    </button>
-                  </div>
-                </Popup>
-              </Marker>
-            )
-          })}
           {pendingPos && (
             <Marker position={[pendingPos.lat, pendingPos.lon]} icon={pendingIcon}>
               <Popup>
                 <div className={styles.popup}>
                   <div className={styles.popupDesc}>
-                    {pendingPos.lat.toFixed(4)}°, {pendingPos.lon.toFixed(4)}°
+                    {pendingPos.lat.toFixed(4)}, {pendingPos.lon.toFixed(4)}
                   </div>
                   <div className={styles.popupDesc}>Fill in name below and save</div>
                 </div>
@@ -486,14 +378,14 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
           <div className={styles.addFormTitle}>Add a Dive Spot</div>
           <div className={styles.addFormPrivacy}>
             {isPublic
-              ? '🌍 This spot will be submitted for public visibility'
-              : '🔒 Saved to this browser only — not visible to other users'}
+              ? 'This spot will be submitted for public visibility'
+              : 'Saved to this browser only — not visible to other users'}
           </div>
           {!pendingPos ? (
-            <div className={styles.addFormHint}>↑ Click anywhere on the map to place your spot</div>
+            <div className={styles.addFormHint}>Click anywhere on the map to place your spot</div>
           ) : (
             <div className={styles.addFormHint}>
-              📍 {pendingPos.lat.toFixed(4)}°, {pendingPos.lon.toFixed(4)}° — tap map to reposition
+              {pendingPos.lat.toFixed(4)}, {pendingPos.lon.toFixed(4)} — tap map to reposition
             </div>
           )}
           {proximityError && (
@@ -507,19 +399,19 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
                 onClick={() => { setIsPublic(false); setProximityError('') }}
                 type="button"
               >
-                🔒 Private
+                Private
               </button>
               <button
                 className={`${styles.toggleBtn} ${isPublic ? styles.toggleBtnActivePublic : ''}`}
                 onClick={() => { setIsPublic(true); setProximityError('') }}
                 type="button"
               >
-                🌍 Public
+                Public
               </button>
             </div>
             {isPublic && (
               <div className={styles.addFormHint}>
-                Public spots must be ≥ 100 m from other public custom spots
+                Public spots must be &ge; 100 m from other public spots
               </div>
             )}
           </div>
@@ -563,15 +455,11 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
           <button className={styles.addSpotBtn} onClick={handleAddSpotClick}>
             + Add a Spot
           </button>
-          {userSpots.length > 0 && (() => {
-            const publicCount = userSpots.filter(s => s.isPublic).length
-            return (
-              <span className={styles.userSpotsCount}>
-                {userSpots.length} custom spot{userSpots.length !== 1 ? 's' : ''}
-                {' '}({publicCount} public, {userSpots.length - publicCount} private)
-              </span>
-            )
-          })()}
+          {privateSpots.length > 0 && (
+            <span className={styles.userSpotsCount}>
+              {privateSpots.length} private spot{privateSpots.length !== 1 ? 's' : ''}
+            </span>
+          )}
         </div>
       )}
 

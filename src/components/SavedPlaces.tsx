@@ -5,7 +5,7 @@ import styles from './SavedPlaces.module.css'
 
 interface Props {
   locations: Location[]
-  onSelectLocation: (lat: number, lon: number, name: string) => void
+  onSelectLocation: (lat: number, lon: number, name: string, locationId?: number) => void
   onDelete: (id: number) => void
 }
 
@@ -82,7 +82,7 @@ export function SavedPlaces({ locations, onSelectLocation, onDelete }: Props) {
                 <>
                   <button
                     className={styles.forecastBtn}
-                    onClick={() => onSelectLocation(loc.lat, loc.lon, loc.name)}
+                    onClick={() => onSelectLocation(loc.lat, loc.lon, loc.name, loc.id)}
                     aria-label={`View forecast for ${loc.name}`}
                   >
                     Forecast
