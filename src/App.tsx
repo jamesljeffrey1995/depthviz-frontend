@@ -6,7 +6,6 @@ import { SearchBar } from './components/SearchBar'
 import { ForecastStrip } from './components/ForecastStrip'
 import { DayDetail } from './components/DayDetail'
 import { CookieBanner } from './components/CookieBanner'
-import { UK_DIVE_SPOTS } from './data/diveSpots'
 import { getLocations, createLocation } from './lib/api'
 import { formatLocationName } from './types'
 import type { GeocodingResult, Location, AppView } from './types'
@@ -60,11 +59,6 @@ export default function App() {
     for (const l of locations) {
       if (l.name.toLowerCase().includes(q) && !isNearExisting(l.lat, l.lon)) {
         results.push({ name: l.name, latitude: l.lat, longitude: l.lon })
-      }
-    }
-    for (const s of UK_DIVE_SPOTS) {
-      if (s.name.toLowerCase().includes(q) && !isNearExisting(s.lat, s.lon)) {
-        results.push({ name: s.name, latitude: s.lat, longitude: s.lon })
       }
     }
     return results.slice(0, 8)
