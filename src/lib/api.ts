@@ -207,7 +207,12 @@ export async function getOutlierPreview(): Promise<OutlierPreview> {
 }
 
 export async function runOutlierCleaning(): Promise<CleaningResult> {
-  return apiFetch<CleaningResult>('/admin/outliers/clean', { method: 'POST' })
+  const result = await apiFetch<CleaningResult>('/admin/outliers/clean', { method: 'POST' })
+  // Outlier cleaning changes report quarantine state; invalidate related cached views
+  cacheDelete('stats:')
+  cacheDelete('history:')
+  cacheDelete('leaderboard')
+  return result
 }
 
 export async function getQuarantinedReports(locationId?: number): Promise<QuarantinedListResponse> {
