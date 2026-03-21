@@ -216,7 +216,9 @@ export async function runOutlierCleaning(): Promise<CleaningResult> {
 }
 
 export async function getQuarantinedReports(locationId?: number): Promise<QuarantinedListResponse> {
-  const params = locationId ? `?location_id=${locationId}` : ''
+  const params = locationId
+    ? `?${new URLSearchParams({ location_id: String(locationId) }).toString()}`
+    : ''
   return apiFetch<QuarantinedListResponse>(`/admin/outliers/quarantined${params}`)
 }
 
