@@ -10,7 +10,7 @@ import type { DiveSpot } from '../data/diveSpots'
 import type { Location } from '../types'
 
 interface Props {
-  onSelectSpot: (lat: number, lon: number, name: string) => void
+  onSelectSpot: (lat: number, lon: number, name: string, locationId?: number) => void
   center?: [number, number]
   user?: User | null
   onShowAuth?: () => void
@@ -217,6 +217,40 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
     setDbUserVotes(makeDbUserVotes(locations))
   }, [locations])
 
+  // Sync localStorage: remove public user spots that no longer exist in the DB
+  // (i.e. they were deleted from the database but still cached in the browser)
+  useEffect(() => {
+    if (locations.length === 0) return
+    const staleIds = new Set<string>()
+    for (const spot of userSpots) {
+      if (!spot.isPublic) continue
+      const hasDbMatch = locations.some(
+        l => haversineMetres(spot.lat, spot.lon, l.lat, l.lon) < 50
+      )
+      if (!hasDbMatch) {
+        const key = spot.id ?? `${spot.name}-${spot.lat}-${spot.lon}`
+        staleIds.add(key)
+      }
+    }
+    if (staleIds.size > 0) {
+      const cleaned = userSpots.filter(s => {
+        const key = s.id ?? `${s.name}-${s.lat}-${s.lon}`
+        return !staleIds.has(key)
+      })
+      setUserSpots(cleaned)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned))
+    }
+  }, [locations]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  /** DB locations not already covered by hardcoded spots or localStorage spots */
+  const dbOnlyLocations = locations.filter(loc => {
+    // Skip if near a hardcoded UK dive spot
+    if (UK_DIVE_SPOTS.some(s => haversineMetres(s.lat, s.lon, loc.lat, loc.lon) < 50)) return false
+    // Skip if near a localStorage user spot
+    if (userSpots.some(s => haversineMetres(s.lat, s.lon, loc.lat, loc.lon) < 50)) return false
+    return true
+  })
+
   /** Find the DB Location matching a user spot by proximity (within ~50m). */
   const findDbLocation = useCallback((spot: DiveSpot): Location | undefined => {
     return locations.find(
@@ -396,22 +430,27 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           {adding && <MapClickHandler onMapClick={handleMapClick} />}
-          {UK_DIVE_SPOTS.map(spot => (
-            <Marker key={spot.name} position={[spot.lat, spot.lon]} icon={spotIcon}>
-              <Popup>
-                <div className={styles.popup}>
-                  <div className={styles.popupName}>{spot.name}</div>
-                  <div className={styles.popupDesc}>{spot.description}</div>
-                  <button
-                    className={styles.popupBtn}
-                    onClick={() => onSelectSpot(spot.lat, spot.lon, spot.name)}
-                  >
-                    View Forecast &rsaquo;
-                  </button>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
+          {UK_DIVE_SPOTS.map(spot => {
+            const matchedLoc = locations.find(
+              l => haversineMetres(spot.lat, spot.lon, l.lat, l.lon) < 50
+            )
+            return (
+              <Marker key={spot.name} position={[spot.lat, spot.lon]} icon={spotIcon}>
+                <Popup>
+                  <div className={styles.popup}>
+                    <div className={styles.popupName}>{spot.name}</div>
+                    <div className={styles.popupDesc}>{spot.description}</div>
+                    <button
+                      className={styles.popupBtn}
+                      onClick={() => onSelectSpot(spot.lat, spot.lon, spot.name, matchedLoc?.id)}
+                    >
+                      View Forecast &rsaquo;
+                    </button>
+                  </div>
+                </Popup>
+              </Marker>
+            )
+          })}
           {userSpots.map((spot) => {
             const dbLoc = findDbLocation(spot)
             const voteCount = dbLoc ? (dbVoteCounts[dbLoc.id] ?? 0) : (votes[spotKey(spot)] ?? 0)
@@ -451,7 +490,7 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
                     </div>
                     <button
                       className={styles.popupBtn}
-                      onClick={() => onSelectSpot(spot.lat, spot.lon, spot.name)}
+                      onClick={() => onSelectSpot(spot.lat, spot.lon, spot.name, dbLoc?.id)}
                     >
                       View Forecast &rsaquo;
                     </button>
@@ -460,6 +499,77 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
                       onClick={() => handleRemoveUserSpot(spot)}
                     >
                       Remove Spot
+                    </button>
+                  </div>
+                </Popup>
+              </Marker>
+            )
+          })}
+          {dbOnlyLocations.map(loc => {
+            const voteCount = dbVoteCounts[loc.id] ?? 0
+            const userVote = dbUserVotes[loc.id]
+            return (
+              <Marker
+                key={`db-${loc.id}`}
+                position={[loc.lat, loc.lon]}
+                icon={publicSpotIcon}
+              >
+                <Popup>
+                  <div className={styles.popup}>
+                    <div className={styles.popupPublicBadge}>
+                      Public Spot
+                    </div>
+                    <div className={styles.popupName}>{loc.name}</div>
+                    <div className={styles.voteRow}>
+                      <button
+                        className={`${styles.voteBtn} ${userVote === 'up' ? styles.voteBtnActive : ''}`}
+                        onClick={() => {
+                          const direction = 'up'
+                          const existing = dbUserVotes[loc.id]
+                          if (existing === direction) {
+                            removeVote(loc.id).then(updated => {
+                              setDbVoteCounts(prev => ({ ...prev, [loc.id]: updated.vote_count }))
+                              setDbUserVotes(prev => ({ ...prev, [loc.id]: updated.user_vote }))
+                            }).catch(() => {})
+                          } else {
+                            voteLocation(loc.id, direction).then(updated => {
+                              setDbVoteCounts(prev => ({ ...prev, [loc.id]: updated.vote_count }))
+                              setDbUserVotes(prev => ({ ...prev, [loc.id]: updated.user_vote }))
+                            }).catch(() => {})
+                          }
+                        }}
+                        aria-label="Upvote this spot"
+                      >
+                        👍
+                      </button>
+                      <span className={styles.voteCount}>{voteCount}</span>
+                      <button
+                        className={`${styles.voteBtn} ${userVote === 'down' ? styles.voteBtnActive : ''}`}
+                        onClick={() => {
+                          const direction = 'down'
+                          const existing = dbUserVotes[loc.id]
+                          if (existing === direction) {
+                            removeVote(loc.id).then(updated => {
+                              setDbVoteCounts(prev => ({ ...prev, [loc.id]: updated.vote_count }))
+                              setDbUserVotes(prev => ({ ...prev, [loc.id]: updated.user_vote }))
+                            }).catch(() => {})
+                          } else {
+                            voteLocation(loc.id, direction).then(updated => {
+                              setDbVoteCounts(prev => ({ ...prev, [loc.id]: updated.vote_count }))
+                              setDbUserVotes(prev => ({ ...prev, [loc.id]: updated.user_vote }))
+                            }).catch(() => {})
+                          }
+                        }}
+                        aria-label="Downvote this spot"
+                      >
+                        👎
+                      </button>
+                    </div>
+                    <button
+                      className={styles.popupBtn}
+                      onClick={() => onSelectSpot(loc.lat, loc.lon, loc.name, loc.id)}
+                    >
+                      View Forecast &rsaquo;
                     </button>
                   </div>
                 </Popup>

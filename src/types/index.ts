@@ -99,6 +99,8 @@ export interface Location {
   name: string
   lat: number
   lon: number
+  is_public: boolean
+  is_predefined: boolean
   vote_count: number
   user_vote: 'up' | 'down' | null
 }

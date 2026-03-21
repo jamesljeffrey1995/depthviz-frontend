@@ -114,13 +114,13 @@ export default function App() {
     setView('report')
   }
 
-  const handleSpotSelect = async (lat: number, lon: number, name: string) => {
+  const handleSpotSelect = async (lat: number, lon: number, name: string, locationId?: number) => {
     setCurrentLat(lat)
     setCurrentLon(lon)
     setCurrentName(name)
-    const matched = locations.find(l => Math.abs(l.lat - lat) < 0.01 && Math.abs(l.lon - lon) < 0.01)
-    setSelectedLocationId(matched?.id ?? null)
-    await searchByCoords(lat, lon, name, matched?.id)
+    const resolvedId = locationId ?? locations.find(l => Math.abs(l.lat - lat) < 0.01 && Math.abs(l.lon - lon) < 0.01)?.id ?? null
+    setSelectedLocationId(resolvedId)
+    await searchByCoords(lat, lon, name, resolvedId ?? undefined)
     setView('forecast')
   }
 
