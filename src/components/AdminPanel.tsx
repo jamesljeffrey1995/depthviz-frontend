@@ -196,14 +196,14 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
               onClick={handlePreview}
               disabled={loading}
             >
-              {loading && !cleanResult ? 'Scanning...' : 'Preview Changes'}
+              {loading ? 'Working...' : 'Preview Changes'}
             </button>
             <button
               className={styles.cleanBtn}
               onClick={handleClean}
               disabled={loading}
             >
-              {loading ? 'Cleaning...' : 'Run Cleaning'}
+              {loading ? 'Working...' : 'Run Cleaning'}
             </button>
           </div>
 
