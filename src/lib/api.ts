@@ -1,12 +1,16 @@
 import { supabase } from './supabase'
 import { cacheGet, cacheSet, cacheDelete } from './cache'
 import type {
+  AdminStats,
   BestVisResponse,
+  CleaningResult,
   ForecastResponse,
   GeocodingResult,
   LeaderboardEntry,
   Location,
   LocationHistoryResponse,
+  OutlierPreview,
+  QuarantinedListResponse,
   ReportCreate,
   ReportRead,
   TidesResponse,
@@ -191,4 +195,30 @@ export async function getBestVisibility(): Promise<BestVisResponse> {
   const result = await apiFetch<BestVisResponse>('/forecast/best')
   cacheSet(key, result, TTL.FORECAST)
   return result
+}
+
+// Admin — Outlier Management
+export async function getAdminStats(): Promise<AdminStats> {
+  return apiFetch<AdminStats>('/admin/stats')
+}
+
+export async function getOutlierPreview(): Promise<OutlierPreview> {
+  return apiFetch<OutlierPreview>('/admin/outliers/preview')
+}
+
+export async function runOutlierCleaning(): Promise<CleaningResult> {
+  return apiFetch<CleaningResult>('/admin/outliers/clean', { method: 'POST' })
+}
+
+export async function getQuarantinedReports(locationId?: number): Promise<QuarantinedListResponse> {
+  const params = locationId ? `?location_id=${locationId}` : ''
+  return apiFetch<QuarantinedListResponse>(`/admin/outliers/quarantined${params}`)
+}
+
+export async function restoreReport(reportId: number): Promise<void> {
+  await apiFetch(`/admin/outliers/restore/${reportId}`, { method: 'POST' })
+}
+
+export async function quarantineReport(reportId: number): Promise<void> {
+  await apiFetch(`/admin/outliers/quarantine/${reportId}`, { method: 'POST' })
 }
