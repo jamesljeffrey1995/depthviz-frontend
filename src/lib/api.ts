@@ -222,6 +222,11 @@ export async function getQuarantinedReports(locationId?: number): Promise<Quaran
 
 export async function restoreReport(reportId: number): Promise<void> {
   await apiFetch(`/admin/outliers/restore/${reportId}`, { method: 'POST' })
+  // Restoring a report can affect stats, history, and leaderboard views.
+  // Invalidate relevant cached entries so subsequent reads are fresh.
+  cacheDelete('stats:')
+  cacheDelete('history:')
+  cacheDelete('leaderboard')
 }
 
 export async function quarantineReport(reportId: number): Promise<void> {
