@@ -254,7 +254,7 @@
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   padding: 6px 0 env(safe-area-inset-bottom, 6px);
-  z-index: 100;
+  z-index: 1100;
 }
 
 .bottomNavBtn {
