@@ -210,7 +210,7 @@ export default function App() {
         {/* Feed */}
         <Route path="/feed" element={
           <Suspense fallback={null}>
-            <FeedPage user={user} onSelectSpot={handleSpotSelect} />
+            <FeedPage user={user} />
           </Suspense>
         } />
 
