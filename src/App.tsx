@@ -1,4 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import { useConditions } from './hooks/useConditions'
 import { useGeolocation } from './hooks/useGeolocation'
@@ -8,7 +9,7 @@ import { DayDetail } from './components/DayDetail'
 import { CookieBanner } from './components/CookieBanner'
 import { getLocations, createLocation } from './lib/api'
 import { formatLocationName } from './types'
-import type { GeocodingResult, Location, AppView } from './types'
+import type { GeocodingResult, Location } from './types'
 import type { LegalPageType } from './components/LegalPage'
 import styles from './App.module.css'
 
@@ -21,15 +22,15 @@ const SpotsMap = lazy(() => import('./components/SpotsMap').then(m => ({ default
 const BestVisibility = lazy(() => import('./components/BestVisibility').then(m => ({ default: m.BestVisibility })))
 const LegalPage = lazy(() => import('./components/LegalPage').then(m => ({ default: m.LegalPage })))
 const SavedPlaces = lazy(() => import('./components/SavedPlaces').then(m => ({ default: m.SavedPlaces })))
-
-type ExtView = AppView | 'profile' | 'history' | 'legal'
+const CatchesPage = lazy(() => import('./components/CatchesPage').then(m => ({ default: m.CatchesPage })))
+const FeedPage = lazy(() => import('./components/FeedPage').then(m => ({ default: m.FeedPage })))
+const FriendsPanel = lazy(() => import('./components/FriendsPanel').then(m => ({ default: m.FriendsPanel })))
 
 export default function App() {
   const { user, loading: authLoading } = useAuth()
   const { status, forecast, error, searchByCoords } = useConditions()
   const { getLocation } = useGeolocation()
   const [selectedDay, setSelectedDay] = useState(0)
-  const [view, setView] = useState<ExtView>('map')
   const [locations, setLocations] = useState<Location[]>([])
   const [currentLat, setCurrentLat] = useState<number | null>(null)
   const [currentLon, setCurrentLon] = useState<number | null>(null)
@@ -37,7 +38,9 @@ export default function App() {
   const [showAuth, setShowAuth] = useState(false)
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null)
   const [legalPage, setLegalPage] = useState<LegalPageType>('privacy')
-  const [prevView, setPrevView] = useState<ExtView>('map')
+
+  const navigate = useNavigate()
+  const location = useLocation()
 
   useEffect(() => {
     getLocations().then(setLocations).catch(() => {})
@@ -74,7 +77,7 @@ export default function App() {
       const matched = locations.find(l => Math.abs(l.lat - coords.latitude) < 0.01 && Math.abs(l.lon - coords.longitude) < 0.01)
       setSelectedLocationId(matched?.id ?? null)
       await searchByCoords(coords.latitude, coords.longitude, name, matched?.id)
-      setView('forecast')
+      navigate('/forecast')
     } catch (e) { console.error(e) }
   }
 
@@ -89,7 +92,7 @@ export default function App() {
       const matched = locations.find(l => Math.abs(l.lat - loc.latitude) < 0.01 && Math.abs(l.lon - loc.longitude) < 0.01)
       setSelectedLocationId(matched?.id ?? null)
       await searchByCoords(loc.latitude, loc.longitude, name, matched?.id)
-      setView('forecast')
+      navigate('/forecast')
     }
   }
 
@@ -105,7 +108,7 @@ export default function App() {
 
   const handleReportClick = () => {
     if (!user) { setShowAuth(true); return }
-    setView('report')
+    navigate('/report')
   }
 
   const handleSpotSelect = async (lat: number, lon: number, name: string, locationId?: number) => {
@@ -115,10 +118,13 @@ export default function App() {
     const resolvedId = locationId ?? locations.find(l => Math.abs(l.lat - lat) < 0.01 && Math.abs(l.lon - lon) < 0.01)?.id ?? null
     setSelectedLocationId(resolvedId)
     await searchByCoords(lat, lon, name, resolvedId ?? undefined)
-    setView('forecast')
+    navigate('/forecast')
   }
 
   const todayIndex = forecast?.days.findIndex(d => d.date === new Date().toISOString().split('T')[0]) ?? -1
+
+  // Current path for bottom nav highlighting
+  const currentPath = location.pathname
 
   if (authLoading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
@@ -139,13 +145,13 @@ export default function App() {
           role="button"
           tabIndex={0}
           style={{ cursor: 'pointer' }}
-          onClick={() => setView(status === 'success' ? 'forecast' : 'map')}
-          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setView(status === 'success' ? 'forecast' : 'map') }}
+          onClick={() => navigate(status === 'success' ? '/forecast' : '/')}
+          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') navigate(status === 'success' ? '/forecast' : '/') }}
         >DEPTH<span>VIZ</span></div>
         <div className={styles.tagline}>Underwater visibility forecast</div>
         <button
           className={styles.authBtn}
-          onClick={() => { if (user) { setPrevView(view); setView('profile') } else setShowAuth(true) }}
+          onClick={() => { if (user) navigate('/profile'); else setShowAuth(true) }}
           aria-label={user ? `View profile for ${user.email?.split('@')[0] ?? 'user'}` : 'Sign in to your account'}
         >
           {user ? (user.email?.split('@')[0] ?? 'Profile') : 'Sign in'}
@@ -164,94 +170,86 @@ export default function App() {
           const matched = locations.find(l => Math.abs(l.lat - r.latitude) < 0.01 && Math.abs(l.lon - r.longitude) < 0.01)
           setSelectedLocationId(matched?.id ?? null)
           await searchByCoords(r.latitude, r.longitude, name, matched?.id)
-          setView('forecast')
+          navigate('/forecast')
         }}
       />
 
       {error && <div className={styles.error} role="alert">{error}</div>}
 
-      {/* Profile page — always accessible, independent of forecast state */}
-      {view === 'profile' && user && (
-        <Suspense fallback={null}>
-          <ProfilePanel onClose={() => setView(prevView !== 'profile' ? prevView : status === 'success' ? 'forecast' : 'map')} />
-        </Suspense>
-      )}
+      <Routes>
+        {/* Profile */}
+        <Route path="/profile" element={
+          user ? (
+            <Suspense fallback={null}>
+              <ProfilePanel onClose={() => navigate(-1)} />
+            </Suspense>
+          ) : null
+        } />
 
-      {/* Legal pages */}
-      {view === 'legal' && (
-        <Suspense fallback={null}>
-          <LegalPage page={legalPage} onBack={() => setView(prevView !== 'legal' ? prevView : status === 'success' ? 'forecast' : 'map')} />
-        </Suspense>
-      )}
-
-      {/* All forecast/search content hidden while profile or legal page is open */}
-      {view !== 'profile' && view !== 'legal' && (
-        <>
-          {/* Nav buttons — always visible when no forecast loaded */}
-          {status !== 'success' && (
-            <div className={styles.nav}>
-              <button
-                className={`${styles.navBtn} ${view === 'map' ? styles.navActive : ''}`}
-                onClick={() => setView('map')}
-                aria-current={view === 'map' ? 'page' : undefined}
-              >
-                Map
-              </button>
-              <button
-                className={`${styles.navBtn} ${view === 'best' ? styles.navActive : ''}`}
-                onClick={() => setView('best')}
-                aria-current={view === 'best' ? 'page' : undefined}
-              >
-                Best Vis
-              </button>
-              {user && (
-                <button
-                  className={`${styles.navBtn} ${view === 'locations' ? styles.navActive : ''}`}
-                  onClick={() => setView('locations')}
-                  aria-current={view === 'locations' ? 'page' : undefined}
-                >
-                  My Places
-                </button>
-              )}
-            </div>
-          )}
-
-          {status === 'loading' && (view === 'map' || view === 'best' || view === 'locations') && (
-            <div className={styles.loadingBar} role="status" aria-live="polite" aria-label="Loading conditions">
-              Reading conditions…
-            </div>
-          )}
-
-          {status === 'loading' && view !== 'map' && view !== 'best' && view !== 'locations' && (
-            <div className={styles.loading} role="status" aria-live="polite" aria-label="Loading conditions">
-              <div className={styles.sonar} aria-hidden="true" />
-              <div className={styles.loadingText}>Reading conditions...</div>
-            </div>
-          )}
-
-          {status === 'idle' && view !== 'map' && view !== 'best' && view !== 'locations' && (
+        {/* Friends */}
+        <Route path="/friends" element={
+          user ? (
+            <Suspense fallback={null}>
+              <FriendsPanel onClose={() => navigate(-1)} />
+            </Suspense>
+          ) : (
             <div className={styles.empty}>
-              <div className={styles.emptyIcon}>🤿</div>
-              <div className={styles.emptyText}>Enter a location to check<br />underwater visibility conditions</div>
+              <div className={styles.emptyText}>Sign in to manage friends</div>
+              <button className={styles.navBtn} onClick={() => setShowAuth(true)} style={{ marginTop: 16 }}>Sign in</button>
             </div>
-          )}
+          )
+        } />
 
-          {/* Map when no forecast loaded */}
-          {view === 'map' && status !== 'success' && (
-            <Suspense fallback={null}>
-              <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} locations={locations} />
-            </Suspense>
-          )}
+        {/* Legal pages */}
+        <Route path="/legal/:page" element={
+          <Suspense fallback={null}>
+            <LegalPage page={legalPage} onBack={() => navigate(-1)} />
+          </Suspense>
+        } />
 
-          {/* Best Visibility when no forecast loaded */}
-          {view === 'best' && status !== 'success' && (
-            <Suspense fallback={null}>
-              <BestVisibility onSelectSpot={handleSpotSelect} />
-            </Suspense>
-          )}
+        {/* Feed */}
+        <Route path="/feed" element={
+          <Suspense fallback={null}>
+            <FeedPage user={user} onSelectSpot={handleSpotSelect} />
+          </Suspense>
+        } />
 
-          {/* Saved places when no forecast loaded */}
-          {view === 'locations' && status !== 'success' && (
+        {/* Catches */}
+        <Route path="/catches" element={
+          <Suspense fallback={null}>
+            <CatchesPage user={user} locations={locations} onShowAuth={() => setShowAuth(true)} />
+          </Suspense>
+        } />
+
+        {/* Map (home) */}
+        <Route path="/" element={
+          <>
+            {status === 'loading' && (
+              <div className={styles.loadingBar} role="status" aria-live="polite">Reading conditions...</div>
+            )}
+            {status === 'idle' && (
+              <Suspense fallback={null}>
+                <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} locations={locations} />
+              </Suspense>
+            )}
+            {status === 'success' && (
+              <Suspense fallback={null}>
+                <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} locations={locations} />
+              </Suspense>
+            )}
+          </>
+        } />
+
+        {/* Best Visibility */}
+        <Route path="/best" element={
+          <Suspense fallback={null}>
+            <BestVisibility onSelectSpot={handleSpotSelect} />
+          </Suspense>
+        } />
+
+        {/* My Places */}
+        <Route path="/places" element={
+          user ? (
             <Suspense fallback={null}>
               <SavedPlaces
                 locations={locations}
@@ -259,132 +257,195 @@ export default function App() {
                 onDelete={id => setLocations(prev => prev.filter(l => l.id !== id))}
               />
             </Suspense>
-          )}
+          ) : (
+            <div className={styles.empty}>
+              <div className={styles.emptyText}>Sign in to save places</div>
+              <button className={styles.navBtn} onClick={() => setShowAuth(true)} style={{ marginTop: 16 }}>Sign in</button>
+            </div>
+          )
+        } />
 
-          {status === 'success' && forecast && (
-            <>
-              <div className={styles.nav}>
-                {(['forecast', 'tides', 'report', 'map', 'best'] as ExtView[]).map(v => {
-                  const label = v === 'forecast' ? 'Forecast' : v === 'tides' ? 'Tides' : v === 'map' ? 'Map' : v === 'best' ? 'Best Vis' : 'Log Dive'
-                  return (
-                    <button
-                      key={v}
-                      className={`${styles.navBtn} ${view === v ? styles.navActive : ''}`}
-                      onClick={() => v === 'report' ? handleReportClick() : setView(v)}
-                      aria-current={view === v ? 'page' : undefined}
-                      aria-label={v === 'report' && !user ? `${label} (sign in required)` : label}
-                    >
-                      {label}
-                      {v === 'report' && !user && <span className={styles.lockIcon} aria-hidden="true"> 🔒</span>}
-                    </button>
-                  )
-                })}
-                <button
-                  className={`${styles.navBtn} ${selectedLocationId ? styles.navActive : ''}`}
-                  onClick={handleSaveLocation}
-                  disabled={!!selectedLocationId}
-                  aria-label={selectedLocationId ? 'Location already saved' : !user ? 'Save this location (sign in required)' : 'Save this location'}
-                  aria-pressed={!!selectedLocationId}
-                >
-                  {selectedLocationId ? 'Saved ✓' : <>+ Save{!user && <span className={styles.lockIcon} aria-hidden="true"> 🔒</span>}</>}
-                </button>
-                {selectedLocationId && (
-                  <button
-                    className={`${styles.navBtn} ${view === 'history' ? styles.navActive : ''}`}
-                    onClick={() => setView('history')}
-                    aria-current={view === 'history' ? 'page' : undefined}
-                  >
-                    Dive Logs
-                  </button>
-                )}
-                {user && (
-                  <button
-                    className={`${styles.navBtn} ${view === 'locations' ? styles.navActive : ''}`}
-                    onClick={() => setView('locations')}
-                    aria-current={view === 'locations' ? 'page' : undefined}
-                  >
-                    My Places
-                  </button>
-                )}
+        {/* Forecast view */}
+        <Route path="/forecast" element={
+          <>
+            {status === 'loading' && (
+              <div className={styles.loading} role="status" aria-live="polite" aria-label="Loading conditions">
+                <div className={styles.sonar} aria-hidden="true" />
+                <div className={styles.loadingText}>Reading conditions...</div>
               </div>
-
-              {view === 'forecast' && (
-                <>
-                  {forecast.bias_offset !== null && (
-                    <div className={styles.biasNote}>
-                      AI correction active · {forecast.report_count} community reports · offset {forecast.bias_offset > 0 ? '+' : ''}{forecast.bias_offset?.toFixed(1)}m
-                    </div>
+            )}
+            {status === 'idle' && (
+              <div className={styles.empty}>
+                <div className={styles.emptyIcon}>&#129343;</div>
+                <div className={styles.emptyText}>Enter a location to check<br />underwater visibility conditions</div>
+              </div>
+            )}
+            {status === 'success' && forecast && (
+              <>
+                {/* Secondary nav for forecast context */}
+                <div className={styles.nav}>
+                  {(['forecast', 'tides', 'report'] as const).map(v => {
+                    const label = v === 'forecast' ? 'Forecast' : v === 'tides' ? 'Tides' : 'Log Dive'
+                    const path = v === 'forecast' ? '/forecast' : v === 'tides' ? '/tides' : '/report'
+                    return (
+                      <button
+                        key={v}
+                        className={`${styles.navBtn} ${currentPath === path ? styles.navActive : ''}`}
+                        onClick={() => v === 'report' ? handleReportClick() : navigate(path)}
+                        aria-label={v === 'report' && !user ? `${label} (sign in required)` : label}
+                      >
+                        {label}
+                        {v === 'report' && !user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}
+                      </button>
+                    )
+                  })}
+                  <button
+                    className={`${styles.navBtn} ${selectedLocationId ? styles.navActive : ''}`}
+                    onClick={handleSaveLocation}
+                    disabled={!!selectedLocationId}
+                    aria-label={selectedLocationId ? 'Location already saved' : !user ? 'Save this location (sign in required)' : 'Save this location'}
+                  >
+                    {selectedLocationId ? 'Saved \u2713' : <>+ Save{!user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}</>}
+                  </button>
+                  {selectedLocationId && (
+                    <button
+                      className={`${styles.navBtn} ${currentPath === '/history' ? styles.navActive : ''}`}
+                      onClick={() => navigate('/history')}
+                    >
+                      Dive Logs
+                    </button>
                   )}
-                  <ForecastStrip days={forecast.days} selectedIndex={selectedDay} onSelect={setSelectedDay} />
-                  {forecast.days[selectedDay] && (
-                    <DayDetail
-                      day={forecast.days[selectedDay]}
-                      locationName={forecast.location_name}
-                      reportCount={forecast.report_count}
-                    />
-                  )}
-                </>
-              )}
+                </div>
 
-              {view === 'tides' && currentLat !== null && currentLon !== null && (
-                <Suspense fallback={null}>
-                  <TidesPage lat={currentLat} lon={currentLon} locationName={currentName} />
-                </Suspense>
-              )}
-
-              {view === 'report' && user && (
-                <Suspense fallback={null}>
-                  <ReportForm
-                    day={forecast.days[todayIndex] ?? forecast.days[selectedDay]}
-                    allDays={forecast.days}
-                    locations={locations}
-                    onSubmitted={() => setView('forecast')}
-                    initialLocationId={selectedLocationId}
+                {forecast.bias_offset !== null && (
+                  <div className={styles.biasNote}>
+                    AI correction active &middot; {forecast.report_count} community reports &middot; offset {forecast.bias_offset > 0 ? '+' : ''}{forecast.bias_offset?.toFixed(1)}m
+                  </div>
+                )}
+                <ForecastStrip days={forecast.days} selectedIndex={selectedDay} onSelect={setSelectedDay} />
+                {forecast.days[selectedDay] && (
+                  <DayDetail
+                    day={forecast.days[selectedDay]}
+                    locationName={forecast.location_name}
+                    reportCount={forecast.report_count}
                   />
-                </Suspense>
-              )}
+                )}
+              </>
+            )}
+          </>
+        } />
 
-              {view === 'history' && selectedLocationId && (
-                <Suspense fallback={null}>
-                  <LocationHistory locationId={selectedLocationId} locationName={currentName} />
-                </Suspense>
-              )}
+        {/* Tides */}
+        <Route path="/tides" element={
+          currentLat !== null && currentLon !== null ? (
+            <Suspense fallback={null}>
+              <TidesPage lat={currentLat} lon={currentLon} locationName={currentName} />
+            </Suspense>
+          ) : (
+            <div className={styles.empty}>
+              <div className={styles.emptyText}>Search for a location first to view tides</div>
+            </div>
+          )
+        } />
 
-              {/* Map when forecast is loaded — renders after nav bar */}
-              {view === 'map' && (
-                <Suspense fallback={null}>
-                  <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} locations={locations} />
-                </Suspense>
-              )}
+        {/* Report */}
+        <Route path="/report" element={
+          user && forecast ? (
+            <Suspense fallback={null}>
+              <ReportForm
+                day={forecast.days[todayIndex] ?? forecast.days[selectedDay]}
+                allDays={forecast.days}
+                locations={locations}
+                onSubmitted={() => navigate('/forecast')}
+                initialLocationId={selectedLocationId}
+              />
+            </Suspense>
+          ) : (
+            <div className={styles.empty}>
+              <div className={styles.emptyText}>
+                {!user ? 'Sign in to log a dive report' : 'Search for a location first'}
+              </div>
+            </div>
+          )
+        } />
 
-              {/* Best Visibility when forecast is loaded */}
-              {view === 'best' && (
-                <Suspense fallback={null}>
-                  <BestVisibility onSelectSpot={handleSpotSelect} />
-                </Suspense>
-              )}
+        {/* Location History */}
+        <Route path="/history" element={
+          selectedLocationId ? (
+            <Suspense fallback={null}>
+              <LocationHistory locationId={selectedLocationId} locationName={currentName} />
+            </Suspense>
+          ) : (
+            <div className={styles.empty}>
+              <div className={styles.emptyText}>Select a saved location to view dive logs</div>
+            </div>
+          )
+        } />
+      </Routes>
 
-              {/* Saved places when forecast is loaded */}
-              {view === 'locations' && (
-                <Suspense fallback={null}>
-                  <SavedPlaces
-                    locations={locations}
-                    onSelectLocation={handleSpotSelect}
-                    onDelete={id => setLocations(prev => prev.filter(l => l.id !== id))}
-                  />
-                </Suspense>
-              )}
-            </>
-          )}
-        </>
-      )}
+      {/* Bottom Navigation Bar */}
+      <nav className={styles.bottomNav} aria-label="Main navigation">
+        <button
+          className={`${styles.bottomNavBtn} ${currentPath === '/' ? styles.bottomNavActive : ''}`}
+          onClick={() => navigate('/')}
+        >
+          <svg className={styles.bottomNavIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+          <span>Map</span>
+        </button>
+        <button
+          className={`${styles.bottomNavBtn} ${currentPath === '/feed' ? styles.bottomNavActive : ''}`}
+          onClick={() => navigate('/feed')}
+        >
+          <svg className={styles.bottomNavIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M4 11a9 9 0 019 9" />
+            <path d="M4 4a16 16 0 0116 16" />
+            <circle cx="5" cy="19" r="1" />
+          </svg>
+          <span>Feed</span>
+        </button>
+        <button
+          className={`${styles.bottomNavBtn} ${currentPath === '/catches' ? styles.bottomNavActive : ''}`}
+          onClick={() => navigate('/catches')}
+        >
+          <svg className={styles.bottomNavIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M20 12c0 4.418-3.582 8-8 8s-8-3.582-8-8c0-2 1-4 2-5l6 3 6-3c1 1 2 3 2 5z" />
+            <path d="M12 3v12" />
+          </svg>
+          <span>Catches</span>
+        </button>
+        <button
+          className={`${styles.bottomNavBtn} ${currentPath === '/friends' ? styles.bottomNavActive : ''}`}
+          onClick={() => { if (user) navigate('/friends'); else setShowAuth(true) }}
+        >
+          <svg className={styles.bottomNavIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 00-3-3.87" />
+            <path d="M16 3.13a4 4 0 010 7.75" />
+          </svg>
+          <span>Friends</span>
+        </button>
+        <button
+          className={`${styles.bottomNavBtn} ${currentPath === '/profile' ? styles.bottomNavActive : ''}`}
+          onClick={() => { if (user) navigate('/profile'); else setShowAuth(true) }}
+        >
+          <svg className={styles.bottomNavIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4-4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          <span>Profile</span>
+        </button>
+      </nav>
 
       <footer className={styles.footer}>
-        <div>Data: Open-Meteo Weather · Copernicus Marine · North Sea baseline</div>
-        <div>Not a substitute for local knowledge · Always dive with a buddy</div>
+        <div>Data: Open-Meteo Weather &middot; Copernicus Marine &middot; North Sea baseline</div>
+        <div>Not a substitute for local knowledge &middot; Always dive with a buddy</div>
         <div className={styles.footerLinks}>
           {(['privacy', 'terms', 'cookies', 'security', 'contact', 'accessibility'] as LegalPageType[]).map(p => (
-            <button key={p} className={styles.footerLink} onClick={() => { setPrevView(view); setLegalPage(p); setView('legal') }}>
+            <button key={p} className={styles.footerLink} onClick={() => { setLegalPage(p); navigate(`/legal/${p}`) }}>
               {p === 'privacy' ? 'Privacy' : p === 'terms' ? 'Terms' : p === 'cookies' ? 'Cookies' : p === 'security' ? 'Security' : p === 'contact' ? 'Contact' : 'Accessibility'}
             </button>
           ))}
@@ -399,7 +460,7 @@ export default function App() {
         </a>
       </footer>
 
-      <CookieBanner onNavigate={(p) => { setPrevView(view); setLegalPage(p as LegalPageType); setView('legal') }} />
+      <CookieBanner onNavigate={(p) => { setLegalPage(p as LegalPageType); navigate(`/legal/${p}`) }} />
     </div>
   )
 }

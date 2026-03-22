@@ -28,12 +28,19 @@ export interface VisibilityStats {
   max: number
 }
 
+export interface VideoValidation {
+  confidence: number       // 0.0–1.0
+  warnings: string[]
+  is_valid: boolean
+}
+
 export interface VisibilityReport {
   visibility_m: VisibilityStats
   t_median: number
   frames: FrameResult[]
   frameCount: number
   calib: number
+  validation?: VideoValidation
 }
 
 export interface AnalyseOptions {
@@ -403,5 +410,68 @@ export async function analyseVideo(
     calib,
   }
 
+  // Run client-side validation
+  report.validation = validateVideoMetrics(report)
+
   return report
+}
+
+// ── Client-side video validation ──────────────────────────────────────────────
+
+export function validateVideoMetrics(report: VisibilityReport): VideoValidation {
+  const warnings: string[] = []
+  let score = 1.0
+
+  // Check 1: Transmission range
+  // Underwater DCP transmission medians typically fall between 0.05 and 0.85.
+  // Very high t (>0.90) means clear air, not water.
+  if (report.t_median > 0.92) {
+    score -= 0.5
+    warnings.push('Transmission too high \u2014 video may not be underwater')
+  } else if (report.t_median > 0.85) {
+    score -= 0.25
+    warnings.push('Transmission is unusually high for underwater footage')
+  } else if (report.t_median < 0.03) {
+    score -= 0.3
+    warnings.push('Transmission extremely low \u2014 possible processing error')
+  }
+
+  // Check 2: Visibility plausibility
+  // Real underwater vis is 0.5\u201330m typically. >40m is suspicious.
+  if (report.visibility_m.median > 40) {
+    score -= 0.4
+    warnings.push('Visibility unrealistically high \u2014 likely not underwater')
+  } else if (report.visibility_m.median > 30) {
+    score -= 0.15
+    warnings.push('Visibility very high \u2014 verify footage is underwater')
+  } else if (report.visibility_m.median < 0.2) {
+    score -= 0.2
+    warnings.push('Visibility extremely low \u2014 possible error')
+  }
+
+  // Check 3: Frame consistency (P10\u2013P90 spread)
+  const spread = report.visibility_m.p90 - report.visibility_m.p10
+  const relativeSpread = spread / Math.max(report.visibility_m.median, 0.1)
+
+  if (spread < 0.05 && report.frameCount > 3) {
+    score -= 0.25
+    warnings.push('Near-zero visibility variance \u2014 may not be real footage')
+  }
+  if (relativeSpread > 3.0) {
+    score -= 0.2
+    warnings.push('High variance \u2014 footage may contain non-underwater segments')
+  }
+
+  // Check 4: Minimum frame count
+  if (report.frameCount < 3) {
+    score -= 0.15
+    warnings.push('Very few frames analysed \u2014 results may be unreliable')
+  }
+
+  const confidence = Math.max(0, Math.min(1, score))
+  return {
+    confidence: Math.round(confidence * 100) / 100,
+    warnings,
+    is_valid: confidence >= 0.3,
+  }
 }

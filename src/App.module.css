@@ -3,7 +3,7 @@
   z-index: 1;
   max-width: 680px;
   margin: 0 auto;
-  padding: 40px 20px 60px;
+  padding: 40px 20px 100px;
 }
 
 .header {
@@ -239,6 +239,56 @@
 
 .lockIcon { font-size: 9px; opacity: .6; }
 
+/* ── Bottom Navigation Bar ── */
+
+.bottomNav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: rgba(2, 13, 20, 0.95);
+  border-top: 1px solid rgba(0, 201, 255, 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 6px 0 env(safe-area-inset-bottom, 6px);
+  z-index: 100;
+}
+
+.bottomNavBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: all 0.15s;
+}
+
+.bottomNavBtn:hover {
+  opacity: 0.8;
+}
+
+.bottomNavActive {
+  color: var(--accent);
+  opacity: 1;
+}
+
+.bottomNavIcon {
+  width: 22px;
+  height: 22px;
+}
+
 /* Mobile adjustments */
 @media (max-width: 480px) {
   .navBtn {
@@ -253,5 +303,15 @@
     padding: 6px 8px;
     top: 20px;
     right: 10px;
+  }
+
+  .bottomNavBtn {
+    padding: 6px 8px;
+    font-size: 8px;
+  }
+
+  .bottomNavIcon {
+    width: 20px;
+    height: 20px;
   }
 }

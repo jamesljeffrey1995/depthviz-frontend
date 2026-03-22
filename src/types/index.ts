@@ -317,3 +317,73 @@ export interface QuarantinedListResponse {
   count: number
   reports: QuarantinedReport[]
 }
+
+// Social / Friends
+export interface Friend {
+  friendship_id: number
+  uid: string
+  display_name: string
+  report_count: number
+  mean_accuracy: number | null
+  trusted: boolean
+}
+
+export interface FriendRequest {
+  id: number
+  from_uid: string
+  from_name: string
+  created_at: string
+}
+
+export interface UserSearchResult {
+  uid: string
+  display_name: string
+  report_count: number
+  trusted: boolean
+  friendship_status: string | null  // "accepted", "pending", "declined", or null
+}
+
+// Catches
+export interface CatchCreate {
+  location_id: number
+  catch_date: string
+  species: string
+  weight_kg?: number
+  length_cm?: number
+  quantity?: number
+  method?: string
+  depth_m?: number
+  notes?: string
+  photo_url?: string
+  water_temp?: number
+  visibility?: number
+  tide_state?: string
+  moon_phase?: string
+}
+
+export interface CatchRead extends CatchCreate {
+  id: number
+  user_id: string
+  created_at: string
+}
+
+// Feed
+export interface FeedItem {
+  type: 'report' | 'catch'
+  id: number
+  user_id: string
+  user_name: string
+  location_name: string
+  location_id: number
+  created_at: string
+  // report fields
+  actual_vis?: number
+  predicted_vis?: number
+  notes?: string
+  has_video?: boolean
+  // catch fields
+  species?: string
+  weight_kg?: number
+  quantity?: number
+  method?: string
+}
