@@ -45,7 +45,7 @@ function timeAgo(iso: string): string {
 
 const LIMIT = 30
 
-export function FeedPage({ user, onSelectSpot }: Props) {
+export function FeedPage({ user }: Props) {
   const [scope, setScope] = useState<Scope>('all')
   const [filterType, setFilterType] = useState<FilterType>('all')
   const [items, setItems] = useState<FeedItem[]>([])
