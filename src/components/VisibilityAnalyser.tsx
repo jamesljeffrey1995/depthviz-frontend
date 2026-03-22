@@ -171,6 +171,51 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
             <div className={styles.headlineLabel}>Median Visibility</div>
           </div>
 
+          {/* Validation banner */}
+          {report.validation && (
+            <div
+              className={styles.validationBanner}
+              style={{
+                borderColor: report.validation.confidence >= 0.7
+                  ? 'rgba(15, 179, 122, 0.4)'
+                  : report.validation.confidence >= 0.3
+                    ? 'rgba(212, 133, 10, 0.4)'
+                    : 'rgba(192, 57, 43, 0.4)',
+                background: report.validation.confidence >= 0.7
+                  ? 'rgba(15, 179, 122, 0.08)'
+                  : report.validation.confidence >= 0.3
+                    ? 'rgba(212, 133, 10, 0.08)'
+                    : 'rgba(192, 57, 43, 0.08)',
+              }}
+            >
+              <div className={styles.validationScore}>
+                <span style={{
+                  color: report.validation.confidence >= 0.7
+                    ? '#0fb37a'
+                    : report.validation.confidence >= 0.3
+                      ? '#d4850a'
+                      : '#c0392b',
+                }}>
+                  {report.validation.confidence >= 0.7
+                    ? 'Underwater footage confirmed'
+                    : report.validation.confidence >= 0.3
+                      ? 'Footage may not be underwater'
+                      : 'Video does not appear to be underwater'}
+                </span>
+                <span className={styles.confidenceValue}>
+                  {Math.round(report.validation.confidence * 100)}% confidence
+                </span>
+              </div>
+              {report.validation.warnings.length > 0 && (
+                <ul className={styles.warningList}>
+                  {report.validation.warnings.map((w, i) => (
+                    <li key={i}>{w}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
           {/* Stat grid */}
           <div className={styles.statGrid}>
             <div className={styles.statCard}>

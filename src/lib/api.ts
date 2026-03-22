@@ -234,3 +234,78 @@ export async function restoreReport(reportId: number): Promise<void> {
 export async function quarantineReport(reportId: number): Promise<void> {
   await apiFetch(`/admin/outliers/quarantine/${reportId}`, { method: 'POST' })
 }
+
+// Catches
+export async function getCatches(params?: { species?: string; location_id?: string }): Promise<any[]> {
+  const qs = params ? '?' + new URLSearchParams(
+    Object.fromEntries(Object.entries(params).filter(([, v]) => v))
+  ).toString() : ''
+  return apiFetch(`/catches${qs}`)
+}
+
+export async function getMyCatches(): Promise<any[]> {
+  return apiFetch('/catches/mine')
+}
+
+export async function logCatch(data: Record<string, any>): Promise<any> {
+  const result = await apiFetch('/catches', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+  return result
+}
+
+export async function deleteCatch(id: number): Promise<void> {
+  await apiFetch(`/catches/${id}`, { method: 'DELETE' })
+}
+
+export async function getCatchSpecies(): Promise<{ species: string; count: number }[]> {
+  return apiFetch('/catches/species')
+}
+
+// Social / Friends
+export async function getFriends(): Promise<import('../types').Friend[]> {
+  return apiFetch('/social/friends')
+}
+
+export async function getFriendRequests(): Promise<import('../types').FriendRequest[]> {
+  return apiFetch('/social/friend-requests')
+}
+
+export async function respondToFriendRequest(id: number, status: 'accepted' | 'declined'): Promise<void> {
+  await apiFetch(`/social/friend-requests/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({ status }),
+  })
+}
+
+export async function removeFriend(friendshipId: number): Promise<void> {
+  await apiFetch(`/social/friends/${friendshipId}`, { method: 'DELETE' })
+}
+
+export async function sendFriendRequest(addresseeUid: string): Promise<void> {
+  await apiFetch('/social/friend-request', {
+    method: 'POST',
+    body: JSON.stringify({ addressee_uid: addresseeUid }),
+  })
+}
+
+export async function searchUsers(q: string): Promise<import('../types').UserSearchResult[]> {
+  return apiFetch(`/social/users/search?q=${encodeURIComponent(q)}`)
+}
+
+// Activity Feed
+export async function getFeed(params: {
+  scope: 'all' | 'friends'
+  filter_type: 'all' | 'reports' | 'catches'
+  limit: number
+  offset: number
+}): Promise<{ items: any[]; total: number }> {
+  const qs = new URLSearchParams({
+    scope: params.scope,
+    filter_type: params.filter_type,
+    limit: String(params.limit),
+    offset: String(params.offset),
+  }).toString()
+  return apiFetch(`/feed?${qs}`)
+}

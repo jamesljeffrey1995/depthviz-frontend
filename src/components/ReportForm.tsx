@@ -76,8 +76,8 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
         sea_temp: activeDay.sea_temp,
         algae_risk: activeDay.algae.risk,
         notes: notes.slice(0, 500) || undefined,
-        // Attach video DCP analysis if user analysed a dive video
-        ...(videoReport ? {
+        // Attach video DCP analysis only if validation passed
+        ...(videoReport && (!videoReport.validation || videoReport.validation.is_valid) ? {
           video_vis_median: videoReport.visibility_m.median,
           video_vis_p10: videoReport.visibility_m.p10,
           video_vis_p90: videoReport.visibility_m.p90,
@@ -169,9 +169,19 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
         <label className={styles.label}>Dive video analysis (optional)</label>
         <VisibilityAnalyser onResult={onVideoResult} />
         {videoReport && (
-          <div className={styles.hint}>
-            Video analysis: {videoReport.visibility_m.median.toFixed(1)}m median
-            ({videoReport.frameCount} frames) — this boosts report trust
+          <div className={styles.hint} style={
+            videoReport.validation && !videoReport.validation.is_valid
+              ? { color: '#c0392b' }
+              : undefined
+          }>
+            {videoReport.validation && !videoReport.validation.is_valid
+              ? `Video rejected — does not appear to be underwater footage (${Math.round(videoReport.validation.confidence * 100)}% confidence)`
+              : `Video analysis: ${videoReport.visibility_m.median.toFixed(1)}m median (${videoReport.frameCount} frames) — ${
+                  videoReport.validation
+                    ? `${Math.round(videoReport.validation.confidence * 100)}% underwater confidence`
+                    : 'this boosts report trust'
+                }`
+            }
           </div>
         )}
       </div>
