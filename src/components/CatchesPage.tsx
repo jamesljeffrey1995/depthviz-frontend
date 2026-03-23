@@ -1,33 +1,18 @@
 import { useState, useEffect, useMemo } from 'react'
+import type { User } from '@supabase/supabase-js'
 import { getCatches, getMyCatches, logCatch, deleteCatch, getCatchSpecies } from '../lib/api'
+import type { CatchRead, Location } from '../types'
 import styles from './CatchesPage.module.css'
 
 interface CatchesPageProps {
-  user: any
-  locations: { id: number; name: string; lat: number; lon: number }[]
+  user: User | null
+  locations: Location[]
   onShowAuth: () => void
 }
 
-interface CatchRecord {
-  id: number
-  user_id: string
+interface CatchRecord extends CatchRead {
   user_name?: string
-  location_id: number
   location_name?: string
-  catch_date: string
-  species: string
-  weight_kg?: number | null
-  length_cm?: number | null
-  quantity: number
-  method?: string | null
-  depth_m?: number | null
-  notes?: string | null
-  photo_url?: string | null
-  water_temp?: number | null
-  visibility?: number | null
-  tide_state?: string | null
-  moon_phase?: string | null
-  created_at: string
 }
 
 interface SpeciesCount {
@@ -192,7 +177,7 @@ export function CatchesPage({ user, locations, onShowAuth }: CatchesPageProps) {
         <div className={styles.catchDetail}>
           {c.weight_kg != null && <span>{c.weight_kg} kg</span>}
           {c.length_cm != null && <span>{c.length_cm} cm</span>}
-          {c.quantity > 1 && <span>x{c.quantity}</span>}
+          {c.quantity != null && c.quantity > 1 && <span>x{c.quantity}</span>}
           {c.method && <span>{c.method}</span>}
           {c.depth_m != null && <span>{c.depth_m}m deep</span>}
         </div>

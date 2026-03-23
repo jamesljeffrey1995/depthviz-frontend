@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { DayForecast } from '../types'
 import styles from './ForecastStrip.module.css'
 
@@ -18,7 +19,7 @@ function formatDate(dateStr: string): string {
   return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric' })
 }
 
-export function ForecastStrip({ days, selectedIndex, onSelect }: Props) {
+export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, onSelect }: Props) {
   return (
     <div className={styles.strip}>
       <div className={styles.row}>
@@ -54,4 +55,4 @@ export function ForecastStrip({ days, selectedIndex, onSelect }: Props) {
       </div>
     </div>
   )
-}
+})

@@ -1,24 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
+import type { User } from '@supabase/supabase-js'
 import { getFeed } from '../lib/api'
+import type { FeedItem } from '../types'
 import styles from './FeedPage.module.css'
-
-interface FeedItem {
-  type: 'report' | 'catch'
-  id: number
-  user_id: string
-  user_name: string
-  location_name: string
-  location_id: number
-  created_at: string
-  actual_vis?: number
-  predicted_vis?: number
-  notes?: string
-  has_video?: boolean
-  species?: string
-  weight_kg?: number
-  quantity?: number
-  method?: string
-}
 
 interface FeedResponse {
   items: FeedItem[]
@@ -29,7 +13,7 @@ type Scope = 'all' | 'friends'
 type FilterType = 'all' | 'reports' | 'catches'
 
 interface Props {
-  user: any
+  user: User | null
   onSelectSpot?: (lat: number, lon: number, name: string) => void
 }
 
@@ -72,8 +56,8 @@ export function FeedPage({ user }: Props) {
       }
       setTotal(data.total)
       setOffset(newOffset + data.items.length)
-    } catch (err: any) {
-      setError(err.message ?? 'Failed to load feed')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load feed')
     } finally {
       setLoading(false)
     }

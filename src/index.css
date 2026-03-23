@@ -90,3 +90,23 @@ input {
     transition-duration: 0.01ms !important;
   }
 }
+
+@media print {
+  body::before,
+  body::after {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: #111 !important;
+  }
+  nav, footer, button, .bottomNav {
+    display: none !important;
+  }
+  * {
+    color: #111 !important;
+    background: transparent !important;
+    border-color: #ccc !important;
+    box-shadow: none !important;
+  }
+}

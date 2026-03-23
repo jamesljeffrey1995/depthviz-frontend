@@ -3,7 +3,10 @@ import { cacheGet, cacheSet, cacheDelete } from './cache'
 import type {
   AdminStats,
   BestVisResponse,
+  CatchCreate,
+  CatchRead,
   CleaningResult,
+  FeedItem,
   ForecastResponse,
   GeocodingResult,
   LeaderboardEntry,
@@ -322,19 +325,19 @@ export async function quarantineReport(reportId: number): Promise<void> {
 }
 
 // Catches
-export async function getCatches(params?: { species?: string; location_id?: string }): Promise<any[]> {
+export async function getCatches(params?: { species?: string; location_id?: string }): Promise<CatchRead[]> {
   const qs = params ? '?' + new URLSearchParams(
     Object.fromEntries(Object.entries(params).filter(([, v]) => v))
   ).toString() : ''
   return apiFetch(`/catches${qs}`)
 }
 
-export async function getMyCatches(): Promise<any[]> {
+export async function getMyCatches(): Promise<CatchRead[]> {
   return apiFetch('/catches/mine')
 }
 
-export async function logCatch(data: Record<string, any>): Promise<any> {
-  const result = await apiFetch('/catches', {
+export async function logCatch(data: CatchCreate): Promise<CatchRead> {
+  const result = await apiFetch<CatchRead>('/catches', {
     method: 'POST',
     body: JSON.stringify(data),
   })
@@ -386,7 +389,7 @@ export async function getFeed(params: {
   filter_type: 'all' | 'reports' | 'catches'
   limit: number
   offset: number
-}): Promise<{ items: any[]; total: number }> {
+}): Promise<{ items: FeedItem[]; total: number }> {
   const qs = new URLSearchParams({
     scope: params.scope,
     filter_type: params.filter_type,
