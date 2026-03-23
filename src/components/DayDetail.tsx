@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { DayForecast } from '../types'
 import { getImpact } from '../lib/visibility'
 import styles from './DayDetail.module.css'
@@ -51,7 +52,32 @@ function getRiskColor(level: string): string {
   }
 }
 
+/** Check if any advanced section has data worth showing */
+function hasAdvancedData(day: DayForecast): boolean {
+  const hasWaterQuality = day.nutrient_factor != null
+  const hasTurbidity = day.turbidity_penalty != null && day.turbidity_penalty > 0
+  const hasResuspension = day.resuspension && day.resuspension.risk_level !== 'none'
+  const hasRiverDischarge = day.river_discharge && day.river_discharge.risk_level !== 'none'
+  const hasBgcData = day.water_quality && (day.water_quality.bgc_kd != null || day.water_quality.erddap_chlorophyll != null)
+  const hasFactors = day.factors.some(f => f.max_penalty > 0)
+  return !!(hasWaterQuality || hasTurbidity || hasResuspension || hasRiverDischarge || hasBgcData || hasFactors)
+}
+
+/** Check if any risks are elevated (moderate or high) — these get promoted to the simple view */
+function getElevatedWarnings(day: DayForecast): string[] {
+  const warnings: string[] = []
+  if (day.algae.risk === 'high') warnings.push('High algae bloom risk')
+  else if (day.algae.risk === 'moderate') warnings.push('Moderate algae bloom risk')
+  if (day.turbidity_penalty != null && day.turbidity_penalty >= 2.0) warnings.push('High turbidity')
+  if (day.resuspension && (day.resuspension.risk_level === 'high' || day.resuspension.risk_level === 'moderate'))
+    warnings.push(`${day.resuspension.risk_level === 'high' ? 'High' : 'Moderate'} seabed resuspension`)
+  if (day.river_discharge && (day.river_discharge.risk_level === 'high' || day.river_discharge.risk_level === 'moderate'))
+    warnings.push(`${day.river_discharge.risk_level === 'high' ? 'High' : 'Moderate'} river discharge`)
+  return warnings
+}
+
 export function DayDetail({ day, locationName, reportCount }: Props) {
+  const [showAdvanced, setShowAdvanced] = useState(false)
   const vis = day.vis_corrected ?? day.vis_estimate
   const pct = (vis / 15) * 100
   const dateLabel = new Date(day.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -64,6 +90,9 @@ export function DayDetail({ day, locationName, reportCount }: Props) {
   const airSev  = getAirTempSeverity(day.air_temp)
   const seaSev  = day.sea_temp != null ? getSeaTempSeverity(day.sea_temp) : null
   const humSev  = getHumiditySeverity(day.humidity)
+
+  const elevatedWarnings = getElevatedWarnings(day)
+  const advancedAvailable = hasAdvancedData(day)
 
   return (
     <div className={styles.card}>
@@ -114,7 +143,16 @@ export function DayDetail({ day, locationName, reportCount }: Props) {
         </div>
       </div>
 
-      {/* Algae bloom risk */}
+      {/* Elevated warnings promoted to simple view */}
+      {elevatedWarnings.length > 0 && (
+        <div className={styles.warningBanner}>
+          {elevatedWarnings.map((w, i) => (
+            <div key={i} className={styles.warningItem}>{w}</div>
+          ))}
+        </div>
+      )}
+
+      {/* Algae bloom risk — always visible when present */}
       {(day.algae.risk !== 'low' || day.algae.drivers.length > 0) && (
         <div className={styles.algaeCard}>
           <div className={styles.algaeHeader}>
@@ -134,221 +172,241 @@ export function DayDetail({ day, locationName, reportCount }: Props) {
         </div>
       )}
 
-      {/* Water quality indicator (Option B) */}
-      {waterQuality && (
-        <div className={styles.waterQualityCard}>
-          <div className={styles.waterQualityHeader}>
-            <div className={styles.waterQualityLabelText}>Water Quality</div>
-            <div className={styles.waterQualityBadge} style={{ color: waterQuality.color }}>
-              {waterQuality.label.toUpperCase()}
-            </div>
-          </div>
-          <div className={styles.waterQualityBar}>
-            <div
-              className={styles.waterQualityFill}
-              style={{
-                width: `${Math.round(day.nutrient_factor! * 100)}%`,
-                background: waterQuality.color,
-              }}
-            />
-          </div>
-          <div className={styles.waterQualitySub}>
-            Based on satellite chlorophyll-a · affects algae bloom penalty
-          </div>
-        </div>
+      {/* Toggle for advanced detail */}
+      {advancedAvailable && (
+        <button
+          className={styles.toggleAdvanced}
+          onClick={() => setShowAdvanced(v => !v)}
+          aria-expanded={showAdvanced}
+          aria-label={showAdvanced ? 'Hide detailed breakdown' : 'Show detailed breakdown'}
+        >
+          {showAdvanced ? 'Hide details' : 'Show detailed breakdown'}
+          <span className={styles.toggleArrow} aria-hidden="true">{showAdvanced ? ' ▲' : ' ▼'}</span>
+        </button>
       )}
 
-      {/* Turbidity (SPM) card */}
-      {turbidity && (
-        <div className={styles.waterQualityCard}>
-          <div className={styles.waterQualityHeader}>
-            <div className={styles.waterQualityLabelText}>Turbidity</div>
-            <div className={styles.waterQualityBadge} style={{ color: turbidity.color }}>
-              {turbidity.label.toUpperCase()}
-            </div>
-          </div>
-          <div className={styles.waterQualityBar}>
-            <div
-              className={styles.waterQualityFill}
-              style={{
-                width: `${Math.min(100, Math.round((day.turbidity_penalty! / 5.0) * 100))}%`,
-                background: turbidity.color,
-              }}
-            />
-          </div>
-          <div className={styles.waterQualityMeta}>
-            <span style={{ color: turbidity.color }}>{turbidity.spm} suspended matter</span>
-            <span className={styles.waterQualityPenalty}>−{day.turbidity_penalty!.toFixed(1)}m viz</span>
-          </div>
-          <div className={styles.waterQualitySub}>
-            {turbidity.description} · Based on satellite SPM
-          </div>
-        </div>
-      )}
-
-      {/* Seabed Resuspension card */}
-      {day.resuspension && day.resuspension.risk_level !== 'none' && (
-        <div className={styles.waterQualityCard}>
-          <div className={styles.waterQualityHeader}>
-            <div className={styles.waterQualityLabelText}>Seabed Resuspension</div>
-            <div className={styles.waterQualityBadge} style={{ color: getRiskColor(day.resuspension.risk_level) }}>
-              {day.resuspension.risk_level.toUpperCase()}
-            </div>
-          </div>
-          <div className={styles.waterQualityBar}>
-            <div
-              className={styles.waterQualityFill}
-              style={{
-                width: `${Math.min(100, Math.round((day.resuspension.penalty / 5.0) * 100))}%`,
-                background: getRiskColor(day.resuspension.risk_level),
-              }}
-            />
-          </div>
-          <div className={styles.riskStats}>
-            {day.resuspension.depth_m != null && (
-              <span>Depth: {day.resuspension.depth_m.toFixed(1)}m</span>
-            )}
-            {day.resuspension.bottom_orbital_velocity != null && (
-              <span>Orbital vel: {day.resuspension.bottom_orbital_velocity.toFixed(2)} m/s</span>
-            )}
-            {day.resuspension.bed_shear_stress != null && (
-              <span>Shear: {day.resuspension.bed_shear_stress.toFixed(3)} Pa</span>
-            )}
-          </div>
-          <div className={styles.waterQualityMeta}>
-            <span style={{ color: getRiskColor(day.resuspension.risk_level) }}>
-              {day.resuspension.risk_level} risk
-            </span>
-            {day.resuspension.penalty > 0 && (
-              <span className={styles.waterQualityPenalty}>−{day.resuspension.penalty.toFixed(1)}m viz</span>
-            )}
-          </div>
-          {day.resuspension.note && (
-            <div className={styles.waterQualitySub}>{day.resuspension.note}</div>
-          )}
-        </div>
-      )}
-
-      {/* River Discharge card */}
-      {day.river_discharge && day.river_discharge.risk_level !== 'none' && (
-        <div className={styles.waterQualityCard}>
-          <div className={styles.waterQualityHeader}>
-            <div className={styles.waterQualityLabelText}>River Discharge</div>
-            <div className={styles.waterQualityBadge} style={{ color: getRiskColor(day.river_discharge.risk_level) }}>
-              {day.river_discharge.risk_level.toUpperCase()}
-            </div>
-          </div>
-          <div className={styles.waterQualityBar}>
-            <div
-              className={styles.waterQualityFill}
-              style={{
-                width: `${Math.min(100, Math.round((day.river_discharge.penalty / 3.0) * 100))}%`,
-                background: getRiskColor(day.river_discharge.risk_level),
-              }}
-            />
-          </div>
-          <div className={styles.riskStats}>
-            {day.river_discharge.discharge_m3s != null && (
-              <span>Current: {day.river_discharge.discharge_m3s.toFixed(1)} m³/s</span>
-            )}
-            {day.river_discharge.discharge_mean != null && (
-              <span>Mean: {day.river_discharge.discharge_mean.toFixed(1)} m³/s</span>
-            )}
-            {day.river_discharge.discharge_ratio != null && (
-              <span>Ratio: {day.river_discharge.discharge_ratio.toFixed(2)}×</span>
-            )}
-          </div>
-          <div className={styles.waterQualityMeta}>
-            <span style={{ color: getRiskColor(day.river_discharge.risk_level) }}>
-              {day.river_discharge.risk_level} risk
-            </span>
-            {day.river_discharge.penalty > 0 && (
-              <span className={styles.waterQualityPenalty}>−{day.river_discharge.penalty.toFixed(1)}m viz</span>
-            )}
-          </div>
-          {day.river_discharge.note && (
-            <div className={styles.waterQualitySub}>{day.river_discharge.note}</div>
-          )}
-        </div>
-      )}
-
-      {/* Enhanced Water Quality — BGC & ERDDAP data */}
-      {day.water_quality && (day.water_quality.bgc_kd != null || day.water_quality.erddap_chlorophyll != null) && (
-        <div className={styles.waterQualityCard}>
-          <div className={styles.waterQualityHeader}>
-            <div className={styles.waterQualityLabelText}>Water Clarity Data</div>
-            {day.water_quality.bgc_source && (
-              <div
-                className={styles.waterQualityBadge}
-                style={{ color: day.water_quality.bgc_source.toUpperCase() === 'FALLBACK' ? '#d4850a' : '#00c9ff' }}
-              >
-                {day.water_quality.bgc_source.toUpperCase()}
+      {/* Advanced sections — hidden by default */}
+      {showAdvanced && (
+        <>
+          {/* Water quality indicator */}
+          {waterQuality && (
+            <div className={styles.waterQualityCard}>
+              <div className={styles.waterQualityHeader}>
+                <div className={styles.waterQualityLabelText}>Water Quality</div>
+                <div className={styles.waterQualityBadge} style={{ color: waterQuality.color }}>
+                  {waterQuality.label.toUpperCase()}
+                </div>
               </div>
-            )}
-          </div>
-          <div className={styles.clarityGrid}>
-            {day.water_quality.bgc_kd != null && (
-              <div className={styles.clarityStat}>
-                <div className={styles.clarityLabel}>BGC Kd</div>
-                <div className={styles.clarityValue}>{day.water_quality.bgc_kd.toFixed(3)} m⁻¹</div>
+              <div className={styles.waterQualityBar}>
+                <div
+                  className={styles.waterQualityFill}
+                  style={{
+                    width: `${Math.round(day.nutrient_factor! * 100)}%`,
+                    background: waterQuality.color,
+                  }}
+                />
               </div>
-            )}
-            {day.water_quality.bgc_kd_vis != null && (
-              <div className={styles.clarityStat}>
-                <div className={styles.clarityLabel}>BGC Visibility</div>
-                <div className={styles.clarityValue}>{day.water_quality.bgc_kd_vis.toFixed(1)}m</div>
+              <div className={styles.waterQualitySub}>
+                Based on satellite chlorophyll-a · affects algae bloom penalty
               </div>
-            )}
-            {day.water_quality.erddap_chlorophyll != null && (
-              <div className={styles.clarityStat}>
-                <div className={styles.clarityLabel}>Chlorophyll</div>
-                <div className={styles.clarityValue}>{day.water_quality.erddap_chlorophyll.toFixed(2)} mg/m³</div>
-              </div>
-            )}
-            {day.water_quality.erddap_kd490 != null && (
-              <div className={styles.clarityStat}>
-                <div className={styles.clarityLabel}>Kd490</div>
-                <div className={styles.clarityValue}>{day.water_quality.erddap_kd490.toFixed(3)} m⁻¹</div>
-              </div>
-            )}
-            {day.water_quality.erddap_kd490_vis != null && (
-              <div className={styles.clarityStat}>
-                <div className={styles.clarityLabel}>ERDDAP Visibility</div>
-                <div className={styles.clarityValue}>{day.water_quality.erddap_kd490_vis.toFixed(1)}m</div>
-              </div>
-            )}
-          </div>
-          {day.water_quality.erddap_obs_date && (
-            <div className={styles.waterQualitySub}>
-              Satellite observation: {day.water_quality.erddap_obs_date}
             </div>
           )}
-          {day.water_quality.bgc_source?.toUpperCase() === 'FALLBACK' && (
-            <div className={styles.waterQualitySub}>
-              No recent satellite or float data available — values estimated from regional baseline.
+
+          {/* Turbidity (SPM) card */}
+          {turbidity && (
+            <div className={styles.waterQualityCard}>
+              <div className={styles.waterQualityHeader}>
+                <div className={styles.waterQualityLabelText}>Turbidity</div>
+                <div className={styles.waterQualityBadge} style={{ color: turbidity.color }}>
+                  {turbidity.label.toUpperCase()}
+                </div>
+              </div>
+              <div className={styles.waterQualityBar}>
+                <div
+                  className={styles.waterQualityFill}
+                  style={{
+                    width: `${Math.min(100, Math.round((day.turbidity_penalty! / 5.0) * 100))}%`,
+                    background: turbidity.color,
+                  }}
+                />
+              </div>
+              <div className={styles.waterQualityMeta}>
+                <span style={{ color: turbidity.color }}>{turbidity.spm} suspended matter</span>
+                <span className={styles.waterQualityPenalty}>−{day.turbidity_penalty!.toFixed(1)}m viz</span>
+              </div>
+              <div className={styles.waterQualitySub}>
+                {turbidity.description} · Based on satellite SPM
+              </div>
             </div>
           )}
-        </div>
-      )}
 
-      {/* Factor grid */}
-      <div className={styles.grid}>
-        {day.factors.filter(f => f.max_penalty > 0).map(f => {
-          const { label, color } = getImpact(f.penalty, f.max_penalty)
-          const barPct = Math.min(100, (Math.abs(f.penalty) / f.max_penalty) * 100)
-          const ratio = Math.abs(f.penalty) / f.max_penalty
-          const barColor = ratio === 0 ? '#1a6b4a' : ratio < 0.4 ? '#d4850a' : ratio < 0.75 ? '#e06c00' : '#c0392b'
-          return (
-            <div key={f.name} className={styles.factorCard}>
-              <div className={styles.factorName}>{f.name}</div>
-              <div className={styles.factorValue}>{f.value}</div>
-              {f.note && <div className={styles.factorNote}>{f.note}</div>}
-              <div className={styles.factorImpact} style={{ color }}>{label}</div>
-              <div className={styles.factorBar} style={{ width: `${barPct}%`, background: barColor }} />
+          {/* Seabed Resuspension card */}
+          {day.resuspension && day.resuspension.risk_level !== 'none' && (
+            <div className={styles.waterQualityCard}>
+              <div className={styles.waterQualityHeader}>
+                <div className={styles.waterQualityLabelText}>Seabed Resuspension</div>
+                <div className={styles.waterQualityBadge} style={{ color: getRiskColor(day.resuspension.risk_level) }}>
+                  {day.resuspension.risk_level.toUpperCase()}
+                </div>
+              </div>
+              <div className={styles.waterQualityBar}>
+                <div
+                  className={styles.waterQualityFill}
+                  style={{
+                    width: `${Math.min(100, Math.round((day.resuspension.penalty / 5.0) * 100))}%`,
+                    background: getRiskColor(day.resuspension.risk_level),
+                  }}
+                />
+              </div>
+              <div className={styles.riskStats}>
+                {day.resuspension.depth_m != null && (
+                  <span>Depth: {day.resuspension.depth_m.toFixed(1)}m</span>
+                )}
+                {day.resuspension.bottom_orbital_velocity != null && (
+                  <span>Orbital vel: {day.resuspension.bottom_orbital_velocity.toFixed(2)} m/s</span>
+                )}
+                {day.resuspension.bed_shear_stress != null && (
+                  <span>Shear: {day.resuspension.bed_shear_stress.toFixed(3)} Pa</span>
+                )}
+              </div>
+              <div className={styles.waterQualityMeta}>
+                <span style={{ color: getRiskColor(day.resuspension.risk_level) }}>
+                  {day.resuspension.risk_level} risk
+                </span>
+                {day.resuspension.penalty > 0 && (
+                  <span className={styles.waterQualityPenalty}>−{day.resuspension.penalty.toFixed(1)}m viz</span>
+                )}
+              </div>
+              {day.resuspension.note && (
+                <div className={styles.waterQualitySub}>{day.resuspension.note}</div>
+              )}
             </div>
-          )
-        })}
-      </div>
+          )}
+
+          {/* River Discharge card */}
+          {day.river_discharge && day.river_discharge.risk_level !== 'none' && (
+            <div className={styles.waterQualityCard}>
+              <div className={styles.waterQualityHeader}>
+                <div className={styles.waterQualityLabelText}>River Discharge</div>
+                <div className={styles.waterQualityBadge} style={{ color: getRiskColor(day.river_discharge.risk_level) }}>
+                  {day.river_discharge.risk_level.toUpperCase()}
+                </div>
+              </div>
+              <div className={styles.waterQualityBar}>
+                <div
+                  className={styles.waterQualityFill}
+                  style={{
+                    width: `${Math.min(100, Math.round((day.river_discharge.penalty / 3.0) * 100))}%`,
+                    background: getRiskColor(day.river_discharge.risk_level),
+                  }}
+                />
+              </div>
+              <div className={styles.riskStats}>
+                {day.river_discharge.discharge_m3s != null && (
+                  <span>Current: {day.river_discharge.discharge_m3s.toFixed(1)} m³/s</span>
+                )}
+                {day.river_discharge.discharge_mean != null && (
+                  <span>Mean: {day.river_discharge.discharge_mean.toFixed(1)} m³/s</span>
+                )}
+                {day.river_discharge.discharge_ratio != null && (
+                  <span>Ratio: {day.river_discharge.discharge_ratio.toFixed(2)}×</span>
+                )}
+              </div>
+              <div className={styles.waterQualityMeta}>
+                <span style={{ color: getRiskColor(day.river_discharge.risk_level) }}>
+                  {day.river_discharge.risk_level} risk
+                </span>
+                {day.river_discharge.penalty > 0 && (
+                  <span className={styles.waterQualityPenalty}>−{day.river_discharge.penalty.toFixed(1)}m viz</span>
+                )}
+              </div>
+              {day.river_discharge.note && (
+                <div className={styles.waterQualitySub}>{day.river_discharge.note}</div>
+              )}
+            </div>
+          )}
+
+          {/* Enhanced Water Quality — BGC & ERDDAP data */}
+          {day.water_quality && (day.water_quality.bgc_kd != null || day.water_quality.erddap_chlorophyll != null) && (
+            <div className={styles.waterQualityCard}>
+              <div className={styles.waterQualityHeader}>
+                <div className={styles.waterQualityLabelText}>Water Clarity Data</div>
+                {day.water_quality.bgc_source && (
+                  <div
+                    className={styles.waterQualityBadge}
+                    style={{ color: day.water_quality.bgc_source.toUpperCase() === 'FALLBACK' ? '#d4850a' : '#00c9ff' }}
+                  >
+                    {day.water_quality.bgc_source.toUpperCase()}
+                  </div>
+                )}
+              </div>
+              <div className={styles.clarityGrid}>
+                {day.water_quality.bgc_kd != null && (
+                  <div className={styles.clarityStat}>
+                    <div className={styles.clarityLabel}>BGC Kd</div>
+                    <div className={styles.clarityValue}>{day.water_quality.bgc_kd.toFixed(3)} m⁻¹</div>
+                  </div>
+                )}
+                {day.water_quality.bgc_kd_vis != null && (
+                  <div className={styles.clarityStat}>
+                    <div className={styles.clarityLabel}>BGC Visibility</div>
+                    <div className={styles.clarityValue}>{day.water_quality.bgc_kd_vis.toFixed(1)}m</div>
+                  </div>
+                )}
+                {day.water_quality.erddap_chlorophyll != null && (
+                  <div className={styles.clarityStat}>
+                    <div className={styles.clarityLabel}>Chlorophyll</div>
+                    <div className={styles.clarityValue}>{day.water_quality.erddap_chlorophyll.toFixed(2)} mg/m³</div>
+                  </div>
+                )}
+                {day.water_quality.erddap_kd490 != null && (
+                  <div className={styles.clarityStat}>
+                    <div className={styles.clarityLabel}>Kd490</div>
+                    <div className={styles.clarityValue}>{day.water_quality.erddap_kd490.toFixed(3)} m⁻¹</div>
+                  </div>
+                )}
+                {day.water_quality.erddap_kd490_vis != null && (
+                  <div className={styles.clarityStat}>
+                    <div className={styles.clarityLabel}>ERDDAP Visibility</div>
+                    <div className={styles.clarityValue}>{day.water_quality.erddap_kd490_vis.toFixed(1)}m</div>
+                  </div>
+                )}
+              </div>
+              {day.water_quality.erddap_obs_date && (
+                <div className={styles.waterQualitySub}>
+                  Satellite observation: {day.water_quality.erddap_obs_date}
+                </div>
+              )}
+              {day.water_quality.bgc_source?.toUpperCase() === 'FALLBACK' && (
+                <div className={styles.waterQualitySub}>
+                  No recent satellite or float data available — values estimated from regional baseline.
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Factor grid */}
+          {day.factors.some(f => f.max_penalty > 0) && (
+            <div className={styles.grid}>
+              {day.factors.filter(f => f.max_penalty > 0).map(f => {
+                const { label, color } = getImpact(f.penalty, f.max_penalty)
+                const barPct = Math.min(100, (Math.abs(f.penalty) / f.max_penalty) * 100)
+                const ratio = Math.abs(f.penalty) / f.max_penalty
+                const barColor = ratio === 0 ? '#1a6b4a' : ratio < 0.4 ? '#d4850a' : ratio < 0.75 ? '#e06c00' : '#c0392b'
+                return (
+                  <div key={f.name} className={styles.factorCard}>
+                    <div className={styles.factorName}>{f.name}</div>
+                    <div className={styles.factorValue}>{f.value}</div>
+                    {f.note && <div className={styles.factorNote}>{f.note}</div>}
+                    <div className={styles.factorImpact} style={{ color }}>{label}</div>
+                    <div className={styles.factorBar} style={{ width: `${barPct}%`, background: barColor }} />
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </>
+      )}
     </div>
   )
 }
