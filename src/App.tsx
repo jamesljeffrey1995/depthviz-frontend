@@ -176,6 +176,42 @@ export default function App() {
 
       {error && <div className={styles.error} role="alert">{error}</div>}
 
+      {status === 'success' && forecast && ['/forecast', '/tides', '/report', '/history'].includes(currentPath) && (
+        <div className={styles.nav}>
+          {(['forecast', 'tides', 'report'] as const).map(v => {
+            const label = v === 'forecast' ? 'Forecast' : v === 'tides' ? 'Tides' : 'Log Dive'
+            const path = v === 'forecast' ? '/forecast' : v === 'tides' ? '/tides' : '/report'
+            return (
+              <button
+                key={v}
+                className={`${styles.navBtn} ${currentPath === path ? styles.navActive : ''}`}
+                onClick={() => v === 'report' ? handleReportClick() : navigate(path)}
+                aria-label={v === 'report' && !user ? `${label} (sign in required)` : label}
+              >
+                {label}
+                {v === 'report' && !user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}
+              </button>
+            )
+          })}
+          <button
+            className={`${styles.navBtn} ${selectedLocationId ? styles.navActive : ''}`}
+            onClick={handleSaveLocation}
+            disabled={!!selectedLocationId}
+            aria-label={selectedLocationId ? 'Location already saved' : !user ? 'Save this location (sign in required)' : 'Save this location'}
+          >
+            {selectedLocationId ? 'Saved \u2713' : <>+ Save{!user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}</>}
+          </button>
+          {selectedLocationId && (
+            <button
+              className={`${styles.navBtn} ${currentPath === '/history' ? styles.navActive : ''}`}
+              onClick={() => navigate('/history')}
+            >
+              Dive Logs
+            </button>
+          )}
+        </div>
+      )}
+
       <Routes>
         {/* Profile */}
         <Route path="/profile" element={
@@ -282,41 +318,6 @@ export default function App() {
             )}
             {status === 'success' && forecast && (
               <>
-                {/* Secondary nav for forecast context */}
-                <div className={styles.nav}>
-                  {(['forecast', 'tides', 'report'] as const).map(v => {
-                    const label = v === 'forecast' ? 'Forecast' : v === 'tides' ? 'Tides' : 'Log Dive'
-                    const path = v === 'forecast' ? '/forecast' : v === 'tides' ? '/tides' : '/report'
-                    return (
-                      <button
-                        key={v}
-                        className={`${styles.navBtn} ${currentPath === path ? styles.navActive : ''}`}
-                        onClick={() => v === 'report' ? handleReportClick() : navigate(path)}
-                        aria-label={v === 'report' && !user ? `${label} (sign in required)` : label}
-                      >
-                        {label}
-                        {v === 'report' && !user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}
-                      </button>
-                    )
-                  })}
-                  <button
-                    className={`${styles.navBtn} ${selectedLocationId ? styles.navActive : ''}`}
-                    onClick={handleSaveLocation}
-                    disabled={!!selectedLocationId}
-                    aria-label={selectedLocationId ? 'Location already saved' : !user ? 'Save this location (sign in required)' : 'Save this location'}
-                  >
-                    {selectedLocationId ? 'Saved \u2713' : <>+ Save{!user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}</>}
-                  </button>
-                  {selectedLocationId && (
-                    <button
-                      className={`${styles.navBtn} ${currentPath === '/history' ? styles.navActive : ''}`}
-                      onClick={() => navigate('/history')}
-                    >
-                      Dive Logs
-                    </button>
-                  )}
-                </div>
-
                 {forecast.bias_offset !== null && (
                   <div className={styles.biasNote}>
                     AI correction active &middot; {forecast.report_count} community reports &middot; offset {forecast.bias_offset > 0 ? '+' : ''}{forecast.bias_offset?.toFixed(1)}m
