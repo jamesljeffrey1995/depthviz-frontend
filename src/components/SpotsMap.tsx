@@ -255,19 +255,31 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
 
   const handleDbVote = useCallback(async (locationId: number, direction: 'up' | 'down') => {
     const existing = dbUserVotes[locationId]
+    const prevCount = dbVoteCounts[locationId] ?? 0
+
+    // Optimistic update
+    const isUnvote = existing === direction
+    const optimisticVote = isUnvote ? null : direction
+    const optimisticDelta = isUnvote ? (existing === 'up' ? -1 : 1) : (direction === 'up' ? (existing === 'down' ? 2 : 1) : (existing === 'up' ? -2 : -1))
+    setDbVoteCounts(prev => ({ ...prev, [locationId]: prevCount + optimisticDelta }))
+    setDbUserVotes(prev => ({ ...prev, [locationId]: optimisticVote }))
+
     try {
       let updated: Location
-      if (existing === direction) {
+      if (isUnvote) {
         updated = await removeVote(locationId)
       } else {
         updated = await voteLocation(locationId, direction)
       }
+      // Sync with server response
       setDbVoteCounts(prev => ({ ...prev, [locationId]: updated.vote_count }))
       setDbUserVotes(prev => ({ ...prev, [locationId]: updated.user_vote }))
     } catch {
-      // Silently fail — user can retry
+      // Rollback on failure
+      setDbVoteCounts(prev => ({ ...prev, [locationId]: prevCount }))
+      setDbUserVotes(prev => ({ ...prev, [locationId]: existing }))
     }
-  }, [dbUserVotes])
+  }, [dbUserVotes, dbVoteCounts])
 
   return (
     <div className={styles.wrapper}>

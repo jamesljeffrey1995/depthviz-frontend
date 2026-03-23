@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import { useConditions } from './hooks/useConditions'
 import { useGeolocation } from './hooks/useGeolocation'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { SearchBar } from './components/SearchBar'
 import { ForecastStrip } from './components/ForecastStrip'
 import { DayDetail } from './components/DayDetail'
@@ -12,6 +13,11 @@ import { formatLocationName } from './types'
 import type { GeocodingResult, Location } from './types'
 import type { LegalPageType } from './components/LegalPage'
 import styles from './App.module.css'
+
+/** Find a DB location matching given coordinates within ~1km tolerance. */
+function findLocationByCoords(lat: number, lon: number, locations: Location[]): Location | undefined {
+  return locations.find(l => Math.abs(l.lat - lat) < 0.01 && Math.abs(l.lon - lon) < 0.01)
+}
 
 const ReportForm = lazy(() => import('./components/ReportForm').then(m => ({ default: m.ReportForm })))
 const AuthModal = lazy(() => import('./components/AuthModal').then(m => ({ default: m.AuthModal })))
@@ -41,6 +47,11 @@ export default function App() {
 
   const navigate = useNavigate()
   const location = useLocation()
+
+  // Auto-close auth modal when user signs in
+  useEffect(() => {
+    if (user) setShowAuth(false)
+  }, [user])
 
   useEffect(() => {
     getLocations().then(setLocations).catch(() => {})
@@ -74,7 +85,7 @@ export default function App() {
       setCurrentLon(coords.longitude)
       const name = `${coords.latitude.toFixed(2)}N, ${Math.abs(coords.longitude).toFixed(2)}${coords.longitude >= 0 ? 'E' : 'W'}`
       setCurrentName(name)
-      const matched = locations.find(l => Math.abs(l.lat - coords.latitude) < 0.01 && Math.abs(l.lon - coords.longitude) < 0.01)
+      const matched = findLocationByCoords(coords.latitude, coords.longitude, locations)
       setSelectedLocationId(matched?.id ?? null)
       await searchByCoords(coords.latitude, coords.longitude, name, matched?.id)
       navigate('/forecast')
@@ -89,7 +100,7 @@ export default function App() {
       setCurrentLon(loc.longitude)
       const name = formatLocationName(loc)
       setCurrentName(name)
-      const matched = locations.find(l => Math.abs(l.lat - loc.latitude) < 0.01 && Math.abs(l.lon - loc.longitude) < 0.01)
+      const matched = findLocationByCoords(loc.latitude, loc.longitude, locations)
       setSelectedLocationId(matched?.id ?? null)
       await searchByCoords(loc.latitude, loc.longitude, name, matched?.id)
       navigate('/forecast')
@@ -115,7 +126,7 @@ export default function App() {
     setCurrentLat(lat)
     setCurrentLon(lon)
     setCurrentName(name)
-    const resolvedId = locationId ?? locations.find(l => Math.abs(l.lat - lat) < 0.01 && Math.abs(l.lon - lon) < 0.01)?.id ?? null
+    const resolvedId = locationId ?? findLocationByCoords(lat, lon, locations)?.id ?? null
     setSelectedLocationId(resolvedId)
     await searchByCoords(lat, lon, name, resolvedId ?? undefined)
     navigate('/forecast')
@@ -133,6 +144,7 @@ export default function App() {
   )
 
   return (
+    <ErrorBoundary>
     <div className={styles.container}>
       <Suspense fallback={null}>
         {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
@@ -167,7 +179,7 @@ export default function App() {
           setCurrentLat(r.latitude)
           setCurrentLon(r.longitude)
           setCurrentName(name)
-          const matched = locations.find(l => Math.abs(l.lat - r.latitude) < 0.01 && Math.abs(l.lon - r.longitude) < 0.01)
+          const matched = findLocationByCoords(r.latitude, r.longitude, locations)
           setSelectedLocationId(matched?.id ?? null)
           await searchByCoords(r.latitude, r.longitude, name, matched?.id)
           navigate('/forecast')
@@ -463,5 +475,6 @@ export default function App() {
 
       <CookieBanner onNavigate={(p) => { setLegalPage(p as LegalPageType); navigate(`/legal/${p}`) }} />
     </div>
+    </ErrorBoundary>
   )
 }

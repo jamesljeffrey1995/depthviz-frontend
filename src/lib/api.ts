@@ -19,6 +19,40 @@ import type {
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '/api'
 
+// --- Error types for granular handling ---
+export class ApiError extends Error {
+  status: number
+  constructor(status: number, message: string) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+  }
+}
+
+export class AuthError extends ApiError {
+  constructor(message: string) {
+    super(401, message)
+    this.name = 'AuthError'
+  }
+}
+
+export class RateLimitError extends ApiError {
+  constructor(message: string) {
+    super(429, message)
+    this.name = 'RateLimitError'
+  }
+}
+
+export class ServerError extends ApiError {
+  constructor(status: number, message: string) {
+    super(status, message)
+    this.name = 'ServerError'
+  }
+}
+
+// --- Request deduplication ---
+const pendingRequests = new Map<string, Promise<unknown>>()
+
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   // Get current session token and attach it
   const { data: { session } } = await supabase.auth.getSession()
@@ -30,10 +64,62 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
     headers['Authorization'] = `Bearer ${session.access_token}`
   }
 
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers })
-  if (!res.ok) throw new Error(`API error ${res.status}: ${await res.text()}`)
-  if (res.status === 204) return undefined as T
-  return res.json()
+  const method = options?.method ?? 'GET'
+  const isRead = method === 'GET'
+
+  // Deduplicate identical in-flight GET requests
+  const dedupeKey = isRead ? `${method}:${path}` : ''
+  if (isRead && pendingRequests.has(dedupeKey)) {
+    return pendingRequests.get(dedupeKey) as Promise<T>
+  }
+
+  const doFetch = async (): Promise<T> => {
+    let lastError: Error | null = null
+    const maxAttempts = isRead ? 2 : 1 // Retry reads once on server/network error
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        const res = await fetch(`${API_BASE}${path}`, { ...options, headers })
+
+        if (!res.ok) {
+          const body = await res.text()
+          if (res.status === 401) throw new AuthError(body || 'Not authenticated')
+          if (res.status === 429) throw new RateLimitError('Too many requests — please wait a moment')
+          if (res.status >= 500) {
+            lastError = new ServerError(res.status, body || 'Server error')
+            if (attempt < maxAttempts - 1) {
+              await new Promise(r => setTimeout(r, 1000))
+              continue
+            }
+            throw lastError
+          }
+          throw new ApiError(res.status, body || `Request failed (${res.status})`)
+        }
+
+        if (res.status === 204) return undefined as T
+        return res.json()
+      } catch (e) {
+        if (e instanceof ApiError) throw e
+        // Network error — retry reads
+        lastError = e instanceof Error ? e : new Error('Network error')
+        if (attempt < maxAttempts - 1) {
+          await new Promise(r => setTimeout(r, 1000))
+          continue
+        }
+        throw lastError
+      }
+    }
+
+    throw lastError ?? new Error('Request failed')
+  }
+
+  if (isRead) {
+    const promise = doFetch().finally(() => pendingRequests.delete(dedupeKey))
+    pendingRequests.set(dedupeKey, promise)
+    return promise
+  }
+
+  return doFetch()
 }
 
 const TTL = {

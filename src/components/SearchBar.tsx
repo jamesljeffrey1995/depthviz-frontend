@@ -17,6 +17,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
   const [selectedResult, setSelectedResult] = useState<GeocodingResult | null>(null)
   const [activeIndex, setActiveIndex] = useState(-1)
   const debounceRef = useRef<ReturnType<typeof setTimeout>>()
+  const abortRef = useRef<AbortController | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const listId = 'search-suggestions'
 
@@ -25,11 +26,20 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
     setSelectedResult(null)
     setActiveIndex(-1)
     clearTimeout(debounceRef.current)
+    // Cancel any in-flight suggestion request
+    abortRef.current?.abort()
     if (value.length < 3) { setSuggestions([]); setShowSuggestions(false); return }
     debounceRef.current = setTimeout(async () => {
-      const results = await getSuggestions(value)
-      setSuggestions(results)
-      setShowSuggestions(results.length > 0)
+      const controller = new AbortController()
+      abortRef.current = controller
+      try {
+        const results = await getSuggestions(value)
+        if (controller.signal.aborted) return // Stale — discard
+        setSuggestions(results)
+        setShowSuggestions(results.length > 0)
+      } catch {
+        // Aborted or failed — ignore
+      }
     }, 300)
   }, [getSuggestions])
 
@@ -68,7 +78,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
       setShowSuggestions(false)
       setActiveIndex(-1)
     } else if (e.key === 'Enter') {
-      if (activeIndex >= 0 && suggestions[activeIndex]) {
+      if (activeIndex >= 0 && activeIndex < suggestions.length && suggestions[activeIndex]) {
         handleSelect(suggestions[activeIndex])
       } else {
         handleSubmit()
@@ -76,9 +86,12 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
     }
   }, [showSuggestions, activeIndex, suggestions, handleSelect, handleSubmit])
 
-  // Clear debounce on unmount
+  // Clean up on unmount
   useEffect(() => {
-    return () => clearTimeout(debounceRef.current)
+    return () => {
+      clearTimeout(debounceRef.current)
+      abortRef.current?.abort()
+    }
   }, [])
 
   // Close suggestions on outside click

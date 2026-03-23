@@ -18,10 +18,17 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
   const [dragActive, setDragActive] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  const MAX_FILE_SIZE = 500 * 1024 * 1024 // 500 MB
+
   const handleFile = useCallback(
     async (file: File) => {
       if (!file.type.startsWith('video/')) {
         setError('Please select a video file.')
+        setPhase('error')
+        return
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        setError(`Video must be under 500 MB (yours is ${(file.size / 1024 / 1024).toFixed(0)} MB).`)
         setPhase('error')
         return
       }

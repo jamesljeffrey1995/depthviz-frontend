@@ -53,7 +53,18 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
   )
 
   const handleSubmit = async () => {
-    if (!locationId || !actualVis || !activeDay) return
+    if (!locationId) {
+      setError('Please select a saved location')
+      return
+    }
+    if (!actualVis) {
+      setError('Please enter the actual visibility')
+      return
+    }
+    if (!activeDay) {
+      setError('No forecast data available for this date')
+      return
+    }
     const vis = parseFloat(actualVis)
     if (isNaN(vis) || vis < 0 || vis > 50) {
       setError('Visibility must be a number between 0 and 50')
@@ -86,7 +97,7 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
         } : {}),
       })
       setDone(true)
-      setTimeout(onSubmitted, 1500)
+      setTimeout(onSubmitted, 2500)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to submit')
     } finally {
