@@ -80,6 +80,8 @@ export interface ForecastResponse {
   days: DayForecast[]
   bias_offset: number | null
   report_count: number
+  model_confidence: 'none' | 'low' | 'medium' | 'high'
+  calibration_active: boolean
 }
 
 export interface BestVisSpot {
@@ -316,6 +318,75 @@ export interface QuarantinedReport {
 export interface QuarantinedListResponse {
   count: number
   reports: QuarantinedReport[]
+}
+
+// ML Model Status
+export interface MLCalibration {
+  swell_multiplier: number
+  wind_multiplier: number
+  rain_multiplier: number
+  sample_count: number
+  mae: number | null
+  rmse: number | null
+  r2_score: number | null
+  updated_at: string | null
+}
+
+export interface MLBiasDetail {
+  location_id: number
+  location_name: string
+  bias_offset: number
+  r2_score: number | null
+  sample_count: number
+  updated_at: string | null
+}
+
+export interface MLTrainingLogEntry {
+  trigger: string
+  swell_multiplier: number | null
+  wind_multiplier: number | null
+  rain_multiplier: number | null
+  global_mae: number | null
+  global_rmse: number | null
+  sample_count: number
+  locations_updated: number
+  duration_ms: number
+  created_at: string
+}
+
+export interface MLStatus {
+  calibration: MLCalibration | null
+  bias_summary: {
+    count: number
+    avg_bias_offset: number | null
+    avg_r2_score: number | null
+    total_samples: number
+  }
+  bias_details: MLBiasDetail[]
+  live_metrics: {
+    mae: number | null
+    rmse: number | null
+    r2: number | null
+    n: number
+  }
+  training_log: MLTrainingLogEntry[]
+}
+
+export interface MLRetrainResult {
+  calibration: {
+    swell_multiplier: number | null
+    wind_multiplier: number | null
+    rain_multiplier: number | null
+    sample_count: number
+  }
+  locations_updated: number
+  duration_ms: number
+  metrics: {
+    mae: number | null
+    rmse: number | null
+    r2: number | null
+    n: number
+  }
 }
 
 // Social / Friends
