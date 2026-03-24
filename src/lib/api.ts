@@ -333,6 +333,10 @@ export async function forceRetrain(): Promise<import('../types').MLRetrainResult
   return apiFetch('/admin/ml/retrain', { method: 'POST' })
 }
 
+export async function getMLPredictions(): Promise<import('../types').MLPredictions> {
+  return apiFetch('/admin/ml/predictions')
+}
+
 // ML Weights (public, cached)
 export interface ModelWeights {
   swell_multiplier: number

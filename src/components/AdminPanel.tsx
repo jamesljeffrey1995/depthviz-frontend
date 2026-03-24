@@ -16,6 +16,7 @@ import type {
   MLStatus,
   MLRetrainResult,
 } from '../types'
+import { MLCharts } from './MLCharts'
 import styles from './AdminPanel.module.css'
 
 interface AdminPanelProps {
@@ -343,6 +344,9 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
                   <div>Evaluated on: <strong>{mlStatus.live_metrics.n}</strong> reports</div>
                 </div>
               </div>
+
+              {/* Charts */}
+              <MLCharts trainingLog={mlStatus.training_log} />
 
               {/* Bias summary */}
               <div className={styles.previewResult}>

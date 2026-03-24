@@ -372,6 +372,19 @@ export interface MLStatus {
   training_log: MLTrainingLogEntry[]
 }
 
+export interface MLPredictionPoint {
+  date: string
+  actual: number
+  predicted: number
+  error: number
+  location: string
+}
+
+export interface MLPredictions {
+  points: MLPredictionPoint[]
+  count: number
+}
+
 export interface MLRetrainResult {
   calibration: {
     swell_multiplier: number | null
