@@ -324,6 +324,45 @@ export async function quarantineReport(reportId: number): Promise<void> {
   await apiFetch(`/admin/outliers/quarantine/${reportId}`, { method: 'POST' })
 }
 
+// Admin — ML Model
+export async function getMLStatus(): Promise<import('../types').MLStatus> {
+  return apiFetch('/admin/ml/status')
+}
+
+export async function forceRetrain(): Promise<import('../types').MLRetrainResult> {
+  return apiFetch('/admin/ml/retrain', { method: 'POST' })
+}
+
+export async function getMLPredictions(): Promise<import('../types').MLPredictions> {
+  return apiFetch('/admin/ml/predictions')
+}
+
+// ML Weights (public, cached)
+export interface ModelWeights {
+  swell_multiplier: number
+  wind_multiplier: number
+  rain_multiplier: number
+  updated_at: string | null
+}
+
+let _cachedWeights: ModelWeights | null = null
+
+export async function getModelWeights(): Promise<ModelWeights> {
+  if (_cachedWeights) return _cachedWeights
+
+  const key = 'ml-weights'
+  const cached = cacheGet<ModelWeights>(key)
+  if (cached) {
+    _cachedWeights = cached
+    return cached
+  }
+
+  const result = await apiFetch<ModelWeights>('/forecast/weights')
+  cacheSet(key, result, TTL.FORECAST)
+  _cachedWeights = result
+  return result
+}
+
 // Catches
 export async function getCatches(params?: { species?: string; location_id?: string }): Promise<CatchRead[]> {
   const qs = params ? '?' + new URLSearchParams(

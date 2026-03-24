@@ -5,20 +5,25 @@ import {
   runOutlierCleaning,
   getQuarantinedReports,
   restoreReport,
+  getMLStatus,
+  forceRetrain,
 } from '../lib/api'
 import type {
   AdminStats,
   OutlierPreview,
   CleaningResult,
   QuarantinedReport,
+  MLStatus,
+  MLRetrainResult,
 } from '../types'
+import { MLCharts } from './MLCharts'
 import styles from './AdminPanel.module.css'
 
 interface AdminPanelProps {
   onBack?: () => void
 }
 
-type Tab = 'overview' | 'quarantined' | 'clean'
+type Tab = 'overview' | 'quarantined' | 'clean' | 'ml'
 
 export function AdminPanel({ onBack }: AdminPanelProps) {
   const [tab, setTab] = useState<Tab>('overview')
@@ -26,6 +31,8 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
   const [preview, setPreview] = useState<OutlierPreview | null>(null)
   const [cleanResult, setCleanResult] = useState<CleaningResult | null>(null)
   const [quarantined, setQuarantined] = useState<QuarantinedReport[]>([])
+  const [mlStatus, setMlStatus] = useState<MLStatus | null>(null)
+  const [retrainResult, setRetrainResult] = useState<MLRetrainResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -91,10 +98,39 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
     }
   }
 
+  const loadMLStatus = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await getMLStatus()
+      setMlStatus(data)
+    } catch (e) {
+      setError('Failed to load ML status')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleRetrain = async () => {
+    setLoading(true)
+    setError(null)
+    setRetrainResult(null)
+    try {
+      const result = await forceRetrain()
+      setRetrainResult(result)
+      await loadMLStatus()
+    } catch (e) {
+      setError('Failed to retrain model')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleTabChange = (t: Tab) => {
     setTab(t)
     if (t === 'quarantined') loadQuarantined()
     if (t === 'clean') { setPreview(null); setCleanResult(null) }
+    if (t === 'ml') { setRetrainResult(null); loadMLStatus() }
   }
 
   return (
@@ -133,13 +169,13 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
 
       {/* Tabs */}
       <div className={styles.tabs}>
-        {(['overview', 'quarantined', 'clean'] as Tab[]).map(t => (
+        {(['overview', 'quarantined', 'clean', 'ml'] as Tab[]).map(t => (
           <button
             key={t}
             className={`${styles.tab} ${tab === t ? styles.tabActive : ''}`}
             onClick={() => handleTabChange(t)}
           >
-            {t === 'overview' ? 'Overview' : t === 'quarantined' ? 'Quarantined' : 'Clean Outliers'}
+            {t === 'overview' ? 'Overview' : t === 'quarantined' ? 'Quarantined' : t === 'clean' ? 'Clean Outliers' : 'ML Model'}
           </button>
         ))}
       </div>
@@ -261,6 +297,119 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
                 <div>Trust weights updated: <strong>{cleanResult.trust_weights_updated}</strong></div>
               </div>
             </div>
+          )}
+        </div>
+      )}
+
+      {/* ML Model tab */}
+      {tab === 'ml' && (
+        <div className={styles.section}>
+          {loading && !mlStatus && <div className={styles.loading}>Loading ML status...</div>}
+
+          {mlStatus && (
+            <>
+              {/* Global calibration multipliers */}
+              <div className={styles.previewResult}>
+                <div className={styles.previewHeader}>Calibration Multipliers</div>
+                {mlStatus.calibration ? (
+                  <div className={styles.previewStats}>
+                    <div>Swell: <strong style={{ color: Math.abs(mlStatus.calibration.swell_multiplier - 1.0) > 0.2 ? 'var(--danger)' : 'var(--text-bright)' }}>
+                      {mlStatus.calibration.swell_multiplier.toFixed(3)}
+                    </strong></div>
+                    <div>Wind: <strong style={{ color: Math.abs(mlStatus.calibration.wind_multiplier - 1.0) > 0.2 ? 'var(--danger)' : 'var(--text-bright)' }}>
+                      {mlStatus.calibration.wind_multiplier.toFixed(3)}
+                    </strong></div>
+                    <div>Rain: <strong style={{ color: Math.abs(mlStatus.calibration.rain_multiplier - 1.0) > 0.2 ? 'var(--danger)' : 'var(--text-bright)' }}>
+                      {mlStatus.calibration.rain_multiplier.toFixed(3)}
+                    </strong></div>
+                    <div>Training samples: <strong>{mlStatus.calibration.sample_count}</strong></div>
+                    {mlStatus.calibration.updated_at && (
+                      <div style={{ opacity: 0.5 }}>Last trained: {new Date(mlStatus.calibration.updated_at).toLocaleString()}</div>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ opacity: 0.5, fontSize: '11px' }}>No calibration data yet — not enough reports</div>
+                )}
+              </div>
+
+              {/* Evaluation metrics */}
+              <div className={styles.previewResult}>
+                <div className={styles.previewHeader}>Evaluation Metrics</div>
+                <div className={styles.previewStats}>
+                  <div>MAE: <strong>{mlStatus.live_metrics.mae?.toFixed(3) ?? '—'}</strong> m</div>
+                  <div>RMSE: <strong>{mlStatus.live_metrics.rmse?.toFixed(3) ?? '—'}</strong> m</div>
+                  <div>R²: <strong style={{ color: (mlStatus.live_metrics.r2 ?? 0) > 0.3 ? 'var(--excellent)' : (mlStatus.live_metrics.r2 ?? 0) > 0 ? 'var(--text-bright)' : 'var(--danger)' }}>
+                    {mlStatus.live_metrics.r2?.toFixed(3) ?? '—'}
+                  </strong></div>
+                  <div>Evaluated on: <strong>{mlStatus.live_metrics.n}</strong> reports</div>
+                </div>
+              </div>
+
+              {/* Charts */}
+              <MLCharts trainingLog={mlStatus.training_log} />
+
+              {/* Bias summary */}
+              <div className={styles.previewResult}>
+                <div className={styles.previewHeader}>Per-Location Bias</div>
+                <div className={styles.previewStats}>
+                  <div>Locations with bias: <strong>{mlStatus.bias_summary.count}</strong></div>
+                  <div>Avg bias offset: <strong>{mlStatus.bias_summary.avg_bias_offset?.toFixed(3) ?? '—'}</strong> m</div>
+                  <div>Avg R²: <strong>{mlStatus.bias_summary.avg_r2_score?.toFixed(3) ?? '—'}</strong></div>
+                  <div>Total bias samples: <strong>{mlStatus.bias_summary.total_samples}</strong></div>
+                </div>
+                {mlStatus.bias_details.length > 0 && (
+                  <div className={styles.previewList}>
+                    <div className={styles.previewListHeader} style={{ color: 'var(--accent)' }}>Per-location detail:</div>
+                    {mlStatus.bias_details.slice(0, 20).map(b => (
+                      <div key={b.location_id} className={styles.previewItem}>
+                        {b.location_name}: offset={b.bias_offset.toFixed(2)}m, R²={b.r2_score?.toFixed(3) ?? '—'}, n={b.sample_count}
+                      </div>
+                    ))}
+                    {mlStatus.bias_details.length > 20 && (
+                      <div className={styles.previewMore}>...and {mlStatus.bias_details.length - 20} more</div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Training log */}
+              {mlStatus.training_log.length > 0 && (
+                <div className={styles.previewResult}>
+                  <div className={styles.previewHeader}>Recent Training Runs</div>
+                  <div className={styles.previewList}>
+                    {mlStatus.training_log.map((lg, i) => (
+                      <div key={i} className={styles.previewItem}>
+                        [{lg.trigger}] {new Date(lg.created_at).toLocaleString()} — MAE={lg.global_mae?.toFixed(3) ?? '—'}, {lg.locations_updated} locs, {lg.duration_ms}ms
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Retrain button */}
+              <div className={styles.actionRow}>
+                <button
+                  className={styles.previewBtn}
+                  onClick={handleRetrain}
+                  disabled={loading}
+                >
+                  {loading ? 'Retraining...' : 'Force Retrain'}
+                </button>
+              </div>
+
+              {retrainResult && (
+                <div className={styles.cleanResult}>
+                  <div className={styles.cleanHeader}>Retraining Complete</div>
+                  <div className={styles.cleanStats}>
+                    <div>Locations updated: <strong>{retrainResult.locations_updated}</strong></div>
+                    <div>Duration: <strong>{retrainResult.duration_ms}ms</strong></div>
+                    <div>MAE: <strong>{retrainResult.metrics.mae?.toFixed(3) ?? '—'}</strong></div>
+                    <div>RMSE: <strong>{retrainResult.metrics.rmse?.toFixed(3) ?? '—'}</strong></div>
+                    <div>R²: <strong>{retrainResult.metrics.r2?.toFixed(3) ?? '—'}</strong></div>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

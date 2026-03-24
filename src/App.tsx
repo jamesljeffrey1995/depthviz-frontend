@@ -330,9 +330,16 @@ export default function App() {
             )}
             {status === 'success' && forecast && (
               <>
-                {forecast.bias_offset !== null && (
+                {(forecast.bias_offset !== null || forecast.calibration_active) && (
                   <div className={styles.biasNote}>
-                    AI correction active &middot; {forecast.report_count} community reports &middot; offset {forecast.bias_offset > 0 ? '+' : ''}{forecast.bias_offset?.toFixed(1)}m
+                    AI correction active
+                    {forecast.model_confidence !== 'none' && (
+                      <> &middot; confidence: {forecast.model_confidence}</>
+                    )}
+                    {' '}&middot; {forecast.report_count} community reports
+                    {forecast.bias_offset !== null && (
+                      <> &middot; offset {forecast.bias_offset > 0 ? '+' : ''}{forecast.bias_offset?.toFixed(1)}m</>
+                    )}
                   </div>
                 )}
                 <ForecastStrip days={forecast.days} selectedIndex={selectedDay} onSelect={setSelectedDay} />

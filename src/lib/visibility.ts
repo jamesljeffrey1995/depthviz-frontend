@@ -66,9 +66,16 @@ export function getVerdict(vis: number): Verdict {
   return { label: 'EXCELLENT', colorClass: 'excellent', alert: null }
 }
 
+export interface CalibrationWeights {
+  swell_multiplier: number
+  wind_multiplier: number
+  rain_multiplier: number
+}
+
 export function calculateVisibility(
   { weather, marine, histWeather, histMarine }: ConditionsData,
-  lat: number
+  lat: number,
+  weights?: CalibrationWeights,
 ): VisibilityResult {
   const c = weather.current
   const mc = marine.current ?? { wave_height: 0, wave_period: 0, swell_wave_height: 0 }
@@ -123,7 +130,7 @@ export function calculateVisibility(
     name: 'Swell / Wave',
     value: `${rawSwell.toFixed(1)}m`,
     note: histWaveMaxes[1] > rawSwell * 1.3 ? '↑ recent history' : null,
-    penalty: wavePenalty,
+    penalty: wavePenalty * sm,
     max_penalty: 8,
   })
 
@@ -136,7 +143,7 @@ export function calculateVisibility(
   factors.push({
     name: 'Wind',
     value: `${Math.round(windKnots)}kn`,
-    penalty: windPenalty,
+    penalty: windPenalty * wm,
     max_penalty: 4,
   })
 
@@ -160,7 +167,7 @@ export function calculateVisibility(
     name: 'Precip',
     value: `${precipitation.toFixed(1)}mm/h`,
     note: historicalRain > precipitation * 1.5 && historicalRain > 1 ? '↑ recent rain' : null,
-    penalty: rainPenalty,
+    penalty: rainPenalty * rm,
     max_penalty: 3,
   })
 
@@ -175,7 +182,12 @@ export function calculateVisibility(
     max_penalty: 1,
   })
 
-  const totalPenalty = wavePenalty + windPenalty + dirPenalty + rainPenalty + humidPenalty
+  // Apply ML calibration multipliers if available
+  const sm = weights?.swell_multiplier ?? 1.0
+  const wm = weights?.wind_multiplier ?? 1.0
+  const rm = weights?.rain_multiplier ?? 1.0
+
+  const totalPenalty = (wavePenalty * sm) + (windPenalty * wm) + dirPenalty + (rainPenalty * rm) + humidPenalty
   let vis = Math.max(0, Math.min(15, baseVis + totalPenalty))
   if (effectiveSwell > 4 || (windKnots > 35 && effectiveSwell > 2)) vis = 0
 
