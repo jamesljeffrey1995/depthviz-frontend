@@ -122,6 +122,11 @@ export function calculateVisibility(
   // 1. Swell
   let wavePenalty = 0
   if (effectiveSwell > 0.5) wavePenalty = -1
+  // Apply ML calibration multipliers if available
+  const sm = weights?.swell_multiplier ?? 1.0
+  const wm = weights?.wind_multiplier ?? 1.0
+  const rm = weights?.rain_multiplier ?? 1.0
+
   if (effectiveSwell > 1.0) wavePenalty = -2.5
   if (effectiveSwell > 1.5) wavePenalty = -4
   if (effectiveSwell > 2.5) wavePenalty = -6
@@ -181,11 +186,6 @@ export function calculateVisibility(
     penalty: humidPenalty,
     max_penalty: 1,
   })
-
-  // Apply ML calibration multipliers if available
-  const sm = weights?.swell_multiplier ?? 1.0
-  const wm = weights?.wind_multiplier ?? 1.0
-  const rm = weights?.rain_multiplier ?? 1.0
 
   const totalPenalty = (wavePenalty * sm) + (windPenalty * wm) + dirPenalty + (rainPenalty * rm) + humidPenalty
   let vis = Math.max(0, Math.min(15, baseVis + totalPenalty))
