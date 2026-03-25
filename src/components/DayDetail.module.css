@@ -213,6 +213,14 @@
 
 /* Bar vis */
 .barContainer { margin-bottom: 20px; }
+
+.compassContainer {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0 16px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
 .barLabels {
   display: flex;
   justify-content: space-between;

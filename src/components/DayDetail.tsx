@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { DayForecast } from '../types'
 import { getImpact } from '../lib/visibility'
+import { SwellCompass } from './SwellCompass'
 import styles from './DayDetail.module.css'
 
 interface Props {
@@ -149,6 +150,17 @@ export function DayDetail({ day, locationName, reportCount }: Props) {
           <div className={`${styles.barFill} ${styles[`bg_${day.color_class}`]}`} style={{ width: `${pct}%` }} />
         </div>
       </div>
+
+      {/* Swell compass */}
+      {day.swell_components && day.swell_components.length > 0 && (
+        <div className={styles.compassContainer}>
+          <SwellCompass
+            components={day.swell_components}
+            windDir={day.wind_dir}
+            windDirLabel={day.wind_dir_label}
+          />
+        </div>
+      )}
 
       {/* Elevated warnings promoted to simple view */}
       {elevatedWarnings.length > 0 && (
