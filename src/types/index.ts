@@ -48,6 +48,14 @@ export interface WaterQuality {
   erddap_obs_date: string | null
 }
 
+export interface SwellComponent {
+  type: 'primary' | 'secondary' | 'wind_wave'
+  label: string
+  height: number
+  direction: number | null
+  dir_label: string | null
+}
+
 export interface DayForecast {
   date: string
   is_forecast: boolean
@@ -59,6 +67,7 @@ export interface DayForecast {
   swell_height: number
   swell_direction: number | null
   swell_dir_label: string | null
+  swell_components: SwellComponent[]
   wind_speed: number
   wind_dir: number
   wind_dir_label: string
