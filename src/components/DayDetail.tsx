@@ -157,7 +157,6 @@ export function DayDetail({ day, locationName, reportCount }: Props) {
           <SwellCompass
             components={day.swell_components}
             windDir={day.wind_dir}
-            windDirLabel={day.wind_dir_label}
           />
         </div>
       )}

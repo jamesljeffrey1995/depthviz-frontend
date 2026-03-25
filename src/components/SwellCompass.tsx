@@ -3,7 +3,6 @@ import type { SwellComponent } from '../types'
 interface Props {
   components: SwellComponent[]
   windDir: number
-  windDirLabel: string
 }
 
 const COLORS: Record<string, string> = {
@@ -34,7 +33,7 @@ function arrowPath(length: number): string {
   return `M0,${baseY} L-${halfW},${baseY + 8} L0,${tipY} L${halfW},${baseY + 8} Z`
 }
 
-export function SwellCompass({ components, windDir, windDirLabel }: Props) {
+export function SwellCompass({ components, windDir }: Props) {
   // Find max height to scale arrows
   const maxHeight = Math.max(...components.map(c => c.height), 0.5)
 
