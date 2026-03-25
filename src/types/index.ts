@@ -57,6 +57,8 @@ export interface DayForecast {
   color_class: string
   wave_height: number
   swell_height: number
+  swell_direction: number | null
+  swell_dir_label: string | null
   wind_speed: number
   wind_dir: number
   wind_dir_label: string
