@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -153,11 +153,28 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
   const [dbUserVotes, setDbUserVotes] = useState<Record<number, 'up' | 'down' | null>>(() =>
     makeDbUserVotes(locations)
   )
+  const [voteError, setVoteError] = useState<string | null>(null)
 
-  // Keep DB vote state in sync when locations prop refreshes
+  // Track which locations have an in-flight vote to prevent race conditions
+  const votingInFlight = useRef<Set<number>>(new Set())
+
+  // Keep DB vote state in sync when locations prop refreshes,
+  // but skip locations with in-flight votes to avoid overwriting optimistic state
   useEffect(() => {
-    setDbVoteCounts(makeDbVoteCounts(locations))
-    setDbUserVotes(makeDbUserVotes(locations))
+    setDbVoteCounts(prev => {
+      const next = { ...prev }
+      for (const l of locations) {
+        if (!votingInFlight.current.has(l.id)) next[l.id] = l.vote_count
+      }
+      return next
+    })
+    setDbUserVotes(prev => {
+      const next = { ...prev }
+      for (const l of locations) {
+        if (!votingInFlight.current.has(l.id)) next[l.id] = l.user_vote
+      }
+      return next
+    })
   }, [locations])
 
   // Migrate: strip any old public/userAdded spots from localStorage
@@ -254,6 +271,11 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
   }
 
   const handleDbVote = useCallback(async (locationId: number, direction: 'up' | 'down') => {
+    // Prevent rapid double-clicks from corrupting state
+    if (votingInFlight.current.has(locationId)) return
+    votingInFlight.current.add(locationId)
+    setVoteError(null)
+
     const existing = dbUserVotes[locationId]
     const prevCount = dbVoteCounts[locationId] ?? 0
 
@@ -261,7 +283,7 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
     const isUnvote = existing === direction
     const optimisticVote = isUnvote ? null : direction
     const optimisticDelta = isUnvote ? (existing === 'up' ? -1 : 1) : (direction === 'up' ? (existing === 'down' ? 2 : 1) : (existing === 'up' ? -2 : -1))
-    setDbVoteCounts(prev => ({ ...prev, [locationId]: prevCount + optimisticDelta }))
+    setDbVoteCounts(prev => ({ ...prev, [locationId]: Math.max(0, prevCount + optimisticDelta) }))
     setDbUserVotes(prev => ({ ...prev, [locationId]: optimisticVote }))
 
     try {
@@ -275,9 +297,13 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
       setDbVoteCounts(prev => ({ ...prev, [locationId]: updated.vote_count }))
       setDbUserVotes(prev => ({ ...prev, [locationId]: updated.user_vote }))
     } catch {
-      // Rollback on failure
+      // Rollback on failure and show brief error
       setDbVoteCounts(prev => ({ ...prev, [locationId]: prevCount }))
       setDbUserVotes(prev => ({ ...prev, [locationId]: existing }))
+      setVoteError('Vote failed — please try again')
+      setTimeout(() => setVoteError(null), 3000)
+    } finally {
+      votingInFlight.current.delete(locationId)
     }
   }, [dbUserVotes, dbVoteCounts])
 
@@ -473,6 +499,10 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
             </span>
           )}
         </div>
+      )}
+
+      {voteError && (
+        <div className={styles.addFormError}>{voteError}</div>
       )}
 
       {syncWarning && (

@@ -135,7 +135,7 @@ export function DayDetail({ day, locationName, reportCount }: Props) {
           <div className={styles.metricChip} style={{ borderColor: '#00c9ff40' }}>
             <div className={styles.metricChipLabel}>Swell Dir</div>
             <div className={styles.metricChipValue} style={{ color: '#00c9ff' }}>{day.swell_dir_label}</div>
-            <div className={styles.metricChipNote} style={{ color: '#00c9ff' }}>{Math.round(day.swell_direction!)}°</div>
+            {day.swell_direction != null && <div className={styles.metricChipNote} style={{ color: '#00c9ff' }}>{Math.round(day.swell_direction)}°</div>}
           </div>
         )}
       </div>
