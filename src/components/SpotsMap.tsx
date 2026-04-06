@@ -154,6 +154,12 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
     makeDbUserVotes(locations)
   )
   const [voteError, setVoteError] = useState<string | null>(null)
+  const voteErrorTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Clear vote error timeout on unmount
+  useEffect(() => () => {
+    if (voteErrorTimer.current) clearTimeout(voteErrorTimer.current)
+  }, [])
 
   // Track which locations have an in-flight vote to prevent race conditions
   const votingInFlight = useRef<Set<number>>(new Set())
@@ -301,7 +307,8 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
       setDbVoteCounts(prev => ({ ...prev, [locationId]: prevCount }))
       setDbUserVotes(prev => ({ ...prev, [locationId]: existing }))
       setVoteError('Vote failed — please try again')
-      setTimeout(() => setVoteError(null), 3000)
+      if (voteErrorTimer.current) clearTimeout(voteErrorTimer.current)
+      voteErrorTimer.current = setTimeout(() => setVoteError(null), 3000)
     } finally {
       votingInFlight.current.delete(locationId)
     }
