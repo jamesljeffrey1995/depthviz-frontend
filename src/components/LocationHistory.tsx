@@ -31,20 +31,28 @@ export function LocationHistory({ locationId, locationName }: Props) {
   const [logs, setLogs] = useState<Log[]>([])
   const [reportCount, setReportCount] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const [expanded, setExpanded] = useState<number | null>(null)
 
   useEffect(() => {
     setLoading(true)
+    setError(false)
     getLocationHistory(locationId)
       .then(data => {
         setLogs(data.logs)
         setReportCount(data.report_count)
       })
-      .catch(() => {})
+      .catch(() => setError(true))
       .finally(() => setLoading(false))
   }, [locationId])
 
   if (loading) return <div className={styles.loading}>Loading dive logs...</div>
+
+  if (error) return (
+    <div className={styles.empty}>
+      <div>Failed to load dive logs. Please try again later.</div>
+    </div>
+  )
 
   if (logs.length === 0) return (
     <div className={styles.empty}>

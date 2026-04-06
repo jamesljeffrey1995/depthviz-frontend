@@ -72,6 +72,31 @@ export interface CalibrationWeights {
   rain_multiplier: number
 }
 
+/** Piecewise-linear interpolation between breakpoints — matches API swell_penalty(). */
+function interpolatePenalty(value: number, breakpoints: [number, number][]): number {
+  if (value <= breakpoints[0][0]) return breakpoints[0][1]
+  for (let i = 1; i < breakpoints.length; i++) {
+    const [loV, loP] = breakpoints[i - 1]
+    const [hiV, hiP] = breakpoints[i]
+    if (value <= hiV) {
+      const t = (value - loV) / (hiV - loV)
+      return loP + t * (hiP - loP)
+    }
+  }
+  return breakpoints[breakpoints.length - 1][1]
+}
+
+// Breakpoints aligned with API services/visibility.py
+const SWELL_BREAKPOINTS: [number, number][] = [
+  [0.0, 0.0], [0.5, -0.5], [1.0, -1.5], [1.5, -2.5], [2.5, -4.5], [3.5, -6.5], [5.0, -8.0],
+]
+const WIND_BREAKPOINTS: [number, number][] = [
+  [0, 0], [10, 0], [15, -0.5], [20, -1.5], [28, -2.5], [36, -4.0],
+]
+const RAIN_BREAKPOINTS: [number, number][] = [
+  [0, 0], [0.2, 0], [1, -0.5], [3, -1.5], [8, -3.0],
+]
+
 export function calculateVisibility(
   { weather, marine, histWeather, histMarine }: ConditionsData,
   lat: number,
@@ -119,18 +144,13 @@ export function calculateVisibility(
 
   const factors: VisibilityFactor[] = []
 
-  // 1. Swell
-  let wavePenalty = 0
-  if (effectiveSwell > 0.5) wavePenalty = -1
   // Apply ML calibration multipliers if available
   const sm = weights?.swell_multiplier ?? 1.0
   const wm = weights?.wind_multiplier ?? 1.0
   const rm = weights?.rain_multiplier ?? 1.0
 
-  if (effectiveSwell > 1.0) wavePenalty = -2.5
-  if (effectiveSwell > 1.5) wavePenalty = -4
-  if (effectiveSwell > 2.5) wavePenalty = -6
-  if (effectiveSwell > 3.5) wavePenalty = -8
+  // 1. Swell — piecewise-linear interpolation (matches API)
+  const wavePenalty = interpolatePenalty(effectiveSwell, SWELL_BREAKPOINTS)
   factors.push({
     name: 'Swell / Wave',
     value: `${rawSwell.toFixed(1)}m`,
@@ -139,12 +159,8 @@ export function calculateVisibility(
     max_penalty: 8,
   })
 
-  // 2. Wind speed
-  let windPenalty = 0
-  if (effectiveWind > 10) windPenalty = -0.5
-  if (effectiveWind > 15) windPenalty = -1.5
-  if (effectiveWind > 20) windPenalty = -2.5
-  if (effectiveWind > 28) windPenalty = -4
+  // 2. Wind speed — piecewise-linear interpolation
+  const windPenalty = interpolatePenalty(effectiveWind, WIND_BREAKPOINTS)
   factors.push({
     name: 'Wind',
     value: `${Math.round(windKnots)}kn`,
@@ -163,11 +179,8 @@ export function calculateVisibility(
     max_penalty: 1.5,
   })
 
-  // 4. Precipitation
-  let rainPenalty = 0
-  if (effectiveRain > 0.2) rainPenalty = -0.5
-  if (effectiveRain > 1)   rainPenalty = -1.5
-  if (effectiveRain > 3)   rainPenalty = -3
+  // 4. Precipitation — piecewise-linear interpolation
+  const rainPenalty = interpolatePenalty(effectiveRain, RAIN_BREAKPOINTS)
   factors.push({
     name: 'Precip',
     value: `${precipitation.toFixed(1)}mm/h`,

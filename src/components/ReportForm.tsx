@@ -123,7 +123,7 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
         <select
           className={styles.select}
           value={selectedDate}
-          onChange={e => { setSelectedDate(e.target.value); setActualVis('') }}
+          onChange={e => setSelectedDate(e.target.value)}
         >
           {dateOptions.map(o => (
             <option key={o.value} value={o.value}>{o.label}</option>
