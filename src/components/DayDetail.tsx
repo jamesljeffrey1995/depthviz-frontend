@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { DayForecast } from '../types'
+import type { DayForecast, ErddapObservation } from '../types'
 import { getImpact } from '../lib/visibility'
 import { SwellCompass } from './SwellCompass'
 import styles from './DayDetail.module.css'
@@ -8,6 +8,7 @@ interface Props {
   day: DayForecast
   locationName: string
   reportCount: number
+  erddapObservation?: ErddapObservation | null
 }
 
 function getWaterQuality(factor: number): { label: string; color: string; description: string } {
@@ -54,14 +55,15 @@ function getRiskColor(level: string): string {
 }
 
 /** Check if any advanced section has data worth showing */
-function hasAdvancedData(day: DayForecast): boolean {
+function hasAdvancedData(day: DayForecast, erddap?: ErddapObservation | null): boolean {
   const hasWaterQuality = day.nutrient_factor != null
   const hasTurbidity = day.turbidity_penalty != null && day.turbidity_penalty > 0
   const hasResuspension = day.resuspension && day.resuspension.risk_level !== 'none'
   const hasRiverDischarge = day.river_discharge && day.river_discharge.risk_level !== 'none'
-  const hasBgcData = day.water_quality && (day.water_quality.bgc_kd != null || day.water_quality.erddap_chlorophyll != null)
+  const hasBgcData = day.water_quality && day.water_quality.bgc_kd != null
+  const hasErddapData = erddap && erddap.chlorophyll != null
   const hasFactors = day.factors.some(f => f.max_penalty > 0)
-  return !!(hasWaterQuality || hasTurbidity || hasResuspension || hasRiverDischarge || hasBgcData || hasFactors)
+  return !!(hasWaterQuality || hasTurbidity || hasResuspension || hasRiverDischarge || hasBgcData || hasErddapData || hasFactors)
 }
 
 /** Check if any risks are elevated (moderate or high) — these get promoted to the simple view */
@@ -77,7 +79,7 @@ function getElevatedWarnings(day: DayForecast): string[] {
   return warnings
 }
 
-export function DayDetail({ day, locationName, reportCount }: Props) {
+export function DayDetail({ day, locationName, reportCount, erddapObservation }: Props) {
   const [showAdvanced, setShowAdvanced] = useState(false)
   const vis = day.vis_corrected ?? day.vis_estimate
   const pct = (vis / 15) * 100
@@ -93,7 +95,7 @@ export function DayDetail({ day, locationName, reportCount }: Props) {
   const humSev  = getHumiditySeverity(day.humidity)
 
   const elevatedWarnings = getElevatedWarnings(day)
-  const advancedAvailable = hasAdvancedData(day)
+  const advancedAvailable = hasAdvancedData(day, erddapObservation)
 
   return (
     <div className={styles.card}>
@@ -344,11 +346,11 @@ export function DayDetail({ day, locationName, reportCount }: Props) {
             </div>
           )}
 
-          {/* Enhanced Water Quality — BGC & ERDDAP data */}
-          {day.water_quality && (day.water_quality.bgc_kd != null || day.water_quality.erddap_chlorophyll != null) && (
+          {/* BGC Water Clarity (per-day forecast data) */}
+          {day.water_quality && day.water_quality.bgc_kd != null && (
             <div className={styles.waterQualityCard}>
               <div className={styles.waterQualityHeader}>
-                <div className={styles.waterQualityLabelText}>Water Clarity Data</div>
+                <div className={styles.waterQualityLabelText}>BGC Water Clarity</div>
                 {day.water_quality.bgc_source && (
                   <div
                     className={styles.waterQualityBadge}
@@ -359,45 +361,53 @@ export function DayDetail({ day, locationName, reportCount }: Props) {
                 )}
               </div>
               <div className={styles.clarityGrid}>
-                {day.water_quality.bgc_kd != null && (
-                  <div className={styles.clarityStat}>
-                    <div className={styles.clarityLabel}>BGC Kd</div>
-                    <div className={styles.clarityValue}>{day.water_quality.bgc_kd.toFixed(3)} m⁻¹</div>
-                  </div>
-                )}
+                <div className={styles.clarityStat}>
+                  <div className={styles.clarityLabel}>BGC Kd</div>
+                  <div className={styles.clarityValue}>{day.water_quality.bgc_kd.toFixed(3)} m⁻¹</div>
+                </div>
                 {day.water_quality.bgc_kd_vis != null && (
                   <div className={styles.clarityStat}>
                     <div className={styles.clarityLabel}>BGC Visibility</div>
                     <div className={styles.clarityValue}>{day.water_quality.bgc_kd_vis.toFixed(1)}m</div>
                   </div>
                 )}
-                {day.water_quality.erddap_chlorophyll != null && (
-                  <div className={styles.clarityStat}>
-                    <div className={styles.clarityLabel}>Chlorophyll</div>
-                    <div className={styles.clarityValue}>{day.water_quality.erddap_chlorophyll.toFixed(2)} mg/m³</div>
-                  </div>
-                )}
-                {day.water_quality.erddap_kd490 != null && (
-                  <div className={styles.clarityStat}>
-                    <div className={styles.clarityLabel}>Kd490</div>
-                    <div className={styles.clarityValue}>{day.water_quality.erddap_kd490.toFixed(3)} m⁻¹</div>
-                  </div>
-                )}
-                {day.water_quality.erddap_kd490_vis != null && (
-                  <div className={styles.clarityStat}>
-                    <div className={styles.clarityLabel}>ERDDAP Visibility</div>
-                    <div className={styles.clarityValue}>{day.water_quality.erddap_kd490_vis.toFixed(1)}m</div>
-                  </div>
-                )}
               </div>
-              {day.water_quality.erddap_obs_date && (
-                <div className={styles.waterQualitySub}>
-                  Satellite observation: {day.water_quality.erddap_obs_date}
-                </div>
-              )}
               {day.water_quality.bgc_source?.toUpperCase() === 'FALLBACK' && (
                 <div className={styles.waterQualitySub}>
                   No recent satellite or float data available — values estimated from regional baseline.
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ERDDAP Satellite Observation (shared across all days) */}
+          {erddapObservation && erddapObservation.chlorophyll != null && (
+            <div className={styles.waterQualityCard}>
+              <div className={styles.waterQualityHeader}>
+                <div className={styles.waterQualityLabelText}>Satellite Observation</div>
+                <div className={styles.waterQualityBadge} style={{ color: '#00c9ff' }}>ERDDAP</div>
+              </div>
+              <div className={styles.clarityGrid}>
+                <div className={styles.clarityStat}>
+                  <div className={styles.clarityLabel}>Chlorophyll</div>
+                  <div className={styles.clarityValue}>{erddapObservation.chlorophyll.toFixed(2)} mg/m³</div>
+                </div>
+                {erddapObservation.kd490 != null && (
+                  <div className={styles.clarityStat}>
+                    <div className={styles.clarityLabel}>Kd490</div>
+                    <div className={styles.clarityValue}>{erddapObservation.kd490.toFixed(3)} m⁻¹</div>
+                  </div>
+                )}
+                {erddapObservation.kd490_vis != null && (
+                  <div className={styles.clarityStat}>
+                    <div className={styles.clarityLabel}>ERDDAP Visibility</div>
+                    <div className={styles.clarityValue}>{erddapObservation.kd490_vis.toFixed(1)}m</div>
+                  </div>
+                )}
+              </div>
+              {erddapObservation.observation_date && (
+                <div className={styles.waterQualitySub}>
+                  Satellite observation: {erddapObservation.observation_date}
                 </div>
               )}
             </div>

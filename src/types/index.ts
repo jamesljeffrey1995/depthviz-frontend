@@ -42,10 +42,13 @@ export interface WaterQuality {
   bgc_kd: number | null
   bgc_kd_vis: number | null
   bgc_source: string | null
-  erddap_chlorophyll: number | null
-  erddap_kd490: number | null
-  erddap_kd490_vis: number | null
-  erddap_obs_date: string | null
+}
+
+export interface ErddapObservation {
+  chlorophyll: number | null
+  kd490: number | null
+  kd490_vis: number | null
+  observation_date: string | null
 }
 
 export interface SwellComponent {
@@ -93,6 +96,7 @@ export interface ForecastResponse {
   report_count: number
   model_confidence: 'none' | 'low' | 'medium' | 'high'
   calibration_active: boolean
+  erddap_observation: ErddapObservation | null
 }
 
 export interface BestVisSpot {

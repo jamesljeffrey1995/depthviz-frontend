@@ -34,7 +34,7 @@ const FriendsPanel = lazy(() => import('./components/FriendsPanel').then(m => ({
 
 export default function App() {
   const { user, loading: authLoading } = useAuth()
-  const { status, forecast, error, searchByCoords } = useConditions()
+  const { status, forecast, error, isRevalidating, searchByCoords } = useConditions()
   const { getLocation } = useGeolocation()
   const [selectedDay, setSelectedDay] = useState(0)
   const [locations, setLocations] = useState<Location[]>([])
@@ -272,8 +272,8 @@ export default function App() {
         {/* Map (home) */}
         <Route path="/" element={
           <>
-            {status === 'loading' && (
-              <div className={styles.loadingBar} role="status" aria-live="polite">Reading conditions...</div>
+            {(status === 'loading' || isRevalidating) && (
+              <div className={styles.loadingBar} role="status" aria-live="polite">{isRevalidating ? 'Fetching conditions...' : 'Reading conditions...'}</div>
             )}
             {status === 'idle' && (
               <Suspense fallback={null}>
@@ -328,6 +328,9 @@ export default function App() {
                 <div className={styles.emptyText}>Enter a location to check<br />underwater visibility conditions</div>
               </div>
             )}
+            {isRevalidating && (
+              <div className={styles.loadingBar} role="status" aria-live="polite">Fetching conditions...</div>
+            )}
             {status === 'success' && forecast && (
               <>
                 {(forecast.bias_offset !== null || forecast.calibration_active) && (
@@ -348,6 +351,7 @@ export default function App() {
                     day={forecast.days[selectedDay]}
                     locationName={forecast.location_name}
                     reportCount={forecast.report_count}
+                    erddapObservation={forecast.erddap_observation}
                   />
                 )}
               </>
