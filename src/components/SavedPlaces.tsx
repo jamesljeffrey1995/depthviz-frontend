@@ -20,15 +20,17 @@ export function SavedPlaces({ locations, onSelectLocation, onDelete, userUid }: 
   const handleSelect = async (loc: Location) => {
     setSelectError('')
 
-    if (loc.is_public) {
+    const hasEncryptedCoords = Boolean(loc.encrypted_lat && loc.encrypted_lon)
+
+    if (!hasEncryptedCoords) {
       onSelectLocation(loc.lat, loc.lon, loc.name, loc.id)
       return
     }
 
-    // Private spots: must decrypt — never fall back to zeroed lat/lon
-    if (!loc.encrypted_lat || !loc.encrypted_lon || !userUid) {
+    // Encrypted spots require decryption; plaintext spots fall back to stored lat/lon.
+    if (!userUid) {
       setSelectError('This private place cannot be opened right now.')
-      console.error('Missing encrypted coordinates or user UID for private spot selection', {
+      console.error('Missing user UID for encrypted spot selection', {
         locationId: loc.id,
         hasEncryptedLat: Boolean(loc.encrypted_lat),
         hasEncryptedLon: Boolean(loc.encrypted_lon),
