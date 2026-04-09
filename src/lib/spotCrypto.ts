@@ -2,8 +2,10 @@
  * Client-side encryption for private spot coordinates.
  *
  * Uses AES-256-GCM via the Web Crypto API. The encryption key is stored as a
- * **non-extractable** CryptoKey in IndexedDB, making it inaccessible to XSS
- * payloads (unlike localStorage where it was previously stored as base64).
+ * **non-extractable** CryptoKey in IndexedDB, which helps prevent simple raw
+ * key exfiltration/export (unlike localStorage where it was previously stored
+ * as base64), but does not protect against active XSS running in-origin that
+ * can still use the key via `crypto.subtle.encrypt`/`crypto.subtle.decrypt`.
  *
  * On first call the module checks for a legacy localStorage key and migrates
  * it into IndexedDB, then deletes the localStorage copy.
