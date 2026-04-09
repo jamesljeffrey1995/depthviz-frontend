@@ -9,6 +9,7 @@ import { ForecastStrip } from './components/ForecastStrip'
 import { DayDetail } from './components/DayDetail'
 import { CookieBanner } from './components/CookieBanner'
 import { getLocations, createLocation } from './lib/api'
+import { encryptCoords } from './lib/spotCrypto'
 import { formatLocationName } from './types'
 import type { GeocodingResult, Location } from './types'
 import type { LegalPageType } from './components/LegalPage'
@@ -107,11 +108,15 @@ export default function App() {
     }
   }
 
-  const handleSaveLocation = async () => {
+  const handleSaveLocation = async (isPrivate = false) => {
     if (currentLat === null || currentLon === null || !currentName) return
     if (!user) { setShowAuth(true); return }
     try {
-      const loc = await createLocation(currentName, currentLat, currentLon)
+      let encrypted: { encrypted_lat: string; encrypted_lon: string } | undefined
+      if (isPrivate) {
+        encrypted = await encryptCoords(currentLat, currentLon, user.id)
+      }
+      const loc = await createLocation(currentName, currentLat, currentLon, !isPrivate, encrypted)
       setLocations(prev => [...prev.filter(l => l.id !== loc.id), loc])
       setSelectedLocationId(loc.id)
     } catch (e) { console.error(e) }
@@ -207,12 +212,21 @@ export default function App() {
           })}
           <button
             className={`${styles.navBtn} ${selectedLocationId ? styles.navActive : ''}`}
-            onClick={handleSaveLocation}
+            onClick={() => handleSaveLocation(false)}
             disabled={!!selectedLocationId}
             aria-label={selectedLocationId ? 'Location already saved' : !user ? 'Save this location (sign in required)' : 'Save this location'}
           >
             {selectedLocationId ? 'Saved \u2713' : <>+ Save{!user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}</>}
           </button>
+          {!selectedLocationId && (
+            <button
+              className={styles.navBtn}
+              onClick={() => handleSaveLocation(true)}
+              aria-label={!user ? 'Save as private spot (sign in required)' : 'Save as private spot — coordinates encrypted'}
+            >
+              + Private{!user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}
+            </button>
+          )}
           {selectedLocationId && (
             <button
               className={`${styles.navBtn} ${currentPath === '/history' ? styles.navActive : ''}`}
@@ -303,6 +317,7 @@ export default function App() {
                 locations={locations}
                 onSelectLocation={handleSpotSelect}
                 onDelete={id => setLocations(prev => prev.filter(l => l.id !== id))}
+                userUid={user.id}
               />
             </Suspense>
           ) : (
@@ -351,7 +366,6 @@ export default function App() {
                     day={forecast.days[selectedDay]}
                     locationName={forecast.location_name}
                     reportCount={forecast.report_count}
-                    erddapObservation={forecast.erddap_observation}
                   />
                 )}
               </>

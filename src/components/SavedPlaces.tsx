@@ -1,18 +1,33 @@
 import { useState } from 'react'
 import type { Location } from '../types'
 import { deleteLocation } from '../lib/api'
+import { decryptCoords } from '../lib/spotCrypto'
 import styles from './SavedPlaces.module.css'
 
 interface Props {
   locations: Location[]
   onSelectLocation: (lat: number, lon: number, name: string, locationId?: number) => void
   onDelete: (id: number) => void
+  userUid?: string
 }
 
-export function SavedPlaces({ locations, onSelectLocation, onDelete }: Props) {
+export function SavedPlaces({ locations, onSelectLocation, onDelete, userUid }: Props) {
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [confirmId, setConfirmId] = useState<number | null>(null)
   const [deleteError, setDeleteError] = useState('')
+
+  const handleSelect = async (loc: Location) => {
+    if (!loc.is_public && loc.encrypted_lat && loc.encrypted_lon && userUid) {
+      try {
+        const { lat, lon } = await decryptCoords(loc.encrypted_lat, loc.encrypted_lon, userUid)
+        onSelectLocation(lat, lon, loc.name, loc.id)
+      } catch (e) {
+        console.error('Failed to decrypt private spot coordinates', e)
+      }
+    } else {
+      onSelectLocation(loc.lat, loc.lon, loc.name, loc.id)
+    }
+  }
 
   const handleDeleteRequest = (id: number) => {
     setConfirmId(id)
@@ -56,7 +71,10 @@ export function SavedPlaces({ locations, onSelectLocation, onDelete }: Props) {
             <div className={styles.info}>
               <div className={styles.name}>{loc.name}</div>
               <div className={styles.coords}>
-                {Math.abs(loc.lat).toFixed(3)}°{loc.lat >= 0 ? 'N' : 'S'} · {Math.abs(loc.lon).toFixed(3)}°{loc.lon >= 0 ? 'E' : 'W'}
+                {!loc.is_public
+                  ? 'Private spot — coordinates encrypted'
+                  : `${Math.abs(loc.lat).toFixed(3)}°${loc.lat >= 0 ? 'N' : 'S'} · ${Math.abs(loc.lon).toFixed(3)}°${loc.lon >= 0 ? 'E' : 'W'}`
+                }
               </div>
             </div>
             <div className={styles.actions}>
@@ -82,7 +100,7 @@ export function SavedPlaces({ locations, onSelectLocation, onDelete }: Props) {
                 <>
                   <button
                     className={styles.forecastBtn}
-                    onClick={() => onSelectLocation(loc.lat, loc.lon, loc.name, loc.id)}
+                    onClick={() => handleSelect(loc)}
                     aria-label={`View forecast for ${loc.name}`}
                   >
                     Forecast
