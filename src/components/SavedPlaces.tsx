@@ -91,11 +91,9 @@ export function SavedPlaces({ locations, onSelectLocation, onDelete, userUid }: 
             <div className={styles.info}>
               <div className={styles.name}>{loc.name}</div>
               <div className={styles.coords}>
-                {loc.is_public
-                  ? `${Math.abs(loc.lat).toFixed(3)}°${loc.lat >= 0 ? 'N' : 'S'} · ${Math.abs(loc.lon).toFixed(3)}°${loc.lon >= 0 ? 'E' : 'W'}`
-                  : loc.encrypted_lat != null && loc.encrypted_lon != null
-                    ? 'Private spot — coordinates encrypted'
-                    : 'Private spot'
+                {loc.encrypted_lat != null && loc.encrypted_lon != null
+                  ? 'Private spot — coordinates encrypted'
+                  : `${Math.abs(loc.lat).toFixed(3)}°${loc.lat >= 0 ? 'N' : 'S'} · ${Math.abs(loc.lon).toFixed(3)}°${loc.lon >= 0 ? 'E' : 'W'}`
                 }
               </div>
             </div>
