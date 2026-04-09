@@ -116,6 +116,8 @@ export interface Location {
   is_predefined: boolean
   vote_count: number
   user_vote: 'up' | 'down' | null
+  encrypted_lat: string | null
+  encrypted_lon: string | null
 }
 
 export interface ReportCreate {

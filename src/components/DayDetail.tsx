@@ -344,7 +344,7 @@ export function DayDetail({ day, locationName, reportCount }: Props) {
             </div>
           )}
 
-          {/* Enhanced Water Quality — BGC & ERDDAP data */}
+          {/* Water Clarity Data — BGC forecast + ERDDAP satellite (both per-day) */}
           {day.water_quality && (day.water_quality.bgc_kd != null || day.water_quality.erddap_chlorophyll != null) && (
             <div className={styles.waterQualityCard}>
               <div className={styles.waterQualityHeader}>

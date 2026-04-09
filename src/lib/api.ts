@@ -175,10 +175,19 @@ export async function getLocations(): Promise<Location[]> {
   return result
 }
 
-export async function createLocation(name: string, lat: number, lon: number, isPublic = false): Promise<Location> {
+export async function createLocation(
+  name: string, lat: number, lon: number,
+  isPublic = false,
+  encryptedCoords?: { encrypted_lat: string; encrypted_lon: string },
+): Promise<Location> {
   const result = await apiFetch<Location>('/locations', {
     method: 'POST',
-    body: JSON.stringify({ name, lat, lon, is_public: isPublic }),
+    body: JSON.stringify({
+      name,
+      is_public: isPublic,
+      ...(isPublic ? { lat, lon } : {}),
+      ...(!isPublic && encryptedCoords ? encryptedCoords : {}),
+    }),
   })
   cacheDelete('locations')
   return result

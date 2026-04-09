@@ -9,6 +9,7 @@ import { ForecastStrip } from './components/ForecastStrip'
 import { DayDetail } from './components/DayDetail'
 import { CookieBanner } from './components/CookieBanner'
 import { getLocations, createLocation } from './lib/api'
+import { encryptCoords } from './lib/spotCrypto'
 import { formatLocationName } from './types'
 import type { GeocodingResult, Location } from './types'
 import type { LegalPageType } from './components/LegalPage'
@@ -34,7 +35,7 @@ const FriendsPanel = lazy(() => import('./components/FriendsPanel').then(m => ({
 
 export default function App() {
   const { user, loading: authLoading } = useAuth()
-  const { status, forecast, error, searchByCoords } = useConditions()
+  const { status, forecast, error, isRevalidating, searchByCoords } = useConditions()
   const { getLocation } = useGeolocation()
   const [selectedDay, setSelectedDay] = useState(0)
   const [locations, setLocations] = useState<Location[]>([])
@@ -107,13 +108,18 @@ export default function App() {
     }
   }
 
-  const handleSaveLocation = async () => {
+  const handleSaveLocation = async (isPrivate = false) => {
     if (currentLat === null || currentLon === null || !currentName) return
     if (!user) { setShowAuth(true); return }
     try {
-      const loc = await createLocation(currentName, currentLat, currentLon)
-      setLocations(prev => [...prev.filter(l => l.id !== loc.id), loc])
-      setSelectedLocationId(loc.id)
+      let encrypted: { encrypted_lat: string; encrypted_lon: string } | undefined
+      if (isPrivate) {
+        encrypted = await encryptCoords(currentLat, currentLon, user.id)
+      }
+      const loc = await createLocation(currentName, currentLat, currentLon, false, encrypted)
+      const savedLoc = isPrivate ? { ...loc, lat: currentLat, lon: currentLon } : loc
+      setLocations(prev => [...prev.filter(l => l.id !== savedLoc.id), savedLoc])
+      setSelectedLocationId(savedLoc.id)
     } catch (e) { console.error(e) }
   }
 
@@ -207,12 +213,21 @@ export default function App() {
           })}
           <button
             className={`${styles.navBtn} ${selectedLocationId ? styles.navActive : ''}`}
-            onClick={handleSaveLocation}
+            onClick={() => handleSaveLocation(false)}
             disabled={!!selectedLocationId}
             aria-label={selectedLocationId ? 'Location already saved' : !user ? 'Save this location (sign in required)' : 'Save this location'}
           >
             {selectedLocationId ? 'Saved \u2713' : <>+ Save{!user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}</>}
           </button>
+          {!selectedLocationId && (
+            <button
+              className={styles.navBtn}
+              onClick={() => handleSaveLocation(true)}
+              aria-label={!user ? 'Save as private spot (sign in required)' : 'Save as private spot — coordinates encrypted'}
+            >
+              + Private{!user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}
+            </button>
+          )}
           {selectedLocationId && (
             <button
               className={`${styles.navBtn} ${currentPath === '/history' ? styles.navActive : ''}`}
@@ -272,8 +287,8 @@ export default function App() {
         {/* Map (home) */}
         <Route path="/" element={
           <>
-            {status === 'loading' && (
-              <div className={styles.loadingBar} role="status" aria-live="polite">Reading conditions...</div>
+            {(status === 'loading' || isRevalidating) && (
+              <div className={styles.loadingBar} role="status" aria-live="polite">{isRevalidating ? 'Fetching conditions...' : 'Reading conditions...'}</div>
             )}
             {status === 'idle' && (
               <Suspense fallback={null}>
@@ -303,6 +318,7 @@ export default function App() {
                 locations={locations}
                 onSelectLocation={handleSpotSelect}
                 onDelete={id => setLocations(prev => prev.filter(l => l.id !== id))}
+                userUid={user.id}
               />
             </Suspense>
           ) : (
@@ -327,6 +343,9 @@ export default function App() {
                 <div className={styles.emptyIcon}>&#129343;</div>
                 <div className={styles.emptyText}>Enter a location to check<br />underwater visibility conditions</div>
               </div>
+            )}
+            {isRevalidating && (
+              <div className={styles.loadingBar} role="status" aria-live="polite">Fetching conditions...</div>
             )}
             {status === 'success' && forecast && (
               <>

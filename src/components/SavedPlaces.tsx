@@ -1,18 +1,52 @@
 import { useState } from 'react'
 import type { Location } from '../types'
 import { deleteLocation } from '../lib/api'
+import { decryptCoords } from '../lib/spotCrypto'
 import styles from './SavedPlaces.module.css'
 
 interface Props {
   locations: Location[]
   onSelectLocation: (lat: number, lon: number, name: string, locationId?: number) => void
   onDelete: (id: number) => void
+  userUid?: string
 }
 
-export function SavedPlaces({ locations, onSelectLocation, onDelete }: Props) {
+export function SavedPlaces({ locations, onSelectLocation, onDelete, userUid }: Props) {
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [confirmId, setConfirmId] = useState<number | null>(null)
   const [deleteError, setDeleteError] = useState('')
+  const [selectError, setSelectError] = useState('')
+
+  const handleSelect = async (loc: Location) => {
+    setSelectError('')
+
+    const hasEncryptedCoords = Boolean(loc.encrypted_lat && loc.encrypted_lon)
+
+    if (!hasEncryptedCoords) {
+      onSelectLocation(loc.lat, loc.lon, loc.name, loc.id)
+      return
+    }
+
+    // Encrypted spots require decryption; plaintext spots fall back to stored lat/lon.
+    if (!userUid) {
+      setSelectError('This private place cannot be opened right now.')
+      console.error('Missing user UID for encrypted spot selection', {
+        locationId: loc.id,
+        hasEncryptedLat: Boolean(loc.encrypted_lat),
+        hasEncryptedLon: Boolean(loc.encrypted_lon),
+        hasUserUid: Boolean(userUid),
+      })
+      return
+    }
+
+    try {
+      const { lat, lon } = await decryptCoords(loc.encrypted_lat, loc.encrypted_lon, userUid)
+      onSelectLocation(lat, lon, loc.name, loc.id)
+    } catch (e) {
+      setSelectError('Failed to open this private place.')
+      console.error('Failed to decrypt private spot coordinates', e)
+    }
+  }
 
   const handleDeleteRequest = (id: number) => {
     setConfirmId(id)
@@ -50,13 +84,17 @@ export function SavedPlaces({ locations, onSelectLocation, onDelete }: Props) {
     <div className={styles.container}>
       <div className={styles.heading}>My Saved Places</div>
       {deleteError && <div className={styles.error} role="alert">{deleteError}</div>}
+      {selectError && <div className={styles.error} role="alert">{selectError}</div>}
       <div className={styles.list}>
         {locations.map(loc => (
           <div key={loc.id} className={styles.row}>
             <div className={styles.info}>
               <div className={styles.name}>{loc.name}</div>
               <div className={styles.coords}>
-                {Math.abs(loc.lat).toFixed(3)}°{loc.lat >= 0 ? 'N' : 'S'} · {Math.abs(loc.lon).toFixed(3)}°{loc.lon >= 0 ? 'E' : 'W'}
+                {loc.encrypted_lat != null && loc.encrypted_lon != null
+                  ? 'Private spot — coordinates encrypted'
+                  : `${Math.abs(loc.lat).toFixed(3)}°${loc.lat >= 0 ? 'N' : 'S'} · ${Math.abs(loc.lon).toFixed(3)}°${loc.lon >= 0 ? 'E' : 'W'}`
+                }
               </div>
             </div>
             <div className={styles.actions}>
@@ -82,7 +120,7 @@ export function SavedPlaces({ locations, onSelectLocation, onDelete }: Props) {
                 <>
                   <button
                     className={styles.forecastBtn}
-                    onClick={() => onSelectLocation(loc.lat, loc.lon, loc.name, loc.id)}
+                    onClick={() => handleSelect(loc)}
                     aria-label={`View forecast for ${loc.name}`}
                   >
                     Forecast
