@@ -39,8 +39,8 @@ export function SavedPlaces({ locations, onSelectLocation, onDelete, userUid }: 
       return
     }
 
-    const encLat = loc.encrypted_lat
-    const encLon = loc.encrypted_lon
+    const encLat = loc.encrypted_lat!
+    const encLon = loc.encrypted_lon!
 
     try {
       const { lat, lon } = await decryptCoords(encLat, encLon, userUid)
