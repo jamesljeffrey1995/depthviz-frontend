@@ -104,6 +104,6 @@ export function hasSpotKey(uid: string): boolean {
 }
 
 /** Export the user's spot key as base64 (for backup/sharing). */
-export async function exportSpotKey(uid: string): Promise<string | null> {
+export function exportSpotKey(uid: string): string | null {
   return localStorage.getItem(storageKey(uid))
 }
