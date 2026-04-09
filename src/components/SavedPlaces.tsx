@@ -15,17 +15,33 @@ export function SavedPlaces({ locations, onSelectLocation, onDelete, userUid }: 
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [confirmId, setConfirmId] = useState<number | null>(null)
   const [deleteError, setDeleteError] = useState('')
+  const [selectError, setSelectError] = useState('')
 
   const handleSelect = async (loc: Location) => {
-    if (!loc.is_public && loc.encrypted_lat && loc.encrypted_lon && userUid) {
-      try {
-        const { lat, lon } = await decryptCoords(loc.encrypted_lat, loc.encrypted_lon, userUid)
-        onSelectLocation(lat, lon, loc.name, loc.id)
-      } catch (e) {
-        console.error('Failed to decrypt private spot coordinates', e)
-      }
-    } else {
+    setSelectError('')
+
+    if (loc.is_public) {
       onSelectLocation(loc.lat, loc.lon, loc.name, loc.id)
+      return
+    }
+
+    if (!loc.encrypted_lat || !loc.encrypted_lon || !userUid) {
+      setSelectError('This private place cannot be opened right now.')
+      console.error('Missing encrypted coordinates or user UID for private spot selection', {
+        locationId: loc.id,
+        hasEncryptedLat: Boolean(loc.encrypted_lat),
+        hasEncryptedLon: Boolean(loc.encrypted_lon),
+        hasUserUid: Boolean(userUid),
+      })
+      return
+    }
+
+    try {
+      const { lat, lon } = await decryptCoords(loc.encrypted_lat, loc.encrypted_lon, userUid)
+      onSelectLocation(lat, lon, loc.name, loc.id)
+    } catch (e) {
+      setSelectError('Failed to open this private place.')
+      console.error('Failed to decrypt private spot coordinates', e)
     }
   }
 
