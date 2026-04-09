@@ -184,9 +184,8 @@ export async function createLocation(
     method: 'POST',
     body: JSON.stringify({
       name,
-      lat,
-      lon,
       is_public: isPublic,
+      ...(isPublic ? { lat, lon } : {}),
       ...(!isPublic && encryptedCoords ? encryptedCoords : {}),
     }),
   })
