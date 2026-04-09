@@ -146,6 +146,10 @@ export async function decryptCoords(
   encrypted_lon: string,
   uid: string,
 ): Promise<{ lat: number; lon: number }> {
+  const keyExists = await hasSpotKey(uid)
+  if (!keyExists) {
+    throw new Error(`Missing spot encryption key for user ${uid}`)
+  }
   const key = await getOrCreateSpotKey(uid)
   return {
     lat: await decryptCoord(encrypted_lat, key),
