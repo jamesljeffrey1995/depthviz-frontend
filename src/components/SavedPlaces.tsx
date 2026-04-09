@@ -39,8 +39,11 @@ export function SavedPlaces({ locations, onSelectLocation, onDelete, userUid }: 
       return
     }
 
+    const encLat = loc.encrypted_lat
+    const encLon = loc.encrypted_lon
+
     try {
-      const { lat, lon } = await decryptCoords(loc.encrypted_lat, loc.encrypted_lon, userUid)
+      const { lat, lon } = await decryptCoords(encLat, encLon, userUid)
       onSelectLocation(lat, lon, loc.name, loc.id)
     } catch (e) {
       setSelectError('Failed to open this private place.')
