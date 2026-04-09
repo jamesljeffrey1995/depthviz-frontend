@@ -116,7 +116,10 @@ export default function App() {
       if (isPrivate) {
         encrypted = await encryptCoords(currentLat, currentLon, user.id)
       }
-      const loc = await createLocation(currentName, currentLat, currentLon, !isPrivate, encrypted)
+      // For private spots send 0,0 — the server only stores encrypted blobs
+      const sendLat = isPrivate ? 0 : currentLat
+      const sendLon = isPrivate ? 0 : currentLon
+      const loc = await createLocation(currentName, sendLat, sendLon, !isPrivate, encrypted)
       setLocations(prev => [...prev.filter(l => l.id !== loc.id), loc])
       setSelectedLocationId(loc.id)
     } catch (e) { console.error(e) }

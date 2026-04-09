@@ -1,45 +1,98 @@
 /**
  * Client-side encryption for private spot coordinates.
  *
- * Uses AES-256-GCM via the Web Crypto API. The encryption key is generated
- * once per user and stored in localStorage. The server never sees plaintext
- * coordinates for private spots — only the encrypted blobs.
+ * Uses AES-256-GCM via the Web Crypto API. The encryption key is stored as a
+ * **non-extractable** CryptoKey in IndexedDB, making it inaccessible to XSS
+ * payloads (unlike localStorage where it was previously stored as base64).
  *
- * Key storage: localStorage under `depthviz_spot_key_<uid>`
- * Format: base64-encoded raw AES key (32 bytes)
+ * On first call the module checks for a legacy localStorage key and migrates
+ * it into IndexedDB, then deletes the localStorage copy.
+ *
+ * DB name : `depthviz_keys`
+ * Store   : `spot_keys`
+ * Key     : user UID
+ * Value   : CryptoKey (non-extractable)
  */
 
 const ALGO = 'AES-GCM'
 const KEY_LENGTH = 256
+const DB_NAME = 'depthviz_keys'
+const STORE_NAME = 'spot_keys'
+const DB_VERSION = 1
 
-function storageKey(uid: string): string {
+// Legacy localStorage key (for migration)
+function legacyStorageKey(uid: string): string {
   return `depthviz_spot_key_${uid}`
 }
 
-/** Export a CryptoKey to base64 for storage. */
-async function exportKey(key: CryptoKey): Promise<string> {
-  const raw = await crypto.subtle.exportKey('raw', key)
-  return btoa(String.fromCharCode(...new Uint8Array(raw)))
+// ── IndexedDB helpers ──────────────────────────────────────────────────────
+
+function openDB(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION)
+    req.onupgradeneeded = () => {
+      const db = req.result
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME)
+      }
+    }
+    req.onsuccess = () => resolve(req.result)
+    req.onerror = () => reject(req.error)
+  })
 }
 
-/** Import a base64-encoded key back to CryptoKey. */
-async function importKey(b64: string): Promise<CryptoKey> {
+function idbGet(db: IDBDatabase, key: string): Promise<CryptoKey | undefined> {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly')
+    const store = tx.objectStore(STORE_NAME)
+    const req = store.get(key)
+    req.onsuccess = () => resolve(req.result as CryptoKey | undefined)
+    req.onerror = () => reject(req.error)
+  })
+}
+
+function idbPut(db: IDBDatabase, key: string, value: CryptoKey): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite')
+    const store = tx.objectStore(STORE_NAME)
+    const req = store.put(value, key)
+    req.onsuccess = () => resolve()
+    req.onerror = () => reject(req.error)
+  })
+}
+
+// ── Key management ─────────────────────────────────────────────────────────
+
+/** Import a base64-encoded key (legacy migration). Returns a non-extractable key. */
+async function importLegacyKey(b64: string): Promise<CryptoKey> {
   const raw = Uint8Array.from(atob(b64), c => c.charCodeAt(0))
-  return crypto.subtle.importKey('raw', raw, ALGO, true, ['encrypt', 'decrypt'])
+  return crypto.subtle.importKey('raw', raw, ALGO, false, ['encrypt', 'decrypt'])
 }
 
-/** Get or create the user's spot encryption key. */
+/** Get or create the user's spot encryption key. Migrates from localStorage if needed. */
 export async function getOrCreateSpotKey(uid: string): Promise<CryptoKey> {
-  const stored = localStorage.getItem(storageKey(uid))
-  if (stored) {
-    return importKey(stored)
+  const db = await openDB()
+
+  // Check IndexedDB first
+  const existing = await idbGet(db, uid)
+  if (existing) return existing
+
+  // Migrate from legacy localStorage if present
+  const legacy = localStorage.getItem(legacyStorageKey(uid))
+  if (legacy) {
+    const key = await importLegacyKey(legacy)
+    await idbPut(db, uid, key)
+    localStorage.removeItem(legacyStorageKey(uid))
+    return key
   }
+
+  // Generate a new non-extractable key
   const key = await crypto.subtle.generateKey(
     { name: ALGO, length: KEY_LENGTH },
-    true,
+    false,  // non-extractable — cannot be read by JS
     ['encrypt', 'decrypt'],
   )
-  localStorage.setItem(storageKey(uid), await exportKey(key))
+  await idbPut(db, uid, key)
   return key
 }
 
@@ -98,12 +151,12 @@ export async function decryptCoords(
   }
 }
 
-/** Check if the user has a spot encryption key. */
-export function hasSpotKey(uid: string): boolean {
-  return localStorage.getItem(storageKey(uid)) !== null
-}
-
-/** Export the user's spot key as base64 (for backup/sharing). */
-export function exportSpotKey(uid: string): string | null {
-  return localStorage.getItem(storageKey(uid))
+/** Check if the user has a spot encryption key (in IndexedDB or legacy localStorage). */
+export async function hasSpotKey(uid: string): Promise<boolean> {
+  try {
+    const db = await openDB()
+    const key = await idbGet(db, uid)
+    if (key) return true
+  } catch { /* IndexedDB unavailable */ }
+  return localStorage.getItem(legacyStorageKey(uid)) !== null
 }

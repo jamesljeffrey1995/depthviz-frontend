@@ -25,6 +25,7 @@ export function SavedPlaces({ locations, onSelectLocation, onDelete, userUid }: 
       return
     }
 
+    // Private spots: must decrypt — never fall back to zeroed lat/lon
     if (!loc.encrypted_lat || !loc.encrypted_lon || !userUid) {
       setSelectError('This private place cannot be opened right now.')
       console.error('Missing encrypted coordinates or user UID for private spot selection', {
@@ -81,6 +82,7 @@ export function SavedPlaces({ locations, onSelectLocation, onDelete, userUid }: 
     <div className={styles.container}>
       <div className={styles.heading}>My Saved Places</div>
       {deleteError && <div className={styles.error} role="alert">{deleteError}</div>}
+      {selectError && <div className={styles.error} role="alert">{selectError}</div>}
       <div className={styles.list}>
         {locations.map(loc => (
           <div key={loc.id} className={styles.row}>

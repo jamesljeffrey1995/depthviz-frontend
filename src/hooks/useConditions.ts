@@ -28,7 +28,14 @@ export function useConditions() {
       setState({ status: 'success', forecast, error: '', isRevalidating: false })
     } catch (e) {
       if (id !== searchIdRef.current) return
-      setState(s => ({ ...s, status: 'error', error: e instanceof Error ? e.message : 'Failed to fetch', isRevalidating: false }))
+      const msg = e instanceof Error ? e.message : 'Failed to fetch'
+      // If we have a stale forecast, keep showing it (stale-while-revalidate)
+      setState(s => ({
+        ...s,
+        status: s.forecast ? 'success' : 'error',
+        error: msg,
+        isRevalidating: false,
+      }))
     }
   }, [])
 
@@ -42,7 +49,13 @@ export function useConditions() {
       setState({ status: 'success', forecast, error: '', isRevalidating: false })
     } catch (e) {
       if (id !== searchIdRef.current) return
-      setState(s => ({ ...s, status: 'error', error: e instanceof Error ? e.message : 'Failed to fetch', isRevalidating: false }))
+      const msg = e instanceof Error ? e.message : 'Failed to fetch'
+      setState(s => ({
+        ...s,
+        status: s.forecast ? 'success' : 'error',
+        error: msg,
+        isRevalidating: false,
+      }))
     }
   }, [])
 
