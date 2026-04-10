@@ -36,6 +36,7 @@ export interface RiverDischarge {
   risk_level: string
   penalty: number
   note: string | null
+  distance_km: number | null
 }
 
 export interface WaterQuality {
@@ -483,4 +484,30 @@ export interface FeedItem {
   weight_kg?: number
   quantity?: number
   method?: string
+}
+
+// Feature Importance
+export interface FeatureImportance {
+  name: string
+  label: string
+  correlation: number
+  abs_correlation: number
+  variance_explained: number
+  mean: number
+  std: number
+  n: number
+}
+
+export interface FeatureImportanceResponse {
+  features: FeatureImportance[]
+  summary: {
+    total_reports: number
+    mean_visibility: number
+    std_visibility: number
+    calibration_active: boolean
+    swell_multiplier: number
+    wind_multiplier: number
+    rain_multiplier: number
+  }
+  n: number
 }

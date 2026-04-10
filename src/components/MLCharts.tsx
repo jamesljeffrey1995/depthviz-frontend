@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { getMLPredictions } from '../lib/api'
-import type { MLPredictionPoint, MLTrainingLogEntry } from '../types'
+import { getMLPredictions, getFeatureImportance } from '../lib/api'
+import type { MLPredictionPoint, MLTrainingLogEntry, FeatureImportance } from '../types'
 import styles from './MLCharts.module.css'
 
 // ── Shared constants ─────────────────────────────────────────────────────────
@@ -259,6 +259,88 @@ function MetricsTimeline({ trainingLog }: MetricsTimelineProps) {
   )
 }
 
+// ── Feature Importance Horizontal Bar Chart ─────────────────────────────────
+
+interface FeatureImportanceChartProps {
+  features: FeatureImportance[]
+}
+
+function FeatureImportanceChart({ features }: FeatureImportanceChartProps) {
+  if (features.length === 0) return <div className={styles.empty}>No feature importance data</div>
+
+  const barH = 22
+  const gap = 4
+  const labelW = 160
+  const valueW = 60
+  const chartH = features.length * (barH + gap) + PAD.top + PAD.bottom
+  const barArea = W - labelW - valueW - PAD.right
+
+  const maxCorr = Math.max(...features.map(f => f.abs_correlation), 0.1)
+
+  return (
+    <div className={styles.chartCard}>
+      <div className={styles.chartTitle}>Feature Importance (Correlation with Visibility)</div>
+      <div className={styles.chartSubtitle}>
+        Absolute Pearson correlation — higher bars mean stronger relationship with actual visibility
+      </div>
+      <div className={styles.chartWrapper}>
+        <svg viewBox={`0 0 ${W} ${chartH}`} className={styles.chart}>
+          {features.map((f, i) => {
+            const y = PAD.top + i * (barH + gap)
+            const barW = (f.abs_correlation / maxCorr) * barArea
+            const isNeg = f.correlation < 0
+            const color = isNeg ? 'rgba(192,57,43,0.7)' : 'rgba(15,179,122,0.7)'
+            return (
+              <g key={f.name}>
+                <text
+                  x={labelW - 6}
+                  y={y + barH / 2 + 3}
+                  textAnchor="end"
+                  fill="rgba(139,184,204,0.7)"
+                  fontSize="9"
+                  fontFamily="monospace"
+                >
+                  {f.label}
+                </text>
+                <rect
+                  x={labelW}
+                  y={y + 2}
+                  width={Math.max(2, barW)}
+                  height={barH - 4}
+                  fill={color}
+                  rx="2"
+                >
+                  <title>
+                    {f.label}: r={f.correlation.toFixed(3)}, R²={f.variance_explained.toFixed(3)}, mean={f.mean}, std={f.std}
+                  </title>
+                </rect>
+                <text
+                  x={labelW + barW + 6}
+                  y={y + barH / 2 + 3}
+                  textAnchor="start"
+                  fill={color}
+                  fontSize="9"
+                  fontFamily="monospace"
+                >
+                  r={f.correlation > 0 ? '+' : ''}{f.correlation.toFixed(3)}
+                </text>
+              </g>
+            )
+          })}
+        </svg>
+      </div>
+      <div className={styles.legend}>
+        <span className={styles.legendItem}>
+          <span className={styles.legendDot} style={{ background: 'rgba(15,179,122,0.8)' }} /> Positive (increases viz)
+        </span>
+        <span className={styles.legendItem}>
+          <span className={styles.legendDot} style={{ background: 'rgba(192,57,43,0.8)' }} /> Negative (reduces viz)
+        </span>
+      </div>
+    </div>
+  )
+}
+
 // ── Exported Combined Component ──────────────────────────────────────────────
 
 interface MLChartsProps {
@@ -267,13 +349,14 @@ interface MLChartsProps {
 
 export function MLCharts({ trainingLog }: MLChartsProps) {
   const [predictions, setPredictions] = useState<MLPredictionPoint[]>([])
+  const [features, setFeatures] = useState<FeatureImportance[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    getMLPredictions()
-      .then(data => setPredictions(data.points))
-      .catch(() => {})
-      .finally(() => setLoading(false))
+    Promise.all([
+      getMLPredictions().then(data => setPredictions(data.points)).catch(() => {}),
+      getFeatureImportance().then(data => setFeatures(data.features)).catch(() => {}),
+    ]).finally(() => setLoading(false))
   }, [])
 
   if (loading) return <div className={styles.loading}>Loading chart data...</div>
@@ -282,6 +365,7 @@ export function MLCharts({ trainingLog }: MLChartsProps) {
     <div className={styles.chartsContainer}>
       <ScatterPlot points={predictions} />
       <ErrorHistogram points={predictions} />
+      <FeatureImportanceChart features={features} />
       <MetricsTimeline trainingLog={trainingLog} />
     </div>
   )

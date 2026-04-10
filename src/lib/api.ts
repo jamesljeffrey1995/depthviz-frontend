@@ -346,6 +346,10 @@ export async function getMLPredictions(): Promise<import('../types').MLPredictio
   return apiFetch('/admin/ml/predictions')
 }
 
+export async function getFeatureImportance(): Promise<import('../types').FeatureImportanceResponse> {
+  return apiFetch('/admin/ml/feature-importance')
+}
+
 // ML Weights (public, cached)
 export interface ModelWeights {
   swell_multiplier: number
