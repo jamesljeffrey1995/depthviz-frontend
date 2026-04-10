@@ -272,7 +272,7 @@ function FeatureImportanceChart({ features }: FeatureImportanceChartProps) {
   const gap = 4
   const labelW = 160
   const valueW = 60
-  const chartH = features.length * (barH + gap) + PAD.top + PAD.bottom
+  const chartH = features.length * barH + (features.length - 1) * gap + PAD.top + PAD.bottom
   const barArea = W - labelW - valueW - PAD.right
 
   const maxCorr = Math.max(...features.map(f => f.abs_correlation), 0.1)
