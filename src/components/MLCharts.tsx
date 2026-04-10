@@ -353,10 +353,26 @@ export function MLCharts({ trainingLog }: MLChartsProps) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let cancelled = false
+
     Promise.all([
-      getMLPredictions().then(data => setPredictions(data.points)).catch(() => {}),
-      getFeatureImportance().then(data => setFeatures(data.features)).catch(() => {}),
-    ]).finally(() => setLoading(false))
+      getMLPredictions()
+        .then(data => {
+          if (!cancelled) setPredictions(data.points)
+        })
+        .catch(() => {}),
+      getFeatureImportance()
+        .then(data => {
+          if (!cancelled) setFeatures(data.features)
+        })
+        .catch(() => {}),
+    ]).finally(() => {
+      if (!cancelled) setLoading(false)
+    })
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   if (loading) return <div className={styles.loading}>Loading chart data...</div>
