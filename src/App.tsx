@@ -186,11 +186,11 @@ export default function App() {
           AI-calibrated 7-day forecasts · swell, current &amp; ocean data · community-verified
         </p>
         <button
-          className={styles.authBtn}
+          className={user ? styles.authBtnAvatar : styles.authBtn}
           onClick={() => { if (user) navigate('/profile'); else setShowAuth(true) }}
           aria-label={user ? `View profile for ${user.email?.split('@')[0] ?? 'user'}` : 'Sign in to your account'}
         >
-          {user ? (user.email?.split('@')[0] ?? 'Profile') : 'Sign in'}
+          {user ? (user.email ?? 'U')[0].toUpperCase() : 'Sign in'}
         </button>
       </header>
 
