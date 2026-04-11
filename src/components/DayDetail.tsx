@@ -329,6 +329,9 @@ export function DayDetail({ day, locationName, reportCount }: Props) {
                 {day.river_discharge.discharge_ratio != null && (
                   <span>Ratio: {day.river_discharge.discharge_ratio.toFixed(2)}×</span>
                 )}
+                {day.river_discharge.distance_km != null && (
+                  <span>Distance: {day.river_discharge.distance_km.toFixed(1)} km</span>
+                )}
               </div>
               <div className={styles.waterQualityMeta}>
                 <span style={{ color: getRiskColor(day.river_discharge.risk_level) }}>

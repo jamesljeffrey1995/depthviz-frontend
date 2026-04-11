@@ -322,6 +322,9 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
                     <div>Rain: <strong style={{ color: Math.abs(mlStatus.calibration.rain_multiplier - 1.0) > 0.2 ? 'var(--danger)' : 'var(--text-bright)' }}>
                       {mlStatus.calibration.rain_multiplier.toFixed(3)}
                     </strong></div>
+                    <div>Global AI offset: <strong style={{ color: Math.abs(mlStatus.calibration.global_bias_offset) > 0.5 ? 'var(--danger)' : 'var(--text-bright)' }}>
+                      {mlStatus.calibration.global_bias_offset > 0 ? '+' : ''}{mlStatus.calibration.global_bias_offset.toFixed(3)}m
+                    </strong></div>
                     <div>Training samples: <strong>{mlStatus.calibration.sample_count}</strong></div>
                     {mlStatus.calibration.updated_at && (
                       <div style={{ opacity: 0.5 }}>Last trained: {new Date(mlStatus.calibration.updated_at).toLocaleString()}</div>

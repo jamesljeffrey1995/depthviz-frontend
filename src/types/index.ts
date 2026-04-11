@@ -36,6 +36,7 @@ export interface RiverDischarge {
   risk_level: string
   penalty: number
   note: string | null
+  distance_km: number | null
 }
 
 export interface WaterQuality {
@@ -90,6 +91,7 @@ export interface ForecastResponse {
   lon: number
   days: DayForecast[]
   bias_offset: number | null
+  global_bias_offset: number | null
   report_count: number
   model_confidence: 'none' | 'low' | 'medium' | 'high'
   calibration_active: boolean
@@ -338,6 +340,7 @@ export interface MLCalibration {
   swell_multiplier: number
   wind_multiplier: number
   rain_multiplier: number
+  global_bias_offset: number
   sample_count: number
   mae: number | null
   rmse: number | null
@@ -403,6 +406,7 @@ export interface MLRetrainResult {
     swell_multiplier: number | null
     wind_multiplier: number | null
     rain_multiplier: number | null
+    global_bias_offset: number
     sample_count: number
   }
   locations_updated: number
@@ -483,4 +487,32 @@ export interface FeedItem {
   weight_kg?: number
   quantity?: number
   method?: string
+}
+
+// Feature Importance
+export interface FeatureImportance {
+  name: string
+  label: string
+  correlation: number
+  abs_correlation: number
+  variance_explained: number
+  mean: number
+  std: number
+  n: number
+}
+
+export interface FeatureImportanceResponse {
+  features: FeatureImportance[]
+  summary: {
+    total_reports: number
+    mean_visibility: number
+    std_visibility: number
+    calibration_active: boolean
+    swell_multiplier: number
+    wind_multiplier: number
+    rain_multiplier: number
+    sample_count: number
+    updated_at: string | null
+  }
+  n: number
 }

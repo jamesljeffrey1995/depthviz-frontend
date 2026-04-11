@@ -349,15 +349,18 @@ export default function App() {
             )}
             {status === 'success' && forecast && (
               <>
-                {(forecast.bias_offset !== null || forecast.calibration_active) && (
+                {(forecast.bias_offset !== null || forecast.global_bias_offset !== null || forecast.calibration_active) && (
                   <div className={styles.biasNote}>
                     AI correction active
                     {forecast.model_confidence !== 'none' && (
                       <> &middot; confidence: {forecast.model_confidence}</>
                     )}
                     {' '}&middot; {forecast.report_count} community reports
+                    {forecast.global_bias_offset !== null && (
+                      <> &middot; global {forecast.global_bias_offset > 0 ? '+' : ''}{forecast.global_bias_offset.toFixed(1)}m</>
+                    )}
                     {forecast.bias_offset !== null && (
-                      <> &middot; offset {forecast.bias_offset > 0 ? '+' : ''}{forecast.bias_offset?.toFixed(1)}m</>
+                      <> &middot; local {forecast.bias_offset > 0 ? '+' : ''}{forecast.bias_offset?.toFixed(1)}m</>
                     )}
                   </div>
                 )}
