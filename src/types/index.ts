@@ -76,6 +76,7 @@ export interface DayForecast {
   air_temp: number
   sea_temp: number | null
   humidity: number
+  cloud_cover: number | null
   algae: AlgaeRisk
   factors: VisibilityFactor[]
   nutrient_factor: number | null
