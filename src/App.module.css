@@ -145,6 +145,12 @@
   opacity: 0.8;
 }
 
+.copyright {
+  margin-top: 10px;
+  font-size: 10px;
+  opacity: 0.5;
+}
+
 .footerLinks {
   display: flex;
   justify-content: center;
@@ -191,7 +197,7 @@
   display: inline-block;
   margin-top: 10px;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--accent);
@@ -283,7 +289,7 @@
   border-radius: var(--radius-sm);
   color: var(--accent);
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   /* Minimum 44px touch target */
@@ -384,7 +390,7 @@
 
   .authBtn {
     max-width: 110px;
-    font-size: 8px;
+    font-size: 10px;
     padding: 0 8px;
     top: 20px;
   }

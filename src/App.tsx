@@ -541,6 +541,9 @@ export default function App() {
         >
           Buy me a coffee
         </a>
+        <div className={styles.copyright}>
+          &copy; {new Date().getFullYear()} DepthViz. All rights reserved.
+        </div>
       </footer>
 
       <CookieBanner onNavigate={(p) => navigate(`/legal/${p}`)} />

@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Block direct access to Vite internal routes (dev only, harmless in prod)
+Disallow: /@vite/
+Disallow: /@fs/
+
+Sitemap: https://depthviz.com/sitemap.xml
