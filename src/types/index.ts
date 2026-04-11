@@ -91,6 +91,7 @@ export interface ForecastResponse {
   lon: number
   days: DayForecast[]
   bias_offset: number | null
+  global_bias_offset: number | null
   report_count: number
   model_confidence: 'none' | 'low' | 'medium' | 'high'
   calibration_active: boolean
@@ -339,6 +340,7 @@ export interface MLCalibration {
   swell_multiplier: number
   wind_multiplier: number
   rain_multiplier: number
+  global_bias_offset: number
   sample_count: number
   mae: number | null
   rmse: number | null
@@ -404,6 +406,7 @@ export interface MLRetrainResult {
     swell_multiplier: number | null
     wind_multiplier: number | null
     rain_multiplier: number | null
+    global_bias_offset: number
     sample_count: number
   }
   locations_updated: number
@@ -508,6 +511,8 @@ export interface FeatureImportanceResponse {
     swell_multiplier: number
     wind_multiplier: number
     rain_multiplier: number
+    sample_count: number
+    updated_at: string | null
   }
   n: number
 }
