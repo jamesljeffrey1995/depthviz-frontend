@@ -3,12 +3,15 @@
   z-index: 1;
   max-width: 680px;
   margin: 0 auto;
-  padding: 40px 20px 100px;
+  padding: var(--space-xl) var(--space-md) 100px;
 }
 
+/* ── Header ── */
 .header {
   text-align: center;
-  margin-bottom: 48px;
+  margin-bottom: var(--space-xl);
+  /* Provide positioning context for absolute authBtn */
+  position: relative;
 }
 
 .logo {
@@ -30,18 +33,30 @@
   letter-spacing: 0.25em;
   text-transform: uppercase;
   color: var(--text);
-  margin-top: 8px;
+  margin-top: var(--space-sm);
   opacity: 0.85;
 }
 
+/* Value proposition — trust signal under tagline */
+.valueProp {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text);
+  opacity: 0.5;
+  margin-top: var(--space-xs);
+  line-height: 1.6;
+}
+
+/* ── Error ── */
 .error {
   font-size: 11px;
   color: var(--danger);
   letter-spacing: 0.1em;
-  margin-bottom: 16px;
+  margin-bottom: var(--space-md);
 }
 
-/* Loading */
+/* ── Loading ── */
 .loading {
   text-align: center;
   padding: 48px;
@@ -90,15 +105,15 @@
   50%       { opacity: 0.7; }
 }
 
-/* Empty */
+/* ── Empty state ── */
 .empty {
   text-align: center;
-  padding: 48px 24px;
+  padding: 48px var(--space-lg);
 }
 
 .emptyIcon {
   font-size: 48px;
-  margin-bottom: 16px;
+  margin-bottom: var(--space-md);
   opacity: 0.3;
 }
 
@@ -110,16 +125,24 @@
   line-height: 2;
 }
 
-/* Footer */
+/* ── Footer ── */
 .footer {
   text-align: center;
   font-size: 10px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   opacity: 0.6;
-  margin-top: 40px;
+  margin-top: var(--space-xl);
   line-height: 2;
   padding-bottom: 20px;
+}
+
+.footerAttribution {
+  margin-bottom: 2px;
+}
+
+.footerDisclaimer {
+  opacity: 0.8;
 }
 
 .footerLinks {
@@ -127,7 +150,7 @@
   justify-content: center;
   gap: 4px;
   flex-wrap: wrap;
-  margin-top: 8px;
+  margin-top: var(--space-sm);
 }
 
 .footerLink {
@@ -140,12 +163,21 @@
   text-transform: uppercase;
   cursor: pointer;
   padding: 4px 6px;
-  transition: color 0.15s;
-  min-height: 32px;
+  /* Ensure minimum 44px touch target height via line-height */
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  transition: color var(--transition-base);
 }
 
 .footerLink:hover {
   color: var(--accent);
+}
+
+.footerLink:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }
 
 .footerLink + .footerLink::before {
@@ -167,7 +199,8 @@
   padding: 5px 12px;
   border: 1px solid rgba(0, 201, 255, 0.2);
   background: rgba(0, 201, 255, 0.06);
-  transition: all 0.15s;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-base);
 }
 
 .bmcLink:hover {
@@ -175,16 +208,23 @@
   border-color: rgba(0, 201, 255, 0.4);
 }
 
+.bmcLink:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── Loading bar ── */
 .loadingBar {
   font-size: 10px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--accent);
   opacity: 0.7;
-  margin-bottom: 8px;
+  margin-bottom: var(--space-sm);
   animation: pulse 1.5s ease-in-out infinite;
 }
 
+/* ── Forecast section sub-nav ── */
 .nav {
   display: flex;
   flex-wrap: wrap;
@@ -200,13 +240,23 @@
   font-size: 10px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  padding: 8px 16px;
+  /* WCAG 2.5.5 — minimum 44×44 px touch target */
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--transition-base);
 }
 
-.navBtn:hover { border-color: rgba(0, 201, 255, 0.3); color: var(--text-bright); }
-.navBtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.navBtn:hover {
+  border-color: rgba(0, 201, 255, 0.3);
+  color: var(--text-bright);
+}
+
+.navBtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 
 .navActive {
   background: rgba(0, 201, 255, 0.1);
@@ -223,24 +273,45 @@
   margin-bottom: 12px;
 }
 
+/* ── Auth button ── */
 .authBtn {
-  position: absolute; top: 28px; right: 16px;
-  background: rgba(0,201,255,0.08); border: 1px solid rgba(0,201,255,0.2);
-  color: var(--accent); font-family: var(--font-mono); font-size: 9px;
-  letter-spacing: 0.2em; text-transform: uppercase; padding: 7px 12px; cursor: pointer;
-  transition: all 0.15s;
+  position: absolute;
+  top: 28px;
+  right: 0;
+  background: rgba(0, 201, 255, 0.08);
+  border: 1px solid rgba(0, 201, 255, 0.2);
+  border-radius: var(--radius-sm);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  /* Minimum 44px touch target */
+  min-height: 44px;
+  padding: 0 12px;
+  cursor: pointer;
+  transition: all var(--transition-base);
   max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.authBtn:hover { background: rgba(0,201,255,0.16); }
-.authBtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.lockIcon { font-size: 9px; opacity: .6; }
+.authBtn:hover {
+  background: rgba(0, 201, 255, 0.16);
+}
+
+.authBtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.lockIcon {
+  font-size: 9px;
+  opacity: 0.6;
+}
 
 /* ── Bottom Navigation Bar ── */
-
 .bottomNav {
   position: fixed;
   bottom: 0;
@@ -253,7 +324,7 @@
   border-top: 1px solid rgba(0, 201, 255, 0.12);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  padding: 6px 0 env(safe-area-inset-bottom, 6px);
+  padding: 0 0 env(safe-area-inset-bottom, 0);
   z-index: 1100;
 }
 
@@ -261,6 +332,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 3px;
   background: none;
   border: none;
@@ -269,14 +341,22 @@
   font-size: 9px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  padding: 6px 12px;
+  /* WCAG 2.5.5 — 44px minimum touch target */
+  min-height: 56px;
+  padding: 0 12px;
   cursor: pointer;
   opacity: 0.5;
-  transition: all 0.15s;
+  transition: opacity var(--transition-base), color var(--transition-base);
+  flex: 1;
 }
 
 .bottomNavBtn:hover {
   opacity: 0.8;
+}
+
+.bottomNavBtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
 .bottomNavActive {
@@ -287,12 +367,17 @@
 .bottomNavIcon {
   width: 22px;
   height: 22px;
+  flex-shrink: 0;
 }
 
-/* Mobile adjustments */
+/* ── Responsive ── */
 @media (max-width: 480px) {
+  .container {
+    padding-top: var(--space-lg);
+  }
+
   .navBtn {
-    padding: 8px 10px;
+    padding: 0 10px;
     font-size: 9px;
     letter-spacing: 0.12em;
   }
@@ -300,13 +385,12 @@
   .authBtn {
     max-width: 110px;
     font-size: 8px;
-    padding: 6px 8px;
+    padding: 0 8px;
     top: 20px;
-    right: 10px;
   }
 
   .bottomNavBtn {
-    padding: 6px 8px;
+    padding: 0 6px;
     font-size: 8px;
   }
 
