@@ -282,7 +282,8 @@
 /* ── Auth button ── */
 .authBtn {
   position: absolute;
-  top: 28px;
+  /* Center vertically with the logo (line-height: 0.9 of clamp font-size, minus button height / 2) */
+  top: calc((clamp(52px, 12vw, 88px) * 0.9 - 44px) / 2);
   right: 0;
   background: rgba(0, 201, 255, 0.08);
   border: 1px solid rgba(0, 201, 255, 0.2);
@@ -315,7 +316,8 @@
 /* ── Auth avatar (logged-in state) ── */
 .authBtnAvatar {
   position: absolute;
-  top: 28px;
+  /* Center vertically with the logo (line-height: 0.9 of clamp font-size, minus avatar height / 2) */
+  top: calc((clamp(52px, 12vw, 88px) * 0.9 - 44px) / 2);
   right: 0;
   width: 44px;
   height: 44px;
