@@ -101,7 +101,25 @@ export async function extractFrames(
 ): Promise<ImageData[]> {
   const maxFrames = opts.maxFrames ?? 60
 
-  const url = URL.createObjectURL(file)
+  // On iOS, File objects from the picker are backed by the system photo-library
+  // file handle. createObjectURL(File) produces a blob URL that the video element
+  // cannot access (code 4: SRC_NOT_SUPPORTED). Reading the data into an
+  // ArrayBuffer first copies it into normal memory, making the blob URL reliable.
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+  let url: string
+  if (isIOS) {
+    emit('info', 'iOS detected — reading file into memory before creating blob URL')
+    try {
+      const buffer = await file.arrayBuffer()
+      const blob = new Blob([buffer], { type: file.type || 'video/quicktime' })
+      url = URL.createObjectURL(blob)
+    } catch (e) {
+      emit('warn', `arrayBuffer() failed (${e}), falling back to direct createObjectURL`)
+      url = URL.createObjectURL(file)
+    }
+  } else {
+    url = URL.createObjectURL(file)
+  }
   const video = document.createElement('video')
   video.muted = true
   video.playsInline = true
