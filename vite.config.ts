@@ -24,6 +24,9 @@ const securityHeaders: Record<string, string> = {
 
 export default defineConfig({
   plugins: [react()],
+  worker: {
+    format: 'es',
+  },
   build: {
     // opencv-js is ~10 MB on its own; keep the warning from being alarmist.
     chunkSizeWarningLimit: 12_000,
