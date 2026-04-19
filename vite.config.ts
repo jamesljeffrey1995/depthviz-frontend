@@ -32,7 +32,8 @@ export default defineConfig({
         manualChunks: {
           'vendor-leaflet': ['leaflet', 'react-leaflet'],
           'vendor-supabase': ['@supabase/supabase-js'],
-          'vendor-opencv': ['@techstark/opencv-js'],
+          // opencv is imported only inside src/workers/opencv.worker.ts;
+          // Vite bundles it into the worker chunk automatically.
         },
       },
     },
