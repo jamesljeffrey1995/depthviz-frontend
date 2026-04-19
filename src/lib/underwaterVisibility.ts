@@ -52,7 +52,22 @@ export interface AnalyseOptions {
 
 // ── OpenCV loader (singleton) ────────────────────────────────────────────────
 
+const OPENCV_URL = 'https://docs.opencv.org/4.8.0/opencv.js'
+const OPENCV_TIMEOUT_MS = 90_000
+
 let cvPromise: Promise<void> | null = null
+
+function injectOpenCVScript() {
+  if (typeof document === 'undefined') return
+  // Don't inject if a script for this URL already exists — either the
+  // static tag in index.html or a previous injection.
+  if (document.querySelector(`script[src="${OPENCV_URL}"]`)) return
+  const s = document.createElement('script')
+  s.src = OPENCV_URL
+  s.async = true
+  s.setAttribute('data-opencv-loader', 'true')
+  document.head.appendChild(s)
+}
 
 export function loadOpenCV(): Promise<void> {
   if (cvPromise) return cvPromise
@@ -64,34 +79,44 @@ export function loadOpenCV(): Promise<void> {
       return
     }
 
-    // OpenCV.js signals readiness via Module.onRuntimeInitialized
-    const existingOnInit = window.Module?.onRuntimeInitialized
-    const timeout = setTimeout(() => reject(new Error('OpenCV.js load timed out after 30s')), 30_000)
+    // Ensure the script tag is in the DOM (in case index.html tag was removed
+    // or loading needs to be retried after a failure).
+    injectOpenCVScript()
+
+    const timeout = setTimeout(() => {
+      clearInterval(poll)
+      // Allow the user to retry by clearing the cached rejected promise.
+      cvPromise = null
+      reject(new Error(
+        `OpenCV.js load timed out after ${OPENCV_TIMEOUT_MS / 1000}s — check your connection and retry`
+      ))
+    }, OPENCV_TIMEOUT_MS)
 
     const onReady = () => {
+      clearInterval(poll)
       clearTimeout(timeout)
-      if (existingOnInit) existingOnInit()
       resolve()
     }
 
-    // If cv exists but WASM not yet ready, hook into Module
+    // If cv exists but WASM not yet ready, hook into it
     if (window.cv) {
       window.cv.onRuntimeInitialized = onReady
-      return
     }
 
-    // Polling fallback — the async script may not have loaded yet
+    // Polling fallback — the async script may not have loaded yet, and
+    // covers the case where onRuntimeInitialized fires before we can attach.
     const poll = setInterval(() => {
       if (window.cv && window.cv.Mat) {
-        clearInterval(poll)
-        clearTimeout(timeout)
-        resolve()
+        onReady()
       } else if (window.cv && !window.cv.Mat) {
-        // cv object exists but WASM not ready
-        clearInterval(poll)
         window.cv.onRuntimeInitialized = onReady
       }
-    }, 100)
+    }, 200)
+  })
+
+  // If the promise rejects, clear the cache so a retry can re-attempt.
+  cvPromise.catch(() => {
+    cvPromise = null
   })
 
   return cvPromise
