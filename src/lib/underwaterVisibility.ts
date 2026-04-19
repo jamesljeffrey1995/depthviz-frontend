@@ -56,7 +56,7 @@ export interface AnalyseOptions {
 // turns into its own chunk). This avoids cross-origin CDNs entirely, which
 // means no CSP blocks, no CORS surprises, no CDN outages. The UMD bundle
 // embeds its WASM as base64 so there's no separate .wasm fetch either.
-const OPENCV_TIMEOUT_MS = 300_000
+const OPENCV_TIMEOUT_MS = 60_000
 
 let cvPromise: Promise<void> | null = null
 
@@ -218,19 +218,26 @@ export function loadOpenCV(): Promise<void> {
     controller.abort()
   }, OPENCV_TIMEOUT_MS)
 
+  // Rejects as soon as the AbortController fires — lets us race import().
+  const whenAborted = new Promise<never>((_, reject) => {
+    if (controller.signal.aborted) { reject(new Error('aborted')); return }
+    controller.signal.addEventListener('abort', () => reject(new Error('aborted')), { once: true })
+  })
+
   cvPromise = (async () => {
     log('import() started')
+    // Yield to the event loop so React can flush pending state updates
+    // (log button, progress bar) before WASM compilation blocks the thread.
+    await new Promise(r => setTimeout(r, 0))
     let mod: any
     try {
-      mod = await import('@techstark/opencv-js')
+      mod = await Promise.race([import('@techstark/opencv-js'), whenAborted])
     } catch (e) {
       warn('import() threw:', e)
       throw e
     }
     const cv: any = (mod as any).default ?? mod
     log('import() resolved', describeCv(cv))
-    // Expose globally so the rest of the code (which references window.cv)
-    // keeps working unchanged.
     window.cv = cv
     await waitForMat(cv, controller.signal)
   })()
