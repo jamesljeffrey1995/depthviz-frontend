@@ -58,3 +58,28 @@ See `src/lib/visibility.ts` for full model details.
 ## Deployment
 
 Works as a static site — just run `npm run build` and deploy the `dist/` folder to Netlify, Vercel, or any static host.
+
+### Cloudflare Pages / Netlify
+
+The `public/_headers` file is picked up automatically and sets all required security headers, including the Content-Security-Policy needed by OpenCV.js.
+
+### Self-hosted (nginx, Apache, Caddy, …)
+
+`public/_headers` is only read by Cloudflare Pages and Netlify.  When self-hosting you **must** configure your web server to send the correct `Content-Security-Policy` header.  OpenCV.js (Emscripten glue) calls `new Function(…)` at runtime, so `'unsafe-eval'` and `'wasm-unsafe-eval'` **must** appear in `script-src`.  Without them you will see an `EvalError` and the image-analysis feature will fail silently.
+
+An annotated **nginx** example is provided at [`nginx.conf.example`](./nginx.conf.example).  The essential header is:
+
+```
+Content-Security-Policy:
+  default-src 'self';
+  script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval';
+  style-src 'self' 'unsafe-inline';
+  img-src 'self' data: blob: https://*.tile.openstreetmap.org;
+  connect-src 'self' https://*.supabase.co https://geocoding-api.open-meteo.com;
+  font-src 'self';
+  worker-src 'self' blob:;
+  frame-ancestors 'none';
+```
+
+> **Why the `<meta>` tag in `index.html` is not enough**  
+> Browsers give HTTP response headers higher precedence than `<meta http-equiv="Content-Security-Policy">`.  If your server emits *any* CSP header — even a restrictive default — the `<meta>` tag is ignored.  You must set the full policy at the server level.
