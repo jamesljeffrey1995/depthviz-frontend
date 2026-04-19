@@ -59,7 +59,9 @@ let cvPromise: Promise<void> | null = null
 
 function injectOpenCVScript() {
   if (typeof document === 'undefined') return
-  if (document.querySelector('script[data-opencv-loader]')) return
+  // Don't inject if a script for this URL already exists — either the
+  // static tag in index.html or a previous injection.
+  if (document.querySelector(`script[src="${OPENCV_URL}"]`)) return
   const s = document.createElement('script')
   s.src = OPENCV_URL
   s.async = true
