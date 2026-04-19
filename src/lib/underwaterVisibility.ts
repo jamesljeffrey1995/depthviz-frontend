@@ -84,10 +84,28 @@ const startedAt = () => {
   return anyWin.__cvLoaderStart as number
 }
 const elapsed = () => `${((performance.now() - startedAt()) / 1000).toFixed(1)}s`
+const formatArg = (a: unknown): string => {
+  if (typeof a === 'string') return a
+  if (a instanceof Error) {
+    // JSON.stringify drops Error properties, which is why failures were
+    // previously logged as "{}". Extract the useful bits explicitly.
+    const parts = [a.name || 'Error', a.message || '(no message)']
+    const anyErr = a as any
+    if (anyErr.code) parts.push(`code=${anyErr.code}`)
+    if (anyErr.cause) parts.push(`cause=${formatArg(anyErr.cause)}`)
+    if (a.stack) {
+      const firstFrame = a.stack.split('\n').slice(0, 3).join(' | ')
+      parts.push(`stack=${firstFrame}`)
+    }
+    return parts.join(': ')
+  }
+  if (a && typeof a === 'object') {
+    try { return JSON.stringify(a) } catch { return String(a) }
+  }
+  return String(a)
+}
 const emit = (level: CvLogLevel, args: unknown[]) => {
-  const message = args
-    .map((a) => (typeof a === 'string' ? a : (() => { try { return JSON.stringify(a) } catch { return String(a) } })()))
-    .join(' ')
+  const message = args.map(formatArg).join(' ')
   const entry: CvLogEntry = { t: performance.now() - startedAt(), level, message }
   cvLogBuffer.push(entry)
   if (cvLogBuffer.length > 200) cvLogBuffer.shift()
@@ -178,6 +196,22 @@ export function loadOpenCV(): Promise<void> {
   log('starting load — dynamic-importing bundled @techstark/opencv-js; timeout =', OPENCV_TIMEOUT_MS / 1000, 's')
   log('userAgent:', navigator.userAgent)
 
+  // Diagnostic: check WebAssembly availability up front. A strict CSP
+  // (script-src without 'wasm-unsafe-eval') will cause WebAssembly.Module
+  // construction to throw, even though the import() itself succeeds.
+  try {
+    if (typeof WebAssembly === 'undefined') {
+      warn('WebAssembly is undefined on this device')
+    } else {
+      // Minimal valid WASM module: 8-byte header.
+      const probeBytes = new Uint8Array([0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00])
+      new WebAssembly.Module(probeBytes)
+      log('WebAssembly probe: synchronous compile OK')
+    }
+  } catch (e) {
+    warn('WebAssembly probe FAILED — likely CSP blocking wasm-unsafe-eval:', e)
+  }
+
   const controller = new AbortController()
   const timeout = setTimeout(() => {
     warn(`timeout reached after ${OPENCV_TIMEOUT_MS / 1000}s — aborting`)
@@ -186,7 +220,13 @@ export function loadOpenCV(): Promise<void> {
 
   cvPromise = (async () => {
     log('import() started')
-    const mod = await import('@techstark/opencv-js')
+    let mod: any
+    try {
+      mod = await import('@techstark/opencv-js')
+    } catch (e) {
+      warn('import() threw:', e)
+      throw e
+    }
     const cv: any = (mod as any).default ?? mod
     log('import() resolved', describeCv(cv))
     // Expose globally so the rest of the code (which references window.cv)
