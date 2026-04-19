@@ -52,11 +52,16 @@ export interface AnalyseOptions {
 
 // ── OpenCV loader (singleton) ────────────────────────────────────────────────
 
-// Primary: jsDelivr (Cloudflare+Fastly backed production CDN).
-// Fallback: official docs server (unreliable on mobile but kept as last resort).
+// Primary: the official OpenCV docs build. This UMD bundle reliably assigns
+// `window.cv` and fires `Module.onRuntimeInitialized`, which is what the
+// poller below waits for.
+//
+// Fallback: jsDelivr-hosted @techstark/opencv-js — kept as a backup only,
+// since its dist is primarily an ES-module build and does not always expose
+// `window.cv` when loaded via a plain <script> tag.
 const OPENCV_URLS = [
-  'https://cdn.jsdelivr.net/npm/@techstark/opencv-js/dist/opencv.js',
   'https://docs.opencv.org/4.8.0/opencv.js',
+  'https://cdn.jsdelivr.net/npm/@techstark/opencv-js/dist/opencv.js',
 ]
 const OPENCV_TIMEOUT_MS = 90_000
 
