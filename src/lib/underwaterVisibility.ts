@@ -52,15 +52,10 @@ export interface AnalyseOptions {
 
 // ── OpenCV loader (singleton) ────────────────────────────────────────────────
 
-// OpenCV.js is ~10 MB JS + ~9 MB WASM, so a single slow CDN can hang the whole
-// load. We race multiple mirrors in parallel — the first one to initialise
-// `window.cv.Mat` wins and the others are ignored. All mirrors below are known
-// to expose `window.cv` via a plain <script> tag.
-const OPENCV_URLS = [
-  'https://docs.opencv.org/4.8.0/opencv.js',
-  'https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.8.0/dist/opencv.js',
-  'https://unpkg.com/@techstark/opencv-js@4.8.0/dist/opencv.js',
-]
+// We bundle `@techstark/opencv-js` locally (via a dynamic import that Vite
+// turns into its own chunk). This avoids cross-origin CDNs entirely, which
+// means no CSP blocks, no CORS surprises, no CDN outages. The UMD bundle
+// embeds its WASM as base64 so there's no separate .wasm fetch either.
 const OPENCV_TIMEOUT_MS = 300_000
 
 let cvPromise: Promise<void> | null = null
@@ -106,26 +101,6 @@ const emit = (level: CvLogLevel, args: unknown[]) => {
 const log = (...args: unknown[]) => emit('info', args)
 const warn = (...args: unknown[]) => emit('warn', args)
 
-function injectOpenCVScript(src: string): HTMLScriptElement {
-  const existing = document.querySelector<HTMLScriptElement>(`script[src="${src}"]`)
-  if (existing) {
-    log('reusing existing <script> for', src)
-    return existing
-  }
-  log('injecting <script>', src)
-  const s = document.createElement('script')
-  s.src = src
-  s.async = true
-  // Intentionally no crossOrigin: the official opencv.js build does not send
-  // Access-Control-Allow-Origin, and setting crossorigin=anonymous would cause
-  // the browser to block execution.
-  s.setAttribute('data-opencv-loader', 'true')
-  s.addEventListener('load', () => log('✓ <script> loaded:', src))
-  s.addEventListener('error', (e) => warn('✗ <script> error:', src, e))
-  document.head.appendChild(s)
-  return s
-}
-
 function describeCv(cv: any): Record<string, unknown> {
   if (!cv) return { present: false }
   const keys = Object.keys(cv)
@@ -138,62 +113,50 @@ function describeCv(cv: any): Record<string, unknown> {
   }
 }
 
-function waitForCv(signal: AbortSignal): Promise<void> {
+function waitForMat(cv: any, signal: AbortSignal): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    if (window.cv && window.cv.Mat) {
-      log('window.cv.Mat already present — resolving immediately')
+    if (cv && cv.Mat) {
+      log('cv.Mat already initialised on import')
       resolve()
       return
     }
 
-    let cvFirstSeenAt = 0
-    let runtimeHooked = false
     let ticks = 0
-
     const cleanup = () => {
       clearInterval(poll)
       signal.removeEventListener('abort', onAbort)
     }
     const onReady = (via: string) => {
-      log(`✓ window.cv.Mat ready (via ${via})`)
+      log(`✓ cv.Mat ready (via ${via})`)
       cleanup()
       resolve()
     }
     const onAbort = () => {
-      warn('✗ aborted — final state', describeCv(window.cv))
+      warn('✗ aborted — final state', describeCv(cv))
       cleanup()
       reject(new Error('aborted'))
     }
     signal.addEventListener('abort', onAbort)
 
+    // Hook the Emscripten runtime-init callback (chaining any existing handler).
+    const prev = typeof cv.onRuntimeInitialized === 'function' ? cv.onRuntimeInitialized : null
+    cv.onRuntimeInitialized = () => {
+      log('onRuntimeInitialized fired')
+      if (prev) { try { prev() } catch (e) { warn('previous onRuntimeInitialized threw', e) } }
+      onReady('onRuntimeInitialized')
+    }
+    log('hooked onRuntimeInitialized; polling in parallel')
+
+    // Also poll, in case the runtime had already initialised before we hooked.
     const poll = setInterval(() => {
       if (signal.aborted) return
       ticks++
-
-      const cv = window.cv
       if (cv && cv.Mat) {
         onReady('poll')
         return
       }
-      if (cv && cvFirstSeenAt === 0) {
-        cvFirstSeenAt = performance.now()
-        log('window.cv appeared (no Mat yet)', describeCv(cv))
-      }
-      if (cv && !runtimeHooked) {
-        runtimeHooked = true
-        log('hooking onRuntimeInitialized')
-        const prev = typeof cv.onRuntimeInitialized === 'function' ? cv.onRuntimeInitialized : null
-        cv.onRuntimeInitialized = () => {
-          log('onRuntimeInitialized fired')
-          if (prev) {
-            try { prev() } catch (e) { warn('previous onRuntimeInitialized threw', e) }
-          }
-          onReady('onRuntimeInitialized')
-        }
-      }
-      // Heartbeat every 5s so logs show real progress during long loads.
       if (ticks % 25 === 0) {
-        log('still waiting', describeCv(window.cv))
+        log('still waiting for Mat', describeCv(cv))
       }
     }, 200)
   })
@@ -209,10 +172,10 @@ export function loadOpenCV(): Promise<void> {
     return Promise.resolve()
   }
 
-  // Reset start time for this attempt
+  // Reset start time for this attempt.
   // eslint-disable-next-line no-underscore-dangle
   ;(window as any).__cvLoaderStart = performance.now()
-  log('starting load — racing', OPENCV_URLS.length, 'mirrors; timeout =', OPENCV_TIMEOUT_MS / 1000, 's')
+  log('starting load — dynamic-importing bundled @techstark/opencv-js; timeout =', OPENCV_TIMEOUT_MS / 1000, 's')
   log('userAgent:', navigator.userAgent)
 
   const controller = new AbortController()
@@ -221,17 +184,23 @@ export function loadOpenCV(): Promise<void> {
     controller.abort()
   }, OPENCV_TIMEOUT_MS)
 
-  // Inject all script tags up front so each mirror races independently.
-  OPENCV_URLS.forEach(injectOpenCVScript)
-
-  cvPromise = waitForCv(controller.signal)
+  cvPromise = (async () => {
+    log('import() started')
+    const mod = await import('@techstark/opencv-js')
+    const cv: any = (mod as any).default ?? mod
+    log('import() resolved', describeCv(cv))
+    // Expose globally so the rest of the code (which references window.cv)
+    // keeps working unchanged.
+    window.cv = cv
+    await waitForMat(cv, controller.signal)
+  })()
     .then(() => { clearTimeout(timeout) })
     .catch((err) => {
       clearTimeout(timeout)
       cvPromise = null
       warn('load failed:', err)
       throw new Error(
-        `OpenCV.js failed to load after ${OPENCV_TIMEOUT_MS / 1000}s — see console ([OpenCV loader]) for details`
+        `OpenCV.js failed to load after ${OPENCV_TIMEOUT_MS / 1000}s — see logs for details`
       )
     })
 
