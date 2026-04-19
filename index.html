@@ -39,8 +39,11 @@
     <!-- Canonical URL -->
     <link rel="canonical" href="https://depthviz.com/" />
 
-    <!-- Preconnect to primary OpenCV.js CDN (official build, exposes window.cv) -->
+    <!-- OpenCV.js is loaded lazily on demand (see src/lib/underwaterVisibility.ts);
+         preconnect to the CDNs we race so DNS/TLS is warm when the user drops a video. -->
     <link rel="preconnect" href="https://docs.opencv.org" crossorigin />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="preconnect" href="https://unpkg.com" crossorigin />
 
     <!-- Schema.org structured data — WebApplication -->
     <script type="application/ld+json">
@@ -73,7 +76,6 @@
   </head>
   <body>
     <div id="root"></div>
-    <script async src="https://docs.opencv.org/4.8.0/opencv.js"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

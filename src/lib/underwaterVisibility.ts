@@ -52,54 +52,48 @@ export interface AnalyseOptions {
 
 // ── OpenCV loader (singleton) ────────────────────────────────────────────────
 
-// Primary: the official OpenCV docs build. This UMD bundle reliably assigns
-// `window.cv` and fires `Module.onRuntimeInitialized`, which is what the
-// poller below waits for.
-//
-// Fallback: jsDelivr-hosted @techstark/opencv-js — kept as a backup only,
-// since its dist is primarily an ES-module build and does not always expose
-// `window.cv` when loaded via a plain <script> tag.
+// OpenCV.js is ~10 MB JS + ~9 MB WASM, so a single slow CDN can hang the whole
+// load. We race multiple mirrors in parallel — the first one to initialise
+// `window.cv.Mat` wins and the others are ignored. All mirrors below are known
+// to expose `window.cv` via a plain <script> tag.
 const OPENCV_URLS = [
   'https://docs.opencv.org/4.8.0/opencv.js',
-  'https://cdn.jsdelivr.net/npm/@techstark/opencv-js/dist/opencv.js',
+  'https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.8.0/dist/opencv.js',
+  'https://unpkg.com/@techstark/opencv-js@4.8.0/dist/opencv.js',
 ]
-const OPENCV_TIMEOUT_MS = 90_000
+const OPENCV_TIMEOUT_MS = 120_000
 
 let cvPromise: Promise<void> | null = null
 
-function injectOpenCVScript(src: string) {
-  if (typeof document === 'undefined') return
-  if (document.querySelector(`script[src="${src}"]`)) return
+function injectOpenCVScript(src: string): HTMLScriptElement {
+  const existing = document.querySelector<HTMLScriptElement>(`script[src="${src}"]`)
+  if (existing) return existing
   const s = document.createElement('script')
   s.src = src
   s.async = true
+  s.crossOrigin = 'anonymous'
   s.setAttribute('data-opencv-loader', 'true')
   document.head.appendChild(s)
+  return s
 }
 
-function tryLoadFromUrl(src: string, timeoutMs: number): Promise<void> {
+function waitForCv(signal: AbortSignal): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     if (window.cv && window.cv.Mat) { resolve(); return }
 
-    injectOpenCVScript(src)
-
-    const timeout = setTimeout(() => {
+    const cleanup = () => {
       clearInterval(poll)
-      reject(new Error('timeout'))
-    }, timeoutMs)
-
-    const onReady = () => {
-      clearInterval(poll)
-      clearTimeout(timeout)
-      resolve()
+      signal.removeEventListener('abort', onAbort)
     }
-
-    if (window.cv) window.cv.onRuntimeInitialized = onReady
+    const onReady = () => { cleanup(); resolve() }
+    const onAbort = () => { cleanup(); reject(new Error('aborted')) }
+    signal.addEventListener('abort', onAbort)
 
     const poll = setInterval(() => {
+      if (signal.aborted) return
       if (window.cv && window.cv.Mat) {
         onReady()
-      } else if (window.cv && !window.cv.Mat) {
+      } else if (window.cv && typeof window.cv.onRuntimeInitialized !== 'function') {
         window.cv.onRuntimeInitialized = onReady
       }
     }, 200)
@@ -108,28 +102,26 @@ function tryLoadFromUrl(src: string, timeoutMs: number): Promise<void> {
 
 export function loadOpenCV(): Promise<void> {
   if (cvPromise) return cvPromise
-
-  // Already loaded & ready
-  if (typeof window !== 'undefined' && window.cv && window.cv.Mat) {
-    return Promise.resolve()
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return Promise.reject(new Error('OpenCV.js requires a browser environment'))
   }
+  if (window.cv && window.cv.Mat) return Promise.resolve()
 
-  // Try each CDN URL in sequence; the per-URL timeout is split evenly so the
-  // total never exceeds OPENCV_TIMEOUT_MS.
-  const perUrlTimeout = Math.floor(OPENCV_TIMEOUT_MS / OPENCV_URLS.length)
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), OPENCV_TIMEOUT_MS)
 
-  cvPromise = OPENCV_URLS.reduce<Promise<void>>(
-    (chain, url) =>
-      chain.catch(() => tryLoadFromUrl(url, perUrlTimeout)),
-    Promise.reject(new Error('start'))
-  ).catch(() => {
-    cvPromise = null
-    throw new Error(
-      `OpenCV.js load timed out after ${OPENCV_TIMEOUT_MS / 1000}s — check your connection and retry`
-    )
-  })
+  // Inject all script tags up front so each mirror races independently.
+  OPENCV_URLS.forEach(injectOpenCVScript)
 
-  cvPromise.catch(() => { cvPromise = null })
+  cvPromise = waitForCv(controller.signal)
+    .then(() => { clearTimeout(timeout) })
+    .catch(() => {
+      clearTimeout(timeout)
+      cvPromise = null
+      throw new Error(
+        'Video analysis is unavailable on this connection. You can still submit your report.'
+      )
+    })
 
   return cvPromise
 }

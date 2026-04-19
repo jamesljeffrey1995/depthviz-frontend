@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { analyseVideo, loadOpenCV, type VisibilityReport } from '../lib/underwaterVisibility'
+import { useCallback, useRef, useState } from 'react'
+import { analyseVideo, type VisibilityReport } from '../lib/underwaterVisibility'
 import styles from './VisibilityAnalyser.module.css'
 
 interface Props {
@@ -20,13 +20,6 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
   const inputRef = useRef<HTMLInputElement>(null)
 
   const MAX_FILE_SIZE = 500 * 1024 * 1024 // 500 MB
-
-  // Kick off OpenCV.js download as soon as the analyser mounts, so it's
-  // ready by the time the user drops a video. Swallow errors — the real
-  // load call during analysis will surface them to the UI.
-  useEffect(() => {
-    loadOpenCV().catch(() => {})
-  }, [])
 
   const handleFile = useCallback(
     async (file: File) => {
@@ -155,25 +148,35 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
               onChange={onFileChange}
             />
           </div>
-          {error && (
-            <>
-              <p style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '0.75rem', textAlign: 'center' }}>
-                {error}
-              </p>
-              {lastFile && (
-                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.5rem' }}>
-                  <button
-                    type="button"
-                    className={styles.btnSecondary}
-                    style={{ flex: 'none', padding: '0.4rem 1rem' }}
-                    onClick={retry}
-                  >
-                    Retry
-                  </button>
-                </div>
-              )}
-            </>
-          )}
+          {error && (() => {
+            const isUnavailable = error.toLowerCase().includes('unavailable')
+            return (
+              <>
+                <p
+                  style={{
+                    color: isUnavailable ? 'rgba(200, 220, 235, 0.7)' : '#ef4444',
+                    fontSize: '0.8rem',
+                    marginTop: '0.75rem',
+                    textAlign: 'center',
+                  }}
+                >
+                  {error}
+                </p>
+                {lastFile && !isUnavailable && (
+                  <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.5rem' }}>
+                    <button
+                      type="button"
+                      className={styles.btnSecondary}
+                      style={{ flex: 'none', padding: '0.4rem 1rem' }}
+                      onClick={retry}
+                    >
+                      Retry
+                    </button>
+                  </div>
+                )}
+              </>
+            )
+          })()}
         </>
       ) : null}
 
