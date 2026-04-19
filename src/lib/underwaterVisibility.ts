@@ -105,19 +105,38 @@ export async function extractFrames(
   const video = document.createElement('video')
   video.muted = true
   video.playsInline = true
-  video.preload = 'auto'
+  video.setAttribute('playsinline', '')
+  video.setAttribute('webkit-playsinline', '')
+  video.preload = 'metadata'
   // iOS Safari requires the element to be in the DOM to load media.
-  video.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px'
+  video.style.cssText = 'position:fixed;bottom:0;right:0;width:1px;height:1px;opacity:0.01;pointer-events:none'
   document.body.appendChild(video)
 
+  emit('info', `file: ${file.name} type=${file.type || '(empty)'} size=${(file.size / 1e6).toFixed(1)}MB`)
+  emit('info', `canPlayType: mp4=${video.canPlayType('video/mp4')} qt=${video.canPlayType('video/quicktime')} declared=${video.canPlayType(file.type)}`)
+
   await new Promise<void>((resolve, reject) => {
-    video.onloadedmetadata = () => resolve()
-    video.onerror = () => {
-      const e = video.error
-      reject(new Error(`Failed to load video${e ? `: code ${e.code} — ${e.message}` : ''}`))
+    let settled = false
+    const done = (err?: Error) => {
+      if (settled) return
+      settled = true
+      if (err) reject(err)
+      else resolve()
     }
+
+    video.addEventListener('loadedmetadata', () => done(), { once: true })
+    video.addEventListener('loadeddata', () => done(), { once: true })
+    video.addEventListener('error', () => {
+      const e = video.error
+      const CODES: Record<number, string> = { 1: 'ABORTED', 2: 'NETWORK', 3: 'DECODE', 4: 'SRC_NOT_SUPPORTED' }
+      done(new Error(`Failed to load video: ${CODES[e?.code ?? 0] ?? 'UNKNOWN'} (code ${e?.code ?? '?'}) — ${e?.message || 'no message'}`))
+    }, { once: true })
+
     video.src = url
     video.load()
+    // iOS Safari often won't initialise a blob-URL video without a play() attempt,
+    // even if play() itself is rejected (no user-gesture context at this point).
+    video.play().catch(() => { /* expected — we only need the side-effect */ })
   })
 
   const duration = video.duration

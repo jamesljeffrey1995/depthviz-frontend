@@ -70,6 +70,8 @@ server {
          img-src 'self' data: https://*.tile.openstreetmap.org https://tiles.openseamap.org; \
          connect-src 'self' https://ffkagdpikhnmsdltcwig.supabase.co https://geocoding-api.open-meteo.com https://api.open-meteo.com https://marine-api.open-meteo.com https://api.stormglass.io https://marine.copernicus.eu; \
          object-src 'none'; \
+         media-src 'self' blob:; \
+         worker-src 'self' blob:; \
          frame-ancestors 'none';"
         always;
 }
