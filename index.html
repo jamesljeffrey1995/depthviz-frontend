@@ -39,11 +39,8 @@
     <!-- Canonical URL -->
     <link rel="canonical" href="https://depthviz.com/" />
 
-    <!-- OpenCV.js is loaded lazily on demand (see src/lib/underwaterVisibility.ts);
-         preconnect to the CDNs we race so DNS/TLS is warm when the user drops a video. -->
-    <link rel="preconnect" href="https://docs.opencv.org" crossorigin />
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-    <link rel="preconnect" href="https://unpkg.com" crossorigin />
+    <!-- OpenCV.js is bundled locally and dynamically imported on demand
+         (see src/lib/underwaterVisibility.ts). No external CDN needed. -->
 
     <!-- Schema.org structured data — WebApplication -->
     <script type="application/ld+json">
