@@ -104,16 +104,25 @@ export async function extractFrames(
   const url = URL.createObjectURL(file)
   const video = document.createElement('video')
   video.muted = true
+  video.playsInline = true
   video.preload = 'auto'
+  // iOS Safari requires the element to be in the DOM to load media.
+  video.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px'
+  document.body.appendChild(video)
 
   await new Promise<void>((resolve, reject) => {
     video.onloadedmetadata = () => resolve()
-    video.onerror = () => reject(new Error('Failed to load video'))
+    video.onerror = () => {
+      const e = video.error
+      reject(new Error(`Failed to load video${e ? `: code ${e.code} — ${e.message}` : ''}`))
+    }
     video.src = url
+    video.load()
   })
 
   const duration = video.duration
   if (!duration || !isFinite(duration)) {
+    document.body.removeChild(video)
     URL.revokeObjectURL(url)
     throw new Error('Could not determine video duration')
   }
@@ -135,6 +144,7 @@ export async function extractFrames(
     opts.onProgress?.(i + 1, frameCount)
   }
 
+  document.body.removeChild(video)
   URL.revokeObjectURL(url)
   return frames
 }
