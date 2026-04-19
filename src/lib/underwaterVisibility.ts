@@ -52,45 +52,36 @@ export interface AnalyseOptions {
 
 // ── OpenCV loader (singleton) ────────────────────────────────────────────────
 
-const OPENCV_URL = 'https://docs.opencv.org/4.8.0/opencv.js'
+// Primary: jsDelivr (Cloudflare+Fastly backed production CDN).
+// Fallback: official docs server (unreliable on mobile but kept as last resort).
+const OPENCV_URLS = [
+  'https://cdn.jsdelivr.net/npm/@techstark/opencv-js/dist/opencv.js',
+  'https://docs.opencv.org/4.8.0/opencv.js',
+]
 const OPENCV_TIMEOUT_MS = 90_000
 
 let cvPromise: Promise<void> | null = null
 
-function injectOpenCVScript() {
+function injectOpenCVScript(src: string) {
   if (typeof document === 'undefined') return
-  // Don't inject if a script for this URL already exists — either the
-  // static tag in index.html or a previous injection.
-  if (document.querySelector(`script[src="${OPENCV_URL}"]`)) return
+  if (document.querySelector(`script[src="${src}"]`)) return
   const s = document.createElement('script')
-  s.src = OPENCV_URL
+  s.src = src
   s.async = true
   s.setAttribute('data-opencv-loader', 'true')
   document.head.appendChild(s)
 }
 
-export function loadOpenCV(): Promise<void> {
-  if (cvPromise) return cvPromise
+function tryLoadFromUrl(src: string, timeoutMs: number): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    if (window.cv && window.cv.Mat) { resolve(); return }
 
-  cvPromise = new Promise<void>((resolve, reject) => {
-    // Already loaded & ready
-    if (window.cv && window.cv.Mat) {
-      resolve()
-      return
-    }
-
-    // Ensure the script tag is in the DOM (in case index.html tag was removed
-    // or loading needs to be retried after a failure).
-    injectOpenCVScript()
+    injectOpenCVScript(src)
 
     const timeout = setTimeout(() => {
       clearInterval(poll)
-      // Allow the user to retry by clearing the cached rejected promise.
-      cvPromise = null
-      reject(new Error(
-        `OpenCV.js load timed out after ${OPENCV_TIMEOUT_MS / 1000}s — check your connection and retry`
-      ))
-    }, OPENCV_TIMEOUT_MS)
+      reject(new Error('timeout'))
+    }, timeoutMs)
 
     const onReady = () => {
       clearInterval(poll)
@@ -98,13 +89,8 @@ export function loadOpenCV(): Promise<void> {
       resolve()
     }
 
-    // If cv exists but WASM not yet ready, hook into it
-    if (window.cv) {
-      window.cv.onRuntimeInitialized = onReady
-    }
+    if (window.cv) window.cv.onRuntimeInitialized = onReady
 
-    // Polling fallback — the async script may not have loaded yet, and
-    // covers the case where onRuntimeInitialized fires before we can attach.
     const poll = setInterval(() => {
       if (window.cv && window.cv.Mat) {
         onReady()
@@ -113,11 +99,32 @@ export function loadOpenCV(): Promise<void> {
       }
     }, 200)
   })
+}
 
-  // If the promise rejects, clear the cache so a retry can re-attempt.
-  cvPromise.catch(() => {
+export function loadOpenCV(): Promise<void> {
+  if (cvPromise) return cvPromise
+
+  // Already loaded & ready
+  if (typeof window !== 'undefined' && window.cv && window.cv.Mat) {
+    return Promise.resolve()
+  }
+
+  // Try each CDN URL in sequence; the per-URL timeout is split evenly so the
+  // total never exceeds OPENCV_TIMEOUT_MS.
+  const perUrlTimeout = Math.floor(OPENCV_TIMEOUT_MS / OPENCV_URLS.length)
+
+  cvPromise = OPENCV_URLS.reduce<Promise<void>>(
+    (chain, url) =>
+      chain.catch(() => tryLoadFromUrl(url, perUrlTimeout)),
+    Promise.reject(new Error('start'))
+  ).catch(() => {
     cvPromise = null
+    throw new Error(
+      `OpenCV.js load timed out after ${OPENCV_TIMEOUT_MS / 1000}s — check your connection and retry`
+    )
   })
+
+  cvPromise.catch(() => { cvPromise = null })
 
   return cvPromise
 }

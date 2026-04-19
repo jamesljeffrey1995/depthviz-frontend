@@ -39,8 +39,8 @@
     <!-- Canonical URL -->
     <link rel="canonical" href="https://depthviz.com/" />
 
-    <!-- Preconnect to OpenCV.js CDN to cut DNS/TLS time on slow mobile networks -->
-    <link rel="preconnect" href="https://docs.opencv.org" crossorigin />
+    <!-- Preconnect to primary OpenCV.js CDN (jsDelivr) to cut DNS/TLS time on slow mobile networks -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 
     <!-- Schema.org structured data — WebApplication -->
     <script type="application/ld+json">
@@ -73,7 +73,7 @@
   </head>
   <body>
     <div id="root"></div>
-    <script async src="https://docs.opencv.org/4.8.0/opencv.js"></script>
+    <script async src="https://cdn.jsdelivr.net/npm/@techstark/opencv-js/dist/opencv.js"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
