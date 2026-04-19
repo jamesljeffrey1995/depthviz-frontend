@@ -61,40 +61,139 @@ const OPENCV_URLS = [
   'https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.8.0/dist/opencv.js',
   'https://unpkg.com/@techstark/opencv-js@4.8.0/dist/opencv.js',
 ]
-const OPENCV_TIMEOUT_MS = 120_000
+const OPENCV_TIMEOUT_MS = 300_000
 
 let cvPromise: Promise<void> | null = null
 
+// ── Log stream (for on-screen debug panel + console) ────────────────────────
+export type CvLogLevel = 'info' | 'warn'
+export interface CvLogEntry { t: number; level: CvLogLevel; message: string }
+const cvLogBuffer: CvLogEntry[] = []
+const cvLogListeners = new Set<(entry: CvLogEntry) => void>()
+
+export function subscribeOpenCVLog(fn: (entry: CvLogEntry) => void): () => void {
+  cvLogListeners.add(fn)
+  // Replay buffered entries to new subscriber so they don't miss early logs.
+  for (const entry of cvLogBuffer) fn(entry)
+  return () => { cvLogListeners.delete(fn) }
+}
+
+export function getOpenCVLog(): CvLogEntry[] {
+  return [...cvLogBuffer]
+}
+
+const startedAt = () => {
+  // eslint-disable-next-line no-underscore-dangle
+  const anyWin = window as any
+  if (!anyWin.__cvLoaderStart) anyWin.__cvLoaderStart = performance.now()
+  return anyWin.__cvLoaderStart as number
+}
+const elapsed = () => `${((performance.now() - startedAt()) / 1000).toFixed(1)}s`
+const emit = (level: CvLogLevel, args: unknown[]) => {
+  const message = args
+    .map((a) => (typeof a === 'string' ? a : (() => { try { return JSON.stringify(a) } catch { return String(a) } })()))
+    .join(' ')
+  const entry: CvLogEntry = { t: performance.now() - startedAt(), level, message }
+  cvLogBuffer.push(entry)
+  if (cvLogBuffer.length > 200) cvLogBuffer.shift()
+  for (const fn of cvLogListeners) {
+    try { fn(entry) } catch { /* ignore listener errors */ }
+  }
+  const prefix = `[OpenCV loader] t+${elapsed()}`
+  if (level === 'warn') console.warn(prefix, ...args)
+  else console.info(prefix, ...args)
+}
+const log = (...args: unknown[]) => emit('info', args)
+const warn = (...args: unknown[]) => emit('warn', args)
+
 function injectOpenCVScript(src: string): HTMLScriptElement {
   const existing = document.querySelector<HTMLScriptElement>(`script[src="${src}"]`)
-  if (existing) return existing
+  if (existing) {
+    log('reusing existing <script> for', src)
+    return existing
+  }
+  log('injecting <script>', src)
   const s = document.createElement('script')
   s.src = src
   s.async = true
-  s.crossOrigin = 'anonymous'
+  // Intentionally no crossOrigin: the official opencv.js build does not send
+  // Access-Control-Allow-Origin, and setting crossorigin=anonymous would cause
+  // the browser to block execution.
   s.setAttribute('data-opencv-loader', 'true')
+  s.addEventListener('load', () => log('✓ <script> loaded:', src))
+  s.addEventListener('error', (e) => warn('✗ <script> error:', src, e))
   document.head.appendChild(s)
   return s
 }
 
+function describeCv(cv: any): Record<string, unknown> {
+  if (!cv) return { present: false }
+  const keys = Object.keys(cv)
+  return {
+    present: true,
+    hasMat: typeof cv.Mat === 'function',
+    hasOnRuntimeInitialized: typeof cv.onRuntimeInitialized === 'function',
+    keyCount: keys.length,
+    sampleKeys: keys.slice(0, 12),
+  }
+}
+
 function waitForCv(signal: AbortSignal): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    if (window.cv && window.cv.Mat) { resolve(); return }
+    if (window.cv && window.cv.Mat) {
+      log('window.cv.Mat already present — resolving immediately')
+      resolve()
+      return
+    }
+
+    let cvFirstSeenAt = 0
+    let runtimeHooked = false
+    let ticks = 0
 
     const cleanup = () => {
       clearInterval(poll)
       signal.removeEventListener('abort', onAbort)
     }
-    const onReady = () => { cleanup(); resolve() }
-    const onAbort = () => { cleanup(); reject(new Error('aborted')) }
+    const onReady = (via: string) => {
+      log(`✓ window.cv.Mat ready (via ${via})`)
+      cleanup()
+      resolve()
+    }
+    const onAbort = () => {
+      warn('✗ aborted — final state', describeCv(window.cv))
+      cleanup()
+      reject(new Error('aborted'))
+    }
     signal.addEventListener('abort', onAbort)
 
     const poll = setInterval(() => {
       if (signal.aborted) return
-      if (window.cv && window.cv.Mat) {
-        onReady()
-      } else if (window.cv && typeof window.cv.onRuntimeInitialized !== 'function') {
-        window.cv.onRuntimeInitialized = onReady
+      ticks++
+
+      const cv = window.cv
+      if (cv && cv.Mat) {
+        onReady('poll')
+        return
+      }
+      if (cv && cvFirstSeenAt === 0) {
+        cvFirstSeenAt = performance.now()
+        log('window.cv appeared (no Mat yet)', describeCv(cv))
+      }
+      if (cv && !runtimeHooked) {
+        runtimeHooked = true
+        log('hooking onRuntimeInitialized')
+        const prev = typeof cv.onRuntimeInitialized === 'function' ? cv.onRuntimeInitialized : null
+        cv.onRuntimeInitialized = () => {
+          log('onRuntimeInitialized fired')
+          if (prev) {
+            try { prev() } catch (e) { warn('previous onRuntimeInitialized threw', e) }
+          }
+          onReady('onRuntimeInitialized')
+        }
+      }
+      // Heartbeat every 5s so logs show real progress during long loads.
+      if (ticks % 25 === 0) {
+        log('still waiting', describeCv(window.cv))
       }
     }, 200)
   })
@@ -105,21 +204,34 @@ export function loadOpenCV(): Promise<void> {
   if (typeof window === 'undefined' || typeof document === 'undefined') {
     return Promise.reject(new Error('OpenCV.js requires a browser environment'))
   }
-  if (window.cv && window.cv.Mat) return Promise.resolve()
+  if (window.cv && window.cv.Mat) {
+    log('already initialised before loadOpenCV called')
+    return Promise.resolve()
+  }
+
+  // Reset start time for this attempt
+  // eslint-disable-next-line no-underscore-dangle
+  ;(window as any).__cvLoaderStart = performance.now()
+  log('starting load — racing', OPENCV_URLS.length, 'mirrors; timeout =', OPENCV_TIMEOUT_MS / 1000, 's')
+  log('userAgent:', navigator.userAgent)
 
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), OPENCV_TIMEOUT_MS)
+  const timeout = setTimeout(() => {
+    warn(`timeout reached after ${OPENCV_TIMEOUT_MS / 1000}s — aborting`)
+    controller.abort()
+  }, OPENCV_TIMEOUT_MS)
 
   // Inject all script tags up front so each mirror races independently.
   OPENCV_URLS.forEach(injectOpenCVScript)
 
   cvPromise = waitForCv(controller.signal)
     .then(() => { clearTimeout(timeout) })
-    .catch(() => {
+    .catch((err) => {
       clearTimeout(timeout)
       cvPromise = null
+      warn('load failed:', err)
       throw new Error(
-        'Video analysis is unavailable on this connection. You can still submit your report.'
+        `OpenCV.js failed to load after ${OPENCV_TIMEOUT_MS / 1000}s — see console ([OpenCV loader]) for details`
       )
     })
 
