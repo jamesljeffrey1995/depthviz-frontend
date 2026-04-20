@@ -83,14 +83,11 @@ let _worker: Worker | null = null
 function getWorker(): Worker {
   if (!_worker) {
     _worker = new Worker(new URL('../workers/opencv.worker.ts', import.meta.url), { type: 'module' })
-    _worker.addEventListener('message', (e) => {
-      // Forward worker log entries into the shared log stream.
-      if (e.data?.type === 'log') emit(e.data.level, e.data.message)
-    })
     _worker.addEventListener('error', () => {
       // Worker crashed — discard so next call creates a fresh one.
       _worker = null
     })
+    // Log forwarding happens in analyseVideo's per-call message handler.
   }
   return _worker
 }
@@ -375,17 +372,29 @@ export async function extractFrames(
   const frameCount = Math.min(maxFrames, Math.floor(duration * 2))
   const interval = duration / (frameCount + 1)
 
+  // Cap output resolution so a 4K clip doesn't flood the worker with ~2 GB of
+  // RGBA data (see note in webcodecsFrameExtractor.ts).
+  const ANALYSIS_MAX_DIM = 1280
+  const srcW = video.videoWidth
+  const srcH = video.videoHeight
+  const scale = Math.min(1, ANALYSIS_MAX_DIM / Math.max(srcW, srcH))
+  const outW = Math.max(1, Math.round(srcW * scale))
+  const outH = Math.max(1, Math.round(srcH * scale))
+  if (scale < 1) {
+    emit('info', `downscaling frames ${srcW}×${srcH} → ${outW}×${outH} to fit worker memory`)
+  }
+
   const canvas = document.createElement('canvas')
-  canvas.width = video.videoWidth
-  canvas.height = video.videoHeight
+  canvas.width = outW
+  canvas.height = outH
   const ctx = canvas.getContext('2d')!
 
   const frames: ImageData[] = []
   for (let i = 0; i < frameCount; i++) {
     const seekTime = interval * (i + 1)
     await seekTo(video, Math.min(seekTime, duration - 0.05))
-    ctx.drawImage(video, 0, 0)
-    frames.push(ctx.getImageData(0, 0, canvas.width, canvas.height))
+    ctx.drawImage(video, 0, 0, outW, outH)
+    frames.push(ctx.getImageData(0, 0, outW, outH))
     opts.onProgress?.(i + 1, frameCount)
   }
 
@@ -439,11 +448,19 @@ export async function analyseVideo(
   const worker = getWorker()
 
   return new Promise<VisibilityReport>((resolve, reject) => {
-    const TIMEOUT_MS = 120_000
-    const timer = setTimeout(() => {
-      cleanup()
-      reject(new Error('Analysis timed out after 120 s'))
-    }, TIMEOUT_MS)
+    // Inactivity timeout: reset whenever the worker sends a log or progress
+    // message, so a slow-but-alive analysis isn't killed spuriously. The
+    // initial window covers WASM instantiation before any message arrives.
+    const TIMEOUT_MS = 60_000
+    let timer: ReturnType<typeof setTimeout>
+    const resetTimer = () => {
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        cleanup()
+        reject(new Error('Analysis stalled — no worker activity for 60 s'))
+      }, TIMEOUT_MS)
+    }
+    resetTimer()
 
     function cleanup() {
       clearTimeout(timer)
@@ -454,8 +471,10 @@ export async function analyseVideo(
     const onMsg = (e: MessageEvent) => {
       const msg = e.data
       if (msg.type === 'log') {
+        resetTimer()
         emit(msg.level, msg.message)
       } else if (msg.type === 'progress') {
+        resetTimer()
         opts.onProgress?.(msg.phase, msg.current, msg.total)
       } else if (msg.type === 'result') {
         cleanup()

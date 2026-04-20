@@ -1,6 +1,10 @@
 /// <reference lib="webworker" />
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export {} // ensures this file is treated as a module, not a global script
+// Static import: bundling OpenCV into the worker chunk avoids a runtime fetch
+// that was observed to hang silently on iOS Safari workers under memory
+// pressure, leaving no chance for the WASM-init timeout (set *after* the
+// import resolves) to fire.
+import cvModule from '@techstark/opencv-js'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -50,29 +54,23 @@ function beerLambert(tMedian: number, calib: number): number {
 
 // ── OpenCV init ───────────────────────────────────────────────────────────────
 
-let cv: any = null
+const cv: any = (cvModule as any).default ?? cvModule
 let cvInitPromise: Promise<void> | null = null
 
 function initOpenCV(): Promise<void> {
   if (cvInitPromise) return cvInitPromise
-  cvInitPromise = (async () => {
-    log('importing @techstark/opencv-js in worker…')
-    const mod = await import('@techstark/opencv-js')
-    cv = (mod as any).default ?? mod
-    log('import resolved — waiting for WASM runtime…')
-    await new Promise<void>((resolve, reject) => {
-      if (cv?.Mat) { resolve(); return }
-      const prev = typeof cv?.onRuntimeInitialized === 'function' ? cv.onRuntimeInitialized : null
-      const t = setTimeout(() => reject(new Error('WASM init timed out after 30s')), 30_000)
-      cv.onRuntimeInitialized = () => {
-        clearTimeout(t)
-        if (prev) try { prev() } catch { /* ignore */ }
-        log('onRuntimeInitialized fired')
-        resolve()
-      }
-    })
-    log('OpenCV ready in worker')
-  })()
+  cvInitPromise = new Promise<void>((resolve, reject) => {
+    log('waiting for OpenCV WASM runtime…')
+    if (cv?.Mat) { log('OpenCV ready in worker'); resolve(); return }
+    const prev = typeof cv?.onRuntimeInitialized === 'function' ? cv.onRuntimeInitialized : null
+    const t = setTimeout(() => reject(new Error('WASM init timed out after 30s')), 30_000)
+    cv.onRuntimeInitialized = () => {
+      clearTimeout(t)
+      if (prev) try { prev() } catch { /* ignore */ }
+      log('onRuntimeInitialized fired — OpenCV ready in worker')
+      resolve()
+    }
+  })
   return cvInitPromise
 }
 
