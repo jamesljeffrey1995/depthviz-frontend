@@ -156,6 +156,10 @@ export async function extractFrames(
 
   const video = document.createElement('video')
   video.muted = true
+  // autoplay on a muted element is allowed by iOS media policy without a user gesture.
+  // An explicit play() call from async context (after await) is blocked and can set
+  // video.error.code = 4 (SRC_NOT_SUPPORTED), so we rely on the attribute instead.
+  video.autoplay = true
   video.playsInline = true
   video.setAttribute('playsinline', '')
   video.setAttribute('webkit-playsinline', '')
@@ -194,9 +198,6 @@ export async function extractFrames(
 
       video.src = src
       video.load()
-      // iOS Safari often won't initialise a blob-URL video without a play() attempt,
-      // even if play() itself is rejected (no user-gesture context at this point).
-      video.play().catch(() => { /* expected — we only need the side-effect */ })
     })
 
   // Attempt to load; if SRC_NOT_SUPPORTED (code 4), retry with fallback MIME types.
