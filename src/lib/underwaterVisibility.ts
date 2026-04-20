@@ -189,13 +189,6 @@ export async function extractFrames(
 
       // Use named handlers so they can be explicitly removed in `done`, preventing
       // stale listeners from accumulating across multiple tryLoad calls.
-      const onLoaded = () => done()
-      const onError = () => {
-        const e = video.error
-        const CODES: Record<number, string> = { 1: 'ABORTED', 2: 'NETWORK', 3: 'DECODE', 4: 'SRC_NOT_SUPPORTED' }
-        done(new Error(`Failed to load video: ${CODES[e?.code ?? 0] ?? 'UNKNOWN'} (code ${e?.code ?? '?'}) — ${e?.message || 'no message'}`))
-      }
-
       const done = (err?: Error) => {
         if (settled) return
         settled = true
@@ -206,6 +199,13 @@ export async function extractFrames(
         video.removeEventListener('error', onError)
         if (err) reject(err)
         else resolve()
+      }
+
+      const onLoaded = () => done()
+      const onError = () => {
+        const e = video.error
+        const CODES: Record<number, string> = { 1: 'ABORTED', 2: 'NETWORK', 3: 'DECODE', 4: 'SRC_NOT_SUPPORTED' }
+        done(new Error(`Failed to load video: ${CODES[e?.code ?? 0] ?? 'UNKNOWN'} (code ${e?.code ?? '?'}) — ${e?.message || 'no message'}`))
       }
 
       timer = setTimeout(() => done(new Error('Video load timed out after 30 s')), 30_000)
@@ -231,7 +231,7 @@ export async function extractFrames(
     // the error is typically codec/access-related, not MIME-related.  Skip the
     // MIME fallbacks on iOS and go straight to the direct File URL, which uses a
     // fundamentally different access path that works for Files-app sources.
-    const fallbacks = (!isIOS ? [file.type, 'video/quicktime', 'video/mp4'] : [])
+    const fallbacks = (isIOS ? [] : [file.type, 'video/quicktime', 'video/mp4'])
       .filter((m, i, a) => m && m !== mime && a.indexOf(m) === i) as string[]
 
     let succeeded = false
