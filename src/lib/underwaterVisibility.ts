@@ -119,6 +119,8 @@ export async function extractFrames(
 
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
   const mime = blobMime(file)
+  /** Delay in ms between iOS retry attempts to let the media pipeline reset. */
+  const IOS_RETRY_DELAY_MS = 500
 
   // Build a blob URL the video element can consume.
   // On iOS, File objects from the picker are backed by the system photo-library
@@ -154,34 +156,44 @@ export async function extractFrames(
     url = URL.createObjectURL(file)
   }
 
-  const video = document.createElement('video')
-  video.muted = true
-  // Do NOT set autoplay — on iOS Safari it can fire an immediate
-  // SRC_NOT_SUPPORTED (code 4) on large blob URLs before the container
-  // has been parsed.  Frame extraction only needs loadedmetadata + seeking.
-  video.playsInline = true
-  video.setAttribute('playsinline', '')
-  video.setAttribute('webkit-playsinline', '')
-  video.preload = 'auto'
-  // iOS Safari requires the element to be in the DOM to load media.
-  video.style.cssText = 'position:fixed;bottom:0;right:0;width:1px;height:1px;opacity:0.01;pointer-events:none'
-  document.body.appendChild(video)
+  /** Create a hidden video element with the correct attributes for iOS Safari. */
+  const makeVideoEl = (): HTMLVideoElement => {
+    const v = document.createElement('video')
+    v.muted = true
+    // Do NOT set autoplay — on iOS Safari it can fire an immediate
+    // SRC_NOT_SUPPORTED (code 4) on large blob URLs before the container
+    // has been parsed.  Frame extraction only needs loadedmetadata + seeking.
+    v.playsInline = true
+    v.setAttribute('playsinline', '')
+    v.setAttribute('webkit-playsinline', '')
+    v.preload = 'auto'
+    // iOS Safari requires the element to be in the DOM to load media.
+    v.style.cssText = 'position:fixed;bottom:0;right:0;width:1px;height:1px;opacity:0.01;pointer-events:none'
+    document.body.appendChild(v)
+    return v
+  }
+
+  let video = makeVideoEl()
 
   emit('info', `file: ${file.name} type=${file.type || '(empty)'} blobMime=${mime} size=${(file.size / 1e6).toFixed(1)}MB`)
   emit('info', `canPlayType: mp4=${video.canPlayType('video/mp4')} qt=${video.canPlayType('video/quicktime')} declared=${video.canPlayType(file.type || mime)}`)
 
   /** Remove video element and release its blob URL. */
   const cleanup = () => {
-    document.body.removeChild(video)
+    if (video.parentNode) document.body.removeChild(video)
     URL.revokeObjectURL(url)
   }
 
   /** Try loading a given source URL into the video element. */
   const tryLoad = (src: string): Promise<void> => {
     // Reset element state to clear any lingering error from a previous attempt.
+    // Do NOT call video.load() after removing src — on iOS Safari this queues a
+    // stale error event (from the "no source" state) that is not properly
+    // discarded by the subsequent load() call with the new src.  The stale error
+    // fires after the new listeners are attached, causing retries to fail
+    // instantly before the real source has a chance to load.
     video.pause()
     video.removeAttribute('src')
-    video.load()
 
     return new Promise<void>((resolve, reject) => {
       let settled = false
@@ -249,8 +261,8 @@ export async function extractFrames(
           emit('info', `loaded successfully with MIME ${retryMime}`)
           succeeded = true
           break
-        } catch {
-          // try next fallback
+        } catch (e) {
+          emit('warn', `MIME fallback ${retryMime} failed: ${e instanceof Error ? e.message : e}`)
         }
       }
     }
@@ -261,15 +273,59 @@ export async function extractFrames(
     if (!succeeded) {
       emit('warn', 'blob URL approaches failed — trying direct file URL')
       URL.revokeObjectURL(url)
-      // Small delay lets the iOS media pipeline reset between attempts.
-      if (isIOS) await new Promise(r => setTimeout(r, 200))
+      if (isIOS) await new Promise(r => setTimeout(r, IOS_RETRY_DELAY_MS))
       try {
         url = URL.createObjectURL(file)
         await tryLoad(url)
         emit('info', 'loaded successfully via direct file URL')
         succeeded = true
-      } catch {
-        // all attempts exhausted
+      } catch (e) {
+        emit('warn', `direct file URL failed: ${e instanceof Error ? e.message : e}`)
+      }
+    }
+
+    /** Replace the current video element with a brand-new one and revoke the
+     *  stale blob URL.  Returns after the iOS media pipeline settle delay. */
+    const resetWithFreshElement = async () => {
+      if (video.parentNode) document.body.removeChild(video)
+      video = makeVideoEl()
+      URL.revokeObjectURL(url)
+      await new Promise(r => setTimeout(r, IOS_RETRY_DELAY_MS))
+    }
+
+    // ── 3. iOS nuclear option: brand-new video element + direct File URL ──
+    // If the same <video> element could not load any source, its internal
+    // state may be poisoned.  Creating a completely fresh element avoids
+    // any stale decoder / error state that iOS Safari may retain.
+    if (!succeeded && isIOS) {
+      emit('warn', 'retrying with a fresh <video> element')
+      await resetWithFreshElement()
+      try {
+        url = URL.createObjectURL(file)
+        await tryLoad(url)
+        emit('info', 'loaded successfully with fresh element + direct file URL')
+        succeeded = true
+      } catch (e) {
+        emit('warn', `fresh element also failed: ${e instanceof Error ? e.message : e}`)
+      }
+    }
+
+    // ── 4. iOS: fresh element + ArrayBuffer blob URL with original MIME ──
+    // Some iOS sources (e.g. Photos library) need the ArrayBuffer copy but
+    // fail on a reused element.  Try the ArrayBuffer approach again on a
+    // clean element.
+    if (!succeeded && isIOS) {
+      emit('warn', 'retrying with fresh element + ArrayBuffer blob')
+      await resetWithFreshElement()
+      try {
+        if (!buffer) buffer = await file.arrayBuffer()
+        const blob = new Blob([buffer], { type: mime })
+        url = URL.createObjectURL(blob)
+        await tryLoad(url)
+        emit('info', 'loaded successfully with fresh element + ArrayBuffer blob')
+        succeeded = true
+      } catch (e) {
+        emit('warn', `fresh element + ArrayBuffer blob also failed: ${e instanceof Error ? e.message : e}`)
       }
     }
 
