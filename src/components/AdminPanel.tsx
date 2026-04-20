@@ -52,7 +52,7 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
   useEffect(() => { loadStats() }, [loadStats])
 
   useEffect(() => {
-    getLocations().then(setLocations).catch(() => {})
+    getLocations().then(setLocations).catch(e => { console.error('Failed to load locations', e) })
   }, [])
 
   const handlePreview = async () => {
@@ -177,13 +177,21 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
 
       {/* Tabs */}
       <div className={styles.tabs}>
-        {(['overview', 'quarantined', 'clean', 'ml', 'logdive'] as Tab[]).map(t => (
+        {(
+          [
+            ['overview', 'Overview'],
+            ['quarantined', 'Quarantined'],
+            ['clean', 'Clean Outliers'],
+            ['ml', 'ML Model'],
+            ['logdive', 'Log Dive'],
+          ] as [Tab, string][]
+        ).map(([t, label]) => (
           <button
             key={t}
             className={`${styles.tab} ${tab === t ? styles.tabActive : ''}`}
             onClick={() => handleTabChange(t)}
           >
-            {t === 'overview' ? 'Overview' : t === 'quarantined' ? 'Quarantined' : t === 'clean' ? 'Clean Outliers' : t === 'ml' ? 'ML Model' : 'Log Dive'}
+            {label}
           </button>
         ))}
       </div>
