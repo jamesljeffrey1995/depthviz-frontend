@@ -167,6 +167,12 @@ export async function extractFrames(
   emit('info', `file: ${file.name} type=${file.type || '(empty)'} blobMime=${mime} size=${(file.size / 1e6).toFixed(1)}MB`)
   emit('info', `canPlayType: mp4=${video.canPlayType('video/mp4')} qt=${video.canPlayType('video/quicktime')} declared=${video.canPlayType(file.type || mime)}`)
 
+  /** Remove video element and release its blob URL. */
+  const cleanup = () => {
+    document.body.removeChild(video)
+    URL.revokeObjectURL(url)
+  }
+
   /** Try loading a given source URL into the video element. */
   const tryLoad = (src: string): Promise<void> =>
     new Promise<void>((resolve, reject) => {
@@ -197,7 +203,7 @@ export async function extractFrames(
   try {
     await tryLoad(url)
   } catch (firstErr) {
-    const isSrcNotSupported = firstErr instanceof Error && firstErr.message.includes('SRC_NOT_SUPPORTED')
+    const isSrcNotSupported = video.error?.code === 4
     if (isSrcNotSupported && mime !== 'video/mp4') {
       emit('warn', `initial load failed (${mime}), retrying as video/mp4`)
       URL.revokeObjectURL(url)
@@ -207,21 +213,18 @@ export async function extractFrames(
         url = URL.createObjectURL(mp4Blob)
         await tryLoad(url)
       } catch (retryErr) {
-        document.body.removeChild(video)
-        URL.revokeObjectURL(url)
+        cleanup()
         throw retryErr
       }
     } else {
-      document.body.removeChild(video)
-      URL.revokeObjectURL(url)
+      cleanup()
       throw firstErr
     }
   }
 
   const duration = video.duration
   if (!duration || !isFinite(duration)) {
-    document.body.removeChild(video)
-    URL.revokeObjectURL(url)
+    cleanup()
     throw new Error('Could not determine video duration')
   }
 
@@ -242,8 +245,7 @@ export async function extractFrames(
     opts.onProgress?.(i + 1, frameCount)
   }
 
-  document.body.removeChild(video)
-  URL.revokeObjectURL(url)
+  cleanup()
   return frames
 }
 
