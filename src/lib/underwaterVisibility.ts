@@ -119,6 +119,8 @@ export async function extractFrames(
 
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
   const mime = blobMime(file)
+  /** Delay in ms between iOS retry attempts to let the media pipeline reset. */
+  const IOS_RETRY_DELAY_MS = 500
 
   // Build a blob URL the video element can consume.
   // On iOS, File objects from the picker are backed by the system photo-library
@@ -271,8 +273,7 @@ export async function extractFrames(
     if (!succeeded) {
       emit('warn', 'blob URL approaches failed — trying direct file URL')
       URL.revokeObjectURL(url)
-      // Longer delay lets the iOS media pipeline fully reset between attempts.
-      if (isIOS) await new Promise(r => setTimeout(r, 500))
+      if (isIOS) await new Promise(r => setTimeout(r, IOS_RETRY_DELAY_MS))
       try {
         url = URL.createObjectURL(file)
         await tryLoad(url)
@@ -283,16 +284,22 @@ export async function extractFrames(
       }
     }
 
+    /** Replace the current video element with a brand-new one and revoke the
+     *  stale blob URL.  Returns after the iOS media pipeline settle delay. */
+    const resetWithFreshElement = async () => {
+      if (video.parentNode) document.body.removeChild(video)
+      video = makeVideoEl()
+      URL.revokeObjectURL(url)
+      await new Promise(r => setTimeout(r, IOS_RETRY_DELAY_MS))
+    }
+
     // ── 3. iOS nuclear option: brand-new video element + direct File URL ──
     // If the same <video> element could not load any source, its internal
     // state may be poisoned.  Creating a completely fresh element avoids
     // any stale decoder / error state that iOS Safari may retain.
     if (!succeeded && isIOS) {
       emit('warn', 'retrying with a fresh <video> element')
-      if (video.parentNode) document.body.removeChild(video)
-      video = makeVideoEl()
-      URL.revokeObjectURL(url)
-      await new Promise(r => setTimeout(r, 300))
+      await resetWithFreshElement()
       try {
         url = URL.createObjectURL(file)
         await tryLoad(url)
@@ -309,10 +316,7 @@ export async function extractFrames(
     // clean element.
     if (!succeeded && isIOS) {
       emit('warn', 'retrying with fresh element + ArrayBuffer blob')
-      if (video.parentNode) document.body.removeChild(video)
-      video = makeVideoEl()
-      URL.revokeObjectURL(url)
-      await new Promise(r => setTimeout(r, 300))
+      await resetWithFreshElement()
       try {
         if (!buffer) buffer = await file.arrayBuffer()
         const blob = new Blob([buffer], { type: mime })
