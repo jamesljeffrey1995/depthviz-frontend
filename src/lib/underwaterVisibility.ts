@@ -156,14 +156,13 @@ export async function extractFrames(
 
   const video = document.createElement('video')
   video.muted = true
-  // autoplay on a muted element is allowed by iOS media policy without a user gesture.
-  // An explicit play() call from async context (after await) is blocked and can set
-  // video.error.code = 4 (SRC_NOT_SUPPORTED), so we rely on the attribute instead.
-  video.autoplay = true
+  // Do NOT set autoplay — on iOS Safari it can fire an immediate
+  // SRC_NOT_SUPPORTED (code 4) on large blob URLs before the container
+  // has been parsed.  Frame extraction only needs loadedmetadata + seeking.
   video.playsInline = true
   video.setAttribute('playsinline', '')
   video.setAttribute('webkit-playsinline', '')
-  video.preload = 'metadata'
+  video.preload = 'auto'
   // iOS Safari requires the element to be in the DOM to load media.
   video.style.cssText = 'position:fixed;bottom:0;right:0;width:1px;height:1px;opacity:0.01;pointer-events:none'
   document.body.appendChild(video)
@@ -178,18 +177,29 @@ export async function extractFrames(
   }
 
   /** Try loading a given source URL into the video element. */
-  const tryLoad = (src: string): Promise<void> =>
-    new Promise<void>((resolve, reject) => {
+  const tryLoad = (src: string): Promise<void> => {
+    // Reset element state to clear any lingering error from a previous attempt.
+    video.pause()
+    video.removeAttribute('src')
+    video.load()
+
+    return new Promise<void>((resolve, reject) => {
       let settled = false
+      let timer: ReturnType<typeof setTimeout> | undefined
+
       const done = (err?: Error) => {
         if (settled) return
         settled = true
+        if (timer !== undefined) clearTimeout(timer)
         if (err) reject(err)
         else resolve()
       }
 
+      timer = setTimeout(() => done(new Error('Video load timed out after 30 s')), 30_000)
+
       video.addEventListener('loadedmetadata', () => done(), { once: true })
       video.addEventListener('loadeddata', () => done(), { once: true })
+      video.addEventListener('canplay', () => done(), { once: true })
       video.addEventListener('error', () => {
         const e = video.error
         const CODES: Record<number, string> = { 1: 'ABORTED', 2: 'NETWORK', 3: 'DECODE', 4: 'SRC_NOT_SUPPORTED' }
@@ -199,10 +209,10 @@ export async function extractFrames(
       video.src = src
       video.load()
     })
+  }
 
-  // Attempt to load; if SRC_NOT_SUPPORTED (code 4), retry with fallback MIME types.
-  // blobMime() may have remapped the type (e.g. video/quicktime → video/mp4); if the
-  // remapped type fails we must also try the original file MIME and common alternatives.
+  // Attempt to load; if it fails, retry with alternate MIME types and, as a last
+  // resort, a direct File-backed blob URL (skips the ArrayBuffer copy).
   try {
     await tryLoad(url)
   } catch (firstErr) {
@@ -210,11 +220,15 @@ export async function extractFrames(
     const fallbacks = [file.type, 'video/quicktime', 'video/mp4']
       .filter((m, i, a) => m && m !== mime && a.indexOf(m) === i) as string[]
 
+    let succeeded = false
+
+    // ── 1. Retry with alternate MIME types (blob from ArrayBuffer) ──
     if (isSrcNotSupported && fallbacks.length > 0) {
-      let succeeded = false
       for (const retryMime of fallbacks) {
         emit('warn', `load failed (${mime}), retrying as ${retryMime}`)
         URL.revokeObjectURL(url)
+        // Small delay lets the iOS media pipeline reset between attempts.
+        if (isIOS) await new Promise(r => setTimeout(r, 200))
         try {
           if (!buffer) buffer = await file.arrayBuffer()
           const fb = new Blob([buffer], { type: retryMime })
@@ -226,11 +240,25 @@ export async function extractFrames(
           // try next fallback
         }
       }
-      if (!succeeded) {
-        cleanup()
-        throw firstErr
+    }
+
+    // ── 2. Last resort: direct File URL (skips ArrayBuffer copy). ──
+    // On iOS, File-backed URLs sometimes work for files opened from the
+    // Files app even when manually-created blobs do not.
+    if (!succeeded) {
+      emit('warn', 'blob URL approaches failed — trying direct file URL')
+      URL.revokeObjectURL(url)
+      if (isIOS) await new Promise(r => setTimeout(r, 200))
+      try {
+        url = URL.createObjectURL(file)
+        await tryLoad(url)
+        succeeded = true
+      } catch {
+        // all attempts exhausted
       }
-    } else {
+    }
+
+    if (!succeeded) {
       cleanup()
       throw firstErr
     }
@@ -264,9 +292,21 @@ export async function extractFrames(
 }
 
 function seekTo(video: HTMLVideoElement, time: number): Promise<void> {
-  return new Promise((resolve) => {
-    const onSeeked = () => { video.removeEventListener('seeked', onSeeked); resolve() }
-    video.addEventListener('seeked', onSeeked)
+  return new Promise((resolve, reject) => {
+    let done = false
+    const timer = setTimeout(() => {
+      if (done) return
+      done = true
+      reject(new Error(`Seek to ${time.toFixed(2)}s timed out after 10 s`))
+    }, 10_000)
+
+    video.addEventListener('seeked', function onSeeked() {
+      if (done) return
+      done = true
+      clearTimeout(timer)
+      video.removeEventListener('seeked', onSeeked)
+      resolve()
+    })
     video.currentTime = time
   })
 }
