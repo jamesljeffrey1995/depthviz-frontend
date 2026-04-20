@@ -187,24 +187,33 @@ export async function extractFrames(
       let settled = false
       let timer: ReturnType<typeof setTimeout> | undefined
 
+      // Use named handlers so they can be explicitly removed in `done`, preventing
+      // stale listeners from accumulating across multiple tryLoad calls.
+      const onLoaded = () => done()
+      const onError = () => {
+        const e = video.error
+        const CODES: Record<number, string> = { 1: 'ABORTED', 2: 'NETWORK', 3: 'DECODE', 4: 'SRC_NOT_SUPPORTED' }
+        done(new Error(`Failed to load video: ${CODES[e?.code ?? 0] ?? 'UNKNOWN'} (code ${e?.code ?? '?'}) — ${e?.message || 'no message'}`))
+      }
+
       const done = (err?: Error) => {
         if (settled) return
         settled = true
         if (timer !== undefined) clearTimeout(timer)
+        video.removeEventListener('loadedmetadata', onLoaded)
+        video.removeEventListener('loadeddata', onLoaded)
+        video.removeEventListener('canplay', onLoaded)
+        video.removeEventListener('error', onError)
         if (err) reject(err)
         else resolve()
       }
 
       timer = setTimeout(() => done(new Error('Video load timed out after 30 s')), 30_000)
 
-      video.addEventListener('loadedmetadata', () => done(), { once: true })
-      video.addEventListener('loadeddata', () => done(), { once: true })
-      video.addEventListener('canplay', () => done(), { once: true })
-      video.addEventListener('error', () => {
-        const e = video.error
-        const CODES: Record<number, string> = { 1: 'ABORTED', 2: 'NETWORK', 3: 'DECODE', 4: 'SRC_NOT_SUPPORTED' }
-        done(new Error(`Failed to load video: ${CODES[e?.code ?? 0] ?? 'UNKNOWN'} (code ${e?.code ?? '?'}) — ${e?.message || 'no message'}`))
-      }, { once: true })
+      video.addEventListener('loadedmetadata', onLoaded)
+      video.addEventListener('loadeddata', onLoaded)
+      video.addEventListener('canplay', onLoaded)
+      video.addEventListener('error', onError)
 
       video.src = src
       video.load()
@@ -217,7 +226,12 @@ export async function extractFrames(
     await tryLoad(url)
   } catch (firstErr) {
     const isSrcNotSupported = video.error?.code === 4
-    const fallbacks = [file.type, 'video/quicktime', 'video/mp4']
+    // On iOS, retrying the same ArrayBuffer blob data with a different MIME label
+    // (e.g. video/quicktime) almost never helps when video/mp4 already failed —
+    // the error is typically codec/access-related, not MIME-related.  Skip the
+    // MIME fallbacks on iOS and go straight to the direct File URL, which uses a
+    // fundamentally different access path that works for Files-app sources.
+    const fallbacks = (!isIOS ? [file.type, 'video/quicktime', 'video/mp4'] : [])
       .filter((m, i, a) => m && m !== mime && a.indexOf(m) === i) as string[]
 
     let succeeded = false
@@ -227,13 +241,12 @@ export async function extractFrames(
       for (const retryMime of fallbacks) {
         emit('warn', `load failed (${mime}), retrying as ${retryMime}`)
         URL.revokeObjectURL(url)
-        // Small delay lets the iOS media pipeline reset between attempts.
-        if (isIOS) await new Promise(r => setTimeout(r, 200))
         try {
           if (!buffer) buffer = await file.arrayBuffer()
           const fb = new Blob([buffer], { type: retryMime })
           url = URL.createObjectURL(fb)
           await tryLoad(url)
+          emit('info', `loaded successfully with MIME ${retryMime}`)
           succeeded = true
           break
         } catch {
@@ -248,10 +261,12 @@ export async function extractFrames(
     if (!succeeded) {
       emit('warn', 'blob URL approaches failed — trying direct file URL')
       URL.revokeObjectURL(url)
+      // Small delay lets the iOS media pipeline reset between attempts.
       if (isIOS) await new Promise(r => setTimeout(r, 200))
       try {
         url = URL.createObjectURL(file)
         await tryLoad(url)
+        emit('info', 'loaded successfully via direct file URL')
         succeeded = true
       } catch {
         // all attempts exhausted
@@ -260,6 +275,12 @@ export async function extractFrames(
 
     if (!succeeded) {
       cleanup()
+      if (isIOS) {
+        throw new Error(
+          'Could not load video on this iOS device. ' +
+          'Try converting the video to MP4 (H.264) first, or open the file from the Files app rather than the Photos library.',
+        )
+      }
       throw firstErr
     }
   }
