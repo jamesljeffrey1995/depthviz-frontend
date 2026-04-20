@@ -90,6 +90,22 @@ export async function extractFramesViaWebCodecs(
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('2D canvas context unavailable')
 
+  // Cap output resolution. At 4K (3840×2160) each RGBA frame is ~33 MB, and 58
+  // of them overwhelm iOS Safari's web-worker memory budget — the subsequent
+  // WASM import silently stalls. Downscaling to ≤ ANALYSIS_MAX_DIM along the
+  // long edge gives DCP plenty of signal at a fraction of the memory.
+  const ANALYSIS_MAX_DIM = 1280
+  const srcW = track.track_width
+  const srcH = track.track_height
+  const scale = Math.min(1, ANALYSIS_MAX_DIM / Math.max(srcW, srcH))
+  const outW = Math.max(1, Math.round(srcW * scale))
+  const outH = Math.max(1, Math.round(srcH * scale))
+  canvas.width = outW
+  canvas.height = outH
+  if (scale < 1) {
+    log('info', `downscaling frames ${srcW}×${srcH} → ${outW}×${outH} to fit worker memory`)
+  }
+
   const frames: ImageData[] = []
   let nextTargetIdx = 0
   let decodeError: Error | null = null
@@ -98,12 +114,8 @@ export async function extractFramesViaWebCodecs(
     output: (frame) => {
       try {
         if (nextTargetIdx < targetsUs.length && frame.timestamp >= targetsUs[nextTargetIdx]) {
-          if (canvas.width === 0) {
-            canvas.width = frame.displayWidth || track.track_width
-            canvas.height = frame.displayHeight || track.track_height
-          }
-          ctx.drawImage(frame, 0, 0, canvas.width, canvas.height)
-          frames.push(ctx.getImageData(0, 0, canvas.width, canvas.height))
+          ctx.drawImage(frame, 0, 0, outW, outH)
+          frames.push(ctx.getImageData(0, 0, outW, outH))
           opts.onProgress?.(frames.length, frameCount)
           nextTargetIdx++
         }
