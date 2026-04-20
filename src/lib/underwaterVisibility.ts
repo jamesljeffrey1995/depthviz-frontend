@@ -93,6 +93,22 @@ function getWorker(): Worker {
   return _worker
 }
 
+// ── MIME helpers ──────────────────────────────────────────────────────────────
+
+/** Map container MIME types that browsers may reject from blob URLs to ones they
+ *  reliably accept.  QuickTime (.mov) and MP4 share the same ISO-BMFF container,
+ *  so `video/mp4` works for both. */
+function blobMime(file: File): string {
+  const t = file.type.toLowerCase()
+  if (t === 'video/quicktime') return 'video/mp4'
+  if (t) return t
+  // file.type can be empty on some mobile browsers — infer from extension.
+  const ext = file.name.split('.').pop()?.toLowerCase()
+  if (ext === 'mov' || ext === 'mp4' || ext === 'm4v') return 'video/mp4'
+  if (ext === 'webm') return 'video/webm'
+  return 'video/mp4' // safe default
+}
+
 // ── Frame extraction (needs DOM — stays on main thread) ──────────────────────
 
 export async function extractFrames(
@@ -101,25 +117,43 @@ export async function extractFrames(
 ): Promise<ImageData[]> {
   const maxFrames = opts.maxFrames ?? 60
 
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+  const mime = blobMime(file)
+
+  // Build a blob URL the video element can consume.
   // On iOS, File objects from the picker are backed by the system photo-library
   // file handle. createObjectURL(File) produces a blob URL that the video element
   // cannot access (code 4: SRC_NOT_SUPPORTED). Reading the data into an
   // ArrayBuffer first copies it into normal memory, making the blob URL reliable.
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+  // We also normalise the MIME type (e.g. video/quicktime → video/mp4) because
+  // many browsers refuse to play blob URLs declared as video/quicktime.
   let url: string
+  let buffer: ArrayBuffer | null = null
   if (isIOS) {
     emit('info', 'iOS detected — reading file into memory before creating blob URL')
     try {
-      const buffer = await file.arrayBuffer()
-      const blob = new Blob([buffer], { type: file.type || 'video/quicktime' })
+      buffer = await file.arrayBuffer()
+      const blob = new Blob([buffer], { type: mime })
       url = URL.createObjectURL(blob)
     } catch (e) {
       emit('warn', `arrayBuffer() failed (${e}), falling back to direct createObjectURL`)
       url = URL.createObjectURL(file)
     }
+  } else if (file.type !== mime) {
+    // Non-iOS but MIME was normalised — re-wrap so the blob URL carries the
+    // corrected type (e.g. .mov files on desktop Chrome/Firefox).
+    emit('info', `re-wrapping blob with corrected MIME ${file.type || '(empty)'} → ${mime}`)
+    try {
+      buffer = await file.arrayBuffer()
+      const blob = new Blob([buffer], { type: mime })
+      url = URL.createObjectURL(blob)
+    } catch {
+      url = URL.createObjectURL(file)
+    }
   } else {
     url = URL.createObjectURL(file)
   }
+
   const video = document.createElement('video')
   video.muted = true
   video.playsInline = true
@@ -130,32 +164,59 @@ export async function extractFrames(
   video.style.cssText = 'position:fixed;bottom:0;right:0;width:1px;height:1px;opacity:0.01;pointer-events:none'
   document.body.appendChild(video)
 
-  emit('info', `file: ${file.name} type=${file.type || '(empty)'} size=${(file.size / 1e6).toFixed(1)}MB`)
-  emit('info', `canPlayType: mp4=${video.canPlayType('video/mp4')} qt=${video.canPlayType('video/quicktime')} declared=${video.canPlayType(file.type)}`)
+  emit('info', `file: ${file.name} type=${file.type || '(empty)'} blobMime=${mime} size=${(file.size / 1e6).toFixed(1)}MB`)
+  emit('info', `canPlayType: mp4=${video.canPlayType('video/mp4')} qt=${video.canPlayType('video/quicktime')} declared=${video.canPlayType(file.type || mime)}`)
 
-  await new Promise<void>((resolve, reject) => {
-    let settled = false
-    const done = (err?: Error) => {
-      if (settled) return
-      settled = true
-      if (err) reject(err)
-      else resolve()
+  /** Try loading a given source URL into the video element. */
+  const tryLoad = (src: string): Promise<void> =>
+    new Promise<void>((resolve, reject) => {
+      let settled = false
+      const done = (err?: Error) => {
+        if (settled) return
+        settled = true
+        if (err) reject(err)
+        else resolve()
+      }
+
+      video.addEventListener('loadedmetadata', () => done(), { once: true })
+      video.addEventListener('loadeddata', () => done(), { once: true })
+      video.addEventListener('error', () => {
+        const e = video.error
+        const CODES: Record<number, string> = { 1: 'ABORTED', 2: 'NETWORK', 3: 'DECODE', 4: 'SRC_NOT_SUPPORTED' }
+        done(new Error(`Failed to load video: ${CODES[e?.code ?? 0] ?? 'UNKNOWN'} (code ${e?.code ?? '?'}) — ${e?.message || 'no message'}`))
+      }, { once: true })
+
+      video.src = src
+      video.load()
+      // iOS Safari often won't initialise a blob-URL video without a play() attempt,
+      // even if play() itself is rejected (no user-gesture context at this point).
+      video.play().catch(() => { /* expected — we only need the side-effect */ })
+    })
+
+  // Attempt to load; if SRC_NOT_SUPPORTED (code 4), retry with video/mp4 blob.
+  try {
+    await tryLoad(url)
+  } catch (firstErr) {
+    const isSrcNotSupported = firstErr instanceof Error && firstErr.message.includes('SRC_NOT_SUPPORTED')
+    if (isSrcNotSupported && mime !== 'video/mp4') {
+      emit('warn', `initial load failed (${mime}), retrying as video/mp4`)
+      URL.revokeObjectURL(url)
+      try {
+        if (!buffer) buffer = await file.arrayBuffer()
+        const mp4Blob = new Blob([buffer], { type: 'video/mp4' })
+        url = URL.createObjectURL(mp4Blob)
+        await tryLoad(url)
+      } catch (retryErr) {
+        document.body.removeChild(video)
+        URL.revokeObjectURL(url)
+        throw retryErr
+      }
+    } else {
+      document.body.removeChild(video)
+      URL.revokeObjectURL(url)
+      throw firstErr
     }
-
-    video.addEventListener('loadedmetadata', () => done(), { once: true })
-    video.addEventListener('loadeddata', () => done(), { once: true })
-    video.addEventListener('error', () => {
-      const e = video.error
-      const CODES: Record<number, string> = { 1: 'ABORTED', 2: 'NETWORK', 3: 'DECODE', 4: 'SRC_NOT_SUPPORTED' }
-      done(new Error(`Failed to load video: ${CODES[e?.code ?? 0] ?? 'UNKNOWN'} (code ${e?.code ?? '?'}) — ${e?.message || 'no message'}`))
-    }, { once: true })
-
-    video.src = url
-    video.load()
-    // iOS Safari often won't initialise a blob-URL video without a play() attempt,
-    // even if play() itself is rejected (no user-gesture context at this point).
-    video.play().catch(() => { /* expected — we only need the side-effect */ })
-  })
+  }
 
   const duration = video.duration
   if (!duration || !isFinite(duration)) {
