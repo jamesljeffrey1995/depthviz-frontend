@@ -7,6 +7,7 @@ import {
   restoreReport,
   getMLStatus,
   forceRetrain,
+  getLocations,
 } from '../lib/api'
 import type {
   AdminStats,
@@ -15,15 +16,17 @@ import type {
   QuarantinedReport,
   MLStatus,
   MLRetrainResult,
+  Location,
 } from '../types'
 import { MLCharts } from './MLCharts'
+import { AdminLogDive } from './AdminLogDive'
 import styles from './AdminPanel.module.css'
 
 interface AdminPanelProps {
   onBack?: () => void
 }
 
-type Tab = 'overview' | 'quarantined' | 'clean' | 'ml'
+type Tab = 'overview' | 'quarantined' | 'clean' | 'ml' | 'logdive'
 
 export function AdminPanel({ onBack }: AdminPanelProps) {
   const [tab, setTab] = useState<Tab>('overview')
@@ -33,6 +36,7 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
   const [quarantined, setQuarantined] = useState<QuarantinedReport[]>([])
   const [mlStatus, setMlStatus] = useState<MLStatus | null>(null)
   const [retrainResult, setRetrainResult] = useState<MLRetrainResult | null>(null)
+  const [locations, setLocations] = useState<Location[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -46,6 +50,10 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
   }, [])
 
   useEffect(() => { loadStats() }, [loadStats])
+
+  useEffect(() => {
+    getLocations().then(setLocations).catch(() => {})
+  }, [])
 
   const handlePreview = async () => {
     setLoading(true)
@@ -169,13 +177,13 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
 
       {/* Tabs */}
       <div className={styles.tabs}>
-        {(['overview', 'quarantined', 'clean', 'ml'] as Tab[]).map(t => (
+        {(['overview', 'quarantined', 'clean', 'ml', 'logdive'] as Tab[]).map(t => (
           <button
             key={t}
             className={`${styles.tab} ${tab === t ? styles.tabActive : ''}`}
             onClick={() => handleTabChange(t)}
           >
-            {t === 'overview' ? 'Overview' : t === 'quarantined' ? 'Quarantined' : t === 'clean' ? 'Clean Outliers' : 'ML Model'}
+            {t === 'overview' ? 'Overview' : t === 'quarantined' ? 'Quarantined' : t === 'clean' ? 'Clean Outliers' : t === 'ml' ? 'ML Model' : 'Log Dive'}
           </button>
         ))}
       </div>
@@ -415,6 +423,10 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
             </>
           )}
         </div>
+      )}
+      {/* Log Dive tab */}
+      {tab === 'logdive' && (
+        <AdminLogDive locations={locations} />
       )}
     </div>
   )
