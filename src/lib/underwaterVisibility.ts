@@ -199,22 +199,35 @@ export async function extractFrames(
       video.play().catch(() => { /* expected — we only need the side-effect */ })
     })
 
-  // Attempt to load; if SRC_NOT_SUPPORTED (code 4), retry with video/mp4 blob.
+  // Attempt to load; if SRC_NOT_SUPPORTED (code 4), retry with fallback MIME types.
+  // blobMime() may have remapped the type (e.g. video/quicktime → video/mp4); if the
+  // remapped type fails we must also try the original file MIME and common alternatives.
   try {
     await tryLoad(url)
   } catch (firstErr) {
     const isSrcNotSupported = video.error?.code === 4
-    if (isSrcNotSupported && mime !== 'video/mp4') {
-      emit('warn', `initial load failed (${mime}), retrying as video/mp4`)
-      URL.revokeObjectURL(url)
-      try {
-        if (!buffer) buffer = await file.arrayBuffer()
-        const mp4Blob = new Blob([buffer], { type: 'video/mp4' })
-        url = URL.createObjectURL(mp4Blob)
-        await tryLoad(url)
-      } catch (retryErr) {
+    const fallbacks = [file.type, 'video/quicktime', 'video/mp4']
+      .filter((m, i, a) => m && m !== mime && a.indexOf(m) === i) as string[]
+
+    if (isSrcNotSupported && fallbacks.length > 0) {
+      let succeeded = false
+      for (const retryMime of fallbacks) {
+        emit('warn', `load failed (${mime}), retrying as ${retryMime}`)
+        URL.revokeObjectURL(url)
+        try {
+          if (!buffer) buffer = await file.arrayBuffer()
+          const fb = new Blob([buffer], { type: retryMime })
+          url = URL.createObjectURL(fb)
+          await tryLoad(url)
+          succeeded = true
+          break
+        } catch {
+          // try next fallback
+        }
+      }
+      if (!succeeded) {
         cleanup()
-        throw retryErr
+        throw firstErr
       }
     } else {
       cleanup()
