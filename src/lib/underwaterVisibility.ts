@@ -1,3 +1,5 @@
+import { extractFramesViaWebCodecs, webCodecsSupported } from './webcodecsFrameExtractor'
+
 // ── Types ────────────────────────────────────────────────────────────────────
 
 export interface FrameResult {
@@ -331,10 +333,33 @@ export async function extractFrames(
 
     if (!succeeded) {
       cleanup()
+
+      // ── 5. WebCodecs fallback (iOS 16.4+ / modern browsers). ──
+      // Every `<video>` element path failed with the same error — usually a
+      // container or codec iOS Safari refuses to play from blob URLs (HEVC
+      // 10-bit from Photos, MP4 with moov at end, etc.). Demux with mp4box
+      // and decode with WebCodecs directly; this skips the <video> pipeline.
+      if (isIOS && webCodecsSupported()) {
+        emit('warn', 'all <video> approaches failed — trying WebCodecs decoder')
+        try {
+          return await extractFramesViaWebCodecs(file, {
+            maxFrames,
+            onProgress: opts.onProgress,
+            log: (level, message) => emit(level, `[webcodecs] ${message}`),
+          })
+        } catch (wcErr) {
+          emit('warn', `WebCodecs fallback failed: ${wcErr instanceof Error ? wcErr.message : wcErr}`)
+        }
+      } else if (isIOS) {
+        emit('warn', 'WebCodecs unavailable on this iOS build — no further fallbacks')
+      }
+
       if (isIOS) {
         throw new Error(
-          'Could not load video on this iOS device. ' +
-          'Try converting the video to MP4 (H.264) first, or open the file from the Files app rather than the Photos library.',
+          'Could not decode this video on your iOS device. ' +
+          'Open the Photos app, share the clip to Files, and choose "Most Compatible" — ' +
+          'this re-exports it as H.264 MP4, which iOS Safari can always play. ' +
+          'Alternatively, update to iOS 16.4 or newer.',
         )
       }
       throw firstErr
