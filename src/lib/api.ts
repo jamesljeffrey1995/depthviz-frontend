@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-  import { cacheGet, cacheSet, cacheDelete } from './cache'
+import { cacheGet, cacheSet, cacheDelete } from './cache'
 import { filterVisibleLocations } from './spots'
 import type {
   ForecastResponse,
