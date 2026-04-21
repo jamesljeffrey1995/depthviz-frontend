@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import { cacheGet, cacheSet, cacheDelete } from './cache'
+import { filterVisibleLocations } from './spots'
 import type {
   AdminStats,
   BestVisResponse,
@@ -12,6 +13,7 @@ import type {
   LeaderboardEntry,
   Location,
   LocationHistoryResponse,
+  LocationVisibility,
   OutlierPreview,
   QuarantinedListResponse,
   ReportCreate,
@@ -21,6 +23,11 @@ import type {
 } from '../types'
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '/api'
+
+async function currentUserId(): Promise<string | null> {
+  const { data: { session } } = await supabase.auth.getSession()
+  return session?.user?.id ?? null
+}
 
 // --- Error types for granular handling ---
 export class ApiError extends Error {
@@ -165,36 +172,60 @@ export async function getForecast(lat: number, lon: number, name: string, locati
 }
 
 // Locations
+//
+// getLocations is the central fetch path for everything spot-related:
+// the map, the search suggestions, and the ReportForm dropdown. It is
+// the last line of defence before user data reaches the DOM, so we
+//   1. scope the cache per user (switching accounts must never serve
+//      the previous user's rows); and
+//   2. run the response through filterVisibleLocations so any backend
+//      leak of another user's private spot is dropped before render.
 export async function getLocations(): Promise<Location[]> {
-  const key = 'locations'
+  const me = await currentUserId()
+  const key = `locations:${me ?? 'anon'}`
   const cached = cacheGet<Location[]>(key)
   if (cached) return cached
 
-  const result = await apiFetch<Location[]>('/locations')
-  cacheSet(key, result, TTL.LOCATIONS)
-  return result
+  const raw = await apiFetch<Location[]>('/locations')
+  const safe = filterVisibleLocations(raw, me)
+  cacheSet(key, safe, TTL.LOCATIONS)
+  return safe
 }
 
 export async function createLocation(
   name: string, lat: number, lon: number,
-  isPublic = false,
+  visibility: LocationVisibility | boolean = false,
   encryptedCoords?: { encrypted_lat: string; encrypted_lon: string },
 ): Promise<Location> {
+  // Back-compat: callers used to pass a boolean is_public. Normalise
+  // here so we always send an explicit visibility string to the API.
+  const v: LocationVisibility =
+    visibility === true ? 'public'
+    : visibility === false ? 'private'
+    : visibility
+  const isPublic = v === 'public'
   const result = await apiFetch<Location>('/locations', {
     method: 'POST',
     body: JSON.stringify({
       name,
-      is_public: isPublic,
-      ...(isPublic ? { lat, lon } : {}),
-      ...(!isPublic && encryptedCoords ? encryptedCoords : {}),
+      visibility: v,
+      is_public: isPublic, // legacy field for older backend
+      lat,
+      lon,
+      ...(encryptedCoords ? encryptedCoords : {}),
     }),
   })
+  // Bust every user-scoped locations cache entry — we only hold the
+  // current user's list but keep the prefix form in case older entries
+  // are still resident.
+  cacheDelete('locations:')
   cacheDelete('locations')
   return result
 }
 
 export async function deleteLocation(id: number): Promise<void> {
   await apiFetch(`/locations/${id}`, { method: 'DELETE' })
+  cacheDelete('locations:')
   cacheDelete('locations')
 }
 
@@ -203,12 +234,14 @@ export async function voteLocation(id: number, direction: 'up' | 'down'): Promis
     method: 'PUT',
     body: JSON.stringify({ direction }),
   })
+  cacheDelete('locations:')
   cacheDelete('locations')
   return result
 }
 
 export async function removeVote(id: number): Promise<Location> {
   const result = await apiFetch<Location>(`/locations/${id}/vote`, { method: 'DELETE' })
+  cacheDelete('locations:')
   cacheDelete('locations')
   return result
 }
