@@ -127,11 +127,15 @@ export default function App() {
       if (isPrivate) {
         encrypted = await encryptCoords(currentLat, currentLon, user.id)
       }
-      const loc = await createLocation(currentName, currentLat, currentLon, false, encrypted)
+      const loc = await createLocation(currentName, currentLat, currentLon, isPrivate ? false : true, encrypted)
       const savedLoc = isPrivate ? { ...loc, lat: currentLat, lon: currentLon } : loc
       setLocations(prev => [...prev.filter(l => l.id !== savedLoc.id), savedLoc])
       setSelectedLocationId(savedLoc.id)
     } catch (e) { console.error(e) }
+  }
+
+  const handleSpotsChanged = () => {
+    getLocations().then(setLocations).catch(() => {})
   }
 
   const handleReportClick = () => {
@@ -309,12 +313,12 @@ export default function App() {
               )}
               {status === 'idle' && (
                 <Suspense fallback={null}>
-                  <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} locations={locations} />
+                  <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} apiSpots={locations} onSpotsChanged={handleSpotsChanged} />
                 </Suspense>
               )}
               {status === 'success' && (
                 <Suspense fallback={null}>
-                  <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} locations={locations} />
+                  <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} apiSpots={locations} onSpotsChanged={handleSpotsChanged} />
                 </Suspense>
               )}
             </>

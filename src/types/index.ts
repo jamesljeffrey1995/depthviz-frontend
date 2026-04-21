@@ -110,6 +110,8 @@ export interface BestVisResponse {
   failedCount?: number
 }
 
+export type LocationVisibility = 'public' | 'private'
+
 export interface Location {
   id: number
   name: string
@@ -121,6 +123,11 @@ export interface Location {
   user_vote: 'up' | 'down' | null
   encrypted_lat: string | null
   encrypted_lon: string | null
+  // Optional because older backend responses may omit these fields.
+  // When present, the client uses them to defensively re-filter the
+  // list before rendering — see lib/spots.ts.
+  user_id?: string | null
+  visibility?: LocationVisibility
 }
 
 export interface ReportCreate {

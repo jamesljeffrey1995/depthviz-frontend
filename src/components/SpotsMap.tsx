@@ -4,7 +4,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { User } from '@supabase/supabase-js'
 import styles from './SpotsMap.module.css'
-import { createLocation, voteLocation, removeVote } from '../lib/api'
+import { createLocation, deleteLocation, voteLocation, removeVote } from '../lib/api'
 import type { Location } from '../types'
 
 /** Shape of a private user spot stored in localStorage. */
@@ -22,9 +22,16 @@ interface Props {
   center?: [number, number]
   user?: User | null
   onShowAuth?: () => void
-  locations?: Location[]
+  /** API-backed spots fetched by the parent (already visibility-filtered). */
+  apiSpots?: Location[]
+  /** Called after a spot is created or deleted so the parent can re-fetch. */
+  onSpotsChanged?: () => void
 }
 
+// Anonymous (logged-out) spots are stored under this key.
+// Logged-in users' spots are persisted via the API — never in localStorage.
+const ANON_STORAGE_KEY = 'depthviz_user_spots_anon'
+// Legacy key — migrated entries will be cleaned up on load.
 const STORAGE_KEY = 'depthviz_user_spots'
 
 /** Haversine distance in metres between two lat/lon points */
@@ -99,8 +106,10 @@ const UK_CENTER: [number, number] = [54.5, -3.5]
 const UK_ZOOM = 5
 
 function loadPrivateSpots(): PrivateSpot[] {
+  // Try legacy key first, then anon key
+  const key = localStorage.getItem(ANON_STORAGE_KEY) !== null ? ANON_STORAGE_KEY : STORAGE_KEY
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(key)
     if (!raw) return []
     const parsed = JSON.parse(raw)
     if (!Array.isArray(parsed)) return []
@@ -126,8 +135,10 @@ function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lon: number
   return null
 }
 
-export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [] }: Props) {
-  const [privateSpots, setPrivateSpots] = useState<PrivateSpot[]>(loadPrivateSpots)
+export function SpotsMap({ onSelectSpot, center, user, onShowAuth, apiSpots = [], onSpotsChanged }: Props) {
+  // Logged-in users' spots come from the API (via `apiSpots` prop).
+  // Anonymous spots live in localStorage under the anon key.
+  const [privateSpots, setPrivateSpots] = useState<PrivateSpot[]>(() => user ? [] : loadPrivateSpots())
   const [adding, setAdding] = useState(false)
   const [pendingPos, setPendingPos] = useState<{ lat: number; lon: number } | null>(null)
   const [newName, setNewName] = useState('')
@@ -148,10 +159,10 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
     return result
   }
   const [dbVoteCounts, setDbVoteCounts] = useState<Record<number, number>>(() =>
-    makeDbVoteCounts(locations)
+    makeDbVoteCounts(apiSpots)
   )
   const [dbUserVotes, setDbUserVotes] = useState<Record<number, 'up' | 'down' | null>>(() =>
-    makeDbUserVotes(locations)
+    makeDbUserVotes(apiSpots)
   )
   const [voteError, setVoteError] = useState<string | null>(null)
   const voteErrorTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -164,24 +175,35 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
   // Track which locations have an in-flight vote to prevent race conditions
   const votingInFlight = useRef<Set<number>>(new Set())
 
-  // Keep DB vote state in sync when locations prop refreshes,
+  // Keep DB vote state in sync when apiSpots prop refreshes,
   // but skip locations with in-flight votes to avoid overwriting optimistic state
   useEffect(() => {
     setDbVoteCounts(prev => {
       const next = { ...prev }
-      for (const l of locations) {
+      for (const l of apiSpots) {
         if (!votingInFlight.current.has(l.id)) next[l.id] = l.vote_count
       }
       return next
     })
     setDbUserVotes(prev => {
       const next = { ...prev }
-      for (const l of locations) {
+      for (const l of apiSpots) {
         if (!votingInFlight.current.has(l.id)) next[l.id] = l.user_vote
       }
       return next
     })
-  }, [locations])
+  }, [apiSpots])
+
+  // When auth state changes reload the correct spot list.
+  // Logged-in → clear local state (spots come from apiSpots prop).
+  // Logged-out → load anonymous localStorage spots.
+  useEffect(() => {
+    if (user) {
+      setPrivateSpots([])
+    } else {
+      setPrivateSpots(loadPrivateSpots())
+    }
+  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Migrate: strip any old public/userAdded spots from localStorage
   // (they now live exclusively in the DB)
@@ -189,12 +211,12 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
     const cleaned = privateSpots.filter((s: PrivateSpot & { isPublic?: boolean; userAdded?: boolean }) => !s.isPublic)
     if (cleaned.length !== privateSpots.length) {
       setPrivateSpots(cleaned)
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned))
+      localStorage.setItem(ANON_STORAGE_KEY, JSON.stringify(cleaned))
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   /** DB locations not already covered by a private localStorage spot */
-  const dbLocations = locations.filter(loc =>
+  const dbLocations = apiSpots.filter(loc =>
     !privateSpots.some(s => haversineMetres(s.lat, s.lon, loc.lat, loc.lon) < 50)
   )
 
@@ -215,9 +237,9 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
   const handleSaveSpot = async () => {
     if (!pendingPos || !newName.trim()) return
 
-    // 100m proximity check for public spots against all DB locations
+    // 100m proximity check for public spots against all API spots
     if (isPublic) {
-      const tooCloseDb = locations.find(
+      const tooCloseDb = apiSpots.find(
         l => l.is_public && haversineMetres(l.lat, l.lon, pendingPos.lat, pendingPos.lon) < 100,
       )
       if (tooCloseDb) {
@@ -228,16 +250,28 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
       }
     }
 
-    if (isPublic) {
-      // Public spots go straight to the DB — no localStorage
+    if (user) {
+      // Logged in: always persist to API (private or public).
+      // Do NOT write to localStorage — API is the source of truth.
+      try {
+        const visibility = isPublic ? 'public' : 'private'
+        await createLocation(newName.trim(), pendingPos.lat, pendingPos.lon, visibility)
+        onSpotsChanged?.()
+      } catch {
+        setSyncWarning('Could not save spot — please try again.')
+        return
+      }
+    } else if (isPublic) {
+      // Anonymous public spots go straight to the DB
       try {
         await createLocation(newName.trim(), pendingPos.lat, pendingPos.lon, true)
+        onSpotsChanged?.()
       } catch {
         setSyncWarning('Could not publish spot — try again later.')
         return
       }
     } else {
-      // Private spots are localStorage-only
+      // Anonymous private spots are localStorage-only
       const spot: PrivateSpot = {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         name: newName.trim(),
@@ -248,7 +282,7 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
       }
       const updated = [...privateSpots, spot]
       setPrivateSpots(updated)
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+      localStorage.setItem(ANON_STORAGE_KEY, JSON.stringify(updated))
     }
 
     setAdding(false)
@@ -273,7 +307,16 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
       ? privateSpots.filter(s => s.id !== spot.id)
       : privateSpots.filter(s => !(s.name === spot.name && s.lat === spot.lat && s.lon === spot.lon))
     setPrivateSpots(updated)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+    localStorage.setItem(ANON_STORAGE_KEY, JSON.stringify(updated))
+  }
+
+  const handleRemoveApiSpot = async (spot: Location) => {
+    try {
+      await deleteLocation(spot.id)
+      onSpotsChanged?.()
+    } catch {
+      setSyncWarning('Could not remove spot — please try again.')
+    }
   }
 
   const handleDbVote = useCallback(async (locationId: number, direction: 'up' | 'down') => {
@@ -370,6 +413,14 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
                     >
                       View Forecast &rsaquo;
                     </button>
+                    {user?.id && loc.user_id === user.id && (
+                      <button
+                        className={styles.popupRemoveBtn}
+                        onClick={() => handleRemoveApiSpot(loc)}
+                      >
+                        Remove Spot
+                      </button>
+                    )}
                   </div>
                 </Popup>
               </Marker>
@@ -423,8 +474,10 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
           <div className={styles.addFormTitle}>Add a Dive Spot</div>
           <div className={styles.addFormPrivacy}>
             {isPublic
-              ? 'This spot will be submitted for public visibility'
-              : 'Saved to this browser only — not visible to other users'}
+              ? '🌍 This spot will be submitted for public visibility'
+              : user
+                ? '🔒 Saved privately — only visible to you when signed in'
+                : '🔒 Saved to this browser only — not visible to other users'}
           </div>
           {!pendingPos ? (
             <div className={styles.addFormHint}>Click anywhere on the map to place your spot</div>
@@ -500,11 +553,20 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
           <button className={styles.addSpotBtn} onClick={handleAddSpotClick}>
             + Add a Spot
           </button>
-          {privateSpots.length > 0 && (
-            <span className={styles.userSpotsCount}>
-              {privateSpots.length} private spot{privateSpots.length !== 1 ? 's' : ''}
-            </span>
-          )}
+          {(privateSpots.length > 0 || apiSpots.length > 0) ? (() => {
+            const localPrivate = privateSpots.length
+            const apiPublic = apiSpots.filter(s => s.is_public).length
+            const apiPrivate = apiSpots.length - apiPublic
+            const total = localPrivate + apiSpots.length
+            const publicCount = apiPublic
+            const privateCount = localPrivate + apiPrivate
+            return (
+              <span className={styles.userSpotsCount}>
+                {total} custom spot{total !== 1 ? 's' : ''}
+                {' '}({publicCount} public, {privateCount} private)
+              </span>
+            )
+          })() : null}
         </div>
       )}
 
