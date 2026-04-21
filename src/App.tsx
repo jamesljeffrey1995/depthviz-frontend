@@ -224,7 +224,7 @@ export default function App() {
 
           {/* Map when no forecast loaded */}
           {view === 'map' && status !== 'success' && (
-            <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} />
+            <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} apiSpots={locations} onSpotsChanged={() => getLocations().then(setLocations).catch(() => {})} />
           )}
 
           {/* Best Visibility when no forecast loaded */}
@@ -297,7 +297,7 @@ export default function App() {
 
               {/* Map when forecast is loaded — renders after nav bar */}
               {view === 'map' && (
-                <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} />
+                <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} apiSpots={locations} onSpotsChanged={() => getLocations().then(setLocations).catch(() => {})} />
               )}
 
               {/* Best Visibility when forecast is loaded */}
