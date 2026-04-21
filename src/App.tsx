@@ -104,6 +104,10 @@ export default function App() {
     } catch (e) { console.error(e) }
   }
 
+  const handleSpotsChanged = () => {
+    getLocations().then(setLocations).catch(() => {})
+  }
+
   const handleReportClick = () => {
     if (!user) { setShowAuth(true); return }
     setView('report')
@@ -224,7 +228,7 @@ export default function App() {
 
           {/* Map when no forecast loaded */}
           {view === 'map' && status !== 'success' && (
-            <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} />
+            <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} apiSpots={locations} onSpotsChanged={handleSpotsChanged} />
           )}
 
           {/* Best Visibility when no forecast loaded */}
@@ -297,7 +301,7 @@ export default function App() {
 
               {/* Map when forecast is loaded — renders after nav bar */}
               {view === 'map' && (
-                <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} />
+                <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} apiSpots={locations} onSpotsChanged={handleSpotsChanged} />
               )}
 
               {/* Best Visibility when forecast is loaded */}
