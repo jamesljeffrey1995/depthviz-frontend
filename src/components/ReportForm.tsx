@@ -1,6 +1,8 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import type { DayForecast, Location } from '../types'
 import { submitReport } from '../lib/api'
+import { filterVisibleLocations } from '../lib/spots'
+import { supabase } from '../lib/supabase'
 import styles from './ReportForm.module.css'
 
 interface Props {
@@ -33,6 +35,25 @@ export function ReportForm({ day, allDays, locations, onSubmitted }: Props) {
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
+  const [userId, setUserId] = useState<string | null>(null)
+
+  // Re-check the current user every time the form mounts so a fresh
+  // session token is always used when filtering. getLocations already
+  // filters, but this is defence in depth: if a stale locations array
+  // is passed in via prop, we still strip rows the current user should
+  // not see.
+  useEffect(() => {
+    let cancelled = false
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!cancelled) setUserId(session?.user?.id ?? null)
+    })
+    return () => { cancelled = true }
+  }, [])
+
+  const visibleLocations = useMemo(
+    () => filterVisibleLocations(locations, userId),
+    [locations, userId],
+  )
 
   const dateOptions = useMemo(() => buildDateOptions(), [])
   const activeDay = useMemo(
@@ -45,6 +66,12 @@ export function ReportForm({ day, allDays, locations, onSubmitted }: Props) {
     const vis = parseFloat(actualVis)
     if (isNaN(vis) || vis < 0 || vis > 50) {
       setError('Visibility must be a number between 0 and 50')
+      return
+    }
+    // Final guard: never allow a report to be attached to a location
+    // the current user cannot see.
+    if (!visibleLocations.some(l => l.id === Number(locationId))) {
+      setError('That location is not available to your account')
       return
     }
     setSubmitting(true)
@@ -104,7 +131,7 @@ export function ReportForm({ day, allDays, locations, onSubmitted }: Props) {
         <label className={styles.label}>Location</label>
         <select className={styles.select} value={locationId} onChange={e => setLocationId(Number(e.target.value))}>
           <option value="">Select a saved location</option>
-          {locations.map(l => (
+          {visibleLocations.map(l => (
             <option key={l.id} value={l.id}>{l.name}</option>
           ))}
         </select>
