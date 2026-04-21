@@ -210,9 +210,9 @@ export async function createLocation(
       name,
       visibility: v,
       is_public: isPublic, // legacy field for older backend
-      ...(isPublic ? { lat, lon } : {}),
-      ...(!isPublic && encryptedCoords ? encryptedCoords : {}),
-      ...(!isPublic && !encryptedCoords ? { lat, lon } : {}),
+      lat,
+      lon,
+      ...(encryptedCoords ? encryptedCoords : {}),
     }),
   })
   // Bust every user-scoped locations cache entry — we only hold the
