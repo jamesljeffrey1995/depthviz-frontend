@@ -34,6 +34,10 @@ const rows: Location[] = [
   { ...base, id: 6, name: 'legacy public (is_public only)', lat: 0, lon: 0, user_id: OTHER, is_public: true },
   // id 7: legacy private row — no visibility, is_public false — hidden to non-owners
   { ...base, id: 7, name: 'legacy private (is_public only)', lat: 0, lon: 0, user_id: OTHER },
+  // id 8: private spot with explicit visibility set but user_id omitted by the backend.
+  // Authenticated users should see it — the backend is the primary ownership enforcer
+  // and older API versions may omit user_id even for the requesting user's own spots.
+  { ...base, id: 8, name: 'private no user_id', lat: 0, lon: 0, visibility: 'private' as const },
 ]
 
 export function runSpotsFilterTests(): void {
@@ -51,13 +55,19 @@ export function runSpotsFilterTests(): void {
   assert(canVisit(rows[5], null), 'legacy is_public row visible to anon')
   assert(!canVisit(rows[6], ME), 'legacy non-public row hidden to non-owner')
 
+  // Private spot with explicit visibility but no user_id in API response.
+  // Authenticated users should see it (trust the backend's authorization).
+  assert(canVisit(rows[7], ME), 'private spot without user_id visible to authenticated user')
+  assert(canVisit(rows[7], OTHER), 'private spot without user_id visible to any authenticated user')
+  assert(!canVisit(rows[7], null), 'private spot without user_id hidden to anon')
+
   // filterVisibleLocations
   const forMe = filterVisibleLocations(rows, ME).map(r => r.id).sort()
-  assert(JSON.stringify(forMe) === JSON.stringify([1, 2, 4, 6]),
+  assert(JSON.stringify(forMe) === JSON.stringify([1, 2, 4, 6, 8]),
     `filter for owner returned ${JSON.stringify(forMe)}`)
 
   const forOther = filterVisibleLocations(rows, OTHER).map(r => r.id).sort()
-  assert(JSON.stringify(forOther) === JSON.stringify([2, 3, 4, 6, 7]),
+  assert(JSON.stringify(forOther) === JSON.stringify([2, 3, 4, 6, 7, 8]),
     `filter for other returned ${JSON.stringify(forOther)}`)
 
   const anon = filterVisibleLocations(rows, null).map(r => r.id).sort()

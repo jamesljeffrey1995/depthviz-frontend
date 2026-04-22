@@ -20,7 +20,18 @@ export function canVisit(
   // legacy `is_public` boolean. Treat is_public === true as public when the
   // newer field is absent so existing public spots remain visible.
   if (location.visibility == null && location.is_public) return true
-  if (!viewerUserId || !location.user_id) return false
+  // Anonymous viewers cannot access private spots.
+  if (!viewerUserId) return false
+  // When the backend has explicitly set a visibility value (i.e. this is not a
+  // legacy/unknown row) but hasn't included user_id in the response, trust the
+  // backend's own authorization: if it returned this private spot to an
+  // authenticated user, that user is permitted to see it.  Older API versions
+  // may omit user_id even for the requesting user's own spots, so enforcing an
+  // ownership check here would incorrectly hide all custom private spots.
+  if (location.visibility != null && !location.user_id) return true
+  // Legacy rows (visibility absent) with no user_id are hidden — we cannot
+  // determine ownership and must be conservative.
+  if (!location.user_id) return false
   return location.user_id === viewerUserId
 }
 
