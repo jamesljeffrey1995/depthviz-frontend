@@ -373,11 +373,12 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, apiSpots = []
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           {adding && <MapClickHandler onMapClick={handleMapClick} />}
-          {/* DB locations: predefined (cyan) and user-created public (green) */}
+          {/* DB locations: predefined (cyan), user-created public (green), user-created private (amber) */}
           {dbLocations.map(loc => {
             const voteCount = dbVoteCounts[loc.id] ?? 0
             const userVote = dbUserVotes[loc.id]
-            const icon = loc.is_predefined ? predefinedIcon : publicSpotIcon
+            const isPrivateUserSpot = !loc.is_predefined && !loc.is_public
+            const icon = loc.is_predefined ? predefinedIcon : loc.is_public ? publicSpotIcon : privateSpotIcon
             return (
               <Marker
                 key={`db-${loc.id}`}
@@ -387,7 +388,9 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, apiSpots = []
                 <Popup>
                   <div className={styles.popup}>
                     {!loc.is_predefined && (
-                      <div className={styles.popupPublicBadge}>Public Spot</div>
+                      isPrivateUserSpot
+                        ? <div className={styles.popupUserBadge}>My Spot (private)</div>
+                        : <div className={styles.popupPublicBadge}>Public Spot</div>
                     )}
                     <div className={styles.popupName}>{loc.name}</div>
                     <div className={styles.voteRow}>
@@ -553,11 +556,12 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, apiSpots = []
           <button className={styles.addSpotBtn} onClick={handleAddSpotClick}>
             + Add a Spot
           </button>
-          {(privateSpots.length > 0 || apiSpots.length > 0) ? (() => {
+          {(privateSpots.length > 0 || apiSpots.some(s => !s.is_predefined)) ? (() => {
             const localPrivate = privateSpots.length
-            const apiPublic = apiSpots.filter(s => s.is_public).length
-            const apiPrivate = apiSpots.length - apiPublic
-            const total = localPrivate + apiSpots.length
+            const customApiSpots = apiSpots.filter(s => !s.is_predefined)
+            const apiPublic = customApiSpots.filter(s => s.is_public).length
+            const apiPrivate = customApiSpots.length - apiPublic
+            const total = localPrivate + customApiSpots.length
             const publicCount = apiPublic
             const privateCount = localPrivate + apiPrivate
             return (
