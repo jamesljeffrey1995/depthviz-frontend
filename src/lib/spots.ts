@@ -12,10 +12,14 @@ import type { Location } from '../types'
  * expose private spots in the UI.
  */
 export function canVisit(
-  location: Pick<Location, 'user_id' | 'visibility'>,
+  location: Pick<Location, 'user_id' | 'visibility' | 'is_public'>,
   viewerUserId: string | null | undefined,
 ): boolean {
   if (location.visibility === 'public') return true
+  // Back-compat: older backend responses omit `visibility` but include the
+  // legacy `is_public` boolean. Treat is_public === true as public when the
+  // newer field is absent so existing public spots remain visible.
+  if (location.visibility == null && location.is_public) return true
   if (!viewerUserId || !location.user_id) return false
   return location.user_id === viewerUserId
 }
