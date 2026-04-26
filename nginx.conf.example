@@ -1,0 +1,77 @@
+# Example nginx configuration for self-hosting DepthViz.
+#
+# Copy this file, adjust the server_name / root / ssl paths for your
+# environment, and restart nginx.  The Content-Security-Policy header is the
+# critical part: OpenCV.js (Emscripten glue) uses `new Function(…)` at
+# runtime, so 'unsafe-eval' and 'wasm-unsafe-eval' MUST be present in
+# script-src.  Without them you will see:
+#
+#   EvalError: Refused to evaluate a string as JavaScript because
+#   'unsafe-eval' is not an allowed source of script …
+#
+# NOTE: public/_headers is only read by Cloudflare Pages / Netlify.
+#       The <meta http-equiv="Content-Security-Policy"> tag in index.html
+#       acts as a browser-side fallback, but HTTP response headers always
+#       take precedence over <meta> CSP.  If your server sends ANY
+#       Content-Security-Policy header (even an empty one) the meta tag is
+#       ignored, so you must set the full policy here.
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name depthviz.uk www.depthviz.uk;
+
+    # Redirect all HTTP → HTTPS (remove this block if you handle TLS elsewhere)
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name depthviz.uk www.depthviz.uk;
+
+    # TLS — update paths to your actual certificate files
+    ssl_certificate     /etc/letsencrypt/live/depthviz.uk/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/depthviz.uk/privkey.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
+
+    # Serve the built Vite output
+    root /var/www/depthviz/dist;
+    index index.html;
+
+    # Single-page application: fall back to index.html for all routes
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Immutable cache for Vite's content-hashed assets
+    location ~* \.(js|css|wasm|woff2?|png|jpe?g|svg|ico)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # -----------------------------------------------------------------------
+    # Security headers
+    # -----------------------------------------------------------------------
+    add_header X-Frame-Options            "DENY"                       always;
+    add_header X-Content-Type-Options     "nosniff"                    always;
+    add_header Referrer-Policy            "strict-origin-when-cross-origin" always;
+
+    # Content-Security-Policy
+    # 'unsafe-eval' + 'wasm-unsafe-eval' are required by @techstark/opencv-js.
+    # Keep this in sync with public/_headers (Cloudflare/Netlify) and the
+    # <meta> tag in index.html.
+    add_header Content-Security-Policy
+        "default-src 'self'; \
+         script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'; \
+         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; \
+         font-src 'self' https://fonts.gstatic.com; \
+         img-src 'self' data: https://*.tile.openstreetmap.org https://tiles.openseamap.org; \
+         connect-src 'self' https://ffkagdpikhnmsdltcwig.supabase.co https://geocoding-api.open-meteo.com https://api.open-meteo.com https://marine-api.open-meteo.com https://api.stormglass.io https://marine.copernicus.eu; \
+         object-src 'none'; \
+         media-src 'self' blob:; \
+         worker-src 'self' blob:; \
+         frame-ancestors 'none';"
+        always;
+}

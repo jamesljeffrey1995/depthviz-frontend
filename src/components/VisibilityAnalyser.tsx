@@ -1,5 +1,10 @@
-import { useCallback, useRef, useState } from 'react'
-import { analyseVideo, type VisibilityReport } from '../lib/underwaterVisibility'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  analyseVideo,
+  subscribeOpenCVLog,
+  type CvLogEntry,
+  type VisibilityReport,
+} from '../lib/underwaterVisibility'
 import styles from './VisibilityAnalyser.module.css'
 
 interface Props {
@@ -16,7 +21,19 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
   const [report, setReport] = useState<VisibilityReport | null>(null)
   const [error, setError] = useState('')
   const [dragActive, setDragActive] = useState(false)
+  const [lastFile, setLastFile] = useState<File | null>(null)
+  const [cvLog, setCvLog] = useState<CvLogEntry[]>([])
+  const [showLog, setShowLog] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    return subscribeOpenCVLog((entry) => {
+      setCvLog((prev) => {
+        const next = [...prev, entry]
+        return next.length > 200 ? next.slice(next.length - 200) : next
+      })
+    })
+  }, [])
 
   const MAX_FILE_SIZE = 500 * 1024 * 1024 // 500 MB
 
@@ -37,6 +54,7 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
       setProgress({ current: 0, total: 0 })
       setError('')
       setReport(null)
+      setLastFile(file)
 
       try {
         const result = await analyseVideo(file, {
@@ -56,6 +74,10 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
     },
     [calib, onResult]
   )
+
+  const retry = useCallback(() => {
+    if (lastFile) handleFile(lastFile)
+  }, [lastFile, handleFile])
 
   const onDrop = useCallback(
     (e: React.DragEvent) => {
@@ -143,9 +165,30 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
             />
           </div>
           {error && (
-            <p style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '0.75rem', textAlign: 'center' }}>
-              {error}
-            </p>
+            <>
+              <p
+                style={{
+                  color: '#ef4444',
+                  fontSize: '0.8rem',
+                  marginTop: '0.75rem',
+                  textAlign: 'center',
+                }}
+              >
+                {error}
+              </p>
+              {lastFile && (
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.5rem' }}>
+                  <button
+                    type="button"
+                    className={styles.btnSecondary}
+                    style={{ flex: 'none', padding: '0.4rem 1rem' }}
+                    onClick={retry}
+                  >
+                    Retry
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </>
       ) : null}
@@ -281,6 +324,60 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
       <div className={styles.privacy}>
         Running entirely on your device — no video is uploaded
       </div>
+
+      {/* ── OpenCV loader debug panel ── */}
+      {cvLog.length > 0 && (
+        <div
+          style={{
+            marginTop: '0.75rem',
+            fontSize: '0.72rem',
+            color: 'rgba(180, 200, 215, 0.7)',
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setShowLog((v) => !v)}
+            style={{
+              background: 'transparent',
+              border: '1px solid rgba(120, 180, 210, 0.3)',
+              color: 'inherit',
+              padding: '0.3rem 0.7rem',
+              borderRadius: '6px',
+              fontSize: '0.72rem',
+              cursor: 'pointer',
+              width: '100%',
+            }}
+          >
+            {showLog ? 'Hide' : 'Show'} video analyser logs ({cvLog.length})
+          </button>
+          {showLog && (
+            <pre
+              style={{
+                marginTop: '0.5rem',
+                padding: '0.6rem',
+                background: 'rgba(0, 0, 0, 0.35)',
+                border: '1px solid rgba(120, 180, 210, 0.2)',
+                borderRadius: '6px',
+                maxHeight: '14rem',
+                overflow: 'auto',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                fontSize: '0.68rem',
+                lineHeight: 1.4,
+                color: 'rgba(210, 225, 235, 0.85)',
+              }}
+            >
+              {cvLog
+                .map(
+                  (e) =>
+                    `[${(e.t / 1000).toFixed(1)}s] ${e.level === 'warn' ? '⚠ ' : ''}${e.message}`
+                )
+                .join('\n')}
+            </pre>
+          )}
+        </div>
+      )}
     </div>
   )
 }
