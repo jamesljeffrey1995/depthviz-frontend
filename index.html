@@ -11,6 +11,15 @@
     <meta name="author" content="DepthViz" />
     <meta name="robots" content="index, follow" />
 
+    <!-- Content-Security-Policy — inline fallback so the policy is always
+         applied even when the hosting platform ignores public/_headers.
+         'unsafe-eval' + 'wasm-unsafe-eval' are required by @techstark/opencv-js
+         (Emscripten glue uses `new Function(…)` at runtime).
+         NOTE: frame-ancestors is omitted here because <meta> CSP does not
+         support it; X-Frame-Options: DENY in _headers covers that instead. -->
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self'; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.tile.openstreetmap.org; connect-src 'self' https://*.supabase.co https://geocoding-api.open-meteo.com; font-src 'self'; worker-src 'self' blob:" />
+
     <!-- Theme / PWA -->
     <meta name="theme-color" content="#020d14" />
     <meta name="color-scheme" content="dark" />
@@ -34,10 +43,13 @@
     <meta name="twitter:image" content="/og-image.png" />
 
     <!-- Favicon (inline SVG) -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23020d14'/%3E%3Ctext x='4' y='24' font-family='sans-serif' font-weight='900' font-size='22' fill='%2300c9ff'%3EDV%3C/text%3E%3C/svg%3E" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23020d14'/%3E%3Ctext x='2' y='24' font-family='sans-serif' font-weight='900' font-size='22' fill='%2300c9ff'%3EDV%3C/text%3E%3C/svg%3E" />
 
     <!-- Canonical URL -->
     <link rel="canonical" href="https://depthviz.com/" />
+
+    <!-- OpenCV.js is bundled locally and dynamically imported on demand
+         (see src/lib/underwaterVisibility.ts). No external CDN needed. -->
 
     <!-- Schema.org structured data — WebApplication -->
     <script type="application/ld+json">
@@ -70,7 +82,6 @@
   </head>
   <body>
     <div id="root"></div>
-    <script async src="https://docs.opencv.org/4.8.0/opencv.js"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
