@@ -210,6 +210,7 @@ export default function App() {
           >m</button>
         </div>
         <button
+          type="button"
           className={user ? styles.authBtnAvatar : styles.authBtn}
           onClick={() => { if (user) navigate('/profile'); else setShowAuth(true) }}
           aria-label={user ? `View profile for ${user.email?.split('@')[0] ?? 'user'}` : 'Sign in to your account'}
