@@ -56,6 +56,7 @@ export default function App() {
   const [currentName, setCurrentName] = useState('')
   const [showAuth, setShowAuth] = useState(false)
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null)
+  const [units, setUnits] = useState<'ft' | 'm'>('ft')
 
   const navigate = useNavigate()
   const location = useLocation()
@@ -76,6 +77,14 @@ export default function App() {
       setSelectedDay(todayIdx >= 0 ? todayIdx : Math.max(0, forecast.days.length - 1))
     }
   }, [forecast])
+
+  // Re-fetch with new units when the toggle changes
+  useEffect(() => {
+    if (currentLat !== null && currentLon !== null) {
+      searchByCoords(currentLat, currentLon, currentName || undefined, selectedLocationId ?? undefined, units)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [units])
 
   const getLocalSuggestions = (query: string): GeocodingResult[] => {
     const q = query.toLowerCase()
@@ -99,7 +108,7 @@ export default function App() {
       setCurrentName(name)
       const matched = findLocationByCoords(coords.latitude, coords.longitude, locations)
       setSelectedLocationId(matched?.id ?? null)
-      await searchByCoords(coords.latitude, coords.longitude, name, matched?.id)
+      await searchByCoords(coords.latitude, coords.longitude, name, matched?.id, units)
       navigate('/forecast')
     } catch (e) { console.error(e) }
   }
@@ -114,7 +123,7 @@ export default function App() {
       setCurrentName(name)
       const matched = findLocationByCoords(loc.latitude, loc.longitude, locations)
       setSelectedLocationId(matched?.id ?? null)
-      await searchByCoords(loc.latitude, loc.longitude, name, matched?.id)
+      await searchByCoords(loc.latitude, loc.longitude, name, matched?.id, units)
       navigate('/forecast')
     }
   }
@@ -145,7 +154,7 @@ export default function App() {
     setCurrentName(name)
     const resolvedId = locationId ?? findLocationByCoords(lat, lon, locations)?.id ?? null
     setSelectedLocationId(resolvedId)
-    await searchByCoords(lat, lon, name, resolvedId ?? undefined)
+    await searchByCoords(lat, lon, name, resolvedId ?? undefined, units)
     navigate('/forecast')
   }
 
@@ -185,6 +194,18 @@ export default function App() {
         <p className={styles.valueProp}>
           AI-calibrated 7-day forecasts · swell, current &amp; ocean data · community-verified
         </p>
+        <div className={styles.unitToggle} role="group" aria-label="Wave height units">
+          <button
+            className={`${styles.unitBtn} ${units === 'ft' ? styles.unitBtnActive : ''}`}
+            onClick={() => setUnits('ft')}
+            aria-pressed={units === 'ft'}
+          >ft</button>
+          <button
+            className={`${styles.unitBtn} ${units === 'm' ? styles.unitBtnActive : ''}`}
+            onClick={() => setUnits('m')}
+            aria-pressed={units === 'm'}
+          >m</button>
+        </div>
         <button
           className={user ? styles.authBtnAvatar : styles.authBtn}
           onClick={() => { if (user) navigate('/profile'); else setShowAuth(true) }}
@@ -205,7 +226,7 @@ export default function App() {
           setCurrentName(name)
           const matched = findLocationByCoords(r.latitude, r.longitude, locations)
           setSelectedLocationId(matched?.id ?? null)
-          await searchByCoords(r.latitude, r.longitude, name, matched?.id)
+          await searchByCoords(r.latitude, r.longitude, name, matched?.id, units)
           navigate('/forecast')
         }}
       />
