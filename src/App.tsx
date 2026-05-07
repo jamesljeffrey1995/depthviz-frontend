@@ -352,7 +352,7 @@ export default function App() {
           {/* Best Visibility */}
           <Route path="/best" element={
             <Suspense fallback={null}>
-              <BestVisibility onSelectSpot={handleSpotSelect} />
+              <BestVisibility onSelectSpot={handleSpotSelect} units={units} />
             </Suspense>
           } />
 

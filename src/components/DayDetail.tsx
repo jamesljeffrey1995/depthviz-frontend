@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { DayForecast } from '../types'
 import { getImpact } from '../lib/visibility'
-import { getWaterQuality } from '../lib/units'
+import { getWaterQuality, metresToFeet, type Units } from '../lib/units'
 import { SwellCompass } from './SwellCompass'
 import styles from './DayDetail.module.css'
 
@@ -9,9 +9,10 @@ interface Props {
   day: DayForecast
   locationName: string
   reportCount: number
-  /** Wave-height display unit — must match the units the API was asked to
-   *  return so wave_height/swell_height numbers are labelled correctly. */
-  units?: 'ft' | 'm'
+  /** Display unit for visibility and wave/swell heights. Wave/swell on
+   *  `day` are already in this unit (converted by the API); visibility is
+   *  always returned in metres and converted here. */
+  units?: Units
 }
 
 function getTurbidity(penalty: number): { label: string; color: string; spm: string; description: string } {
@@ -76,8 +77,13 @@ function getElevatedWarnings(day: DayForecast): string[] {
 
 export function DayDetail({ day, locationName, reportCount, units = 'm' }: Props) {
   const [showAdvanced, setShowAdvanced] = useState(false)
-  const vis = day.vis_corrected ?? day.vis_estimate
-  const pct = (vis / 15) * 100
+  const visM = day.vis_corrected ?? day.vis_estimate
+  const vis = units === 'ft' ? metresToFeet(visM) : visM
+  const visUnitLabel = units === 'ft' ? 'feet' : 'metres'
+  const barTickLabels = units === 'ft'
+    ? ['0ft', '16ft', '33ft', '49ft']
+    : ['0m', '5m', '10m', '15m']
+  const pct = (visM / 15) * 100
   const dateLabel = new Date(day.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
 
   const waterQuality = day.nutrient_factor != null ? getWaterQuality(day.nutrient_factor) : null
@@ -102,7 +108,7 @@ export function DayDetail({ day, locationName, reportCount, units = 'm' }: Props
         </div>
         <div className={styles.visBlock}>
           <div className={`${styles.visNumber} ${styles[day.color_class]}`}>{vis.toFixed(1)}</div>
-          <div className={styles.visUnit}>metres</div>
+          <div className={styles.visUnit}>{visUnitLabel}</div>
           {day.vis_corrected !== null && (
             <div className={styles.correctedNote}>AI-corrected ({reportCount} reports)</div>
           )}
@@ -150,7 +156,7 @@ export function DayDetail({ day, locationName, reportCount, units = 'm' }: Props
 
       <div className={styles.barContainer}>
         <div className={styles.barLabels}>
-          <span>0m</span><span>5m</span><span>10m</span><span>15m</span>
+          {barTickLabels.map(l => <span key={l}>{l}</span>)}
         </div>
         <div className={styles.barTrack}>
           <div className={`${styles.barFill} ${styles[`bg_${day.color_class}`]}`} style={{ width: `${pct}%` }} />

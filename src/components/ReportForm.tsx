@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback } from 'react'
 import type { DayForecast, Location } from '../types'
 import type { VisibilityReport } from '../lib/underwaterVisibility'
 import { submitReport } from '../lib/api'
-import { feetToMetres } from '../lib/units'
+import { feetToMetres, metresToFeet, type Units } from '../lib/units'
 import VisibilityAnalyser from './VisibilityAnalyser'
 import styles from './ReportForm.module.css'
 
@@ -12,10 +12,11 @@ interface Props {
   locations: Location[]
   onSubmitted: () => void
   initialLocationId?: number | null
-  /** Unit the forecast was fetched in. Wave/swell heights on `day` are in
-   *  this unit and must be normalised back to metres before being persisted
-   *  so dive logs are comparable across users with different unit prefs. */
-  units?: 'ft' | 'm'
+  /** Display + entry unit for visibility/wave/swell. Wave/swell on `day`
+   *  are already in this unit (converted by the API); visibility comes
+   *  back in metres and is converted here. The user's typed actual_vis
+   *  is normalised back to metres before submission. */
+  units?: Units
 }
 
 function buildDateOptions(): { value: string; label: string }[] {
@@ -43,13 +44,21 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
 
+  const isFt = units === 'ft'
+  const visUnitLabel = isFt ? 'feet' : 'metres'
+  const visUnitShort = isFt ? 'ft' : 'm'
+  // Reasonable upper-bound for entered visibility: 50m ≈ 164ft.
+  const visMax = isFt ? 164 : 50
+
   const onVideoResult = useCallback((report: VisibilityReport) => {
     setVideoReport(report)
-    // Auto-fill actual_vis with the video median if user hasn't typed one
+    // Auto-fill actual_vis with the video median (always metres) converted
+    // into the user's preferred entry unit.
     if (!actualVis) {
-      setActualVis(report.visibility_m.median.toFixed(1))
+      const v = isFt ? metresToFeet(report.visibility_m.median) : report.visibility_m.median
+      setActualVis(v.toFixed(1))
     }
-  }, [actualVis])
+  }, [actualVis, isFt])
 
   const dateOptions = useMemo(() => buildDateOptions(), [])
   const activeDay = useMemo(
@@ -70,19 +79,22 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
       setError('No forecast data available for this date')
       return
     }
-    const vis = parseFloat(actualVis)
-    if (isNaN(vis) || vis < 0 || vis > 50) {
-      setError('Visibility must be a number between 0 and 50')
+    const visEntered = parseFloat(actualVis)
+    if (isNaN(visEntered) || visEntered < 0 || visEntered > visMax) {
+      setError(`Visibility must be a number between 0 and ${visMax}`)
       return
     }
+    // Persist visibility/wave/swell in metres regardless of UI units so
+    // dive logs are comparable across users with different prefs.
+    const visMetres = isFt ? feetToMetres(visEntered) : visEntered
     setSubmitting(true)
     setError('')
     try {
-      const heightToMetres = (v: number) => units === 'ft' ? feetToMetres(v) : v
+      const heightToMetres = (v: number) => isFt ? feetToMetres(v) : v
       await submitReport({
         location_id: Number(locationId),
         report_date: selectedDate,
-        actual_vis: vis,
+        actual_vis: visMetres,
         predicted_vis: activeDay.vis_estimate,
         wave_height: heightToMetres(activeDay.wave_height),
         swell_height: heightToMetres(activeDay.swell_height),
@@ -119,6 +131,12 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
     )
   }
 
+  // Predicted visibility for the active day, in the user's display unit.
+  const predictedVisM = activeDay ? (activeDay.vis_corrected ?? activeDay.vis_estimate) : null
+  const predictedVisDisplay = predictedVisM !== null
+    ? (isFt ? metresToFeet(predictedVisM) : predictedVisM)
+    : null
+
   return (
     <div className={styles.card}>
       <div className={styles.title}>Log Actual Visibility</div>
@@ -148,20 +166,20 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label}>Actual visibility (metres)</label>
+        <label className={styles.label}>Actual visibility ({visUnitLabel})</label>
         <input
           className={styles.input}
           type="number"
           min="0"
-          max="50"
+          max={visMax}
           step="0.5"
-          placeholder="e.g. 8"
+          placeholder={isFt ? 'e.g. 26' : 'e.g. 8'}
           value={actualVis}
           onChange={e => setActualVis(e.target.value)}
         />
-        {activeDay && (
+        {activeDay && predictedVisDisplay !== null && (
           <div className={styles.hint}>
-            Model predicted {(activeDay.vis_corrected ?? activeDay.vis_estimate).toFixed(1)}m for{' '}
+            Model predicted {predictedVisDisplay.toFixed(1)}{visUnitShort} for{' '}
             {new Date(selectedDate).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}
           </div>
         )}
@@ -193,7 +211,7 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
           }>
             {videoReport.validation && !videoReport.validation.is_valid
               ? `Video rejected — does not appear to be underwater footage (${Math.round(videoReport.validation.confidence * 100)}% confidence)`
-              : `Video analysis: ${videoReport.visibility_m.median.toFixed(1)}m median (${videoReport.frameCount} frames) — ${
+              : `Video analysis: ${(isFt ? metresToFeet(videoReport.visibility_m.median) : videoReport.visibility_m.median).toFixed(1)}${visUnitShort} median (${videoReport.frameCount} frames) — ${
                   videoReport.validation
                     ? `${Math.round(videoReport.validation.confidence * 100)}% underwater confidence`
                     : 'this boosts report trust'

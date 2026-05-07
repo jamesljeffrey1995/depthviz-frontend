@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react'
 import { getBestVisibility } from '../lib/api'
+import { metresToFeet, type Units } from '../lib/units'
 import type { BestVisSpot } from '../types'
 import styles from './BestVisibility.module.css'
 
 interface Props {
   onSelectSpot: (lat: number, lon: number, name: string) => void
+  /** Display unit for visibility. API returns vis in metres regardless. */
+  units?: Units
 }
 
 const COLOR_CLASSES = new Set(['blocked', 'poor', 'marginal', 'decent', 'good', 'excellent'])
@@ -12,11 +15,12 @@ function safeColorClass(cls: string | undefined): string {
   return cls && COLOR_CLASSES.has(cls) ? cls : 'decent'
 }
 
-export function BestVisibility({ onSelectSpot }: Props) {
+export function BestVisibility({ onSelectSpot, units = 'm' }: Props) {
   const [spots, setSpots] = useState<BestVisSpot[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [failedCount, setFailedCount] = useState(0)
+  const visUnitLabel = units === 'ft' ? 'feet' : 'metres'
 
   // Compute today's date once at mount to avoid drift across midnight
   const [todayISO] = useState(() => new Date().toISOString().split('T')[0])
@@ -62,7 +66,8 @@ export function BestVisibility({ onSelectSpot }: Props) {
           <div className={styles.dateLabel}>{todayDisplay}</div>
           <div className={styles.list}>
             {spots.map((spot, i) => {
-              const vis = spot.day.vis_corrected ?? spot.day.vis_estimate
+              const visM = spot.day.vis_corrected ?? spot.day.vis_estimate
+              const vis = units === 'ft' ? metresToFeet(visM) : visM
               const cc = safeColorClass(spot.day.color_class)
               return (
                 <div
@@ -85,7 +90,7 @@ export function BestVisibility({ onSelectSpot }: Props) {
                     <div className={`${styles.visValue} ${styles[cc]}`}>
                       {vis.toFixed(1)}
                     </div>
-                    <div className={styles.visUnit}>metres</div>
+                    <div className={styles.visUnit}>{visUnitLabel}</div>
                   </div>
                 </div>
               )
