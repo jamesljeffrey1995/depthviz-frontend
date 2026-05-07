@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from 'react'
 import type { DayForecast, Location } from '../types'
 import type { VisibilityReport } from '../lib/underwaterVisibility'
 import { submitReport } from '../lib/api'
+import { feetToMetres } from '../lib/units'
 import VisibilityAnalyser from './VisibilityAnalyser'
 import styles from './ReportForm.module.css'
 
@@ -16,10 +17,6 @@ interface Props {
    *  so dive logs are comparable across users with different unit prefs. */
   units?: 'ft' | 'm'
 }
-
-/** Open-Meteo / Copernicus deliver wave heights in metres; we always store
- *  metres in the database so historical logs are unit-stable. */
-const FT_TO_M = 1 / 3.28084
 
 function buildDateOptions(): { value: string; label: string }[] {
   const options = []
@@ -81,7 +78,7 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
     setSubmitting(true)
     setError('')
     try {
-      const heightToMetres = (v: number) => units === 'ft' ? v * FT_TO_M : v
+      const heightToMetres = (v: number) => units === 'ft' ? feetToMetres(v) : v
       await submitReport({
         location_id: Number(locationId),
         report_date: selectedDate,
