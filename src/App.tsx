@@ -195,7 +195,7 @@ export default function App() {
         <p className={styles.valueProp}>
           AI-calibrated 7-day forecasts · swell, current &amp; ocean data · community-verified
         </p>
-        <div className={styles.unitToggle} role="group" aria-label="Wave height units">
+        <div className={styles.unitToggle} role="group" aria-label="Display units">
           <span
             className={`${styles.unitLabel} ${units === 'ft' ? styles.unitLabelActive : ''}`}
             onClick={() => setUnits('ft')}
