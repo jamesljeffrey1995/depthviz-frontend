@@ -150,7 +150,7 @@ export async function geocode(query: string): Promise<GeocodingResult[]> {
 }
 
 // Forecast
-export async function getForecast(lat: number, lon: number, name: string, locationId?: number, units: 'ft' | 'm' = 'ft'): Promise<ForecastResponse> {
+export async function getForecast(lat: number, lon: number, name: string, units: 'ft' | 'm' = 'ft', locationId?: number): Promise<ForecastResponse> {
   const key = `forecast:${lat}:${lon}:${locationId ?? ''}:${units}`
   const cached = cacheGet<ForecastResponse>(key)
   if (cached) return cached

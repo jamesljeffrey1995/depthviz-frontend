@@ -23,7 +23,7 @@ export function useConditions() {
       if (!results.length) throw new Error('Location not found')
       const loc = results[0]
       const name = formatLocationName(loc)
-      const forecast = await getForecast(loc.latitude, loc.longitude, name, undefined, units)
+      const forecast = await getForecast(loc.latitude, loc.longitude, name, units)
       if (id !== searchIdRef.current) return // Stale request — discard
       setState({ status: 'success', forecast, error: '', isRevalidating: false })
     } catch (e) {
@@ -44,7 +44,7 @@ export function useConditions() {
     // Keep previous forecast visible while loading (stale-while-revalidate)
     setState(s => ({ ...s, status: s.forecast ? 'success' : 'loading', error: '', isRevalidating: !!s.forecast }))
     try {
-      const forecast = await getForecast(lat, lon, name ?? `${lat.toFixed(2)}°, ${lon.toFixed(2)}°`, locationId, units)
+      const forecast = await getForecast(lat, lon, name ?? `${lat.toFixed(2)}°, ${lon.toFixed(2)}°`, units, locationId)
       if (id !== searchIdRef.current) return // Stale request — discard
       setState({ status: 'success', forecast, error: '', isRevalidating: false })
     } catch (e) {

@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import { Routes, Route, useNavigate, useLocation, useParams } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import { useConditions } from './hooks/useConditions'
@@ -78,13 +78,14 @@ export default function App() {
     }
   }, [forecast])
 
-  // Re-fetch with new units when the toggle changes
+  const prevUnitsRef = useRef<'ft' | 'm'>(units)
   useEffect(() => {
+    if (prevUnitsRef.current === units) return
+    prevUnitsRef.current = units
     if (currentLat !== null && currentLon !== null) {
       searchByCoords(currentLat, currentLon, currentName || undefined, selectedLocationId ?? undefined, units)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [units])
+  }, [units, currentLat, currentLon, currentName, selectedLocationId, searchByCoords])
 
   const getLocalSuggestions = (query: string): GeocodingResult[] => {
     const q = query.toLowerCase()
@@ -196,11 +197,13 @@ export default function App() {
         </p>
         <div className={styles.unitToggle} role="group" aria-label="Wave height units">
           <button
+            type="button"
             className={`${styles.unitBtn} ${units === 'ft' ? styles.unitBtnActive : ''}`}
             onClick={() => setUnits('ft')}
             aria-pressed={units === 'ft'}
           >ft</button>
           <button
+            type="button"
             className={`${styles.unitBtn} ${units === 'm' ? styles.unitBtnActive : ''}`}
             onClick={() => setUnits('m')}
             aria-pressed={units === 'm'}
