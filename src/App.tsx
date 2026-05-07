@@ -196,18 +196,22 @@ export default function App() {
           AI-calibrated 7-day forecasts · swell, current &amp; ocean data · community-verified
         </p>
         <div className={styles.unitToggle} role="group" aria-label="Wave height units">
-          <button
-            type="button"
-            className={`${styles.unitBtn} ${units === 'ft' ? styles.unitBtnActive : ''}`}
+          <span
+            className={`${styles.unitLabel} ${units === 'ft' ? styles.unitLabelActive : ''}`}
             onClick={() => setUnits('ft')}
-            aria-pressed={units === 'ft'}
-          >ft</button>
-          <button
-            type="button"
-            className={`${styles.unitBtn} ${units === 'm' ? styles.unitBtnActive : ''}`}
+          >FT</span>
+          <label className={styles.toggleSwitch}>
+            <input
+              type="checkbox"
+              checked={units === 'm'}
+              onChange={(e) => setUnits(e.target.checked ? 'm' : 'ft')}
+            />
+            <span className={styles.toggleSlider} />
+          </label>
+          <span
+            className={`${styles.unitLabel} ${units === 'm' ? styles.unitLabelActive : ''}`}
             onClick={() => setUnits('m')}
-            aria-pressed={units === 'm'}
-          >m</button>
+          >M</span>
         </div>
         <button
           type="button"
