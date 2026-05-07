@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from 'react'
 import type { DayForecast, Location } from '../types'
 import type { VisibilityReport } from '../lib/underwaterVisibility'
 import { submitReport } from '../lib/api'
+import { feetToMetres } from '../lib/units'
 import VisibilityAnalyser from './VisibilityAnalyser'
 import styles from './ReportForm.module.css'
 
@@ -11,6 +12,10 @@ interface Props {
   locations: Location[]
   onSubmitted: () => void
   initialLocationId?: number | null
+  /** Unit the forecast was fetched in. Wave/swell heights on `day` are in
+   *  this unit and must be normalised back to metres before being persisted
+   *  so dive logs are comparable across users with different unit prefs. */
+  units?: 'ft' | 'm'
 }
 
 function buildDateOptions(): { value: string; label: string }[] {
@@ -27,7 +32,7 @@ function buildDateOptions(): { value: string; label: string }[] {
   return options
 }
 
-export function ReportForm({ day, allDays, locations, onSubmitted, initialLocationId }: Props) {
+export function ReportForm({ day, allDays, locations, onSubmitted, initialLocationId, units = 'm' }: Props) {
   const todayStr = new Date().toISOString().split('T')[0]
   const [selectedDate, setSelectedDate] = useState(day?.date ?? todayStr)
   const [locationId, setLocationId] = useState<number | ''>(initialLocationId ?? '')
@@ -73,13 +78,14 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
     setSubmitting(true)
     setError('')
     try {
+      const heightToMetres = (v: number) => units === 'ft' ? feetToMetres(v) : v
       await submitReport({
         location_id: Number(locationId),
         report_date: selectedDate,
         actual_vis: vis,
         predicted_vis: activeDay.vis_estimate,
-        wave_height: activeDay.wave_height,
-        swell_height: activeDay.swell_height,
+        wave_height: heightToMetres(activeDay.wave_height),
+        swell_height: heightToMetres(activeDay.swell_height),
         wind_speed: activeDay.wind_speed,
         wind_dir: activeDay.wind_dir,
         precipitation: activeDay.precipitation,

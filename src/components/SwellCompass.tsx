@@ -3,6 +3,10 @@ import type { SwellComponent } from '../types'
 interface Props {
   components: SwellComponent[]
   windDir: number
+  /** Display unit for component heights — must match the unit the API was
+   *  asked to return (`/forecast?units=ft|m`). Defaults to 'm' for backwards
+   *  compatibility with callers that haven't been updated. */
+  units?: 'ft' | 'm'
 }
 
 const COLORS: Record<string, string> = {
@@ -33,7 +37,7 @@ function arrowPath(length: number): string {
   return `M0,${baseY} L-${halfW},${baseY + 8} L0,${tipY} L${halfW},${baseY + 8} Z`
 }
 
-export function SwellCompass({ components, windDir }: Props) {
+export function SwellCompass({ components, windDir, units = 'm' }: Props) {
   // Find max height to scale arrows
   const maxHeight = Math.max(...components.map(c => c.height), 0.5)
 
@@ -131,7 +135,7 @@ export function SwellCompass({ components, windDir }: Props) {
             <div key={c.type} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ width: '10px', height: '10px', background: color, borderRadius: '2px', display: 'inline-block', flexShrink: 0 }} />
               <span style={{ color: 'rgba(255,255,255,0.7)' }}>
-                {c.label}: <span style={{ color }}>{c.height.toFixed(1)}m</span>
+                {c.label}: <span style={{ color }}>{c.height.toFixed(1)}{units}</span>
                 {c.dir_label && <span style={{ color: 'rgba(255,255,255,0.4)' }}> {c.dir_label} {Math.round(c.direction!)}°</span>}
               </span>
             </div>
