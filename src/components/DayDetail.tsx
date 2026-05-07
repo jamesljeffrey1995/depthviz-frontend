@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { DayForecast } from '../types'
 import { getImpact } from '../lib/visibility'
+import { getWaterQuality } from '../lib/units'
 import { SwellCompass } from './SwellCompass'
 import styles from './DayDetail.module.css'
 
@@ -8,13 +9,9 @@ interface Props {
   day: DayForecast
   locationName: string
   reportCount: number
-}
-
-function getWaterQuality(factor: number): { label: string; color: string; description: string } {
-  if (factor < 0.3)  return { label: 'Nutrient-poor',      color: '#1a8a5a', description: 'Oligotrophic — algae blooms rare' }
-  if (factor < 0.6)  return { label: 'Moderate nutrients', color: '#d4850a', description: 'Some bloom potential in warm conditions' }
-  if (factor < 0.8)  return { label: 'Nutrient-rich',      color: '#e06c00', description: 'Eutrophic — elevated bloom risk when warm' }
-  return               { label: 'Highly eutrophic',         color: '#c0392b', description: 'High nutrient load — bloom penalty fully applied' }
+  /** Wave-height display unit — must match the units the API was asked to
+   *  return so wave_height/swell_height numbers are labelled correctly. */
+  units?: 'ft' | 'm'
 }
 
 function getTurbidity(penalty: number): { label: string; color: string; spm: string; description: string } {
@@ -77,7 +74,7 @@ function getElevatedWarnings(day: DayForecast): string[] {
   return warnings
 }
 
-export function DayDetail({ day, locationName, reportCount }: Props) {
+export function DayDetail({ day, locationName, reportCount, units = 'm' }: Props) {
   const [showAdvanced, setShowAdvanced] = useState(false)
   const vis = day.vis_corrected ?? day.vis_estimate
   const pct = (vis / 15) * 100
@@ -138,6 +135,15 @@ export function DayDetail({ day, locationName, reportCount }: Props) {
             {day.swell_direction != null && <div className={styles.metricChipNote} style={{ color: '#00c9ff' }}>{Math.round(day.swell_direction)}°</div>}
           </div>
         )}
+        <div className={styles.metricChip} style={{ borderColor: '#00c9ff40' }}>
+          <div className={styles.metricChipLabel}>Wave / Swell</div>
+          <div className={styles.metricChipValue} style={{ color: '#00c9ff' }}>
+            {Math.max(day.wave_height, day.swell_height).toFixed(1)}{units}
+          </div>
+          <div className={styles.metricChipNote} style={{ color: '#00c9ff' }}>
+            {day.wave_height.toFixed(1)} / {day.swell_height.toFixed(1)}{units}
+          </div>
+        </div>
       </div>
 
       <div className={`${styles.verdict} ${styles[day.color_class]}`}>{day.verdict}</div>
@@ -157,6 +163,7 @@ export function DayDetail({ day, locationName, reportCount }: Props) {
           <SwellCompass
             components={day.swell_components}
             windDir={day.wind_dir}
+            units={units}
           />
         </div>
       )}

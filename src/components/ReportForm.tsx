@@ -11,7 +11,15 @@ interface Props {
   locations: Location[]
   onSubmitted: () => void
   initialLocationId?: number | null
+  /** Unit the forecast was fetched in. Wave/swell heights on `day` are in
+   *  this unit and must be normalised back to metres before being persisted
+   *  so dive logs are comparable across users with different unit prefs. */
+  units?: 'ft' | 'm'
 }
+
+/** Open-Meteo / Copernicus deliver wave heights in metres; we always store
+ *  metres in the database so historical logs are unit-stable. */
+const FT_TO_M = 1 / 3.28084
 
 function buildDateOptions(): { value: string; label: string }[] {
   const options = []
@@ -27,7 +35,7 @@ function buildDateOptions(): { value: string; label: string }[] {
   return options
 }
 
-export function ReportForm({ day, allDays, locations, onSubmitted, initialLocationId }: Props) {
+export function ReportForm({ day, allDays, locations, onSubmitted, initialLocationId, units = 'm' }: Props) {
   const todayStr = new Date().toISOString().split('T')[0]
   const [selectedDate, setSelectedDate] = useState(day?.date ?? todayStr)
   const [locationId, setLocationId] = useState<number | ''>(initialLocationId ?? '')
@@ -73,13 +81,14 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
     setSubmitting(true)
     setError('')
     try {
+      const heightToMetres = (v: number) => units === 'ft' ? v * FT_TO_M : v
       await submitReport({
         location_id: Number(locationId),
         report_date: selectedDate,
         actual_vis: vis,
         predicted_vis: activeDay.vis_estimate,
-        wave_height: activeDay.wave_height,
-        swell_height: activeDay.swell_height,
+        wave_height: heightToMetres(activeDay.wave_height),
+        swell_height: heightToMetres(activeDay.swell_height),
         wind_speed: activeDay.wind_speed,
         wind_dir: activeDay.wind_dir,
         precipitation: activeDay.precipitation,

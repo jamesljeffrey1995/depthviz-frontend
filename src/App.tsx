@@ -416,6 +416,7 @@ export default function App() {
                       day={forecast.days[selectedDay]}
                       locationName={forecast.location_name}
                       reportCount={forecast.report_count}
+                      units={units}
                     />
                   )}
                 </>
@@ -446,6 +447,7 @@ export default function App() {
                   locations={locations}
                   onSubmitted={() => navigate('/forecast')}
                   initialLocationId={selectedLocationId}
+                  units={units}
                 />
               </Suspense>
             ) : (
