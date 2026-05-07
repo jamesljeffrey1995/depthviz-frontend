@@ -1,6 +1,6 @@
 import { memo } from 'react'
 import type { DayForecast } from '../types'
-import { metresToFeet } from '../lib/units'
+import { metresToFeet, type Units } from '../lib/units'
 import styles from './ForecastStrip.module.css'
 
 interface Props {
@@ -9,7 +9,7 @@ interface Props {
   onSelect: (i: number) => void
   /** Visibility display unit. The API returns vis in metres regardless of
    *  the request's `units` param, so the conversion is done here. */
-  units?: 'ft' | 'm'
+  units?: Units
 }
 
 function formatDate(dateStr: string): string {
