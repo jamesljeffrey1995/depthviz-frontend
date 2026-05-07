@@ -265,7 +265,7 @@ export default function App() {
             disabled={!!selectedLocationId}
             aria-label={selectedLocationId ? 'Location already saved' : !user ? 'Save this location (sign in required)' : 'Save this location'}
           >
-            {selectedLocationId ? 'Saved \u2713' : <>+ Save{!user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}</>}
+            {selectedLocationId ? 'Saved ✓' : <>+ Save{!user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}</>}
           </button>
           {!selectedLocationId && (
             <button
@@ -410,7 +410,7 @@ export default function App() {
                       )}
                     </div>
                   )}
-                  <ForecastStrip days={forecast.days} selectedIndex={selectedDay} onSelect={setSelectedDay} />
+                  <ForecastStrip days={forecast.days} selectedIndex={selectedDay} onSelect={setSelectedDay} units={units} />
                   {forecast.days[selectedDay] && (
                     <DayDetail
                       day={forecast.days[selectedDay]}
