@@ -1,11 +1,15 @@
 import { memo } from 'react'
 import type { DayForecast } from '../types'
+import { metresToFeet } from '../lib/units'
 import styles from './ForecastStrip.module.css'
 
 interface Props {
   days: DayForecast[]
   selectedIndex: number
   onSelect: (i: number) => void
+  /** Visibility display unit. The API returns vis in metres regardless of
+   *  the request's `units` param, so the conversion is done here. */
+  units?: 'ft' | 'm'
 }
 
 function formatDate(dateStr: string): string {
@@ -19,12 +23,14 @@ function formatDate(dateStr: string): string {
   return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric' })
 }
 
-export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, onSelect }: Props) {
+export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, onSelect, units = 'm' }: Props) {
+  const unitLabel = units === 'ft' ? 'feet' : 'metres'
   return (
     <div className={styles.strip}>
       <div className={styles.row}>
         {days.map((day, i) => {
-          const vis = day.vis_corrected ?? day.vis_estimate
+          const visM = day.vis_corrected ?? day.vis_estimate
+          const vis = units === 'ft' ? metresToFeet(visM) : visM
           const colorClass = styles[day.color_class as keyof typeof styles] ?? ''
           const cls = [
             styles.day,
@@ -38,11 +44,11 @@ export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, 
               className={cls}
               onClick={() => onSelect(i)}
               aria-pressed={i === selectedIndex}
-              aria-label={`${formatDate(day.date)}: ${vis.toFixed(1)} metres visibility, ${day.verdict}${day.algae.risk !== 'low' ? `, algae risk ${day.algae.risk}` : ''}`}
+              aria-label={`${formatDate(day.date)}: ${vis.toFixed(1)} ${unitLabel} visibility, ${day.verdict}${day.algae.risk !== 'low' ? `, algae risk ${day.algae.risk}` : ''}`}
             >
               <div className={styles.dateLabel}>{formatDate(day.date)}</div>
               <div className={`${styles.vis} ${colorClass}`} aria-hidden="true">{vis.toFixed(1)}</div>
-              <div className={styles.unit} aria-hidden="true">metres</div>
+              <div className={styles.unit} aria-hidden="true">{unitLabel}</div>
               <div className={`${styles.verdict} ${colorClass}`} title={day.verdict} aria-hidden="true">
                 {day.verdict}
                 {day.algae.risk !== 'low' && (
