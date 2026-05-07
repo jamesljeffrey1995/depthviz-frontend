@@ -150,13 +150,13 @@ export async function geocode(query: string): Promise<GeocodingResult[]> {
 }
 
 // Forecast
-export async function getForecast(lat: number, lon: number, name: string, locationId?: number): Promise<ForecastResponse> {
-  const key = `forecast:${lat}:${lon}:${locationId ?? ''}`
+export async function getForecast(lat: number, lon: number, name: string, units: 'ft' | 'm' = 'ft', locationId?: number): Promise<ForecastResponse> {
+  const key = `forecast:${lat}:${lon}:${locationId ?? ''}:${units}`
   const cached = cacheGet<ForecastResponse>(key)
   if (cached) return cached
 
   const params = new URLSearchParams({
-    lat: String(lat), lon: String(lon), name,
+    lat: String(lat), lon: String(lon), name, units,
     ...(locationId ? { location_id: String(locationId) } : {}),
   })
   const result = await apiFetch<ForecastResponse>(`/forecast?${params}`)
