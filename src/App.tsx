@@ -61,6 +61,9 @@ export default function App() {
   const navigate = useNavigate()
   const location = useLocation()
 
+  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL as string | undefined
+  const isAdmin = !!user?.email && !!adminEmail && user.email === adminEmail
+
   // Auto-close auth modal when user signs in
   useEffect(() => {
     if (user) setShowAuth(false)
@@ -265,7 +268,7 @@ export default function App() {
             disabled={!!selectedLocationId}
             aria-label={selectedLocationId ? 'Location already saved' : !user ? 'Save this location (sign in required)' : 'Save this location'}
           >
-            {selectedLocationId ? 'Saved \u2713' : <>+ Save{!user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}</>}
+            {selectedLocationId ? 'Saved ✓' : <>+ Save{!user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}</>}
           </button>
           {!selectedLocationId && (
             <button
@@ -417,6 +420,9 @@ export default function App() {
                       locationName={forecast.location_name}
                       reportCount={forecast.report_count}
                       units={units}
+                      isAdmin={isAdmin}
+                      biasOffset={forecast.bias_offset}
+                      globalBiasOffset={forecast.global_bias_offset}
                     />
                   )}
                 </>
@@ -545,7 +551,7 @@ export default function App() {
         <div className={styles.footerAttribution}>
           <span>Data: Open-Meteo Weather</span>
           <span aria-hidden="true"> · </span>
-          <span>Copernicus Marine</span>
+          <span>Copilot Marine</span>
           <span aria-hidden="true"> · </span>
           <span>North Sea baseline</span>
         </div>

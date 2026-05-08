@@ -12,6 +12,9 @@ interface Props {
   /** Wave-height display unit — must match the units the API was asked to
    *  return so wave_height/swell_height numbers are labelled correctly. */
   units?: 'ft' | 'm'
+  isAdmin?: boolean
+  biasOffset?: number | null
+  globalBiasOffset?: number | null
 }
 
 function getTurbidity(penalty: number): { label: string; color: string; spm: string; description: string } {
@@ -74,7 +77,62 @@ function getElevatedWarnings(day: DayForecast): string[] {
   return warnings
 }
 
-export function DayDetail({ day, locationName, reportCount, units = 'm' }: Props) {
+interface TraceRow {
+  label: string
+  detail: string
+  penalty: number
+  running: number
+  isSubtotal?: boolean
+}
+
+function buildTrace(day: DayForecast): TraceRow[] {
+  const factorPenaltyTotal = day.factors.reduce((s, f) => s + f.penalty, 0)
+  const turbPen = day.turbidity_penalty ?? 0
+  const resusPen = day.resuspension?.penalty ?? 0
+  const riverPen = day.river_discharge?.penalty ?? 0
+
+  // Reverse-engineer implied base (approx — excludes CDM, BGC soft-pull, smoothing)
+  const impliedBase = day.vis_estimate - factorPenaltyTotal + turbPen + resusPen + riverPen
+  let running = Math.max(0, Math.min(15, impliedBase))
+
+  const rows: TraceRow[] = []
+  rows.push({ label: 'Base', detail: '~approx, excl. CDM/BGC/smoothing', penalty: running, running })
+
+  for (const f of day.factors) {
+    running = Math.max(0, running + f.penalty)
+    rows.push({
+      label: f.name,
+      detail: f.note ? `${f.value} · ${f.note}` : f.value,
+      penalty: f.penalty,
+      running,
+    })
+  }
+
+  if (turbPen > 0) {
+    running = Math.max(0, running - turbPen)
+    rows.push({ label: 'Turbidity (SPM)', detail: 'satellite', penalty: -turbPen, running })
+  }
+  if (resusPen > 0) {
+    running = Math.max(0, running - resusPen)
+    rows.push({ label: 'Resuspension', detail: 'seabed', penalty: -resusPen, running })
+  }
+  if (riverPen > 0) {
+    running = Math.max(0, running - riverPen)
+    rows.push({ label: 'River Discharge', detail: 'plume', penalty: -riverPen, running })
+  }
+
+  rows.push({
+    label: 'Model output',
+    detail: 'vis_estimate (pre-bias)',
+    penalty: 0,
+    running: day.vis_estimate,
+    isSubtotal: true,
+  })
+
+  return rows
+}
+
+export function DayDetail({ day, locationName, reportCount, units = 'm', isAdmin = false, biasOffset = null, globalBiasOffset = null }: Props) {
   const [showAdvanced, setShowAdvanced] = useState(false)
   const vis = day.vis_corrected ?? day.vis_estimate
   const pct = (vis / 15) * 100
@@ -90,7 +148,12 @@ export function DayDetail({ day, locationName, reportCount, units = 'm' }: Props
   const humSev  = getHumiditySeverity(day.humidity)
 
   const elevatedWarnings = getElevatedWarnings(day)
-  const advancedAvailable = hasAdvancedData(day)
+  const advancedAvailable = hasAdvancedData(day) || isAdmin
+
+  const dominantWave = Math.max(day.wave_height ?? 0, day.swell_height ?? 0)
+  const windKn = day.wind_speed ?? 0
+  const waveGate = dominantWave > 4
+  const windWaveGate = windKn > 35 && dominantWave > 2
 
   return (
     <div className={styles.card}>
@@ -213,6 +276,150 @@ export function DayDetail({ day, locationName, reportCount, units = 'm' }: Props
       {/* Advanced sections — hidden by default */}
       {showAdvanced && (
         <>
+          {/* Admin debug trace panel */}
+          {isAdmin && (
+            <div className={styles.debugPanel}>
+              <div className={styles.debugPanelTitle}>VIZ TRACE — ADMIN</div>
+
+              {/* Output summary */}
+              <div className={styles.debugSection}>
+                <div className={styles.debugSectionTitle}>OUTPUT</div>
+                <div className={styles.debugRow}>
+                  <span className={styles.debugLabel}>Model estimate (pre-bias)</span>
+                  <span className={styles.debugValue}>{day.vis_estimate.toFixed(1)}m</span>
+                </div>
+                {globalBiasOffset !== null && (
+                  <div className={styles.debugRow}>
+                    <span className={styles.debugLabel}>Global bias offset</span>
+                    <span className={styles.debugValue} style={{ color: globalBiasOffset < 0 ? '#e05555' : '#4ecb8d' }}>
+                      {globalBiasOffset >= 0 ? '+' : ''}{globalBiasOffset.toFixed(2)}m
+                    </span>
+                  </div>
+                )}
+                {biasOffset !== null && (
+                  <div className={styles.debugRow}>
+                    <span className={styles.debugLabel}>Local bias ({reportCount} reports)</span>
+                    <span className={styles.debugValue} style={{ color: biasOffset < 0 ? '#e05555' : '#4ecb8d' }}>
+                      {biasOffset >= 0 ? '+' : ''}{biasOffset.toFixed(2)}m
+                    </span>
+                  </div>
+                )}
+                <div className={`${styles.debugRow} ${styles.debugRowTotal}`}>
+                  <span className={styles.debugLabel}>Final displayed</span>
+                  <span className={styles.debugValue}>{vis.toFixed(1)}m</span>
+                </div>
+              </div>
+
+              {/* Penalty waterfall table */}
+              <div className={styles.debugSection}>
+                <div className={styles.debugSectionTitle}>PENALTY WATERFALL</div>
+                <div className={styles.debugTableHeader}>
+                  <span>Step</span>
+                  <span>Detail</span>
+                  <span>Δm</span>
+                  <span>Running</span>
+                </div>
+                {buildTrace(day).map((row, i) => (
+                  <div
+                    key={i}
+                    className={`${styles.debugTableRow} ${row.isSubtotal ? styles.debugTableRowTotal : ''}`}
+                  >
+                    <span className={styles.debugStep}>{row.label}</span>
+                    <span className={styles.debugDetail}>{row.detail}</span>
+                    <span
+                      className={styles.debugDelta}
+                      style={{
+                        color: row.penalty < 0 ? '#e05555'
+                          : row.isSubtotal ? 'rgba(255,255,255,0.25)'
+                          : row.penalty > 0 ? '#4ecb8d'
+                          : 'rgba(255,255,255,0.25)',
+                      }}
+                    >
+                      {row.isSubtotal || row.penalty === 0 ? '—'
+                        : row.penalty > 0 ? `+${row.penalty.toFixed(1)}m`
+                        : `${row.penalty.toFixed(1)}m`}
+                    </span>
+                    <span className={styles.debugRunning}>{row.running.toFixed(1)}m</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Hard gate checks */}
+              <div className={styles.debugSection}>
+                <div className={styles.debugSectionTitle}>HARD GATE CHECKS</div>
+                <div className={styles.debugRow}>
+                  <span className={styles.debugLabel}>Wave &gt; 4m override</span>
+                  <span className={styles.debugValue} style={{ color: waveGate ? '#e05555' : '#4ecb8d' }}>
+                    {dominantWave.toFixed(2)}{units} — {waveGate ? 'TRIGGERED → 0m' : 'clear'}
+                  </span>
+                </div>
+                <div className={styles.debugRow}>
+                  <span className={styles.debugLabel}>Wind &gt;35kn + wave &gt;2m</span>
+                  <span className={styles.debugValue} style={{ color: windWaveGate ? '#e05555' : '#4ecb8d' }}>
+                    {windKn.toFixed(0)}kn / {dominantWave.toFixed(2)}{units} — {windWaveGate ? 'TRIGGERED → 0m' : 'clear'}
+                  </span>
+                </div>
+              </div>
+
+              {/* BGC / satellite raw values */}
+              {day.water_quality && (
+                <div className={styles.debugSection}>
+                  <div className={styles.debugSectionTitle}>BGC / SATELLITE</div>
+                  {day.water_quality.bgc_kd != null && (
+                    <div className={styles.debugRow}>
+                      <span className={styles.debugLabel}>BGC Kd490</span>
+                      <span className={styles.debugValue}>{day.water_quality.bgc_kd.toFixed(3)} m⁻¹</span>
+                    </div>
+                  )}
+                  {day.water_quality.bgc_kd_vis != null && (
+                    <div className={styles.debugRow}>
+                      <span className={styles.debugLabel}>BGC Secchi (1.7 / Kd)</span>
+                      <span className={styles.debugValue}>{day.water_quality.bgc_kd_vis.toFixed(1)}m</span>
+                    </div>
+                  )}
+                  {day.water_quality.bgc_source && (
+                    <div className={styles.debugRow}>
+                      <span className={styles.debugLabel}>BGC source</span>
+                      <span className={styles.debugValue}>{day.water_quality.bgc_source}</span>
+                    </div>
+                  )}
+                  {day.water_quality.erddap_chlorophyll != null && (
+                    <div className={styles.debugRow}>
+                      <span className={styles.debugLabel}>Chlorophyll (ERDDAP)</span>
+                      <span className={styles.debugValue}>{day.water_quality.erddap_chlorophyll.toFixed(2)} mg/m³</span>
+                    </div>
+                  )}
+                  {day.water_quality.erddap_kd490 != null && (
+                    <div className={styles.debugRow}>
+                      <span className={styles.debugLabel}>Kd490 (ERDDAP)</span>
+                      <span className={styles.debugValue}>{day.water_quality.erddap_kd490.toFixed(3)} m⁻¹</span>
+                    </div>
+                  )}
+                  {day.water_quality.erddap_obs_date && (
+                    <div className={styles.debugRow}>
+                      <span className={styles.debugLabel}>Satellite obs date</span>
+                      <span className={styles.debugValue}>{day.water_quality.erddap_obs_date}</span>
+                    </div>
+                  )}
+                  {day.nutrient_factor != null && (
+                    <div className={styles.debugRow}>
+                      <span className={styles.debugLabel}>Nutrient factor (0–1)</span>
+                      <span className={styles.debugValue}>{day.nutrient_factor.toFixed(3)}</span>
+                    </div>
+                  )}
+                  {day.turbidity_penalty != null && (
+                    <div className={styles.debugRow}>
+                      <span className={styles.debugLabel}>Turbidity penalty</span>
+                      <span className={styles.debugValue} style={{ color: day.turbidity_penalty > 0 ? '#e05555' : '#4ecb8d' }}>
+                        −{day.turbidity_penalty.toFixed(2)}m
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Water quality indicator */}
           {waterQuality && (
             <div className={styles.waterQualityCard}>
