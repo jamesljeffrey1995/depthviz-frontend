@@ -151,9 +151,11 @@ export function DayDetail({ day, locationName, reportCount, units = 'm', isAdmin
   const advancedAvailable = hasAdvancedData(day) || isAdmin
 
   const dominantWave = Math.max(day.wave_height ?? 0, day.swell_height ?? 0)
+  // Server-side gate thresholds are in meters; normalize for comparison regardless of display units
+  const dominantWaveM = units === 'ft' ? dominantWave / 3.28084 : dominantWave
   const windKn = day.wind_speed ?? 0
-  const waveGate = dominantWave > 4
-  const windWaveGate = windKn > 35 && dominantWave > 2
+  const waveGate = dominantWaveM > 4
+  const windWaveGate = windKn > 35 && dominantWaveM > 2
 
   return (
     <div className={styles.card}>
@@ -350,13 +352,13 @@ export function DayDetail({ day, locationName, reportCount, units = 'm', isAdmin
                 <div className={styles.debugRow}>
                   <span className={styles.debugLabel}>Wave &gt; 4m override</span>
                   <span className={styles.debugValue} style={{ color: waveGate ? '#e05555' : '#4ecb8d' }}>
-                    {dominantWave.toFixed(2)}{units} — {waveGate ? 'TRIGGERED → 0m' : 'clear'}
+                    {dominantWave.toFixed(2)}{units} ({dominantWaveM.toFixed(2)}m) — {waveGate ? 'TRIGGERED → 0m' : 'clear'}
                   </span>
                 </div>
                 <div className={styles.debugRow}>
                   <span className={styles.debugLabel}>Wind &gt;35kn + wave &gt;2m</span>
                   <span className={styles.debugValue} style={{ color: windWaveGate ? '#e05555' : '#4ecb8d' }}>
-                    {windKn.toFixed(0)}kn / {dominantWave.toFixed(2)}{units} — {windWaveGate ? 'TRIGGERED → 0m' : 'clear'}
+                    {windKn.toFixed(0)}kn / {dominantWave.toFixed(2)}{units} ({dominantWaveM.toFixed(2)}m) — {windWaveGate ? 'TRIGGERED → 0m' : 'clear'}
                   </span>
                 </div>
               </div>
