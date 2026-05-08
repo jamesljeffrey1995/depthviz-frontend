@@ -36,6 +36,9 @@ export default function App() {
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null)
   const [legalPage, setLegalPage] = useState<LegalPageType>('privacy')
 
+  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL as string | undefined
+  const isAdmin = !!user?.email && !!adminEmail && user.email === adminEmail
+
   useEffect(() => {
     getLocations().then(setLocations).catch(() => {})
   }, [user])
@@ -274,6 +277,8 @@ export default function App() {
                     day={forecast.days[selectedDay]}
                     locationName={forecast.location_name}
                     reportCount={forecast.report_count}
+                    isAdmin={isAdmin}
+                    biasOffset={forecast.bias_offset}
                   />
                 </>
               )}
