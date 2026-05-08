@@ -551,7 +551,7 @@ export default function App() {
         <div className={styles.footerAttribution}>
           <span>Data: Open-Meteo Weather</span>
           <span aria-hidden="true"> · </span>
-          <span>Copilot Marine</span>
+          <span>Copernicus Marine</span>
           <span aria-hidden="true"> · </span>
           <span>North Sea baseline</span>
         </div>
