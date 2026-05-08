@@ -1,3 +1,11 @@
+// Re-export underwater visibility types for convenience
+export type {
+  FrameResult,
+  VisibilityStats,
+  VisibilityReport as UnderwaterVisibilityReport,
+  AnalyseOptions,
+} from '../lib/underwaterVisibility'
+
 export interface AlgaeRisk {
   risk: 'low' | 'moderate' | 'high'
   score: number
@@ -28,6 +36,7 @@ export interface RiverDischarge {
   risk_level: string
   penalty: number
   note: string | null
+  distance_km: number | null
 }
 
 export interface WaterQuality {
@@ -40,6 +49,14 @@ export interface WaterQuality {
   erddap_obs_date: string | null
 }
 
+export interface SwellComponent {
+  type: 'primary' | 'secondary' | 'wind_wave'
+  label: string
+  height: number
+  direction: number | null
+  dir_label: string | null
+}
+
 export interface DayForecast {
   date: string
   is_forecast: boolean
@@ -49,6 +66,9 @@ export interface DayForecast {
   color_class: string
   wave_height: number
   swell_height: number
+  swell_direction: number | null
+  swell_dir_label: string | null
+  swell_components: SwellComponent[]
   wind_speed: number
   wind_dir: number
   wind_dir_label: string
@@ -56,6 +76,7 @@ export interface DayForecast {
   air_temp: number
   sea_temp: number | null
   humidity: number
+  cloud_cover: number | null
   algae: AlgaeRisk
   factors: VisibilityFactor[]
   nutrient_factor: number | null
@@ -71,7 +92,22 @@ export interface ForecastResponse {
   lon: number
   days: DayForecast[]
   bias_offset: number | null
+  global_bias_offset: number | null
   report_count: number
+  model_confidence: 'none' | 'low' | 'medium' | 'high'
+  calibration_active: boolean
+}
+
+export interface BestVisSpot {
+  name: string
+  lat: number
+  lon: number
+  day: DayForecast
+}
+
+export interface BestVisResponse {
+  spots: BestVisSpot[]
+  failedCount?: number
 }
 
 export interface Location {
@@ -79,6 +115,12 @@ export interface Location {
   name: string
   lat: number
   lon: number
+  is_public: boolean
+  is_predefined: boolean
+  vote_count: number
+  user_vote: 'up' | 'down' | null
+  encrypted_lat: string | null
+  encrypted_lon: string | null
 }
 
 export interface ReportCreate {
@@ -95,6 +137,12 @@ export interface ReportCreate {
   sea_temp?: number | null
   algae_risk?: string
   notes?: string
+  // Video-derived visibility (client-side DCP analysis)
+  video_vis_median?: number
+  video_vis_p10?: number
+  video_vis_p90?: number
+  video_t_median?: number
+  video_frame_count?: number
 }
 
 export interface ReportRead extends ReportCreate {
@@ -134,7 +182,7 @@ export function formatLocationName(r: GeocodingResult): string {
 }
 
 export type ImpactLevel = 'NO IMPACT' | 'LOW IMPACT' | 'MODERATE' | 'HIGH IMPACT' | 'SEVERE'
-export type VerdictLabel = 'STAY ASHORE' | 'NOT WORTH IT' | 'VERY POOR' | 'MARGINAL' | 'DECENT' | 'GOOD' | 'EXCELLENT'
+export type VerdictLabel = 'STAY ASHORE' | 'POOR' | 'LIMITED' | 'MARGINAL' | 'DECENT' | 'GOOD' | 'EXCELLENT'
 
 export interface Verdict {
   label: VerdictLabel
@@ -232,4 +280,240 @@ export interface LocationHistoryResponse {
   location_name: string
   report_count: number
   logs: LocationHistoryLog[]
+}
+
+// Admin types
+export interface AdminStats {
+  total_reports: number
+  quarantined_reports: number
+  active_reports: number
+  quarantine_rate: number
+  total_locations: number
+}
+
+export interface OutlierPreview {
+  total_reports: number
+  locations: number
+  would_quarantine: OutlierPreviewItem[]
+  would_restore: OutlierPreviewItem[]
+  would_quarantine_count: number
+  would_restore_count: number
+}
+
+export interface OutlierPreviewItem {
+  id: number
+  location_id: number
+  report_date: string
+  actual_vis: number
+  user_id: string
+}
+
+export interface CleaningResult {
+  total_reports_scanned: number
+  locations_scanned: number
+  newly_quarantined: number
+  newly_restored: number
+  trust_weights_updated: number
+  quarantined_report_ids: number[]
+  restored_report_ids: number[]
+}
+
+export interface QuarantinedReport {
+  id: number
+  location_id: number
+  location_name: string
+  user_id: string
+  report_date: string
+  actual_vis: number
+  predicted_vis: number
+  trust_weight: number
+  notes: string | null
+  created_at: string
+}
+
+export interface QuarantinedListResponse {
+  count: number
+  reports: QuarantinedReport[]
+}
+
+// ML Model Status
+export interface MLCalibration {
+  swell_multiplier: number
+  wind_multiplier: number
+  rain_multiplier: number
+  global_bias_offset: number
+  sample_count: number
+  mae: number | null
+  rmse: number | null
+  r2_score: number | null
+  updated_at: string | null
+}
+
+export interface MLBiasDetail {
+  location_id: number
+  location_name: string
+  bias_offset: number
+  r2_score: number | null
+  sample_count: number
+  updated_at: string | null
+}
+
+export interface MLTrainingLogEntry {
+  trigger: string
+  swell_multiplier: number | null
+  wind_multiplier: number | null
+  rain_multiplier: number | null
+  global_mae: number | null
+  global_rmse: number | null
+  sample_count: number
+  locations_updated: number
+  duration_ms: number
+  created_at: string
+}
+
+export interface MLStatus {
+  calibration: MLCalibration | null
+  bias_summary: {
+    count: number
+    avg_bias_offset: number | null
+    avg_r2_score: number | null
+    total_samples: number
+  }
+  bias_details: MLBiasDetail[]
+  live_metrics: {
+    mae: number | null
+    rmse: number | null
+    r2: number | null
+    n: number
+  }
+  training_log: MLTrainingLogEntry[]
+}
+
+export interface MLPredictionPoint {
+  date: string
+  actual: number
+  predicted: number
+  error: number
+  location: string
+}
+
+export interface MLPredictions {
+  points: MLPredictionPoint[]
+  count: number
+}
+
+export interface MLRetrainResult {
+  calibration: {
+    swell_multiplier: number | null
+    wind_multiplier: number | null
+    rain_multiplier: number | null
+    global_bias_offset: number
+    sample_count: number
+  }
+  locations_updated: number
+  duration_ms: number
+  metrics: {
+    mae: number | null
+    rmse: number | null
+    r2: number | null
+    n: number
+  }
+}
+
+// Social / Friends
+export interface Friend {
+  friendship_id: number
+  uid: string
+  display_name: string
+  report_count: number
+  mean_accuracy: number | null
+  trusted: boolean
+}
+
+export interface FriendRequest {
+  id: number
+  from_uid: string
+  from_name: string
+  created_at: string
+}
+
+export interface UserSearchResult {
+  uid: string
+  display_name: string
+  report_count: number
+  trusted: boolean
+  friendship_status: string | null  // "accepted", "pending", "declined", or null
+}
+
+// Catches
+export interface CatchCreate {
+  location_id: number
+  catch_date: string
+  species: string
+  weight_kg?: number
+  length_cm?: number
+  quantity?: number
+  method?: string
+  depth_m?: number
+  notes?: string
+  photo_url?: string
+  water_temp?: number
+  visibility?: number
+  tide_state?: string
+  moon_phase?: string
+}
+
+export interface CatchRead extends CatchCreate {
+  id: number
+  user_id: string
+  created_at: string
+}
+
+// Feed
+export interface FeedItem {
+  type: 'report' | 'catch'
+  id: number
+  user_id: string
+  user_name: string
+  location_name: string
+  location_id: number
+  created_at: string
+  // report fields
+  actual_vis?: number
+  predicted_vis?: number
+  notes?: string
+  has_video?: boolean
+  // catch fields
+  species?: string
+  weight_kg?: number
+  quantity?: number
+  method?: string
+}
+
+// Feature Importance
+export interface FeatureImportance {
+  name: string
+  label: string
+  correlation: number
+  abs_correlation: number
+  variance_explained: number
+  mean: number
+  std: number
+  n: number
+}
+
+export interface FeatureImportanceResponse {
+  features: FeatureImportance[]
+  summary: {
+    total_reports: number
+    mean_visibility: number
+    std_visibility: number
+    calibration_active: boolean
+    swell_multiplier: number
+    wind_multiplier: number
+    rain_multiplier: number
+    sample_count: number
+    updated_at: string | null
+  }
+  n: number
 }

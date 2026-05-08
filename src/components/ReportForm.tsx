@@ -1,6 +1,9 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import type { DayForecast, Location } from '../types'
+import type { VisibilityReport } from '../lib/underwaterVisibility'
 import { submitReport } from '../lib/api'
+import { feetToMetres } from '../lib/units'
+import VisibilityAnalyser from './VisibilityAnalyser'
 import styles from './ReportForm.module.css'
 
 interface Props {
@@ -8,6 +11,11 @@ interface Props {
   allDays: DayForecast[]
   locations: Location[]
   onSubmitted: () => void
+  initialLocationId?: number | null
+  /** Unit the forecast was fetched in. Wave/swell heights on `day` are in
+   *  this unit and must be normalised back to metres before being persisted
+   *  so dive logs are comparable across users with different unit prefs. */
+  units?: 'ft' | 'm'
 }
 
 function buildDateOptions(): { value: string; label: string }[] {
@@ -24,15 +32,24 @@ function buildDateOptions(): { value: string; label: string }[] {
   return options
 }
 
-export function ReportForm({ day, allDays, locations, onSubmitted }: Props) {
+export function ReportForm({ day, allDays, locations, onSubmitted, initialLocationId, units = 'm' }: Props) {
   const todayStr = new Date().toISOString().split('T')[0]
   const [selectedDate, setSelectedDate] = useState(day?.date ?? todayStr)
-  const [locationId, setLocationId] = useState<number | ''>('')
+  const [locationId, setLocationId] = useState<number | ''>(initialLocationId ?? '')
   const [actualVis, setActualVis] = useState('')
   const [notes, setNotes] = useState('')
+  const [videoReport, setVideoReport] = useState<VisibilityReport | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
+
+  const onVideoResult = useCallback((report: VisibilityReport) => {
+    setVideoReport(report)
+    // Auto-fill actual_vis with the video median if user hasn't typed one
+    if (!actualVis) {
+      setActualVis(report.visibility_m.median.toFixed(1))
+    }
+  }, [actualVis])
 
   const dateOptions = useMemo(() => buildDateOptions(), [])
   const activeDay = useMemo(
@@ -41,7 +58,18 @@ export function ReportForm({ day, allDays, locations, onSubmitted }: Props) {
   )
 
   const handleSubmit = async () => {
-    if (!locationId || !actualVis || !activeDay) return
+    if (!locationId) {
+      setError('Please select a saved location')
+      return
+    }
+    if (!actualVis) {
+      setError('Please enter the actual visibility')
+      return
+    }
+    if (!activeDay) {
+      setError('No forecast data available for this date')
+      return
+    }
     const vis = parseFloat(actualVis)
     if (isNaN(vis) || vis < 0 || vis > 50) {
       setError('Visibility must be a number between 0 and 50')
@@ -50,13 +78,14 @@ export function ReportForm({ day, allDays, locations, onSubmitted }: Props) {
     setSubmitting(true)
     setError('')
     try {
+      const heightToMetres = (v: number) => units === 'ft' ? feetToMetres(v) : v
       await submitReport({
         location_id: Number(locationId),
         report_date: selectedDate,
         actual_vis: vis,
         predicted_vis: activeDay.vis_estimate,
-        wave_height: activeDay.wave_height,
-        swell_height: activeDay.swell_height,
+        wave_height: heightToMetres(activeDay.wave_height),
+        swell_height: heightToMetres(activeDay.swell_height),
         wind_speed: activeDay.wind_speed,
         wind_dir: activeDay.wind_dir,
         precipitation: activeDay.precipitation,
@@ -64,9 +93,17 @@ export function ReportForm({ day, allDays, locations, onSubmitted }: Props) {
         sea_temp: activeDay.sea_temp,
         algae_risk: activeDay.algae.risk,
         notes: notes.slice(0, 500) || undefined,
+        // Attach video DCP analysis only if validation passed
+        ...(videoReport && (!videoReport.validation || videoReport.validation.is_valid) ? {
+          video_vis_median: videoReport.visibility_m.median,
+          video_vis_p10: videoReport.visibility_m.p10,
+          video_vis_p90: videoReport.visibility_m.p90,
+          video_t_median: videoReport.t_median,
+          video_frame_count: videoReport.frameCount,
+        } : {}),
       })
       setDone(true)
-      setTimeout(onSubmitted, 1500)
+      setTimeout(onSubmitted, 2500)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to submit')
     } finally {
@@ -92,7 +129,7 @@ export function ReportForm({ day, allDays, locations, onSubmitted }: Props) {
         <select
           className={styles.select}
           value={selectedDate}
-          onChange={e => { setSelectedDate(e.target.value); setActualVis('') }}
+          onChange={e => setSelectedDate(e.target.value)}
         >
           {dateOptions.map(o => (
             <option key={o.value} value={o.value}>{o.label}</option>
@@ -143,6 +180,27 @@ export function ReportForm({ day, allDays, locations, onSubmitted }: Props) {
           rows={3}
           maxLength={500}
         />
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.label}>Dive video analysis (optional)</label>
+        <VisibilityAnalyser onResult={onVideoResult} />
+        {videoReport && (
+          <div className={styles.hint} style={
+            videoReport.validation && !videoReport.validation.is_valid
+              ? { color: '#c0392b' }
+              : undefined
+          }>
+            {videoReport.validation && !videoReport.validation.is_valid
+              ? `Video rejected — does not appear to be underwater footage (${Math.round(videoReport.validation.confidence * 100)}% confidence)`
+              : `Video analysis: ${videoReport.visibility_m.median.toFixed(1)}m median (${videoReport.frameCount} frames) — ${
+                  videoReport.validation
+                    ? `${Math.round(videoReport.validation.confidence * 100)}% underwater confidence`
+                    : 'this boosts report trust'
+                }`
+            }
+          </div>
+        )}
       </div>
 
       {error && <div className={styles.error}>{error}</div>}

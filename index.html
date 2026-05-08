@@ -3,7 +3,82 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DEPTHVIZ — Spearfishing Visibility</title>
+
+    <!-- Primary meta -->
+    <title>DepthViz — Underwater Visibility Forecast for Spearfishers</title>
+    <meta name="description" content="Real-time underwater visibility forecasts powered by weather, swell, and ocean data. Plan your spearfishing and freediving sessions with AI-calibrated predictions and community dive reports." />
+    <meta name="keywords" content="underwater visibility, spearfishing forecast, dive conditions, visibility forecast, freediving conditions, swell forecast, coastal visibility" />
+    <meta name="author" content="DepthViz" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Content-Security-Policy — inline fallback so the policy is always
+         applied even when the hosting platform ignores public/_headers.
+         'unsafe-eval' + 'wasm-unsafe-eval' are required by @techstark/opencv-js
+         (Emscripten glue uses `new Function(…)` at runtime).
+         NOTE: frame-ancestors is omitted here because <meta> CSP does not
+         support it; X-Frame-Options: DENY in _headers covers that instead. -->
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self'; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.tile.openstreetmap.org; connect-src 'self' https://*.supabase.co https://geocoding-api.open-meteo.com; font-src 'self'; worker-src 'self' blob:" />
+
+    <!-- Theme / PWA -->
+    <meta name="theme-color" content="#020d14" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="DepthViz" />
+    <meta name="application-name" content="DepthViz" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="DepthViz" />
+    <meta property="og:title" content="DepthViz — Underwater Visibility Forecast" />
+    <meta property="og:description" content="Real-time underwater visibility forecasts for spearfishers and freedivers. AI-calibrated predictions from weather, swell, and ocean data, refined by community dive reports." />
+    <meta property="og:image" content="/og-image.png" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="DepthViz — Underwater Visibility Forecast" />
+    <meta name="twitter:description" content="Real-time visibility forecasts for spearfishers and freedivers. Powered by weather, swell, and ocean data." />
+    <meta name="twitter:image" content="/og-image.png" />
+
+    <!-- Favicon (inline SVG) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23020d14'/%3E%3Ctext x='1' y='24' font-family='sans-serif' font-weight='900' font-size='19' fill='%2300c9ff'%3EDV%3C/text%3E%3C/svg%3E" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://depthviz.com/" />
+
+    <!-- OpenCV.js is bundled locally and dynamically imported on demand
+         (see src/lib/underwaterVisibility.ts). No external CDN needed. -->
+
+    <!-- Schema.org structured data — WebApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "DepthViz",
+      "url": "https://depthviz.com",
+      "description": "Real-time underwater visibility forecasts for spearfishers and freedivers, powered by weather, swell, and ocean data with AI calibration and community dive reports.",
+      "applicationCategory": "SportsApplication",
+      "operatingSystem": "Any",
+      "inLanguage": "en",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "GBP"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "DepthViz",
+        "url": "https://depthviz.com",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "email": "hello@depthviz.com",
+          "contactType": "customer support"
+        }
+      }
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>

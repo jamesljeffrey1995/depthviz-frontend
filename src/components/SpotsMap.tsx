@@ -1,33 +1,31 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { User } from '@supabase/supabase-js'
 import styles from './SpotsMap.module.css'
-import { createLocation } from '../lib/api'
+import { createLocation, voteLocation, removeVote } from '../lib/api'
+import type { Location } from '../types'
 
-interface DiveSpot {
+/** Shape of a private user spot stored in localStorage. */
+interface PrivateSpot {
+  id?: string
   name: string
   lat: number
   lon: number
   description: string
-  userAdded?: boolean
-  id?: string
-  isPublic?: boolean
-  createdBy?: string
   createdAt?: number
 }
 
 interface Props {
-  onSelectSpot: (lat: number, lon: number, name: string) => void
+  onSelectSpot: (lat: number, lon: number, name: string, locationId?: number) => void
   center?: [number, number]
   user?: User | null
   onShowAuth?: () => void
+  locations?: Location[]
 }
 
 const STORAGE_KEY = 'depthviz_user_spots'
-const VOTES_STORAGE_KEY = 'depthviz_spot_votes'
-const USER_VOTES_STORAGE_KEY = 'depthviz_user_vote_choices'
 
 /** Haversine distance in metres between two lat/lon points */
 function haversineMetres(
@@ -44,130 +42,8 @@ function haversineMetres(
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
-function loadVotes(): Record<string, number> {
-  try {
-    const raw = localStorage.getItem(VOTES_STORAGE_KEY)
-    if (!raw) return {}
-    const parsed = JSON.parse(raw)
-    if (typeof parsed !== 'object' || parsed === null) return {}
-    const sanitised: Record<string, number> = {}
-    for (const [k, v] of Object.entries(parsed)) {
-      const n = Number(v)
-      if (Number.isFinite(n) && n >= 0) sanitised[k] = n
-    }
-    return sanitised
-  } catch {
-    return {}
-  }
-}
-
-function saveVotes(votes: Record<string, number>) {
-  try {
-    localStorage.setItem(VOTES_STORAGE_KEY, JSON.stringify(votes))
-  } catch {
-    // storage full or disabled — vote persists in memory only
-  }
-}
-
-function loadUserVoteChoices(): Record<string, 'up' | 'down'> {
-  try {
-    const raw = localStorage.getItem(USER_VOTES_STORAGE_KEY)
-    if (!raw) return {}
-    const parsed = JSON.parse(raw)
-    if (typeof parsed !== 'object' || parsed === null) return {}
-    const sanitised: Record<string, 'up' | 'down'> = {}
-    for (const [k, v] of Object.entries(parsed)) {
-      if (v === 'up' || v === 'down') sanitised[k] = v
-    }
-    return sanitised
-  } catch {
-    return {}
-  }
-}
-
-function saveUserVoteChoices(choices: Record<string, 'up' | 'down'>) {
-  try {
-    localStorage.setItem(USER_VOTES_STORAGE_KEY, JSON.stringify(choices))
-  } catch {
-    // storage full or disabled — persists in memory only
-  }
-}
-
-function spotKey(spot: DiveSpot): string {
-  return spot.id ?? `${spot.name}-${spot.lat}-${spot.lon}`
-}
-
-export const UK_DIVE_SPOTS: DiveSpot[] = [
-  // Northeast England
-  { name: 'St Abbs', lat: 55.897, lon: -2.138, description: 'Marine reserve with excellent visibility and diverse marine life' },
-  { name: 'Eyemouth', lat: 55.871, lon: -2.090, description: 'Kelp forests and scenic wall dives' },
-  { name: 'Farne Islands', lat: 55.618, lon: -1.649, description: 'Grey seal colony and colourful reef walls' },
-  { name: 'Seahouses', lat: 55.585, lon: -1.655, description: 'Gateway to Farne Islands with wrecks nearby' },
-  { name: 'Beadnell', lat: 55.552, lon: -1.638, description: 'Sheltered bay with shallow reef dives' },
-  { name: 'Seaton Sluice', lat: 55.081, lon: -1.478, description: 'Shore dive with reefs and occasional wreck debris' },
-  { name: 'Tynemouth', lat: 55.017, lon: -1.423, description: 'North Sea shore dives with reefs and wrecks offshore' },
-  { name: 'Marsden Bay', lat: 54.997, lon: -1.375, description: 'Limestone sea stacks and cave diving' },
-  { name: 'Hartlepool', lat: 54.694, lon: -1.213, description: 'Offshore wrecks and rocky reef dives' },
-  { name: 'Whitby', lat: 54.489, lon: -0.613, description: 'Historic harbour town with wreck diving nearby' },
-  { name: 'Scarborough', lat: 54.280, lon: -0.401, description: 'North Sea wrecks and rocky reef dives' },
-  { name: 'Filey Brigg', lat: 54.217, lon: -0.270, description: 'Rocky headland with kelp beds and nudibranchs' },
-  { name: 'Flamborough Head', lat: 54.116, lon: -0.082, description: 'Chalk cliffs and cave diving' },
-  { name: 'Bridlington', lat: 54.083, lon: -0.193, description: 'Shallow reef dives with flatfish and crabs' },
-  // Scotland
-  { name: 'Bass Rock', lat: 56.078, lon: -2.640, description: 'Dramatic rock faces and gannet colony' },
-  { name: 'Dunbar', lat: 56.003, lon: -2.518, description: 'Shore diving with rocky reefs and diverse life' },
-  { name: 'Stonehaven', lat: 56.963, lon: -2.212, description: 'Rocky reefs and sheltered harbour dives' },
-  { name: 'Oban', lat: 56.412, lon: -5.471, description: 'Wreck capital of Scotland with varied diving' },
-  { name: 'Sound of Mull', lat: 56.516, lon: -5.864, description: 'Sheltered sound with spectacular wreck diving' },
-  { name: 'Loch Carron', lat: 57.383, lon: -5.550, description: 'Scenic sea loch with sea life and wrecks' },
-  { name: 'Isle of Skye', lat: 57.274, lon: -6.216, description: 'Remote diving with seals and basking sharks' },
-  { name: 'Scapa Flow', lat: 58.883, lon: -3.098, description: 'World-famous WWI wreck site in Orkney' },
-  { name: 'Shetland', lat: 60.154, lon: -1.145, description: 'Remote northern diving with stunning clarity' },
-  { name: 'St Kilda', lat: 57.814, lon: -8.570, description: 'Remote archipelago with outstanding underwater scenery' },
-  // Northern Ireland
-  { name: "Brown's Bay", lat: 54.803, lon: -5.737, description: 'Sheltered sandy bay on Islandmagee with easy shore diving' },
-  { name: 'Rathlin Island', lat: 55.300, lon: -6.197, description: 'Dramatic wrecks and abundant sea life off Northern Ireland' },
-  { name: 'Ballycastle', lat: 55.208, lon: -6.243, description: 'North Antrim coast dives with kelp and sea urchins' },
-  { name: 'Strangford Lough', lat: 54.380, lon: -5.607, description: 'Tidal narrows teeming with marine biodiversity' },
-  // Southwest England
-  { name: 'Plymouth', lat: 50.376, lon: -4.143, description: 'Wrecks, reefs and marine biology haven' },
-  { name: 'Wembury', lat: 50.321, lon: -4.062, description: 'Marine conservation area with diverse reef life' },
-  { name: 'Dartmouth', lat: 50.351, lon: -3.577, description: 'Estuary and offshore reef diving with wrecks' },
-  { name: 'Torbay', lat: 50.462, lon: -3.525, description: 'Sheltered bay with wrecks and soft coral' },
-  { name: 'Portland', lat: 50.573, lon: -2.450, description: 'Shore dives and quarry with clear water' },
-  { name: 'Chesil Cove', lat: 50.543, lon: -2.444, description: 'Popular shore dive entry point' },
-  { name: 'Chesil Beach', lat: 50.610, lon: -2.558, description: 'Shore dive with seasonal visibility' },
-  { name: 'Swanage', lat: 50.609, lon: -1.960, description: 'Pier diving and the famous Swanage Pier' },
-  { name: 'Kimmeridge Bay', lat: 50.607, lon: -2.117, description: 'Jurassic Coast shore dive and marine reserve' },
-  { name: 'Lundy Island', lat: 51.174, lon: -4.668, description: 'Marine conservation zone with seal dives' },
-  { name: 'Porthkerris', lat: 50.053, lon: -5.070, description: 'Shore dive on the Lizard Peninsula' },
-  { name: 'Falmouth', lat: 50.154, lon: -5.064, description: 'Sheltered harbour with wrecks and reefs' },
-  { name: 'Mevagissey', lat: 50.270, lon: -4.778, description: 'Cornish fishing port with reef and wreck dives nearby' },
-  { name: 'Isles of Scilly', lat: 49.914, lon: -6.315, description: 'Crystal-clear waters with abundant marine life' },
-  // South England
-  { name: 'Bournemouth', lat: 50.714, lon: -1.870, description: 'Pier dive and shallow reef in sheltered bay' },
-  { name: 'Poole', lat: 50.715, lon: -1.988, description: 'Shallow harbour and offshore wrecks' },
-  { name: 'Selsey', lat: 50.730, lon: -0.790, description: 'Mixon Hole reef and lobster spotting' },
-  { name: 'Brighton', lat: 50.815, lon: -0.137, description: 'Marina wreck and pier dives' },
-  { name: 'Eastbourne', lat: 50.768, lon: 0.282, description: 'Shore dives with chalk reef and wrecks offshore' },
-  { name: 'Hastings', lat: 50.856, lon: 0.571, description: 'Shallow reef dives with historic wreck sites' },
-  { name: 'Folkestone', lat: 51.081, lon: 1.167, description: 'Underwater sculpture park and reef dives' },
-  { name: 'Dover', lat: 51.127, lon: 1.329, description: 'English Channel wrecks and white cliff walls' },
-  { name: 'The Needles', lat: 50.664, lon: -1.591, description: 'Isle of Wight chalk stacks with wrecks nearby' },
-  // Wales
-  { name: 'Dale', lat: 51.709, lon: -5.158, description: 'Pembrokeshire coast with seal encounters' },
-  { name: 'Pembrokeshire', lat: 51.748, lon: -5.047, description: 'Spectacular coast with diverse marine life' },
-  { name: 'Ramsey Island', lat: 51.873, lon: -5.323, description: 'Tidal races and grey seal breeding grounds' },
-  { name: 'Bardsey Island', lat: 52.757, lon: -4.795, description: 'Remote island with clear water and porpoise' },
-  { name: 'Anglesey', lat: 53.258, lon: -4.310, description: 'Strong currents with wrecks and reefs' },
-  // Inland
-  { name: 'Capernwray', lat: 54.150, lon: -2.758, description: 'Inland dive centre with sunken attractions' },
-  { name: 'Stoney Cove', lat: 52.567, lon: -1.212, description: 'UK\'s national diving centre, inland quarry' },
-  { name: 'Chepstow Quarry', lat: 51.643, lon: -2.672, description: 'Inland quarry dive site with clear freshwater' },
-]
-
-// Built-in spot marker (cyan)
-const spotIcon = new L.Icon({
+// Predefined spot marker (cyan)
+const predefinedIcon = new L.Icon({
   iconUrl: 'data:image/svg+xml,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="36" viewBox="0 0 24 36">' +
     '<path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#00c9ff"/>' +
@@ -179,8 +55,8 @@ const spotIcon = new L.Icon({
   popupAnchor: [0, -36],
 })
 
-// User-added spot marker (amber)
-const userSpotIcon = new L.Icon({
+// User-added private spot marker (amber)
+const privateSpotIcon = new L.Icon({
   iconUrl: 'data:image/svg+xml,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="36" viewBox="0 0 24 36">' +
     '<path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#ffb800"/>' +
@@ -192,7 +68,7 @@ const userSpotIcon = new L.Icon({
   popupAnchor: [0, -36],
 })
 
-// User-added PUBLIC spot marker (green)
+// Public spot marker (green)
 const publicSpotIcon = new L.Icon({
   iconUrl: 'data:image/svg+xml,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="36" viewBox="0 0 24 36">' +
@@ -222,25 +98,20 @@ const pendingIcon = new L.Icon({
 const UK_CENTER: [number, number] = [54.5, -3.5]
 const UK_ZOOM = 5
 
-function loadUserSpots(): DiveSpot[] {
+function loadPrivateSpots(): PrivateSpot[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return []
     const parsed = JSON.parse(raw)
     if (!Array.isArray(parsed)) return []
-    return parsed
-      .filter(
-        (s: unknown) =>
-          s !== null &&
-          typeof s === 'object' &&
-          typeof (s as DiveSpot).name === 'string' &&
-          typeof (s as DiveSpot).lat === 'number' &&
-          typeof (s as DiveSpot).lon === 'number'
-      )
-      .map((s: DiveSpot) => ({
-        ...s,
-        isPublic: s.isPublic === true, // normalise to strict boolean
-      }))
+    return parsed.filter(
+      (s: unknown) =>
+        s !== null &&
+        typeof s === 'object' &&
+        typeof (s as PrivateSpot).name === 'string' &&
+        typeof (s as PrivateSpot).lat === 'number' &&
+        typeof (s as PrivateSpot).lon === 'number'
+    )
   } catch {
     return []
   }
@@ -255,8 +126,8 @@ function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lon: number
   return null
 }
 
-export function SpotsMap({ onSelectSpot, center, user, onShowAuth }: Props) {
-  const [userSpots, setUserSpots] = useState<DiveSpot[]>(loadUserSpots)
+export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [] }: Props) {
+  const [privateSpots, setPrivateSpots] = useState<PrivateSpot[]>(loadPrivateSpots)
   const [adding, setAdding] = useState(false)
   const [pendingPos, setPendingPos] = useState<{ lat: number; lon: number } | null>(null)
   const [newName, setNewName] = useState('')
@@ -264,8 +135,68 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth }: Props) {
   const [isPublic, setIsPublic] = useState(false)
   const [proximityError, setProximityError] = useState('')
   const [syncWarning, setSyncWarning] = useState('')
-  const [votes, setVotes] = useState<Record<string, number>>(loadVotes)
-  const [userVoteChoices, setUserVoteChoices] = useState<Record<string, 'up' | 'down'>>(loadUserVoteChoices)
+
+  // DB-backed vote state: keyed by location.id
+  const makeDbVoteCounts = (locs: Location[]): Record<number, number> => {
+    const result: Record<number, number> = {}
+    for (const l of locs) result[l.id] = l.vote_count
+    return result
+  }
+  const makeDbUserVotes = (locs: Location[]): Record<number, 'up' | 'down' | null> => {
+    const result: Record<number, 'up' | 'down' | null> = {}
+    for (const l of locs) result[l.id] = l.user_vote
+    return result
+  }
+  const [dbVoteCounts, setDbVoteCounts] = useState<Record<number, number>>(() =>
+    makeDbVoteCounts(locations)
+  )
+  const [dbUserVotes, setDbUserVotes] = useState<Record<number, 'up' | 'down' | null>>(() =>
+    makeDbUserVotes(locations)
+  )
+  const [voteError, setVoteError] = useState<string | null>(null)
+  const voteErrorTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Clear vote error timeout on unmount
+  useEffect(() => () => {
+    if (voteErrorTimer.current) clearTimeout(voteErrorTimer.current)
+  }, [])
+
+  // Track which locations have an in-flight vote to prevent race conditions
+  const votingInFlight = useRef<Set<number>>(new Set())
+
+  // Keep DB vote state in sync when locations prop refreshes,
+  // but skip locations with in-flight votes to avoid overwriting optimistic state
+  useEffect(() => {
+    setDbVoteCounts(prev => {
+      const next = { ...prev }
+      for (const l of locations) {
+        if (!votingInFlight.current.has(l.id)) next[l.id] = l.vote_count
+      }
+      return next
+    })
+    setDbUserVotes(prev => {
+      const next = { ...prev }
+      for (const l of locations) {
+        if (!votingInFlight.current.has(l.id)) next[l.id] = l.user_vote
+      }
+      return next
+    })
+  }, [locations])
+
+  // Migrate: strip any old public/userAdded spots from localStorage
+  // (they now live exclusively in the DB)
+  useEffect(() => {
+    const cleaned = privateSpots.filter((s: PrivateSpot & { isPublic?: boolean; userAdded?: boolean }) => !s.isPublic)
+    if (cleaned.length !== privateSpots.length) {
+      setPrivateSpots(cleaned)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned))
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  /** DB locations not already covered by a private localStorage spot */
+  const dbLocations = locations.filter(loc =>
+    !privateSpots.some(s => haversineMetres(s.lat, s.lon, loc.lat, loc.lon) < 50)
+  )
 
   const handleMapClick = useCallback((lat: number, lon: number) => {
     if (!adding) return
@@ -275,11 +206,8 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth }: Props) {
 
   const handleAddSpotClick = () => {
     if (user || !onShowAuth) {
-      // If user is logged in, or no auth handler is provided (backwards compatibility),
-      // just enter add mode.
       setAdding(true)
     } else {
-      // If an auth handler is provided and no user is logged in, trigger auth.
       onShowAuth()
     }
   }
@@ -287,45 +215,42 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth }: Props) {
   const handleSaveSpot = async () => {
     if (!pendingPos || !newName.trim()) return
 
-    // 100m proximity check for public custom spots
+    // 100m proximity check for public spots against all DB locations
     if (isPublic) {
-      const allPublicCustom = userSpots.filter(s => s.isPublic)
-      const tooClose = allPublicCustom.find(
-        s => haversineMetres(s.lat, s.lon, pendingPos.lat, pendingPos.lon) < 100,
+      const tooCloseDb = locations.find(
+        l => l.is_public && haversineMetres(l.lat, l.lon, pendingPos.lat, pendingPos.lon) < 100,
       )
-      if (tooClose) {
+      if (tooCloseDb) {
         setProximityError(
-          `Too close to existing public spot "${tooClose.name}" (must be ≥ 100 m apart)`,
+          `Too close to existing public spot "${tooCloseDb.name}" (must be \u2265 100 m apart)`,
         )
         return
       }
     }
 
-    const spot: DiveSpot = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      name: newName.trim(),
-      lat: pendingPos.lat,
-      lon: pendingPos.lon,
-      description: newDesc.trim() || 'User-added dive spot',
-      userAdded: true,
-      isPublic,
-      createdBy: user ? 'You' : undefined,
-      createdAt: Date.now(),
-    }
-
-    // If public, also push to the backend; downgrade to private on failure
     if (isPublic) {
+      // Public spots go straight to the DB — no localStorage
       try {
-        await createLocation(spot.name, spot.lat, spot.lon, true)
+        await createLocation(newName.trim(), pendingPos.lat, pendingPos.lon, true)
       } catch {
-        spot.isPublic = false
-        setSyncWarning('Could not publish spot — saved as private instead. Try again later.')
+        setSyncWarning('Could not publish spot — try again later.')
+        return
       }
+    } else {
+      // Private spots are localStorage-only
+      const spot: PrivateSpot = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        name: newName.trim(),
+        lat: pendingPos.lat,
+        lon: pendingPos.lon,
+        description: newDesc.trim() || 'User-added dive spot',
+        createdAt: Date.now(),
+      }
+      const updated = [...privateSpots, spot]
+      setPrivateSpots(updated)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
     }
 
-    const updated = [...userSpots, spot]
-    setUserSpots(updated)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
     setAdding(false)
     setPendingPos(null)
     setNewName('')
@@ -343,65 +268,51 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth }: Props) {
     setProximityError('')
   }
 
-  const handleRemoveUserSpot = (spot: DiveSpot) => {
+  const handleRemovePrivateSpot = (spot: PrivateSpot) => {
     const updated = spot.id
-      ? userSpots.filter(s => s.id !== spot.id)
-      : userSpots.filter(s => !(s.name === spot.name && s.lat === spot.lat && s.lon === spot.lon))
-    setUserSpots(updated)
+      ? privateSpots.filter(s => s.id !== spot.id)
+      : privateSpots.filter(s => !(s.name === spot.name && s.lat === spot.lat && s.lon === spot.lon))
+    setPrivateSpots(updated)
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
-
-    // Clean up stale vote and user vote choice entries
-    const key = spotKey(spot)
-    setVotes(prev => {
-      if (!(key in prev)) return prev
-      const next = { ...prev }
-      delete next[key]
-      saveVotes(next)
-      return next
-    })
-    setUserVoteChoices(prev => {
-      if (!(key in prev)) return prev
-      const next = { ...prev }
-      delete next[key]
-      saveUserVoteChoices(next)
-      return next
-    })
   }
 
-  const handleVote = (spot: DiveSpot, delta: 1 | -1) => {
-    const key = spotKey(spot)
-    const direction = delta === 1 ? 'up' : 'down'
-    const existing = userVoteChoices[key]
+  const handleDbVote = useCallback(async (locationId: number, direction: 'up' | 'down') => {
+    // Prevent rapid double-clicks from corrupting state
+    if (votingInFlight.current.has(locationId)) return
+    votingInFlight.current.add(locationId)
+    setVoteError(null)
 
-    let voteDelta: number
-    let nextChoices: Record<string, 'up' | 'down'>
+    const existing = dbUserVotes[locationId]
+    const prevCount = dbVoteCounts[locationId] ?? 0
 
-    if (existing === direction) {
-      // Clicking same button again — toggle off (remove vote)
-      voteDelta = direction === 'up' ? -1 : 1
-      nextChoices = { ...userVoteChoices }
-      delete nextChoices[key]
-    } else if (existing) {
-      // Switching vote (e.g. up → down): reverse previous + apply new
-      voteDelta = direction === 'up' ? 2 : -2
-      nextChoices = { ...userVoteChoices, [key]: direction }
-    } else {
-      // Fresh vote
-      voteDelta = delta
-      nextChoices = { ...userVoteChoices, [key]: direction }
+    // Optimistic update
+    const isUnvote = existing === direction
+    const optimisticVote = isUnvote ? null : direction
+    const optimisticDelta = isUnvote ? (existing === 'up' ? -1 : 1) : (direction === 'up' ? (existing === 'down' ? 2 : 1) : (existing === 'up' ? -2 : -1))
+    setDbVoteCounts(prev => ({ ...prev, [locationId]: Math.max(0, prevCount + optimisticDelta) }))
+    setDbUserVotes(prev => ({ ...prev, [locationId]: optimisticVote }))
+
+    try {
+      let updated: Location
+      if (isUnvote) {
+        updated = await removeVote(locationId)
+      } else {
+        updated = await voteLocation(locationId, direction)
+      }
+      // Sync with server response
+      setDbVoteCounts(prev => ({ ...prev, [locationId]: updated.vote_count }))
+      setDbUserVotes(prev => ({ ...prev, [locationId]: updated.user_vote }))
+    } catch {
+      // Rollback on failure and show brief error
+      setDbVoteCounts(prev => ({ ...prev, [locationId]: prevCount }))
+      setDbUserVotes(prev => ({ ...prev, [locationId]: existing }))
+      setVoteError('Vote failed — please try again')
+      if (voteErrorTimer.current) clearTimeout(voteErrorTimer.current)
+      voteErrorTimer.current = setTimeout(() => setVoteError(null), 3000)
+    } finally {
+      votingInFlight.current.delete(locationId)
     }
-
-    setVotes(prev => {
-      const current = prev[key] ?? 0
-      const updated = current + voteDelta
-      if (updated < 0) return prev // prevent negative vote totals
-      const next = { ...prev, [key]: updated }
-      saveVotes(next)
-      return next
-    })
-    setUserVoteChoices(nextChoices)
-    saveUserVoteChoices(nextChoices)
-  }
+  }, [dbUserVotes, dbVoteCounts])
 
   return (
     <div className={styles.wrapper}>
@@ -419,55 +330,63 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth }: Props) {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           {adding && <MapClickHandler onMapClick={handleMapClick} />}
-          {UK_DIVE_SPOTS.map(spot => (
-            <Marker key={spot.name} position={[spot.lat, spot.lon]} icon={spotIcon}>
-              <Popup>
-                <div className={styles.popup}>
-                  <div className={styles.popupName}>{spot.name}</div>
-                  <div className={styles.popupDesc}>{spot.description}</div>
-                  <button
-                    className={styles.popupBtn}
-                    onClick={() => onSelectSpot(spot.lat, spot.lon, spot.name)}
-                  >
-                    View Forecast &rsaquo;
-                  </button>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
-          {userSpots.map((spot) => (
+          {/* DB locations: predefined (cyan) and user-created public (green) */}
+          {dbLocations.map(loc => {
+            const voteCount = dbVoteCounts[loc.id] ?? 0
+            const userVote = dbUserVotes[loc.id]
+            const icon = loc.is_predefined ? predefinedIcon : publicSpotIcon
+            return (
+              <Marker
+                key={`db-${loc.id}`}
+                position={[loc.lat, loc.lon]}
+                icon={icon}
+              >
+                <Popup>
+                  <div className={styles.popup}>
+                    {!loc.is_predefined && (
+                      <div className={styles.popupPublicBadge}>Public Spot</div>
+                    )}
+                    <div className={styles.popupName}>{loc.name}</div>
+                    <div className={styles.voteRow}>
+                      <button
+                        className={`${styles.voteBtn} ${userVote === 'up' ? styles.voteBtnActive : ''}`}
+                        onClick={() => handleDbVote(loc.id, 'up')}
+                        aria-label="Upvote this spot"
+                      >
+                        👍
+                      </button>
+                      <span className={styles.voteCount}>{voteCount}</span>
+                      <button
+                        className={`${styles.voteBtn} ${userVote === 'down' ? styles.voteBtnActive : ''}`}
+                        onClick={() => handleDbVote(loc.id, 'down')}
+                        aria-label="Downvote this spot"
+                      >
+                        👎
+                      </button>
+                    </div>
+                    <button
+                      className={styles.popupBtn}
+                      onClick={() => onSelectSpot(loc.lat, loc.lon, loc.name, loc.id)}
+                    >
+                      View Forecast &rsaquo;
+                    </button>
+                  </div>
+                </Popup>
+              </Marker>
+            )
+          })}
+          {/* Private localStorage spots (amber) */}
+          {privateSpots.map(spot => (
             <Marker
-              key={spot.id ?? `user-${spot.name}-${spot.lat}-${spot.lon}`}
+              key={spot.id ?? `priv-${spot.name}-${spot.lat}-${spot.lon}`}
               position={[spot.lat, spot.lon]}
-              icon={spot.isPublic ? publicSpotIcon : userSpotIcon}
+              icon={privateSpotIcon}
             >
               <Popup>
                 <div className={styles.popup}>
-                  <div className={spot.isPublic ? styles.popupPublicBadge : styles.popupUserBadge}>
-                    {spot.isPublic ? 'Public Spot' : 'My Spot (private)'}
-                  </div>
+                  <div className={styles.popupUserBadge}>My Spot (private)</div>
                   <div className={styles.popupName}>{spot.name}</div>
                   <div className={styles.popupDesc}>{spot.description}</div>
-                  {spot.createdBy && (
-                    <div className={styles.popupCreator}>Added by {spot.createdBy}</div>
-                  )}
-                  <div className={styles.voteRow}>
-                    <button
-                      className={`${styles.voteBtn} ${userVoteChoices[spotKey(spot)] === 'up' ? styles.voteBtnActive : ''}`}
-                      onClick={() => handleVote(spot, 1)}
-                      aria-label="Upvote this spot"
-                    >
-                      👍
-                    </button>
-                    <span className={styles.voteCount}>{votes[spotKey(spot)] ?? 0}</span>
-                    <button
-                      className={`${styles.voteBtn} ${userVoteChoices[spotKey(spot)] === 'down' ? styles.voteBtnActive : ''}`}
-                      onClick={() => handleVote(spot, -1)}
-                      aria-label="Downvote this spot"
-                    >
-                      👎
-                    </button>
-                  </div>
                   <button
                     className={styles.popupBtn}
                     onClick={() => onSelectSpot(spot.lat, spot.lon, spot.name)}
@@ -476,7 +395,7 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth }: Props) {
                   </button>
                   <button
                     className={styles.popupRemoveBtn}
-                    onClick={() => handleRemoveUserSpot(spot)}
+                    onClick={() => handleRemovePrivateSpot(spot)}
                   >
                     Remove Spot
                   </button>
@@ -489,7 +408,7 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth }: Props) {
               <Popup>
                 <div className={styles.popup}>
                   <div className={styles.popupDesc}>
-                    {pendingPos.lat.toFixed(4)}°, {pendingPos.lon.toFixed(4)}°
+                    {pendingPos.lat.toFixed(4)}, {pendingPos.lon.toFixed(4)}
                   </div>
                   <div className={styles.popupDesc}>Fill in name below and save</div>
                 </div>
@@ -504,14 +423,14 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth }: Props) {
           <div className={styles.addFormTitle}>Add a Dive Spot</div>
           <div className={styles.addFormPrivacy}>
             {isPublic
-              ? '🌍 This spot will be submitted for public visibility'
-              : '🔒 Saved to this browser only — not visible to other users'}
+              ? 'This spot will be submitted for public visibility'
+              : 'Saved to this browser only — not visible to other users'}
           </div>
           {!pendingPos ? (
-            <div className={styles.addFormHint}>↑ Click anywhere on the map to place your spot</div>
+            <div className={styles.addFormHint}>Click anywhere on the map to place your spot</div>
           ) : (
             <div className={styles.addFormHint}>
-              📍 {pendingPos.lat.toFixed(4)}°, {pendingPos.lon.toFixed(4)}° — tap map to reposition
+              {pendingPos.lat.toFixed(4)}, {pendingPos.lon.toFixed(4)} — tap map to reposition
             </div>
           )}
           {proximityError && (
@@ -525,19 +444,19 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth }: Props) {
                 onClick={() => { setIsPublic(false); setProximityError('') }}
                 type="button"
               >
-                🔒 Private
+                Private
               </button>
               <button
                 className={`${styles.toggleBtn} ${isPublic ? styles.toggleBtnActivePublic : ''}`}
                 onClick={() => { setIsPublic(true); setProximityError('') }}
                 type="button"
               >
-                🌍 Public
+                Public
               </button>
             </div>
             {isPublic && (
               <div className={styles.addFormHint}>
-                Public spots must be ≥ 100 m from other public custom spots
+                Public spots must be &ge; 100 m from other public spots
               </div>
             )}
           </div>
@@ -581,16 +500,16 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth }: Props) {
           <button className={styles.addSpotBtn} onClick={handleAddSpotClick}>
             + Add a Spot
           </button>
-          {userSpots.length > 0 && (() => {
-            const publicCount = userSpots.filter(s => s.isPublic).length
-            return (
-              <span className={styles.userSpotsCount}>
-                {userSpots.length} custom spot{userSpots.length !== 1 ? 's' : ''}
-                {' '}({publicCount} public, {userSpots.length - publicCount} private)
-              </span>
-            )
-          })()}
+          {privateSpots.length > 0 && (
+            <span className={styles.userSpotsCount}>
+              {privateSpots.length} private spot{privateSpots.length !== 1 ? 's' : ''}
+            </span>
+          )}
         </div>
+      )}
+
+      {voteError && (
+        <div className={styles.addFormError}>{voteError}</div>
       )}
 
       {syncWarning && (
