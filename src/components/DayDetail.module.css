@@ -525,3 +525,40 @@
   color: var(--text-bright);
   text-align: right;
 }
+
+/* ── Shallow-water depth advisory ── */
+.shallowNote {
+  background: rgba(212, 133, 10, 0.08);
+  border: 1px solid rgba(212, 133, 10, 0.25);
+  border-left: 3px solid #d4850a;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+}
+
+.shallowNoteMod {
+  background: rgba(224, 108, 0, 0.08);
+  border-color: rgba(224, 108, 0, 0.3);
+  border-left-color: #e06c00;
+}
+
+.shallowNoteHigh {
+  background: rgba(192, 57, 43, 0.08);
+  border-color: rgba(192, 57, 43, 0.3);
+  border-left-color: #c0392b;
+}
+
+.shallowNoteLabel {
+  font-size: 8px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--text);
+  opacity: 0.55;
+  margin-bottom: 4px;
+}
+
+.shallowNoteText {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: #d4850a;
+  line-height: 1.55;
+}
