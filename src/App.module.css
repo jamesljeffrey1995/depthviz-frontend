@@ -48,12 +48,21 @@
   line-height: 1.6;
 }
 
+/* ── Header controls (unit toggle + depth select) ── */
+.headerControls {
+  display: inline-flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: var(--space-sm);
+}
+
 /* ── Unit toggle (ft / m) ── */
 .unitToggle {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-top: var(--space-sm);
 }
 
 .unitLabel {
@@ -123,6 +132,52 @@
 .toggleSwitch input:focus-visible + .toggleSlider {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* ── Depth select ── */
+.depthSelect {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.depthSelectLabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text);
+  opacity: 0.4;
+}
+
+.depthSelectInput {
+  background: rgba(0, 201, 255, 0.06);
+  border: 1px solid rgba(0, 201, 255, 0.2);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  padding: 4px 8px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 28px;
+  min-width: 52px;
+  text-align: center;
+}
+
+.depthSelectInput:hover {
+  border-color: rgba(0, 201, 255, 0.4);
+}
+
+.depthSelectInput:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.depthSelectInput option {
+  background: rgb(4, 20, 30);
+  color: var(--text-bright);
 }
 
 /* ── Error ── */
