@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { DayForecast } from '../types'
-import { getImpact } from '../lib/visibility'
+import { getImpact, getShallowWaterConfidence } from '../lib/visibility'
 import { getWaterQuality } from '../lib/units'
 import { SwellCompass } from './SwellCompass'
 import styles from './DayDetail.module.css'
@@ -15,6 +15,7 @@ interface Props {
   isAdmin?: boolean
   biasOffset?: number | null
   globalBiasOffset?: number | null
+  maxDiveDepth?: number
 }
 
 function getTurbidity(penalty: number): { label: string; color: string; spm: string; description: string } {
@@ -132,7 +133,7 @@ function buildTrace(day: DayForecast): TraceRow[] {
   return rows
 }
 
-export function DayDetail({ day, locationName, reportCount, units = 'm', isAdmin = false, biasOffset = null, globalBiasOffset = null }: Props) {
+export function DayDetail({ day, locationName, reportCount, units = 'm', isAdmin = false, biasOffset = null, globalBiasOffset = null, maxDiveDepth }: Props) {
   const [showAdvanced, setShowAdvanced] = useState(false)
   const vis = day.vis_corrected ?? day.vis_estimate
   const pct = (vis / 15) * 100
@@ -156,6 +157,10 @@ export function DayDetail({ day, locationName, reportCount, units = 'm', isAdmin
   const windKn = day.wind_speed ?? 0
   const waveGate = dominantWaveM > 4
   const windWaveGate = windKn > 35 && dominantWaveM > 2
+
+  const shallowWarning = (maxDiveDepth != null && maxDiveDepth < 20)
+    ? getShallowWaterConfidence(dominantWaveM, windKn, maxDiveDepth)
+    : null
 
   return (
     <div className={styles.card}>
@@ -239,6 +244,29 @@ export function DayDetail({ day, locationName, reportCount, units = 'm', isAdmin
           {elevatedWarnings.map((w, i) => (
             <div key={i} className={styles.warningItem}>{w}</div>
           ))}
+        </div>
+      )}
+
+      {/* Shallow-water depth advisory */}
+      {shallowWarning && (
+        <div className={[
+          styles.shallowNote,
+          shallowWarning.severity === 'moderate' ? styles.shallowNoteMod : '',
+          shallowWarning.severity === 'high' ? styles.shallowNoteHigh : '',
+        ].filter(Boolean).join(' ')}>
+          <div className={styles.shallowNoteLabel}>
+            Shallow-water advisory · max {maxDiveDepth}m
+          </div>
+          <div
+            className={styles.shallowNoteText}
+            style={{
+              color: shallowWarning.severity === 'high' ? '#e05555'
+                : shallowWarning.severity === 'moderate' ? '#e06c00'
+                : undefined,
+            }}
+          >
+            {shallowWarning.note}
+          </div>
         </div>
       )}
 
