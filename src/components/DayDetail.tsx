@@ -162,6 +162,17 @@ export function DayDetail({ day, locationName, reportCount, units = 'm', isAdmin
     ? getShallowWaterConfidence(dominantWaveM, windKn, maxDiveDepth)
     : null
 
+  const shallowNote = shallowWarning ? (() => {
+    const parts: string[] = []
+    if (shallowWarning.waveExceeded) {
+      parts.push(units === 'ft'
+        ? `${(shallowWarning.waveHeightM * 3.28084).toFixed(1)}ft waves`
+        : `${shallowWarning.waveHeightM.toFixed(1)}m waves`)
+    }
+    if (shallowWarning.windExceeded) parts.push(`${Math.round(shallowWarning.windKnots)}kn wind`)
+    return `${parts.join(' & ')} — surface mixing may reduce visibility at ${maxDiveDepth}m more than the forecast reflects`
+  })() : null
+
   return (
     <div className={styles.card}>
       <div className={styles.header}>
@@ -257,15 +268,12 @@ export function DayDetail({ day, locationName, reportCount, units = 'm', isAdmin
           <div className={styles.shallowNoteLabel}>
             Shallow-water advisory · max {maxDiveDepth}m
           </div>
-          <div
-            className={styles.shallowNoteText}
-            style={{
-              color: shallowWarning.severity === 'high' ? '#e05555'
-                : shallowWarning.severity === 'moderate' ? '#e06c00'
-                : undefined,
-            }}
-          >
-            {shallowWarning.note}
+          <div className={[
+            styles.shallowNoteText,
+            shallowWarning.severity === 'moderate' ? styles.shallowNoteTextMod : '',
+            shallowWarning.severity === 'high' ? styles.shallowNoteTextHigh : '',
+          ].filter(Boolean).join(' ')}>
+            {shallowNote}
           </div>
         </div>
       )}
