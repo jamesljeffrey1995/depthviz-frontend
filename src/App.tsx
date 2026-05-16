@@ -58,8 +58,14 @@ export default function App() {
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null)
   const [units, setUnits] = useState<'ft' | 'm'>('ft')
   const [diveDepth, setDiveDepth] = useState<number>(() => {
-    const stored = localStorage.getItem('diveDepth')
-    return stored ? Number(stored) : 30
+    const VALID_DEPTHS = [5, 10, 15, 20, 30]
+    try {
+      const stored = localStorage.getItem('diveDepth')
+      const parsed = stored !== null ? Number(stored) : NaN
+      return VALID_DEPTHS.includes(parsed) ? parsed : 30
+    } catch {
+      return 30
+    }
   })
 
   const navigate = useNavigate()
@@ -230,7 +236,7 @@ export default function App() {
               onChange={e => {
                 const v = Number(e.target.value)
                 setDiveDepth(v)
-                localStorage.setItem('diveDepth', String(v))
+                try { localStorage.setItem('diveDepth', String(v)) } catch {}
               }}
               aria-label="Your maximum dive depth in metres"
             >
@@ -294,7 +300,7 @@ export default function App() {
             disabled={!!selectedLocationId}
             aria-label={selectedLocationId ? 'Location already saved' : !user ? 'Save this location (sign in required)' : 'Save this location'}
           >
-            {selectedLocationId ? 'Saved ✓' : <>+ Save{!user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}</>}
+            {selectedLocationId ? 'Saved ✓' : <><span>+ Save</span>{!user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}</>}
           </button>
           {!selectedLocationId && (
             <button

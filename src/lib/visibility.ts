@@ -211,39 +211,27 @@ export function calculateVisibility(
   }
 }
 
-/**
- * Returns a shallow-water advisory when surface conditions (wave/wind) are likely
- * to affect a diver's specific depth more than the overall visibility score reflects.
- * Returns null for depths >= 20m or when conditions are within thresholds.
- */
 export function getShallowWaterConfidence(
   waveHeightM: number,
   windKnots: number,
   maxDiveDepthM: number,
-): { severity: 'low' | 'moderate' | 'high'; note: string } | null {
-  if (maxDiveDepthM >= 20) return null
+): { severity: 'low' | 'moderate' | 'high'; waveExceeded: boolean; windExceeded: boolean; waveHeightM: number; windKnots: number } | null {
+  if (!Number.isFinite(maxDiveDepthM) || maxDiveDepthM <= 0 || maxDiveDepthM >= 20) return null
 
   // Thresholds scale with depth: at 10m, flag above 0.67m wave / 16kn wind
   const waveThreshold = maxDiveDepthM / 15
   const windThreshold = maxDiveDepthM * 1.6
 
-  const waveOver = waveHeightM > waveThreshold
-  const windOver = windKnots > windThreshold
+  const waveExceeded = waveHeightM > waveThreshold
+  const windExceeded = windKnots > windThreshold
 
-  if (!waveOver && !windOver) return null
-
-  const factors: string[] = []
-  if (waveOver) factors.push(`${waveHeightM.toFixed(1)}m waves`)
-  if (windOver) factors.push(`${Math.round(windKnots)}kn wind`)
+  if (!waveExceeded && !windExceeded) return null
 
   const ratio = Math.max(
-    waveOver ? waveHeightM / waveThreshold : 0,
-    windOver ? windKnots / windThreshold : 0,
+    waveExceeded ? waveHeightM / waveThreshold : 0,
+    windExceeded ? windKnots / windThreshold : 0,
   )
   const severity: 'low' | 'moderate' | 'high' = ratio > 2.5 ? 'high' : ratio > 1.6 ? 'moderate' : 'low'
 
-  return {
-    severity,
-    note: `${factors.join(' & ')} — surface mixing may reduce visibility at ${maxDiveDepthM}m more than the forecast reflects`,
-  }
+  return { severity, waveExceeded, windExceeded, waveHeightM, windKnots }
 }
