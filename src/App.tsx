@@ -57,6 +57,16 @@ export default function App() {
   const [showAuth, setShowAuth] = useState(false)
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null)
   const [units, setUnits] = useState<'ft' | 'm'>('ft')
+  const [diveDepth, setDiveDepth] = useState<number>(() => {
+    const VALID_DEPTHS = [5, 10, 15, 20, 30]
+    try {
+      const stored = localStorage.getItem('diveDepth')
+      const parsed = stored !== null ? Number(stored) : NaN
+      return VALID_DEPTHS.includes(parsed) ? parsed : 30
+    } catch {
+      return 30
+    }
+  })
 
   const navigate = useNavigate()
   const location = useLocation()
@@ -198,23 +208,45 @@ export default function App() {
         <p className={styles.valueProp}>
           AI-calibrated 7-day forecasts · swell, current &amp; ocean data · community-verified
         </p>
-        <div className={styles.unitToggle} role="group" aria-label="Wave height units">
-          <span
-            className={`${styles.unitLabel} ${units === 'ft' ? styles.unitLabelActive : ''}`}
-            onClick={() => setUnits('ft')}
-          >FT</span>
-          <label className={styles.toggleSwitch}>
-            <input
-              type="checkbox"
-              checked={units === 'm'}
-              onChange={(e) => setUnits(e.target.checked ? 'm' : 'ft')}
-            />
-            <span className={styles.toggleSlider} />
-          </label>
-          <span
-            className={`${styles.unitLabel} ${units === 'm' ? styles.unitLabelActive : ''}`}
-            onClick={() => setUnits('m')}
-          >M</span>
+        <div className={styles.headerControls}>
+          <div className={styles.unitToggle} role="group" aria-label="Wave height units">
+            <span
+              className={`${styles.unitLabel} ${units === 'ft' ? styles.unitLabelActive : ''}`}
+              onClick={() => setUnits('ft')}
+            >FT</span>
+            <label className={styles.toggleSwitch}>
+              <input
+                type="checkbox"
+                checked={units === 'm'}
+                onChange={(e) => setUnits(e.target.checked ? 'm' : 'ft')}
+              />
+              <span className={styles.toggleSlider} />
+            </label>
+            <span
+              className={`${styles.unitLabel} ${units === 'm' ? styles.unitLabelActive : ''}`}
+              onClick={() => setUnits('m')}
+            >M</span>
+          </div>
+          <div className={styles.depthSelect}>
+            <label className={styles.depthSelectLabel} htmlFor="dive-depth">Max depth</label>
+            <select
+              id="dive-depth"
+              className={styles.depthSelectInput}
+              value={diveDepth}
+              onChange={e => {
+                const v = Number(e.target.value)
+                setDiveDepth(v)
+                try { localStorage.setItem('diveDepth', String(v)) } catch {}
+              }}
+              aria-label="Your maximum dive depth in metres"
+            >
+              <option value={5}>5m</option>
+              <option value={10}>10m</option>
+              <option value={15}>15m</option>
+              <option value={20}>20m</option>
+              <option value={30}>30m+</option>
+            </select>
+          </div>
         </div>
         <button
           type="button"
@@ -268,7 +300,7 @@ export default function App() {
             disabled={!!selectedLocationId}
             aria-label={selectedLocationId ? 'Location already saved' : !user ? 'Save this location (sign in required)' : 'Save this location'}
           >
-            {selectedLocationId ? 'Saved ✓' : <>+ Save{!user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}</>}
+            {selectedLocationId ? 'Saved ✓' : <><span>+ Save</span>{!user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}</>}
           </button>
           {!selectedLocationId && (
             <button
@@ -423,6 +455,7 @@ export default function App() {
                       isAdmin={isAdmin}
                       biasOffset={forecast.bias_offset}
                       globalBiasOffset={forecast.global_bias_offset}
+                      maxDiveDepth={diveDepth}
                     />
                   )}
                 </>
