@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import { cacheGet, cacheSet, cacheDelete } from './cache'
+import { cacheGet, cacheSet, cacheDelete, cacheDeleteByPrefix } from './cache'
 import type {
   AdminStats,
   BestVisResponse,
@@ -306,9 +306,10 @@ export async function getOutlierPreview(): Promise<OutlierPreview> {
 
 export async function runOutlierCleaning(): Promise<CleaningResult> {
   const result = await apiFetch<CleaningResult>('/admin/outliers/clean', { method: 'POST' })
-  // Outlier cleaning changes report quarantine state; invalidate related cached views
-  cacheDelete('stats:')
-  cacheDelete('history:')
+  // Outlier cleaning changes report quarantine state across many locations;
+  // invalidate every cached stats/history view plus the leaderboard.
+  cacheDeleteByPrefix('stats:')
+  cacheDeleteByPrefix('history:')
   cacheDelete('leaderboard')
   return result
 }
@@ -323,9 +324,9 @@ export async function getQuarantinedReports(locationId?: number): Promise<Quaran
 export async function restoreReport(reportId: number): Promise<void> {
   await apiFetch(`/admin/outliers/restore/${reportId}`, { method: 'POST' })
   // Restoring a report can affect stats, history, and leaderboard views.
-  // Invalidate relevant cached entries so subsequent reads are fresh.
-  cacheDelete('stats:')
-  cacheDelete('history:')
+  // Invalidate every cached stats/history view so subsequent reads are fresh.
+  cacheDeleteByPrefix('stats:')
+  cacheDeleteByPrefix('history:')
   cacheDelete('leaderboard')
 }
 
