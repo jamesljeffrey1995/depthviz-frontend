@@ -397,9 +397,30 @@ export interface MLPredictionPoint {
   location: string
 }
 
+export interface MLResidual {
+  id: number
+  date: string
+  location: string
+  actual: number
+  predicted: number
+  error: number
+  abs_error: number
+  trust_weight: number
+  video_confidence: number | null
+}
+
+export interface MLResidualSummary {
+  n: number
+  mae: number | null
+  sse: number
+  top3_sse_share: number | null
+}
+
 export interface MLPredictions {
   points: MLPredictionPoint[]
   count: number
+  residuals: MLResidual[]
+  summary: MLResidualSummary | null
 }
 
 export interface MLRetrainResult {

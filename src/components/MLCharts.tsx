@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
 import { getMLPredictions, getFeatureImportance } from '../lib/api'
-import type { MLPredictionPoint, MLTrainingLogEntry, FeatureImportance } from '../types'
+import type {
+  MLPredictionPoint, MLTrainingLogEntry, FeatureImportance,
+  MLResidual, MLResidualSummary,
+} from '../types'
 import styles from './MLCharts.module.css'
 
 // ── Shared constants ─────────────────────────────────────────────────────────
@@ -341,6 +344,67 @@ function FeatureImportanceChart({ features }: FeatureImportanceChartProps) {
   )
 }
 
+// ── Largest Residuals: outlier diagnostic ────────────────────────────────────
+
+interface ResidualTableProps {
+  residuals: MLResidual[]
+  summary: MLResidualSummary | null
+}
+
+function ResidualTable({ residuals, summary }: ResidualTableProps) {
+  if (residuals.length === 0) return <div className={styles.empty}>No residual data</div>
+
+  const share = summary?.top3_sse_share ?? null
+  const concentrated = share !== null && share > 0.5
+
+  return (
+    <div className={styles.chartCard}>
+      <div className={styles.chartTitle}>Largest Residuals</div>
+      <div className={styles.chartSubtitle}>
+        {share !== null ? (
+          <>
+            Top 3 reports account for{' '}
+            <strong style={{ color: concentrated ? 'var(--danger)' : 'var(--text-bright)' }}>
+              {(share * 100).toFixed(0)}%
+            </strong>{' '}
+            of squared error
+            {concentrated ? ' — a few outliers dominate; consider quarantining them' : ''}
+          </>
+        ) : 'Worst-fitting reports first'}
+      </div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: 'monospace' }}>
+        <thead>
+          <tr style={{ textAlign: 'left', color: 'var(--text-dim, #8bb8cc)' }}>
+            <th style={{ padding: '4px 6px' }}>Date</th>
+            <th style={{ padding: '4px 6px' }}>Location</th>
+            <th style={{ padding: '4px 6px', textAlign: 'right' }}>Actual</th>
+            <th style={{ padding: '4px 6px', textAlign: 'right' }}>Pred</th>
+            <th style={{ padding: '4px 6px', textAlign: 'right' }}>Error</th>
+            <th style={{ padding: '4px 6px', textAlign: 'right' }}>Conf</th>
+          </tr>
+        </thead>
+        <tbody>
+          {residuals.map(r => (
+            <tr key={r.id} style={{ borderTop: '1px solid rgba(139,184,204,0.15)' }}>
+              <td style={{ padding: '4px 6px' }}>{r.date}</td>
+              <td style={{ padding: '4px 6px' }}>{r.location}</td>
+              <td style={{ padding: '4px 6px', textAlign: 'right' }}>{r.actual.toFixed(1)}</td>
+              <td style={{ padding: '4px 6px', textAlign: 'right' }}>{r.predicted.toFixed(1)}</td>
+              <td style={{ padding: '4px 6px', textAlign: 'right',
+                           color: Math.abs(r.error) > 2 ? 'var(--danger)' : 'var(--text-bright)' }}>
+                {r.error > 0 ? '+' : ''}{r.error.toFixed(1)}m
+              </td>
+              <td style={{ padding: '4px 6px', textAlign: 'right' }}>
+                {r.video_confidence !== null ? r.video_confidence.toFixed(2) : '—'}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 // ── Exported Combined Component ──────────────────────────────────────────────
 
 interface MLChartsProps {
@@ -349,6 +413,8 @@ interface MLChartsProps {
 
 export function MLCharts({ trainingLog }: MLChartsProps) {
   const [predictions, setPredictions] = useState<MLPredictionPoint[]>([])
+  const [residuals, setResiduals] = useState<MLResidual[]>([])
+  const [summary, setSummary] = useState<MLResidualSummary | null>(null)
   const [features, setFeatures] = useState<FeatureImportance[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -358,7 +424,11 @@ export function MLCharts({ trainingLog }: MLChartsProps) {
     Promise.all([
       getMLPredictions()
         .then(data => {
-          if (!cancelled) setPredictions(data.points)
+          if (!cancelled) {
+            setPredictions(data.points)
+            setResiduals(data.residuals ?? [])
+            setSummary(data.summary ?? null)
+          }
         })
         .catch(() => {}),
       getFeatureImportance()
@@ -381,6 +451,7 @@ export function MLCharts({ trainingLog }: MLChartsProps) {
     <div className={styles.chartsContainer}>
       <ScatterPlot points={predictions} />
       <ErrorHistogram points={predictions} />
+      <ResidualTable residuals={residuals} summary={summary} />
       <FeatureImportanceChart features={features} />
       <MetricsTimeline trainingLog={trainingLog} />
     </div>
