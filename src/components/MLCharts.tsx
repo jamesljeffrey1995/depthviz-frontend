@@ -372,35 +372,37 @@ function ResidualTable({ residuals, summary }: ResidualTableProps) {
           </>
         ) : 'Worst-fitting reports first'}
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: 'monospace' }}>
-        <thead>
-          <tr style={{ textAlign: 'left', color: 'var(--text-dim, #8bb8cc)' }}>
-            <th style={{ padding: '4px 6px' }}>Date</th>
-            <th style={{ padding: '4px 6px' }}>Location</th>
-            <th style={{ padding: '4px 6px', textAlign: 'right' }}>Actual</th>
-            <th style={{ padding: '4px 6px', textAlign: 'right' }}>Pred</th>
-            <th style={{ padding: '4px 6px', textAlign: 'right' }}>Error</th>
-            <th style={{ padding: '4px 6px', textAlign: 'right' }}>Conf</th>
-          </tr>
-        </thead>
-        <tbody>
-          {residuals.map(r => (
-            <tr key={r.id} style={{ borderTop: '1px solid rgba(139,184,204,0.15)' }}>
-              <td style={{ padding: '4px 6px' }}>{r.date}</td>
-              <td style={{ padding: '4px 6px' }}>{r.location}</td>
-              <td style={{ padding: '4px 6px', textAlign: 'right' }}>{r.actual.toFixed(1)}</td>
-              <td style={{ padding: '4px 6px', textAlign: 'right' }}>{r.predicted.toFixed(1)}</td>
-              <td style={{ padding: '4px 6px', textAlign: 'right',
-                           color: Math.abs(r.error) > 2 ? 'var(--danger)' : 'var(--text-bright)' }}>
-                {r.error > 0 ? '+' : ''}{r.error.toFixed(1)}m
-              </td>
-              <td style={{ padding: '4px 6px', textAlign: 'right' }}>
-                {r.video_confidence !== null ? r.video_confidence.toFixed(2) : '—'}
-              </td>
+      <div className={styles.tableScroll}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: 'monospace' }}>
+          <thead>
+            <tr style={{ textAlign: 'left', color: 'var(--text-dim, #8bb8cc)' }}>
+              <th style={{ padding: '4px 5px' }}>Date</th>
+              <th style={{ padding: '4px 5px' }}>Location</th>
+              <th style={{ padding: '4px 5px', textAlign: 'right' }}>Actual</th>
+              <th style={{ padding: '4px 5px', textAlign: 'right' }}>Pred</th>
+              <th style={{ padding: '4px 5px', textAlign: 'right' }}>Error</th>
+              <th style={{ padding: '4px 5px', textAlign: 'right' }}>Conf</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {residuals.map(r => (
+              <tr key={r.id} style={{ borderTop: '1px solid rgba(139,184,204,0.15)' }}>
+                <td style={{ padding: '4px 5px' }}>{r.date}</td>
+                <td style={{ padding: '4px 5px' }}>{r.location}</td>
+                <td style={{ padding: '4px 5px', textAlign: 'right' }}>{r.actual.toFixed(1)}</td>
+                <td style={{ padding: '4px 5px', textAlign: 'right' }}>{r.predicted.toFixed(1)}</td>
+                <td style={{ padding: '4px 5px', textAlign: 'right',
+                             color: Math.abs(r.error) > 2 ? 'var(--danger)' : 'var(--text-bright)' }}>
+                  {r.error > 0 ? '+' : ''}{r.error.toFixed(1)}m
+                </td>
+                <td style={{ padding: '4px 5px', textAlign: 'right' }}>
+                  {r.video_confidence !== null ? r.video_confidence.toFixed(2) : '—'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

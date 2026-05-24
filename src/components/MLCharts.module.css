@@ -30,6 +30,16 @@
   overflow: hidden;
 }
 
+.tableScroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tableScroll table {
+  min-width: 340px;
+}
+
 .chart {
   width: 100%;
   height: auto;
