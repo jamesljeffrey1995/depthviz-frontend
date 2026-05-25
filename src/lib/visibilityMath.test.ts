@@ -9,7 +9,7 @@
  * -Infinity; a percentile interpolated between two -Infinity values → NaN).
  */
 import { describe, expect, test } from 'vitest'
-import { beerLambert, percentile } from './visibilityMath'
+import { beerLambert, percentile, transmissionFromDarkChannel } from './visibilityMath'
 
 const CALIB = 4.0
 
@@ -59,6 +59,71 @@ describe('percentile over visibilities derived from near-clear frames', () => {
     for (const v of [median, p10, p90, mean]) {
       expect(Number.isFinite(v)).toBe(true)
       expect(Number.isNaN(v)).toBe(false)
+    }
+  })
+})
+
+/**
+ * Tests for the Underwater Dark Channel Prior fix.
+ *
+ * Reported bug: genuine dive footage analysed to t̃ = 1.000, median visibility
+ * pinned at the 50 m cap with P10 = P90 (near-zero variance), and a "video does
+ * not appear to be underwater" / 0% confidence banner.
+ *
+ * Root cause: the dark channel was taken over all of R, G, B. Underwater the red
+ * channel is absorbed to near-zero, so min(R,G,B) ≈ 0 everywhere → transmission
+ * collapses to ≈ 1. The fix builds the dark channel from green + blue only, so
+ * the dark-channel value reflects real backscatter and transmission stays below
+ * 1 for real footage. transmissionFromDarkChannel is the worker's t = 1 − ω·d
+ * mapping, now shared and tested.
+ */
+describe('transmissionFromDarkChannel', () => {
+  test('a zero dark channel (perfectly clear patch) gives t ≈ 1', () => {
+    expect(transmissionFromDarkChannel(0)).toBeCloseTo(1, 5)
+  })
+
+  test('a strong dark channel (turbid backscatter) drives t well below 1', () => {
+    expect(transmissionFromDarkChannel(1)).toBeCloseTo(0.05, 5)
+  })
+
+  test('is monotonic decreasing in the dark-channel value', () => {
+    expect(transmissionFromDarkChannel(0.2)).toBeGreaterThan(transmissionFromDarkChannel(0.5))
+    expect(transmissionFromDarkChannel(0.5)).toBeGreaterThan(transmissionFromDarkChannel(0.8))
+  })
+
+  test('stays clamped within [0, 1] for out-of-range input', () => {
+    expect(transmissionFromDarkChannel(-0.5)).toBe(1)
+    expect(transmissionFromDarkChannel(5)).toBe(0)
+  })
+
+  test('omega is configurable', () => {
+    expect(transmissionFromDarkChannel(0.5, 1.0)).toBeCloseTo(0.5, 5)
+    expect(transmissionFromDarkChannel(0.5, 0.8)).toBeCloseTo(0.6, 5)
+  })
+})
+
+describe('UDCP transmission → visibility contract for real dive footage', () => {
+  // Under UDCP, genuine underwater footage has a meaningful green/blue dark
+  // channel (backscatter). These values must NOT collapse to the degenerate
+  // t ≈ 1 / 50 m / "not underwater" result the user reported.
+  const turbidDarkChannels = [0.25, 0.35, 0.45, 0.55]
+
+  test('produces realistic, finite diving visibilities (not the 50 m cap)', () => {
+    for (const d of turbidDarkChannels) {
+      const t = transmissionFromDarkChannel(d)
+      const vis = beerLambert(t, CALIB)
+      expect(Number.isFinite(vis)).toBe(true)
+      expect(vis).toBeGreaterThan(0)
+      // Below the validation "unrealistically high" threshold (40 m) and the
+      // 50 m cap, so the "not underwater" banner no longer fires.
+      expect(vis).toBeLessThan(40)
+    }
+  })
+
+  test('lower transmission (more turbid) yields lower visibility', () => {
+    const vis = turbidDarkChannels.map((d) => beerLambert(transmissionFromDarkChannel(d), CALIB))
+    for (let i = 1; i < vis.length; i++) {
+      expect(vis[i]).toBeLessThan(vis[i - 1])
     }
   })
 })

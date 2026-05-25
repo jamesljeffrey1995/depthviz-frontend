@@ -31,3 +31,17 @@ export function beerLambert(tMedian: number, calib: number): number {
   const t = Math.min(Math.max(tMedian, T_FLOOR), T_CEIL)
   return Math.min(calib / -Math.log(t), MAX_VISIBILITY_M)
 }
+
+// Scattering coefficient ω in the dark-channel transmission map. Kept just below
+// 1 so even the clearest patch retains a little haze (a fully transparent t = 1
+// is physically unreachable underwater and would blow visibility up to the cap).
+const OMEGA = 0.95
+
+/** Haze transmission t from a (normalised) dark-channel value d, t = 1 − ω·d,
+ *  clamped to [0, 1]. Low dark channel → t near 1 (clear); high dark channel →
+ *  t low (turbid). With the Underwater DCP the dark channel is taken over the
+ *  green and blue channels only, so d reflects real backscatter rather than the
+ *  absorbed (near-zero) red channel that pinned t at 1 for genuine footage. */
+export function transmissionFromDarkChannel(darkChannel: number, omega: number = OMEGA): number {
+  return Math.max(0, Math.min(1, 1 - omega * darkChannel))
+}
