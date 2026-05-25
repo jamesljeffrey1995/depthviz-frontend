@@ -69,7 +69,7 @@ export function BestVisibility({ onSelectSpot }: Props) {
       <div className={styles.subtitle}>UK dive spots ranked for today</div>
 
       {loading && (
-        <div role="status" aria-live="polite" aria-busy="true" aria-label="Loading visibility data">
+        <div aria-busy="true">
           <div className={styles.progressBar} aria-hidden="true">
             <div className={styles.progressFill} style={{ width: `${progress}%` }} />
           </div>
@@ -89,8 +89,10 @@ export function BestVisibility({ onSelectSpot }: Props) {
               </div>
             ))}
           </div>
-          <div className={styles.loadingText}>
-            Reading conditions across UK dive spots… {Math.round(progress)}%
+          {/* Live region holds only static text so the ticking % doesn't spam AT */}
+          <div className={styles.loadingText} role="status" aria-live="polite">
+            Reading conditions across UK dive spots…
+            <span aria-hidden="true"> {Math.round(progress)}%</span>
           </div>
         </div>
       )}

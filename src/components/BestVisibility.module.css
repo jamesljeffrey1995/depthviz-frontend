@@ -124,7 +124,8 @@
   .skelName,
   .skelVerdict,
   .skelVisValue,
-  .skelVisUnit {
+  .skelVisUnit,
+  .loadingText {
     animation: none;
   }
   .progressFill {
