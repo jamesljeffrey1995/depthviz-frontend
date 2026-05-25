@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import type { DayForecast } from '../types'
 import { getImpact, getShallowWaterConfidence } from '../lib/visibility'
+import { buildVisSummary } from '../lib/visTrend'
 import { getWaterQuality } from '../lib/units'
 import { SwellCompass } from './SwellCompass'
+import { VisTrendChart } from './VisTrendChart'
 import styles from './DayDetail.module.css'
 
 interface Props {
@@ -16,6 +18,17 @@ interface Props {
   biasOffset?: number | null
   globalBiasOffset?: number | null
   maxDiveDepth?: number
+  /** Full forecast series + selected index, used to render the visibility
+   *  trend sparkline and the plain-language summary line. */
+  days?: DayForecast[]
+  selectedIndex?: number
+  onSelectDay?: (index: number) => void
+}
+
+/** Secondary metrics default to expanded on desktop, collapsed on phones. */
+function defaultConditionsOpen(): boolean {
+  if (typeof window === 'undefined' || !window.matchMedia) return true
+  return window.matchMedia('(min-width: 768px)').matches
 }
 
 function getTurbidity(penalty: number): { label: string; color: string; spm: string; description: string } {
@@ -133,8 +146,11 @@ function buildTrace(day: DayForecast): TraceRow[] {
   return rows
 }
 
-export function DayDetail({ day, locationName, reportCount, units = 'm', isAdmin = false, biasOffset = null, globalBiasOffset = null, maxDiveDepth }: Props) {
+export function DayDetail({ day, locationName, reportCount, units = 'm', isAdmin = false, biasOffset = null, globalBiasOffset = null, maxDiveDepth, days, selectedIndex = 0, onSelectDay }: Props) {
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [showConditions, setShowConditions] = useState(defaultConditionsOpen)
+  const trendDays = days && days.length > 1 ? days : null
+  const summary = trendDays ? buildVisSummary(trendDays) : ''
   const vis = day.vis_corrected ?? day.vis_estimate
   const pct = (vis / 15) * 100
   const dateLabel = new Date(day.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -190,42 +206,13 @@ export function DayDetail({ day, locationName, reportCount, units = 'm', isAdmin
         </div>
       </div>
 
-      {/* Metrics top bar */}
-      <div className={styles.metricsBar}>
-        <div className={styles.metricChip} style={{ borderColor: `${airSev.color}40` }}>
-          <div className={styles.metricChipLabel}>Air Temp</div>
-          <div className={styles.metricChipValue} style={{ color: airSev.color }}>{day.air_temp.toFixed(1)}°C</div>
-          {airSev.note && <div className={styles.metricChipNote} style={{ color: airSev.color }}>{airSev.note}</div>}
-        </div>
-        {seaSev && day.sea_temp != null && (
-          <div className={styles.metricChip} style={{ borderColor: `${seaSev.color}40` }}>
-            <div className={styles.metricChipLabel}>Sea Temp</div>
-            <div className={styles.metricChipValue} style={{ color: seaSev.color }}>{day.sea_temp.toFixed(1)}°C</div>
-            {seaSev.note && <div className={styles.metricChipNote} style={{ color: seaSev.color }}>{seaSev.note}</div>}
-          </div>
-        )}
-        <div className={styles.metricChip} style={{ borderColor: `${humSev.color}40` }}>
-          <div className={styles.metricChipLabel}>Humidity</div>
-          <div className={styles.metricChipValue} style={{ color: humSev.color }}>{Math.round(day.humidity)}%</div>
-          {humSev.note && <div className={styles.metricChipNote} style={{ color: humSev.color }}>{humSev.note}</div>}
-        </div>
-        {day.swell_dir_label != null && (
-          <div className={styles.metricChip} style={{ borderColor: '#00c9ff40' }}>
-            <div className={styles.metricChipLabel}>Swell Dir</div>
-            <div className={styles.metricChipValue} style={{ color: '#00c9ff' }}>{day.swell_dir_label}</div>
-            {day.swell_direction != null && <div className={styles.metricChipNote} style={{ color: '#00c9ff' }}>{Math.round(day.swell_direction)}°</div>}
-          </div>
-        )}
-        <div className={styles.metricChip} style={{ borderColor: '#00c9ff40' }}>
-          <div className={styles.metricChipLabel}>Wave / Swell</div>
-          <div className={styles.metricChipValue} style={{ color: '#00c9ff' }}>
-            {Math.max(day.wave_height, day.swell_height).toFixed(1)}{units}
-          </div>
-          <div className={styles.metricChipNote} style={{ color: '#00c9ff' }}>
-            {day.wave_height.toFixed(1)} / {day.swell_height.toFixed(1)}{units}
-          </div>
-        </div>
-      </div>
+      {/* Plain-language summary of the visibility trend */}
+      {summary && <div className={styles.summaryLine}>{summary}</div>}
+
+      {/* Visibility trend chart — replaces the flat metric strip */}
+      {trendDays && (
+        <VisTrendChart days={trendDays} selectedIndex={selectedIndex} onSelect={onSelectDay} />
+      )}
 
       <div className={`${styles.verdict} ${styles[day.color_class]}`}>{day.verdict}</div>
 
@@ -237,6 +224,65 @@ export function DayDetail({ day, locationName, reportCount, units = 'm', isAdmin
           <div className={`${styles.barFill} ${styles[`bg_${day.color_class}`]}`} style={{ width: `${pct}%` }} />
         </div>
       </div>
+
+      {/* Conditions — secondary metrics, collapsed on mobile */}
+      <button
+        className={styles.toggleConditions}
+        onClick={() => setShowConditions(v => !v)}
+        aria-expanded={showConditions}
+        aria-label={showConditions ? 'Hide conditions' : 'Show conditions'}
+      >
+        Conditions
+        <span className={styles.toggleArrow} aria-hidden="true">{showConditions ? ' ▲' : ' ▼'}</span>
+      </button>
+
+      {showConditions && (
+        <div className={styles.metricsBar}>
+          <div className={styles.metricChip} style={{ borderColor: `${airSev.color}40` }}>
+            <div className={styles.metricChipLabel}>Air Temp</div>
+            <div className={styles.metricChipValue} style={{ color: airSev.color }}>{day.air_temp.toFixed(1)}°C</div>
+            {airSev.note && <div className={styles.metricChipNote} style={{ color: airSev.color }}>{airSev.note}</div>}
+          </div>
+          {seaSev && day.sea_temp != null && (
+            <div className={styles.metricChip} style={{ borderColor: `${seaSev.color}40` }}>
+              <div className={styles.metricChipLabel}>Sea Temp</div>
+              <div className={styles.metricChipValue} style={{ color: seaSev.color }}>{day.sea_temp.toFixed(1)}°C</div>
+              {seaSev.note && <div className={styles.metricChipNote} style={{ color: seaSev.color }}>{seaSev.note}</div>}
+            </div>
+          )}
+          <div className={styles.metricChip} style={{ borderColor: '#00c9ff40' }}>
+            <div className={styles.metricChipLabel}>Wave / Swell</div>
+            <div className={styles.metricChipValue} style={{ color: '#00c9ff' }}>
+              {Math.max(day.wave_height, day.swell_height).toFixed(1)}{units}
+            </div>
+            <div className={styles.metricChipNote} style={{ color: '#00c9ff' }}>
+              {day.wave_height.toFixed(1)} / {day.swell_height.toFixed(1)}{units}
+            </div>
+          </div>
+          {day.swell_dir_label != null && (
+            <div className={styles.metricChip} style={{ borderColor: '#00c9ff40' }}>
+              <div className={styles.metricChipLabel}>Swell Dir</div>
+              <div className={styles.metricChipValue} style={{ color: '#00c9ff' }}>{day.swell_dir_label}</div>
+              {day.swell_direction != null && <div className={styles.metricChipNote} style={{ color: '#00c9ff' }}>{Math.round(day.swell_direction)}°</div>}
+            </div>
+          )}
+          <div className={styles.metricChip} style={{ borderColor: '#00c9ff40' }}>
+            <div className={styles.metricChipLabel}>Wind</div>
+            <div className={styles.metricChipValue} style={{ color: '#00c9ff' }}>{Math.round(day.wind_speed)}kn</div>
+            {day.wind_dir_label && <div className={styles.metricChipNote} style={{ color: '#00c9ff' }}>{day.wind_dir_label}</div>}
+          </div>
+          <div className={styles.metricChip} style={{ borderColor: '#00c9ff40' }}>
+            <div className={styles.metricChipLabel}>Rain</div>
+            <div className={styles.metricChipValue} style={{ color: '#00c9ff' }}>{day.precipitation.toFixed(1)}</div>
+            <div className={styles.metricChipNote} style={{ color: '#00c9ff' }}>mm/h</div>
+          </div>
+          <div className={styles.metricChip} style={{ borderColor: `${humSev.color}40` }}>
+            <div className={styles.metricChipLabel}>Humidity</div>
+            <div className={styles.metricChipValue} style={{ color: humSev.color }}>{Math.round(day.humidity)}%</div>
+            {humSev.note && <div className={styles.metricChipNote} style={{ color: humSev.color }}>{humSev.note}</div>}
+          </div>
+        </div>
+      )}
 
       {/* Swell compass */}
       {day.swell_components && day.swell_components.length > 0 && (
