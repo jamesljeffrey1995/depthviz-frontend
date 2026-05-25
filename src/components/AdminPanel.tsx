@@ -337,7 +337,7 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
 
               {/* Evaluation metrics */}
               <div className={styles.previewResult}>
-                <div className={styles.previewHeader}>Evaluation Metrics</div>
+                <div className={styles.previewHeader}>Evaluation Metrics (held-out, cross-validated)</div>
                 <div className={styles.previewStats}>
                   <div>MAE: <strong>{mlStatus.live_metrics.mae?.toFixed(3) ?? '—'}</strong> m</div>
                   <div>RMSE: <strong>{mlStatus.live_metrics.rmse?.toFixed(3) ?? '—'}</strong> m</div>
@@ -346,6 +346,32 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
                   </strong></div>
                   <div>Evaluated on: <strong>{mlStatus.live_metrics.n}</strong> reports</div>
                 </div>
+                {mlStatus.live_metrics.baseline_rmse != null && (() => {
+                  const lm = mlStatus.live_metrics
+                  const baseRmse = lm.baseline_rmse as number
+                  const corrRmse = lm.rmse
+                  const improves = corrRmse != null && corrRmse < baseRmse
+                  const deltaPct = corrRmse != null && baseRmse > 0
+                    ? ((baseRmse - corrRmse) / baseRmse) * 100
+                    : null
+                  return (
+                    <>
+                      <div className={styles.previewHeader} style={{ marginTop: 8 }}>
+                        Baseline (no correction)
+                      </div>
+                      <div className={styles.previewStats}>
+                        <div>MAE: <strong>{lm.baseline_mae?.toFixed(3) ?? '—'}</strong> m</div>
+                        <div>RMSE: <strong>{baseRmse.toFixed(3)}</strong> m</div>
+                        <div>R²: <strong>{lm.baseline_r2?.toFixed(3) ?? '—'}</strong></div>
+                      </div>
+                      <div style={{ marginTop: 6, color: improves ? 'var(--excellent)' : 'var(--danger)' }}>
+                        {improves
+                          ? `Correction improves RMSE by ${deltaPct?.toFixed(0)}% vs raw physics`
+                          : 'Correction does NOT beat raw physics — likely overfitting / too little data'}
+                      </div>
+                    </>
+                  )
+                })()}
               </div>
 
               {/* Charts */}

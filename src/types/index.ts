@@ -389,6 +389,9 @@ export interface MLStatus {
     rmse: number | null
     r2: number | null
     n: number
+    baseline_mae?: number | null
+    baseline_rmse?: number | null
+    baseline_r2?: number | null
   }
   training_log: MLTrainingLogEntry[]
 }
