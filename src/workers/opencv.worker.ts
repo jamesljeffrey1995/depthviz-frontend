@@ -5,7 +5,7 @@
 // pressure, leaving no chance for the WASM-init timeout (set *after* the
 // import resolves) to fire.
 import cvModule from '@techstark/opencv-js'
-import { beerLambert, percentile } from '../lib/visibilityMath'
+import { beerLambert, percentile, transmissionFromDarkChannel } from '../lib/visibilityMath'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -84,33 +84,31 @@ function analyseFrame(
   cv.cvtColor(src, rgb, cv.COLOR_RGBA2RGB)
   src.delete()
 
-  const channels = new cv.MatVector()
-  cv.split(rgb, channels)
-  const R = channels.get(0), G = channels.get(1), B = channels.get(2)
-
-  const meanR = cv.mean(R)[0], meanG = cv.mean(G)[0], meanB = cv.mean(B)[0]
-  const boost = Math.min((meanG + meanB) / 2 / Math.max(meanR, 1), 3.0)
-  if (boost > 1.01) {
-    const d = R.data
-    for (let i = 0; i < d.length; i++) d[i] = Math.min(255, Math.round(d[i] * boost))
-  }
-
-  const compensated = new cv.Mat()
-  cv.merge(channels, compensated)
-  R.delete(); G.delete(); B.delete(); channels.delete(); rgb.delete()
-
+  // Underwater Dark Channel Prior (UDCP — Drews et al. 2013).
+  //
+  // Red light is absorbed within the first few metres underwater, so the red
+  // channel is near-zero and carries almost no backscatter signal. The classic
+  // DCP takes the dark channel over all of R, G, B — but underwater that makes
+  // min(R,G,B) ≈ 0 across the whole frame, so transmission collapses to ≈ 1
+  // ("no haze"), visibility pins at the cap with near-zero variance, and the
+  // result trips the "video does not appear to be underwater" validation even
+  // for genuine dive footage. UDCP builds the dark channel from the green and
+  // blue channels only — the wavelengths that actually carry the water's
+  // veiling/backscatter — which restores a meaningful transmission estimate.
   const floatImg = new cv.Mat()
-  compensated.convertTo(floatImg, cv.CV_32FC3, 1.0 / 255.0)
-  compensated.delete()
+  rgb.convertTo(floatImg, cv.CV_32FC3, 1.0 / 255.0)
+  rgb.delete()
 
   const fc = new cv.MatVector()
   cv.split(floatImg, fc)
   const fR = fc.get(0), fG = fc.get(1), fB = fc.get(2)
-
-  const minRG = new cv.Mat(), darkRaw = new cv.Mat()
-  cv.min(fR, fG, minRG); cv.min(minRG, fB, darkRaw); minRG.delete()
+  fR.delete()   // red is excluded from the underwater dark channel
 
   const ksz = 15
+
+  // Raw dark channel over {G, B}; atmospheric light = mean of its brightest px.
+  const darkRaw = new cv.Mat()
+  cv.min(fG, fB, darkRaw)
   const k1 = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(ksz, ksz))
   const darkChannel = new cv.Mat()
   cv.erode(darkRaw, darkChannel, k1); k1.delete(); darkRaw.delete()
@@ -119,22 +117,21 @@ function analyseFrame(
   const numPx = dcData.length
   const dcThreshold = Float32Array.from(dcData).sort()[numPx - Math.max(1, Math.floor(numPx * 0.001))]
 
-  const fRd = fR.data32F, fGd = fG.data32F, fBd = fB.data32F
-  let sAR = 0, sAG = 0, sAB = 0, cA = 0
+  const fGd = fG.data32F, fBd = fB.data32F
+  let sAG = 0, sAB = 0, cA = 0
   for (let i = 0; i < numPx; i++) {
-    if (dcData[i] >= dcThreshold) { sAR += fRd[i]; sAG += fGd[i]; sAB += fBd[i]; cA++ }
+    if (dcData[i] >= dcThreshold) { sAG += fGd[i]; sAB += fBd[i]; cA++ }
   }
-  const A = [sAR / Math.max(cA, 1), sAG / Math.max(cA, 1), sAB / Math.max(cA, 1)]
+  const AG = sAG / Math.max(cA, 1), AB = sAB / Math.max(cA, 1)
 
-  const nR = new cv.Mat(), nG = new cv.Mat(), nB = new cv.Mat()
-  fR.convertTo(nR, cv.CV_32F, 1 / Math.max(A[0], 1e-6))
-  fG.convertTo(nG, cv.CV_32F, 1 / Math.max(A[1], 1e-6))
-  fB.convertTo(nB, cv.CV_32F, 1 / Math.max(A[2], 1e-6))
-  fR.delete(); fG.delete(); fB.delete(); fc.delete(); floatImg.delete()
+  const nG = new cv.Mat(), nB = new cv.Mat()
+  fG.convertTo(nG, cv.CV_32F, 1 / Math.max(AG, 1e-6))
+  fB.convertTo(nB, cv.CV_32F, 1 / Math.max(AB, 1e-6))
+  fG.delete(); fB.delete(); fc.delete(); floatImg.delete()
 
-  const mNRG = new cv.Mat(), darkNorm = new cv.Mat()
-  cv.min(nR, nG, mNRG); cv.min(mNRG, nB, darkNorm)
-  nR.delete(); nG.delete(); nB.delete(); mNRG.delete()
+  const darkNorm = new cv.Mat()
+  cv.min(nG, nB, darkNorm)
+  nG.delete(); nB.delete()
 
   const k2 = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(ksz, ksz))
   const darkNormE = new cv.Mat()
@@ -142,7 +139,7 @@ function analyseFrame(
 
   const tData = new Float32Array(darkNormE.data32F)
   const tValues = new Array<number>(tData.length)
-  for (let i = 0; i < tData.length; i++) tValues[i] = Math.max(0, Math.min(1, 1 - 0.95 * tData[i]))
+  for (let i = 0; i < tData.length; i++) tValues[i] = transmissionFromDarkChannel(tData[i])
   darkNormE.delete(); darkChannel.delete()
 
   tValues.sort((a, b) => a - b)
