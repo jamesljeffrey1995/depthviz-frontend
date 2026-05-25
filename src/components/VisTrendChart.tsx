@@ -1,5 +1,5 @@
 import type { DayForecast } from '../types'
-import { visForDay, categoriseVis, categoryColor } from '../lib/visTrend'
+import { visForDay, categoriseVis, categoryColor, weekdayShort, weekdayLong } from '../lib/visTrend'
 import styles from './VisTrendChart.module.css'
 
 interface Props {
@@ -41,11 +41,14 @@ export function VisTrendChart({ days, selectedIndex, onSelect }: Props) {
   const interactive = typeof onSelect === 'function'
 
   return (
-    <figure
-      className={styles.wrap}
-      aria-label={`Predicted visibility trend over ${n} day${n === 1 ? '' : 's'}`}
-    >
-      <svg viewBox={`0 0 ${W} ${H}`} className={styles.svg} role="img" preserveAspectRatio="xMidYMid meet">
+    <figure className={styles.wrap}>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className={styles.svg}
+        preserveAspectRatio="xMidYMid meet"
+        role={interactive ? 'group' : 'img'}
+        aria-label={`Predicted visibility trend over ${n} day${n === 1 ? '' : 's'}`}
+      >
         {/* 8 m "good" reference line */}
         <line
           x1={PAD.left} x2={W - PAD.right} y1={y(8)} y2={y(8)}
@@ -75,7 +78,7 @@ export function VisTrendChart({ days, selectedIndex, onSelect }: Props) {
                   x={p.cx} y={H - 8} textAnchor="middle"
                   className={selected ? styles.dayLabelSelected : styles.dayLabel}
                 >
-                  {new Date(p.date).toLocaleDateString('en-GB', { weekday: 'short' })}
+                  {weekdayShort(p.date)}
                 </text>
               )}
               {interactive && (
@@ -89,7 +92,8 @@ export function VisTrendChart({ days, selectedIndex, onSelect }: Props) {
                   onClick={() => onSelect!(p.i)}
                   role="button"
                   tabIndex={0}
-                  aria-label={`${new Date(p.date).toLocaleDateString('en-GB', { weekday: 'long' })}: ${p.vis.toFixed(1)} metres`}
+                  aria-pressed={selected}
+                  aria-label={`${weekdayLong(p.date)}: ${p.vis.toFixed(1)} metres`}
                   onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect!(p.i) }
                   }}

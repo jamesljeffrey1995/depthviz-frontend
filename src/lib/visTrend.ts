@@ -25,7 +25,24 @@ export function categoryColor(cat: VisCategory): string {
 }
 
 function shortDay(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-GB', { weekday: 'short' })
+  return weekdayShort(dateStr)
+}
+
+/** Parse a `YYYY-MM-DD` (or ISO) forecast date into a *local* Date.
+ *  `new Date('YYYY-MM-DD')` is parsed as UTC midnight, which can shift the
+ *  weekday by a day for users west of UTC — so build the date from its parts
+ *  in local time instead, keeping the calendar day stable everywhere. */
+function parseLocalDate(dateStr: string): Date {
+  const [y, m, d] = dateStr.split('T')[0].split('-').map(Number)
+  return new Date(y, (m ?? 1) - 1, d ?? 1)
+}
+
+export function weekdayShort(dateStr: string): string {
+  return parseLocalDate(dateStr).toLocaleDateString('en-GB', { weekday: 'short' })
+}
+
+export function weekdayLong(dateStr: string): string {
+  return parseLocalDate(dateStr).toLocaleDateString('en-GB', { weekday: 'long' })
 }
 
 function formatRange(series: { date: string }[], start: number, end: number): string {
