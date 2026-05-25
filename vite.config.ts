@@ -11,6 +11,11 @@ const cspValue = [
   "img-src 'self' data: blob: https://*.tile.openstreetmap.org",
   "connect-src 'self' https://*.supabase.co https://geocoding-api.open-meteo.com",
   "font-src 'self'",
+  // Dive-video analysis loads user-selected clips into a <video> element via
+  // blob: URLs (URL.createObjectURL). Without this, media-src falls back to
+  // default-src 'self' and the browser rejects the load ("Media load rejected
+  // by URL safety check").
+  "media-src 'self' blob:",
   "worker-src 'self' blob:",
   "frame-ancestors 'none'",
 ].join('; ')
