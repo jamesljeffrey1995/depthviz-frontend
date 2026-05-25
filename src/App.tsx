@@ -456,6 +456,9 @@ export default function App() {
                       biasOffset={forecast.bias_offset}
                       globalBiasOffset={forecast.global_bias_offset}
                       maxDiveDepth={diveDepth}
+                      days={forecast.days}
+                      selectedIndex={selectedDay}
+                      onSelectDay={setSelectedDay}
                     />
                   )}
                 </>
