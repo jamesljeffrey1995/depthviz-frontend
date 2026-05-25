@@ -92,6 +92,9 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
         air_temp: activeDay.air_temp,
         sea_temp: activeDay.sea_temp,
         algae_risk: activeDay.algae.risk,
+        // Satellite water clarity the forecast showed — measured algae signal.
+        chlorophyll: activeDay.water_quality?.erddap_chlorophyll ?? undefined,
+        kd490: activeDay.water_quality?.erddap_kd490 ?? undefined,
         notes: notes.slice(0, 500) || undefined,
         // Attach video DCP analysis only if validation passed
         ...(videoReport && (!videoReport.validation || videoReport.validation.is_valid) ? {

@@ -137,6 +137,10 @@ export interface ReportCreate {
   sea_temp?: number | null
   algae_risk?: string
   notes?: string
+  // Water clarity shown in the forecast at dive time — lets the model learn
+  // from a measured algae signal instead of the heuristic algae_risk label.
+  chlorophyll?: number | null
+  kd490?: number | null
   // Video-derived visibility (client-side DCP analysis)
   video_vis_median?: number
   video_vis_p10?: number
