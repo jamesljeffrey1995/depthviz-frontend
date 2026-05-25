@@ -5,6 +5,7 @@
 // pressure, leaving no chance for the WASM-init timeout (set *after* the
 // import resolves) to fire.
 import cvModule from '@techstark/opencv-js'
+import { beerLambert, percentile } from '../lib/visibilityMath'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -36,21 +37,6 @@ function post(msg: FromWorker) {
 }
 const log = (m: string) => post({ type: 'log', level: 'info', message: m })
 const warn = (m: string) => post({ type: 'log', level: 'warn', message: m })
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function percentile(sorted: number[], p: number): number {
-  if (sorted.length === 0) return 0
-  const idx = (p / 100) * (sorted.length - 1)
-  const lo = Math.floor(idx)
-  const hi = Math.ceil(idx)
-  if (lo === hi) return sorted[lo]
-  return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo)
-}
-
-function beerLambert(tMedian: number, calib: number): number {
-  return calib / -Math.log(Math.max(tMedian, 0.01))
-}
 
 // ── OpenCV init ───────────────────────────────────────────────────────────────
 
