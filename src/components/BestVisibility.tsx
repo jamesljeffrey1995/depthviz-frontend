@@ -12,11 +12,20 @@ function safeColorClass(cls: string | undefined): string {
   return cls && COLOR_CLASSES.has(cls) ? cls : 'decent'
 }
 
+// Number of placeholder rows to render while the fan-out resolves.
+const SKELETON_COUNT = 8
+// The /forecast/best fan-out is a single (non-streaming) response, so real
+// per-spot progress isn't observable. Ramp a bounded bar toward a cap over
+// the expected cold-response window to convey motion without overpromising.
+const PROGRESS_CAP = 92
+const PROGRESS_TIME_CONSTANT_MS = 18000
+
 export function BestVisibility({ onSelectSpot }: Props) {
   const [spots, setSpots] = useState<BestVisSpot[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [failedCount, setFailedCount] = useState(0)
+  const [progress, setProgress] = useState(0)
 
   // Compute today's date once at mount to avoid drift across midnight
   const [todayISO] = useState(() => new Date().toISOString().split('T')[0])
@@ -42,15 +51,46 @@ export function BestVisibility({ onSelectSpot }: Props) {
     return () => { controller.abort() }
   }, [])
 
+  // Drive the bounded progress bar while loading.
+  useEffect(() => {
+    if (!loading) return
+    const start = Date.now()
+    const id = setInterval(() => {
+      const elapsed = Date.now() - start
+      const pct = (1 - Math.exp(-elapsed / PROGRESS_TIME_CONSTANT_MS)) * 100
+      setProgress(Math.min(PROGRESS_CAP, pct))
+    }, 400)
+    return () => clearInterval(id)
+  }, [loading])
+
   return (
     <div className={styles.wrapper}>
       <div className={styles.title}>BEST VISIBILITY</div>
       <div className={styles.subtitle}>UK dive spots ranked for today</div>
 
       {loading && (
-        <div className={styles.loading}>
+        <div role="status" aria-live="polite" aria-busy="true" aria-label="Loading visibility data">
+          <div className={styles.progressBar} aria-hidden="true">
+            <div className={styles.progressFill} style={{ width: `${progress}%` }} />
+          </div>
+          <div className={styles.dateLabel}>{todayDisplay}</div>
+          <div className={styles.list} aria-hidden="true">
+            {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+              <div key={i} className={styles.skeletonRow}>
+                <div className={styles.skelRank} />
+                <div className={styles.skelInfo}>
+                  <div className={styles.skelName} />
+                  <div className={styles.skelVerdict} />
+                </div>
+                <div className={styles.skelVisBlock}>
+                  <div className={styles.skelVisValue} />
+                  <div className={styles.skelVisUnit} />
+                </div>
+              </div>
+            ))}
+          </div>
           <div className={styles.loadingText}>
-            Loading visibility data…
+            Reading conditions across UK dive spots… {Math.round(progress)}%
           </div>
         </div>
       )}
