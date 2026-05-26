@@ -460,6 +460,16 @@ export async function searchUsers(q: string): Promise<import('../types').UserSea
 }
 
 // Activity Feed
+// Service Status
+export interface ServiceStatusResponse {
+  open_meteo?: { status: 'up' | 'down'; checked_at: string }
+}
+
+export async function getServiceStatus(): Promise<ServiceStatusResponse> {
+  return apiFetch<ServiceStatusResponse>('/status')
+}
+
+// Activity Feed
 export async function getFeed(params: {
   scope: 'all' | 'friends'
   filter_type: 'all' | 'reports' | 'catches'
