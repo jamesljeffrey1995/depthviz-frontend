@@ -180,6 +180,21 @@
   color: var(--text-bright);
 }
 
+/* ── Outage Banner ── */
+.outageBanner {
+  background: rgba(212, 133, 10, 0.12);
+  border: 1px solid var(--warn);
+  border-radius: var(--radius-sm);
+  color: var(--warn);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  padding: var(--space-sm) var(--space-md);
+  text-align: center;
+  text-transform: uppercase;
+  margin-bottom: var(--space-md);
+}
+
 /* ── Error ── */
 .error {
   font-size: 11px;

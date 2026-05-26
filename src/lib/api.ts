@@ -53,6 +53,28 @@ export class ServerError extends ApiError {
   }
 }
 
+// Parse FastAPI-style `{"detail": "..."}` error bodies into a clean message.
+// Falls back to the raw body if it isn't JSON or has no usable detail field.
+export function parseErrorBody(body: string): string {
+  if (!body) return ''
+  const trimmed = body.trim()
+  if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) return body
+  try {
+    const parsed = JSON.parse(trimmed)
+    const detail = parsed?.detail
+    if (typeof detail === 'string') return detail
+    // FastAPI validation errors return detail as an array of {msg, loc, ...}.
+    if (Array.isArray(detail) && detail.length > 0) {
+      const first = detail[0]
+      if (first && typeof first.msg === 'string') return first.msg
+    }
+    if (typeof parsed?.message === 'string') return parsed.message
+    return body
+  } catch {
+    return body
+  }
+}
+
 // --- Request deduplication ---
 const pendingRequests = new Map<string, Promise<unknown>>()
 
@@ -86,17 +108,18 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 
         if (!res.ok) {
           const body = await res.text()
-          if (res.status === 401) throw new AuthError(body || 'Not authenticated')
-          if (res.status === 429) throw new RateLimitError('Too many requests — please wait a moment')
+          const message = parseErrorBody(body)
+          if (res.status === 401) throw new AuthError(message || 'Not authenticated')
+          if (res.status === 429) throw new RateLimitError(message || 'Too many requests — please wait a moment')
           if (res.status >= 500) {
-            lastError = new ServerError(res.status, body || 'Server error')
+            lastError = new ServerError(res.status, message || 'Server error')
             if (attempt < maxAttempts - 1) {
               await new Promise(r => setTimeout(r, 1000))
               continue
             }
             throw lastError
           }
-          throw new ApiError(res.status, body || `Request failed (${res.status})`)
+          throw new ApiError(res.status, message || `Request failed (${res.status})`)
         }
 
         if (res.status === 204) return undefined as T
@@ -434,6 +457,19 @@ export async function sendFriendRequest(addresseeUid: string): Promise<void> {
 
 export async function searchUsers(q: string): Promise<import('../types').UserSearchResult[]> {
   return apiFetch(`/social/users/search?q=${encodeURIComponent(q)}`)
+}
+
+// Activity Feed
+// Service Status
+export type ServiceHealth = { status: 'up' | 'down'; checked_at: string }
+export interface ServiceStatusResponse {
+  open_meteo?: ServiceHealth
+  copernicus?: ServiceHealth
+  erddap?: ServiceHealth
+}
+
+export async function getServiceStatus(): Promise<ServiceStatusResponse> {
+  return apiFetch<ServiceStatusResponse>('/status')
 }
 
 // Activity Feed

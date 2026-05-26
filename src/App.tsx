@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate, useLocation, useParams } from 'react-router
 import { useAuth } from './hooks/useAuth'
 import { useConditions } from './hooks/useConditions'
 import { useGeolocation } from './hooks/useGeolocation'
+import { useServiceStatus } from './hooks/useServiceStatus'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { SearchBar } from './components/SearchBar'
 import { ForecastStrip } from './components/ForecastStrip'
@@ -48,6 +49,12 @@ function LegalRouteWrapper({ onBack }: { onBack: () => void }) {
 export default function App() {
   const { user, loading: authLoading } = useAuth()
   const { status, forecast, error, isRevalidating, searchByCoords } = useConditions()
+  const serviceStatus = useServiceStatus()
+  const downServices = ([
+    ['open_meteo', 'Open-Meteo'],
+    ['copernicus', 'Copernicus Marine'],
+    ['erddap', 'NOAA ERDDAP'],
+  ] as const).filter(([key]) => serviceStatus[key]?.status === 'down').map(([, label]) => label)
   const { getLocation } = useGeolocation()
   const [selectedDay, setSelectedDay] = useState(0)
   const [locations, setLocations] = useState<Location[]>([])
@@ -257,6 +264,12 @@ export default function App() {
           {user ? (user.email ?? 'U')[0].toUpperCase() : 'Sign in'}
         </button>
       </header>
+
+      {downServices.length > 0 && (
+        <div className={styles.outageBanner} role="alert" aria-live="polite">
+          Service disruption: {downServices.join(' · ')} — forecasts may be unavailable
+        </div>
+      )}
 
       <SearchBar
         onSearch={handleSearch}
