@@ -50,7 +50,11 @@ export default function App() {
   const { user, loading: authLoading } = useAuth()
   const { status, forecast, error, isRevalidating, searchByCoords } = useConditions()
   const serviceStatus = useServiceStatus()
-  const isWeatherDown = serviceStatus.open_meteo?.status === 'down'
+  const downServices = ([
+    ['open_meteo', 'Open-Meteo'],
+    ['copernicus', 'Copernicus Marine'],
+    ['erddap', 'NOAA ERDDAP'],
+  ] as const).filter(([key]) => serviceStatus[key]?.status === 'down').map(([, label]) => label)
   const { getLocation } = useGeolocation()
   const [selectedDay, setSelectedDay] = useState(0)
   const [locations, setLocations] = useState<Location[]>([])
@@ -261,9 +265,9 @@ export default function App() {
         </button>
       </header>
 
-      {isWeatherDown && (
+      {downServices.length > 0 && (
         <div className={styles.outageBanner} role="alert" aria-live="polite">
-          Weather data service is currently unavailable — forecasts may be delayed
+          Service disruption: {downServices.join(' · ')} — forecasts may be unavailable
         </div>
       )}
 

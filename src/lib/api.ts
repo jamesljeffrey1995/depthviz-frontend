@@ -461,8 +461,11 @@ export async function searchUsers(q: string): Promise<import('../types').UserSea
 
 // Activity Feed
 // Service Status
+export type ServiceHealth = { status: 'up' | 'down'; checked_at: string }
 export interface ServiceStatusResponse {
-  open_meteo?: { status: 'up' | 'down'; checked_at: string }
+  open_meteo?: ServiceHealth
+  copernicus?: ServiceHealth
+  erddap?: ServiceHealth
 }
 
 export async function getServiceStatus(): Promise<ServiceStatusResponse> {

@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { getServiceStatus } from '../lib/api'
 import type { ServiceStatusResponse } from '../lib/api'
 
+export type { ServiceStatusResponse }
+
 const POLL_MS = 10 * 60 * 1000 // re-fetch every 10 minutes
 
 export function useServiceStatus(): ServiceStatusResponse {
