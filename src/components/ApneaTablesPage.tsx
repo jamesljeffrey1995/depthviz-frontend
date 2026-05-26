@@ -22,6 +22,14 @@ function totalSeconds(table: ApneaTable): number {
   return table.cycles.reduce((acc, c) => acc + c.hold_seconds + c.rest_seconds, 0)
 }
 
+function longestHoldLabel(table: ApneaTable): string {
+  // Math.max() of an empty array returns -Infinity, which formatHold would
+  // render as nonsense. Schema validation prohibits empty cycles, but the UI
+  // shouldn't blow up if a stale or malformed row sneaks through.
+  if (table.cycles.length === 0) return '—'
+  return formatHold(Math.max(...table.cycles.map(c => c.hold_seconds)))
+}
+
 function formatDuration(seconds: number): string {
   const m = Math.round(seconds / 60)
   return `${m} min`
@@ -177,7 +185,7 @@ export function ApneaTablesPage({ user, onShowAuth }: Props) {
                   {t.description && <div className={styles.cardDesc}>{t.description}</div>}
                   <div className={styles.cardMeta}>
                     <span><strong>{t.cycles.length}</strong> rounds</span>
-                    <span>longest hold <strong>{formatHold(Math.max(...t.cycles.map(c => c.hold_seconds)))}</strong></span>
+                    <span>longest hold <strong>{longestHoldLabel(t)}</strong></span>
                     <span>total <strong>{formatDuration(totalSeconds(t))}</strong></span>
                   </div>
                 </div>

@@ -34,7 +34,11 @@ const PRESETS: { label: string; type: ApneaTableType; difficulty: ApneaDifficult
 export function ApneaTableEditor({ mode }: Props) {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
-  const editingId = mode === 'edit' && id ? Number(id) : null
+  // In edit mode the :id segment must parse to a finite integer; bare
+  // `Number(id)` would let "foo" through as NaN and we'd send a request to
+  // /apnea/tables/NaN. Bail out to a clean error if the route is malformed.
+  const parsedId = mode === 'edit' && id !== undefined ? Number(id) : NaN
+  const editingId = mode === 'edit' && Number.isFinite(parsedId) ? parsedId : null
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -47,7 +51,11 @@ export function ApneaTableEditor({ mode }: Props) {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (editingId === null) return
+    if (editingId === null) {
+      // Surface a clear error if /training/<garbage>/edit was visited.
+      if (mode === 'edit') setError('Invalid table id')
+      return
+    }
     let cancelled = false
     setLoading(true)
     getApneaTable(editingId)
@@ -67,7 +75,7 @@ export function ApneaTableEditor({ mode }: Props) {
       .catch(e => { if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load') })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [editingId])
+  }, [editingId, mode])
 
   const updateCycle = (idx: number, patch: Partial<ApneaCycle>) => {
     setCycles(prev => prev.map((c, i) => (i === idx ? { ...c, ...patch } : c)))
@@ -253,7 +261,7 @@ export function ApneaTableEditor({ mode }: Props) {
         </button>
 
         <div className={styles.totalNote}>
-          Total session: ~{totalMin} min · longest hold {Math.max(...cycles.map(c => c.hold_seconds))}s
+          Total session: ~{totalMin} min · longest hold {cycles.length ? Math.max(...cycles.map(c => c.hold_seconds)) : 0}s
         </div>
       </div>
 

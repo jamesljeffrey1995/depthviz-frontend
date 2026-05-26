@@ -63,7 +63,10 @@ interface Props {
 export function ApneaTableRunner({ user, onShowAuth }: Props) {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
-  const tableId = id ? Number(id) : null
+  // Reject non-numeric route params up front — Number("foo") gives NaN, and
+  // a NaN id would otherwise be passed through to /apnea/tables/NaN.
+  const parsedId = id !== undefined ? Number(id) : NaN
+  const tableId = Number.isFinite(parsedId) ? parsedId : null
 
   const [table, setTable] = useState<ApneaTable | null>(null)
   const [loading, setLoading] = useState(true)
@@ -76,14 +79,32 @@ export function ApneaTableRunner({ user, onShowAuth }: Props) {
   const [audioOn, setAudioOn] = useState(true)
   const [copying, setCopying] = useState(false)
 
+  // Latest audioOn value, read from inside setTimeout callbacks that would
+  // otherwise capture the value at the time they were scheduled.
+  const audioOnRef = useRef(audioOn)
+  useEffect(() => { audioOnRef.current = audioOn }, [audioOn])
+
+  // Pending timeouts from finish() so stop()/unmount can cancel them and
+  // beeps don't fire after the user has reset or navigated away.
+  const pendingTimeoutsRef = useRef<number[]>([])
+  const clearPendingTimeouts = () => {
+    for (const t of pendingTimeoutsRef.current) clearTimeout(t)
+    pendingTimeoutsRef.current = []
+  }
+  useEffect(() => clearPendingTimeouts, [])  // clear on unmount
+
   const { beep, ensureCtx } = useBeep()
   const playBeep = useCallback((freq: number, ms: number) => {
-    if (audioOn) beep(freq, ms)
-  }, [audioOn, beep])
+    if (audioOnRef.current) beep(freq, ms)
+  }, [beep])
 
   // Load table
   useEffect(() => {
-    if (tableId === null) return
+    if (tableId === null) {
+      setLoading(false)
+      setError('Invalid table id')
+      return
+    }
     let cancelled = false
     setLoading(true)
     getApneaTable(tableId)
@@ -97,13 +118,19 @@ export function ApneaTableRunner({ user, onShowAuth }: Props) {
   // Uses a monotonic deadline rather than counting interval ticks, so the
   // timer stays accurate even when the tab is throttled in the background.
   const deadlineRef = useRef<number | null>(null)
+  // Tracks the most recent whole-second that already fired a countdown beep,
+  // so the 3/2/1 chime plays exactly once per crossing rather than every
+  // animation frame while ceil(sec) sits at the same value.
+  const lastBeepSecRef = useRef<number | null>(null)
   useEffect(() => {
     if (phase === 'idle' || phase === 'done') {
       deadlineRef.current = null
+      lastBeepSecRef.current = null
       return
     }
     let raf = 0
     let cancelled = false
+    lastBeepSecRef.current = null  // reset at the start of every phase
 
     const advance = () => {
       if (deadlineRef.current === null || !table) return
@@ -111,13 +138,14 @@ export function ApneaTableRunner({ user, onShowAuth }: Props) {
       const sec = ms / 1000
       setRemaining(sec)
 
-      // Final-second beep (one beep at 3s, 2s, 1s left for any phase ≥ 4s)
-      const prevWhole = Math.ceil(sec + 0.05)
+      // Final-second beep at 3s, 2s, 1s — fired once per second crossing.
       const curWhole = Math.ceil(sec)
-      if (curWhole < prevWhole) {
-        if (curWhole === 3 || curWhole === 2 || curWhole === 1) {
-          playBeep(660, 100)
-        }
+      if (
+        (curWhole === 3 || curWhole === 2 || curWhole === 1) &&
+        curWhole !== lastBeepSecRef.current
+      ) {
+        playBeep(660, 100)
+        lastBeepSecRef.current = curWhole
       }
 
       if (ms <= 0) {
@@ -152,7 +180,16 @@ export function ApneaTableRunner({ user, onShowAuth }: Props) {
 
   const startHold = (idx: number) => {
     if (!table) return
-    const dur = table.cycles[idx].hold_seconds
+    const cycle = table.cycles[idx]
+    if (!cycle) {
+      // Defensive guard — schema validation rejects this, but if the API
+      // ever returned a table with no cycles or an idx walked past the end,
+      // just stop the session rather than throw on a missing field.
+      setError('This table has no cycles to run')
+      stop()
+      return
+    }
+    const dur = cycle.hold_seconds
     setCycleIdx(idx)
     setPhaseDuration(dur)
     setRemaining(dur)
@@ -163,7 +200,9 @@ export function ApneaTableRunner({ user, onShowAuth }: Props) {
 
   const startRest = (idx: number) => {
     if (!table) return
-    const dur = table.cycles[idx].rest_seconds
+    const cycle = table.cycles[idx]
+    if (!cycle) { stop(); return }
+    const dur = cycle.rest_seconds
     setPhaseDuration(dur)
     setRemaining(dur)
     deadlineRef.current = Date.now() + dur * 1000
@@ -172,8 +211,13 @@ export function ApneaTableRunner({ user, onShowAuth }: Props) {
   }
 
   const startPrep = () => {
-    if (!table) return
+    if (!table || table.cycles.length === 0) {
+      setError('This table has no cycles to run')
+      return
+    }
     ensureCtx()  // Unlock audio context on user gesture
+    clearPendingTimeouts()  // any leftover finish() chimes from a prior run
+    setError('')
     setCycleIdx(0)
     setPhaseDuration(PREP_SECONDS)
     setRemaining(PREP_SECONDS)
@@ -185,12 +229,18 @@ export function ApneaTableRunner({ user, onShowAuth }: Props) {
     deadlineRef.current = null
     setPhase('done')
     playBeep(523, 400)
-    setTimeout(() => playBeep(659, 400), 250)
-    setTimeout(() => playBeep(784, 600), 500)
+    // Schedule the rest of the chord through tracked timeouts so stop() or
+    // unmount can cancel them. playBeep itself reads the latest audioOn
+    // value via audioOnRef.
+    pendingTimeoutsRef.current.push(
+      window.setTimeout(() => playBeep(659, 400), 250),
+      window.setTimeout(() => playBeep(784, 600), 500),
+    )
   }
 
   const stop = () => {
     deadlineRef.current = null
+    clearPendingTimeouts()
     setPhase('idle')
     setCycleIdx(0)
     setRemaining(0)
