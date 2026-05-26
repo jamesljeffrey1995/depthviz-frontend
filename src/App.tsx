@@ -33,6 +33,9 @@ const SavedPlaces = lazy(() => import('./components/SavedPlaces').then(m => ({ d
 const CatchesPage = lazy(() => import('./components/CatchesPage').then(m => ({ default: m.CatchesPage })))
 const FeedPage = lazy(() => import('./components/FeedPage').then(m => ({ default: m.FeedPage })))
 const FriendsPanel = lazy(() => import('./components/FriendsPanel').then(m => ({ default: m.FriendsPanel })))
+const ApneaTablesPage = lazy(() => import('./components/ApneaTablesPage').then(m => ({ default: m.ApneaTablesPage })))
+const ApneaTableEditor = lazy(() => import('./components/ApneaTableEditor').then(m => ({ default: m.ApneaTableEditor })))
+const ApneaTableRunner = lazy(() => import('./components/ApneaTableRunner').then(m => ({ default: m.ApneaTableRunner })))
 
 /** Reads the :page URL param so direct links to /legal/terms work correctly. */
 function LegalRouteWrapper({ onBack }: { onBack: () => void }) {
@@ -514,6 +517,42 @@ export default function App() {
             )
           } />
 
+          {/* Apnea training tables */}
+          <Route path="/training" element={
+            <Suspense fallback={null}>
+              <ApneaTablesPage user={user} onShowAuth={() => setShowAuth(true)} />
+            </Suspense>
+          } />
+          <Route path="/training/new" element={
+            user ? (
+              <Suspense fallback={null}>
+                <ApneaTableEditor mode="create" />
+              </Suspense>
+            ) : (
+              <div className={styles.empty}>
+                <div className={styles.emptyText}>Sign in to build a training table</div>
+                <button className={styles.navBtn} onClick={() => setShowAuth(true)} style={{ marginTop: 16 }}>Sign in</button>
+              </div>
+            )
+          } />
+          <Route path="/training/:id/edit" element={
+            user ? (
+              <Suspense fallback={null}>
+                <ApneaTableEditor mode="edit" />
+              </Suspense>
+            ) : (
+              <div className={styles.empty}>
+                <div className={styles.emptyText}>Sign in to edit your tables</div>
+                <button className={styles.navBtn} onClick={() => setShowAuth(true)} style={{ marginTop: 16 }}>Sign in</button>
+              </div>
+            )
+          } />
+          <Route path="/training/:id" element={
+            <Suspense fallback={null}>
+              <ApneaTableRunner user={user} onShowAuth={() => setShowAuth(true)} />
+            </Suspense>
+          } />
+
           {/* Location History */}
           <Route path="/history" element={
             selectedLocationId ? (
@@ -567,6 +606,18 @@ export default function App() {
             <path d="M12 3v12" />
           </svg>
           <span>Catches</span>
+        </button>
+        <button
+          className={`${styles.bottomNavBtn} ${currentPath.startsWith('/training') ? styles.bottomNavActive : ''}`}
+          onClick={() => navigate('/training')}
+          aria-label="Apnea training tables"
+          aria-current={currentPath.startsWith('/training') ? 'page' : undefined}
+        >
+          <svg className={styles.bottomNavIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <polyline points="12 7 12 12 15 14" />
+          </svg>
+          <span>Train</span>
         </button>
         <button
           className={`${styles.bottomNavBtn} ${currentPath === '/friends' ? styles.bottomNavActive : ''}`}

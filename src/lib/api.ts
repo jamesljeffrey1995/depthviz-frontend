@@ -2,6 +2,11 @@ import { supabase } from './supabase'
 import { cacheGet, cacheSet, cacheDelete, cacheDeleteByPrefix } from './cache'
 import type {
   AdminStats,
+  ApneaDifficulty,
+  ApneaTable,
+  ApneaTableCreate,
+  ApneaTableType,
+  ApneaTableUpdate,
   BestVisResponse,
   CatchCreate,
   CatchRead,
@@ -470,6 +475,48 @@ export interface ServiceStatusResponse {
 
 export async function getServiceStatus(): Promise<ServiceStatusResponse> {
   return apiFetch<ServiceStatusResponse>('/status')
+}
+
+// Apnea training tables
+export interface ApneaListParams {
+  scope?: 'all' | 'mine' | 'public' | 'system'
+  difficulty?: ApneaDifficulty
+  table_type?: ApneaTableType
+}
+
+export async function getApneaTables(params: ApneaListParams = {}): Promise<ApneaTable[]> {
+  const qs = new URLSearchParams()
+  if (params.scope) qs.set('scope', params.scope)
+  if (params.difficulty) qs.set('difficulty', params.difficulty)
+  if (params.table_type) qs.set('table_type', params.table_type)
+  const path = qs.toString() ? `/apnea/tables?${qs}` : '/apnea/tables'
+  return apiFetch<ApneaTable[]>(path)
+}
+
+export async function getApneaTable(id: number): Promise<ApneaTable> {
+  return apiFetch<ApneaTable>(`/apnea/tables/${id}`)
+}
+
+export async function createApneaTable(data: ApneaTableCreate): Promise<ApneaTable> {
+  return apiFetch<ApneaTable>('/apnea/tables', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function updateApneaTable(id: number, data: ApneaTableUpdate): Promise<ApneaTable> {
+  return apiFetch<ApneaTable>(`/apnea/tables/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function deleteApneaTable(id: number): Promise<void> {
+  await apiFetch(`/apnea/tables/${id}`, { method: 'DELETE' })
+}
+
+export async function copyApneaTable(id: number): Promise<ApneaTable> {
+  return apiFetch<ApneaTable>(`/apnea/tables/${id}/copy`, { method: 'POST' })
 }
 
 // Activity Feed

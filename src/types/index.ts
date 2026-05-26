@@ -545,3 +545,44 @@ export interface FeatureImportanceResponse {
   }
   n: number
 }
+
+// Apnea training tables
+export type ApneaTableType = 'o2' | 'co2' | 'custom'
+export type ApneaDifficulty = 'beginner' | 'intermediate' | 'expert'
+
+export interface ApneaCycle {
+  hold_seconds: number
+  rest_seconds: number
+}
+
+export interface ApneaTable {
+  id: number
+  user_id: string | null
+  name: string
+  description: string | null
+  table_type: ApneaTableType
+  difficulty: ApneaDifficulty
+  cycles: ApneaCycle[]
+  is_public: boolean
+  is_system: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface ApneaTableCreate {
+  name: string
+  description?: string | null
+  table_type: ApneaTableType
+  difficulty: ApneaDifficulty
+  cycles: ApneaCycle[]
+  is_public?: boolean
+}
+
+export interface ApneaTableUpdate {
+  name?: string
+  description?: string | null
+  table_type?: ApneaTableType
+  difficulty?: ApneaDifficulty
+  cycles?: ApneaCycle[]
+  is_public?: boolean
+}
