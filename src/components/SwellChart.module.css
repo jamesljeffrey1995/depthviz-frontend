@@ -128,25 +128,63 @@
   color: rgba(255, 255, 255, 0.35);
 }
 
-/* SVG */
+/* Selected-day annotation panel */
+.annotPanel {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
+  padding: 5px 8px;
+  margin-bottom: 4px;
+  font-family: var(--font-display);
+}
+
+.annotDay {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.annotSep {
+  width: 1px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0 10px;
+  flex-shrink: 0;
+}
+
+.annotItem {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.annotKey {
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+}
+
+.annotVal {
+  font-size: 13px;
+  color: var(--text-bright, #fff);
+  letter-spacing: 0.03em;
+}
+
+.annotPeriod {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* SVG elements */
 .svg {
   display: block;
   width: 100%;
   height: auto;
-}
-
-.valueLabel {
-  fill: var(--text-bright);
-  font-family: var(--font-display);
-  font-size: 10px;
-  letter-spacing: 0.04em;
-}
-
-.valueLabelSub {
-  fill: rgba(255, 255, 255, 0.5);
-  font-family: var(--font-display);
-  font-size: 9.5px;
-  letter-spacing: 0.04em;
 }
 
 .refLabel {
