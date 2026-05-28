@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { DayForecast } from '../types'
 import { weekdayShort, weekdayLong } from '../lib/visTrend'
 import styles from './SwellChart.module.css'
@@ -10,8 +11,8 @@ interface Props {
 }
 
 const W = 320
-const H = 108
-const PAD = { top: 22, right: 30, bottom: 24, left: 14 }
+const H = 100
+const PAD = { top: 16, right: 30, bottom: 24, left: 14 }
 const FT_PER_M = 3.28084
 
 function maxScale(units: 'ft' | 'm') {
@@ -26,8 +27,8 @@ function swellColor(heightInDisplayUnits: number, units: 'ft' | 'm'): string {
   return '#c0392b'
 }
 
-/** Compact bar chart: swell height (solid) + wave height (translucent) per day. */
 export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props) {
+  const [showInfo, setShowInfo] = useState(false)
   const n = days.length
   if (n === 0) return null
 
@@ -43,26 +44,84 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
   const yVal = (v: number) =>
     baseline - (Math.min(scale, Math.max(0, v)) / scale) * plotH
 
-  // Reference lines — 1 m and 1.5 m converted to display units
   const ref1  = units === 'ft' ? 1.0 * FT_PER_M : 1.0
   const ref15 = units === 'ft' ? 1.5 * FT_PER_M : 1.5
-  const y1   = yVal(ref1)
-  const y15  = yVal(ref15)
+  const y1    = yVal(ref1)
+  const y15   = yVal(ref15)
   const ref1Label  = units === 'ft' ? '3ft'  : '1m'
   const ref15Label = units === 'ft' ? '5ft'  : '1.5m'
 
   const labelEvery = n > 8 ? 2 : 1
   const interactive = typeof onSelect === 'function'
 
+  const selDay    = days[selectedIndex]
+  const selSwell  = selDay?.swell_height ?? null
+  const selWave   = selDay?.wave_height  ?? null
+  const selPeriod = selDay?.swell_period ?? null
+
   return (
     <figure className={styles.wrap}>
       <figcaption className={styles.caption}>
         <span className={styles.title}>Swell &amp; Waves</span>
-        <span className={styles.legend}>
-          <span className={styles.legendSwell}>&#9646; swell</span>
-          <span className={styles.legendWave}>&#9646; wave</span>
+        <span className={styles.captionRight}>
+          <span className={styles.legend}>
+            <span className={styles.legendSwell}>&#9646; swell</span>
+            <span className={styles.legendWave}>&#9646; wave</span>
+          </span>
+          <button
+            className={styles.infoBtn}
+            onClick={() => setShowInfo(s => !s)}
+            aria-label="Chart info"
+          >ⓘ</button>
         </span>
       </figcaption>
+
+      {showInfo && (
+        <div className={styles.infoPanel}>
+          <div className={styles.infoRow}>
+            <span className={styles.swatchSolid} />
+            <span>Solid bar — swell height (dominant swell train)</span>
+          </div>
+          <div className={styles.infoRow}>
+            <span className={styles.swatchGhost} />
+            <span>Faded bar — total wave height (swell + wind chop)</span>
+          </div>
+          <div className={styles.infoColorScale}>
+            <span className={styles.colorLabel}>Colour by swell height:</span>
+            <div className={styles.colorRow}>
+              <span className={styles.colorChip} style={{ background: '#1a8a5a' }} />
+              <span className={styles.colorThresh}>&lt;{units === 'ft' ? '1.6ft' : '0.5m'}</span>
+              <span className={styles.colorChip} style={{ background: '#d4850a' }} />
+              <span className={styles.colorThresh}>{units === 'ft' ? '1.6–3.3ft' : '0.5–1m'}</span>
+              <span className={styles.colorChip} style={{ background: '#e06c00' }} />
+              <span className={styles.colorThresh}>{units === 'ft' ? '3.3–4.9ft' : '1–1.5m'}</span>
+              <span className={styles.colorChip} style={{ background: '#c0392b' }} />
+              <span className={styles.colorThresh}>&gt;{units === 'ft' ? '4.9ft' : '1.5m'}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selSwell !== null && selWave !== null && (
+        <div className={styles.annotPanel}>
+          <span className={styles.annotDay}>{weekdayShort(selDay.date)}</span>
+          <span className={styles.annotSep} />
+          <span className={styles.annotItem}>
+            <span className={styles.annotKey}>S</span>
+            <span className={styles.annotVal}>
+              {selSwell.toFixed(1)}{units}
+              {selPeriod != null && (
+                <span className={styles.annotPeriod}> · {Math.round(selPeriod)}s</span>
+              )}
+            </span>
+          </span>
+          <span className={styles.annotSep} />
+          <span className={styles.annotItem}>
+            <span className={styles.annotKey}>W</span>
+            <span className={styles.annotVal}>{selWave.toFixed(1)}{units}</span>
+          </span>
+        </div>
+      )}
 
       <svg
         viewBox={`0 0 ${W} ${H}`}
@@ -71,7 +130,6 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
         role={interactive ? 'group' : 'img'}
         aria-label={`Swell and wave height forecast over ${n} days`}
       >
-        {/* Reference lines */}
         <line
           x1={PAD.left} x2={W - PAD.right} y1={y15} y2={y15}
           stroke="rgba(192,57,43,0.45)" strokeWidth={1} strokeDasharray="3 3"
@@ -84,60 +142,37 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
         <text x={W - PAD.right + 3} y={y1  + 3.5} className={styles.refLabel}>{ref1Label}</text>
 
         {days.map((d, i) => {
-          const bx    = cx(i)
-          const swell = d.swell_height
-          const wave  = d.wave_height
-          const color = swellColor(swell, units)
-          const sel   = i === selectedIndex
-          const showLabel = sel || i % labelEvery === 0
+          const bx     = cx(i)
+          const swell  = d.swell_height
+          const wave   = d.wave_height
+          const color  = swellColor(swell, units)
+          const isSel  = i === selectedIndex
+          const showLabel = isSel || i % labelEvery === 0
 
           const swellTop = yVal(swell)
           const waveTop  = yVal(wave)
           const swellH   = Math.max(2, baseline - swellTop)
           const waveH    = Math.max(2, baseline - waveTop)
-          const topY     = Math.min(swellTop, waveTop)
-
-          // Annotate selected day: "1.4m · 12s" or just "1.4m"
-          const dominant = Math.max(swell, wave)
-          const annot = d.swell_period != null
-            ? `${dominant.toFixed(1)}${units}·${Math.round(d.swell_period)}s`
-            : `${dominant.toFixed(1)}${units}`
-          const annotY = Math.max(PAD.top - 2, topY - 5)
 
           return (
             <g key={i}>
-              {/* Wave bar — wider, translucent (drawn first so swell overlaps) */}
               <rect
-                x={bx - barW / 2 - 2}
-                y={waveTop}
-                width={barW + 4}
-                height={waveH}
-                fill={`${color}28`}
-                rx={2}
+                x={bx - barW / 2 - 2} y={waveTop}
+                width={barW + 4} height={waveH}
+                fill={`${color}28`} rx={2}
               />
-              {/* Swell bar — solid */}
               <rect
-                x={bx - barW / 2}
-                y={swellTop}
-                width={barW}
-                height={swellH}
-                fill={color}
-                opacity={sel ? 1 : 0.78}
-                rx={2}
-                stroke={sel ? 'rgba(255,255,255,0.55)' : 'transparent'}
-                strokeWidth={sel ? 1 : 0}
+                x={bx - barW / 2} y={swellTop}
+                width={barW} height={swellH}
+                fill={color} opacity={isSel ? 1 : 0.78} rx={2}
+                stroke={isSel ? 'rgba(255,255,255,0.55)' : 'transparent'}
+                strokeWidth={isSel ? 1 : 0}
               />
-
-              {sel && (
-                <text x={bx} y={annotY} textAnchor="middle" className={styles.valueLabel}>
-                  {annot}
-                </text>
-              )}
 
               {showLabel && (
                 <text
                   x={bx} y={H - 8} textAnchor="middle"
-                  className={sel ? styles.dayLabelSelected : styles.dayLabel}
+                  className={isSel ? styles.dayLabelSelected : styles.dayLabel}
                 >
                   {weekdayShort(d.date)}
                 </text>
@@ -145,16 +180,11 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
 
               {interactive && (
                 <rect
-                  x={bx - plotW / (2 * Math.max(n - 1, 1))}
-                  y={0}
-                  width={plotW / Math.max(n - 1, 1)}
-                  height={H}
-                  fill="transparent"
-                  style={{ cursor: 'pointer' }}
+                  x={bx - plotW / (2 * Math.max(n - 1, 1))} y={0}
+                  width={plotW / Math.max(n - 1, 1)} height={H}
+                  fill="transparent" style={{ cursor: 'pointer' }}
                   onClick={() => onSelect!(i)}
-                  role="button"
-                  tabIndex={0}
-                  aria-pressed={sel}
+                  role="button" tabIndex={0} aria-pressed={isSel}
                   aria-label={`${weekdayLong(d.date)}: swell ${swell.toFixed(1)}${units}, waves ${wave.toFixed(1)}${units}`}
                   onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect!(i) }

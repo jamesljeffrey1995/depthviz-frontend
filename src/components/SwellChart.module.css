@@ -12,6 +12,12 @@
   margin-bottom: 2px;
 }
 
+.captionRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .title {
   font-size: 9px;
   letter-spacing: 0.1em;
@@ -36,17 +42,147 @@
   letter-spacing: 0.04em;
 }
 
+.infoBtn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.infoBtn:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.infoPanel {
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  padding: 6px 0 4px;
+  margin-bottom: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.swatchSolid {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background: rgba(0, 180, 140, 0.8);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.swatchGhost {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background: rgba(0, 180, 140, 0.22);
+  border-radius: 2px;
+  border: 1px solid rgba(0, 180, 140, 0.4);
+  flex-shrink: 0;
+}
+
+.infoColorScale {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.colorLabel {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.colorRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.colorChip {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.colorThresh {
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.45);
+  margin-right: 4px;
+}
+
+/* ── Selected-day annotation panel ── */
+.annotPanel {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
+  padding: 5px 8px;
+  margin-bottom: 4px;
+  font-family: var(--font-display);
+}
+
+.annotDay {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.annotSep {
+  width: 1px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0 10px;
+  flex-shrink: 0;
+}
+
+.annotItem {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.annotKey {
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+}
+
+.annotVal {
+  font-size: 13px;
+  color: var(--text-bright, #fff);
+  letter-spacing: 0.03em;
+}
+
+.annotPeriod {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* ── SVG elements ── */
 .svg {
   display: block;
   width: 100%;
   height: auto;
-}
-
-.valueLabel {
-  fill: var(--text-bright);
-  font-family: var(--font-display);
-  font-size: 10px;
-  letter-spacing: 0.04em;
 }
 
 .refLabel {
