@@ -142,6 +142,13 @@
   letter-spacing: 0.04em;
 }
 
+.valueLabelSub {
+  fill: rgba(255, 255, 255, 0.5);
+  font-family: var(--font-display);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+}
+
 .refLabel {
   fill: rgba(255, 255, 255, 0.28);
   font-size: 7.5px;
