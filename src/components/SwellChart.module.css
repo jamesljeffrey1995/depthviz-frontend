@@ -12,18 +12,18 @@
   margin-bottom: 2px;
 }
 
-.captionRight {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .title {
   font-size: 9px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.4);
   font-family: var(--font-display);
+}
+
+.captionRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .legend {
@@ -45,91 +45,93 @@
 .infoBtn {
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.35);
-  font-size: 11px;
-  cursor: pointer;
   padding: 0;
+  cursor: pointer;
+  font-size: 13px;
   line-height: 1;
+  color: rgba(255, 255, 255, 0.35);
   transition: color 0.15s;
 }
 
-.infoBtn:hover {
-  color: rgba(255, 255, 255, 0.7);
+.infoBtn:hover,
+.infoBtn[aria-expanded="true"] {
+  color: var(--accent);
 }
 
+/* Info panel */
 .infoPanel {
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
-  padding: 6px 0 4px;
+  border-top: 1px solid rgba(0, 201, 255, 0.08);
+  padding: 8px 2px 6px;
   margin-bottom: 4px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
 .infoRow {
   display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 9px;
-  color: rgba(255, 255, 255, 0.5);
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.4;
+}
+
+.infoRow strong {
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .swatchSolid {
-  display: inline-block;
+  flex-shrink: 0;
   width: 10px;
   height: 10px;
-  background: rgba(0, 180, 140, 0.8);
+  margin-top: 2px;
   border-radius: 2px;
-  flex-shrink: 0;
+  background: rgba(0, 180, 140, 0.75);
 }
 
 .swatchGhost {
-  display: inline-block;
+  flex-shrink: 0;
   width: 10px;
   height: 10px;
-  background: rgba(0, 180, 140, 0.22);
+  margin-top: 2px;
   border-radius: 2px;
+  background: rgba(0, 180, 140, 0.2);
   border: 1px solid rgba(0, 180, 140, 0.4);
-  flex-shrink: 0;
 }
 
 .infoColorScale {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.colorLabel {
-  font-size: 9px;
-  color: rgba(255, 255, 255, 0.35);
-}
-
-.colorRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: 10px 1fr 10px 1fr 10px 1fr 10px 1fr;
   align-items: center;
-  gap: 4px;
-  flex-wrap: wrap;
+  gap: 4px 6px;
+  margin-top: 2px;
+  padding-top: 5px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .colorChip {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 2px;
   flex-shrink: 0;
 }
 
-.colorThresh {
-  font-size: 8px;
-  color: rgba(255, 255, 255, 0.45);
-  margin-right: 4px;
+.colorLabel {
+  font-size: 9.5px;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.3;
 }
 
-/* ── Selected-day annotation panel ── */
+.colorThresh {
+  font-size: 8.5px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+/* Selected-day annotation panel */
 .annotPanel {
   display: flex;
   align-items: center;
-  gap: 0;
   background: rgba(255, 255, 255, 0.04);
   border-radius: 4px;
   padding: 5px 8px;
@@ -178,7 +180,7 @@
   color: rgba(255, 255, 255, 0.55);
 }
 
-/* ── SVG elements ── */
+/* SVG elements */
 .svg {
   display: block;
   width: 100%;
