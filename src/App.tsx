@@ -218,46 +218,6 @@ export default function App() {
         <p className={styles.valueProp}>
           AI-calibrated 7-day forecasts · swell, current &amp; ocean data · community-verified
         </p>
-        <div className={styles.headerControls}>
-          <div className={styles.unitToggle} role="group" aria-label="Wave height units">
-            <span
-              className={`${styles.unitLabel} ${units === 'ft' ? styles.unitLabelActive : ''}`}
-              onClick={() => setUnits('ft')}
-            >FT</span>
-            <label className={styles.toggleSwitch}>
-              <input
-                type="checkbox"
-                checked={units === 'm'}
-                onChange={(e) => setUnits(e.target.checked ? 'm' : 'ft')}
-              />
-              <span className={styles.toggleSlider} />
-            </label>
-            <span
-              className={`${styles.unitLabel} ${units === 'm' ? styles.unitLabelActive : ''}`}
-              onClick={() => setUnits('m')}
-            >M</span>
-          </div>
-          <div className={styles.depthSelect}>
-            <label className={styles.depthSelectLabel} htmlFor="dive-depth">Max depth</label>
-            <select
-              id="dive-depth"
-              className={styles.depthSelectInput}
-              value={diveDepth}
-              onChange={e => {
-                const v = Number(e.target.value)
-                setDiveDepth(v)
-                try { localStorage.setItem('diveDepth', String(v)) } catch {}
-              }}
-              aria-label="Your maximum dive depth in metres"
-            >
-              <option value={5}>5m</option>
-              <option value={10}>10m</option>
-              <option value={15}>15m</option>
-              <option value={20}>20m</option>
-              <option value={30}>30m+</option>
-            </select>
-          </div>
-        </div>
         <button
           type="button"
           className={user ? styles.authBtnAvatar : styles.authBtn}
@@ -461,6 +421,50 @@ export default function App() {
                       )}
                     </div>
                   )}
+                  <div className={styles.forecastControls}>
+                    <div className={styles.unitToggle} role="group" aria-label="Wave height units">
+                      <button
+                        type="button"
+                        className={`${styles.unitLabel} ${units === 'ft' ? styles.unitLabelActive : ''}`}
+                        onClick={() => setUnits('ft')}
+                        aria-pressed={units === 'ft'}
+                      >FT</button>
+                      <label className={styles.toggleSwitch}>
+                        <input
+                          type="checkbox"
+                          checked={units === 'm'}
+                          onChange={(e) => setUnits(e.target.checked ? 'm' : 'ft')}
+                        />
+                        <span className={styles.toggleSlider} />
+                      </label>
+                      <button
+                        type="button"
+                        className={`${styles.unitLabel} ${units === 'm' ? styles.unitLabelActive : ''}`}
+                        onClick={() => setUnits('m')}
+                        aria-pressed={units === 'm'}
+                      >M</button>
+                    </div>
+                    <div className={styles.depthSelect}>
+                      <label className={styles.depthSelectLabel} htmlFor="dive-depth">Max depth</label>
+                      <select
+                        id="dive-depth"
+                        className={styles.depthSelectInput}
+                        value={diveDepth}
+                        onChange={e => {
+                          const v = Number(e.target.value)
+                          setDiveDepth(v)
+                          try { localStorage.setItem('diveDepth', String(v)) } catch {}
+                        }}
+                        aria-label="Your maximum dive depth in metres"
+                      >
+                        <option value={5}>5m</option>
+                        <option value={10}>10m</option>
+                        <option value={15}>15m</option>
+                        <option value={20}>20m</option>
+                        <option value={30}>30m+</option>
+                      </select>
+                    </div>
+                  </div>
                   <ForecastStrip days={forecast.days} selectedIndex={selectedDay} onSelect={setSelectedDay} />
                   {forecast.days[selectedDay] && (
                     <DayDetail
