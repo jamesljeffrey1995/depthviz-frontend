@@ -158,7 +158,7 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
           const wave  = d.wave_height
           const color = swellColor(swell, units)
           const sel   = i === selectedIndex
-          const showLabel = sel || i % labelEvery === 0
+          const showLabel = i % labelEvery === 0
 
           const swellTop = yVal(swell)
           const waveTop  = yVal(wave)
