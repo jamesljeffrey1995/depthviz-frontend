@@ -11,8 +11,8 @@ interface Props {
 }
 
 const W = 320
-const H = 118
-const PAD = { top: 32, right: 30, bottom: 24, left: 14 }
+const H = 100
+const PAD = { top: 16, right: 30, bottom: 24, left: 14 }
 const FT_PER_M = 3.28084
 
 const COLORS = {
@@ -34,7 +34,6 @@ function swellColor(heightInDisplayUnits: number, units: 'ft' | 'm'): string {
   return COLORS.rough
 }
 
-/** Compact bar chart: swell height (solid) + wave height (translucent) per day. */
 export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props) {
   const [showInfo, setShowInfo] = useState(false)
   const n = days.length
@@ -65,6 +64,11 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
   const t1 = units === 'ft' ? '1.6ft' : '0.5m'
   const t2 = units === 'ft' ? '3.3ft' : '1m'
   const t3 = units === 'ft' ? '5ft'   : '1.5m'
+
+  const selDay    = days[selectedIndex]
+  const selSwell  = selDay?.swell_height ?? null
+  const selWave   = selDay?.wave_height  ?? null
+  const selPeriod = selDay?.swell_period ?? null
 
   return (
     <figure className={styles.wrap}>
@@ -109,6 +113,27 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
         </div>
       )}
 
+      {selSwell !== null && selWave !== null && (
+        <div className={styles.annotPanel}>
+          <span className={styles.annotDay}>{weekdayShort(selDay.date)}</span>
+          <span className={styles.annotSep} />
+          <span className={styles.annotItem}>
+            <span className={styles.annotKey}>S</span>
+            <span className={styles.annotVal}>
+              {selSwell.toFixed(1)}{units}
+              {selPeriod != null && (
+                <span className={styles.annotPeriod}> &middot; {Math.round(selPeriod)}s</span>
+              )}
+            </span>
+          </span>
+          <span className={styles.annotSep} />
+          <span className={styles.annotItem}>
+            <span className={styles.annotKey}>W</span>
+            <span className={styles.annotVal}>{selWave.toFixed(1)}{units}</span>
+          </span>
+        </div>
+      )}
+
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className={styles.svg}
@@ -139,16 +164,6 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
           const waveTop  = yVal(wave)
           const swellH   = Math.max(2, baseline - swellTop)
           const waveH    = Math.max(2, baseline - waveTop)
-          const topY     = Math.min(swellTop, waveTop)
-
-          // Two annotation lines: swell (+ period) on top, wave below
-          const swellLine = d.swell_period != null
-            ? `S: ${swell.toFixed(1)}${units} · ${Math.round(d.swell_period)}s`
-            : `S: ${swell.toFixed(1)}${units}`
-          const waveLine = `W: ${wave.toFixed(1)}${units}`
-          // Pin the first line at least 20px above the top of the bars
-          const annot1Y = Math.max(14, topY - 16)
-          const annot2Y = annot1Y + 11
 
           return (
             <g key={i}>
@@ -164,16 +179,6 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
                 stroke={sel ? 'rgba(255,255,255,0.55)' : 'transparent'}
                 strokeWidth={sel ? 1 : 0}
               />
-              {sel && (
-                <>
-                  <text x={bx} y={annot1Y} textAnchor="middle" className={styles.valueLabel}>
-                    {swellLine}
-                  </text>
-                  <text x={bx} y={annot2Y} textAnchor="middle" className={styles.valueLabelSub}>
-                    {waveLine}
-                  </text>
-                </>
-              )}
               {showLabel && (
                 <text
                   x={bx} y={H - 8} textAnchor="middle"
