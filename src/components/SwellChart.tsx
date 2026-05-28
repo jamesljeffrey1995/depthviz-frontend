@@ -11,8 +11,8 @@ interface Props {
 }
 
 const W = 320
-const H = 108
-const PAD = { top: 22, right: 30, bottom: 24, left: 14 }
+const H = 118
+const PAD = { top: 32, right: 30, bottom: 24, left: 14 }
 const FT_PER_M = 3.28084
 
 const COLORS = {
@@ -62,7 +62,6 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
   const labelEvery = n > 8 ? 2 : 1
   const interactive = typeof onSelect === 'function'
 
-  // Threshold labels for info panel
   const t1 = units === 'ft' ? '1.6ft' : '0.5m'
   const t2 = units === 'ft' ? '3.3ft' : '1m'
   const t3 = units === 'ft' ? '5ft'   : '1.5m'
@@ -142,11 +141,14 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
           const waveH    = Math.max(2, baseline - waveTop)
           const topY     = Math.min(swellTop, waveTop)
 
-          const dominant = Math.max(swell, wave)
-          const annot = d.swell_period != null
-            ? `${dominant.toFixed(1)}${units}·${Math.round(d.swell_period)}s`
-            : `${dominant.toFixed(1)}${units}`
-          const annotY = Math.max(PAD.top - 2, topY - 5)
+          // Two annotation lines: swell (+ period) on top, wave below
+          const swellLine = d.swell_period != null
+            ? `S: ${swell.toFixed(1)}${units} · ${Math.round(d.swell_period)}s`
+            : `S: ${swell.toFixed(1)}${units}`
+          const waveLine = `W: ${wave.toFixed(1)}${units}`
+          // Pin the first line at least 20px above the top of the bars
+          const annot1Y = Math.max(14, topY - 16)
+          const annot2Y = annot1Y + 11
 
           return (
             <g key={i}>
@@ -163,9 +165,14 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
                 strokeWidth={sel ? 1 : 0}
               />
               {sel && (
-                <text x={bx} y={annotY} textAnchor="middle" className={styles.valueLabel}>
-                  {annot}
-                </text>
+                <>
+                  <text x={bx} y={annot1Y} textAnchor="middle" className={styles.valueLabel}>
+                    {swellLine}
+                  </text>
+                  <text x={bx} y={annot2Y} textAnchor="middle" className={styles.valueLabelSub}>
+                    {waveLine}
+                  </text>
+                </>
               )}
               {showLabel && (
                 <text
