@@ -423,10 +423,12 @@ export default function App() {
                   )}
                   <div className={styles.forecastControls}>
                     <div className={styles.unitToggle} role="group" aria-label="Wave height units">
-                      <span
+                      <button
+                        type="button"
                         className={`${styles.unitLabel} ${units === 'ft' ? styles.unitLabelActive : ''}`}
                         onClick={() => setUnits('ft')}
-                      >FT</span>
+                        aria-pressed={units === 'ft'}
+                      >FT</button>
                       <label className={styles.toggleSwitch}>
                         <input
                           type="checkbox"
@@ -435,10 +437,12 @@ export default function App() {
                         />
                         <span className={styles.toggleSlider} />
                       </label>
-                      <span
+                      <button
+                        type="button"
                         className={`${styles.unitLabel} ${units === 'm' ? styles.unitLabelActive : ''}`}
                         onClick={() => setUnits('m')}
-                      >M</span>
+                        aria-pressed={units === 'm'}
+                      >M</button>
                     </div>
                     <div className={styles.depthSelect}>
                       <label className={styles.depthSelectLabel} htmlFor="dive-depth">Max depth</label>
