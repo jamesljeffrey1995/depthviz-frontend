@@ -204,22 +204,29 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
           {!loading && quarantined.length === 0 && (
             <div className={styles.empty}>No quarantined reports</div>
           )}
-          {quarantined.map(r => (
-            <div key={r.id} className={styles.reportRow}>
-              <div className={styles.reportMeta}>
-                <span className={styles.reportLoc}>{r.location_name}</span>
-                <span className={styles.reportDate}>{r.report_date}</span>
+          {quarantined.map(r => {
+            const delta = r.actual_vis - r.predicted_vis
+            const deltaStr = `${delta >= 0 ? '+' : ''}${delta.toFixed(1)}m vs predicted`
+            return (
+              <div key={r.id} className={styles.reportRow}>
+                <div className={styles.reportMeta}>
+                  <span className={styles.reportLoc}>{r.location_name}</span>
+                  <span className={styles.reportDate}>{r.report_date}</span>
+                </div>
+                <div className={styles.reportData}>
+                  <span className={styles.reportVis}>{r.actual_vis.toFixed(1)}m</span>
+                  <span className={styles.reportPred}>pred: {r.predicted_vis.toFixed(1)}m</span>
+                  {r.notes && <span className={styles.reportNotes}>{r.notes.slice(0, 60)}</span>}
+                </div>
+                <div className={styles.quarantineReason}>
+                  {r.quarantine_reason ?? deltaStr}
+                </div>
+                <button className={styles.restoreBtn} onClick={() => handleRestore(r.id)}>
+                  Restore
+                </button>
               </div>
-              <div className={styles.reportData}>
-                <span className={styles.reportVis}>{r.actual_vis.toFixed(1)}m</span>
-                <span className={styles.reportPred}>pred: {r.predicted_vis.toFixed(1)}m</span>
-                {r.notes && <span className={styles.reportNotes}>{r.notes.slice(0, 60)}</span>}
-              </div>
-              <button className={styles.restoreBtn} onClick={() => handleRestore(r.id)}>
-                Restore
-              </button>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
