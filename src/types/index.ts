@@ -66,6 +66,7 @@ export interface DayForecast {
   color_class: string
   wave_height: number
   swell_height: number
+  swell_period: number | null
   swell_direction: number | null
   swell_dir_label: string | null
   swell_components: SwellComponent[]
