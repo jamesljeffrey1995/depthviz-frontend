@@ -5,6 +5,7 @@ import { buildVisSummary } from '../lib/visTrend'
 import { getWaterQuality } from '../lib/units'
 import { SwellCompass } from './SwellCompass'
 import { VisTrendChart } from './VisTrendChart'
+import { SwellChart } from './SwellChart'
 import styles from './DayDetail.module.css'
 
 interface Props {
@@ -209,9 +210,14 @@ export function DayDetail({ day, locationName, reportCount, units = 'm', isAdmin
       {/* Plain-language summary of the visibility trend */}
       {summary && <div className={styles.summaryLine}>{summary}</div>}
 
-      {/* Visibility trend chart — replaces the flat metric strip */}
+      {/* Visibility trend sparkline */}
       {trendDays && (
         <VisTrendChart days={trendDays} selectedIndex={selectedIndex} onSelect={onSelectDay} />
+      )}
+
+      {/* Swell & wave bar chart */}
+      {trendDays && (
+        <SwellChart days={trendDays} selectedIndex={selectedIndex} onSelect={onSelectDay} units={units} />
       )}
 
       <div className={`${styles.verdict} ${styles[day.color_class]}`}>{day.verdict}</div>
