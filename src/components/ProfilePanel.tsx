@@ -112,14 +112,22 @@ export function ProfilePanel({ onClose }: ProfilePanelProps) {
       {tab === 'mine' && (
         <div className={styles.reportList}>
           {reports.length === 0 && <div className={styles.empty}>No reports yet — log your next dive!</div>}
-          {reports.map(r => (
-            <div key={r.id} className={`${styles.reportRow} ${r.is_quarantined ? styles.quarantined : ''}`}>
-              <div className={styles.reportDate}>{r.report_date}</div>
-              <div className={styles.reportVis}>{r.actual_vis.toFixed(1)}m actual</div>
-              <div className={styles.reportPred}>({r.predicted_vis.toFixed(1)}m predicted)</div>
-              {r.is_quarantined && <div className={styles.qTag}>outlier</div>}
-            </div>
-          ))}
+          {reports.map(r => {
+            const delta = r.actual_vis - r.predicted_vis
+            const deltaStr = `${delta >= 0 ? '+' : ''}${delta.toFixed(1)}m from expected`
+            return (
+              <div key={r.id} className={`${styles.reportRow} ${r.is_quarantined ? styles.quarantined : ''}`}>
+                <div className={styles.reportDate}>{r.report_date}</div>
+                <div className={styles.reportVis}>{r.actual_vis.toFixed(1)}m actual</div>
+                <div className={styles.reportPred}>({r.predicted_vis.toFixed(1)}m predicted)</div>
+                {r.is_quarantined && (
+                  <div className={styles.qTag} title={`Statistical outlier: ${deltaStr}`}>
+                    outlier · {deltaStr}
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
 

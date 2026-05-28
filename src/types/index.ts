@@ -334,6 +334,7 @@ export interface QuarantinedReport {
   trust_weight: number
   notes: string | null
   created_at: string
+  quarantine_reason?: string
 }
 
 export interface QuarantinedListResponse {
