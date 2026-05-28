@@ -48,14 +48,14 @@
   line-height: 1.6;
 }
 
-/* ── Header controls (unit toggle + depth select) ── */
-.headerControls {
-  display: inline-flex;
+/* ── Forecast controls (unit toggle + depth select) ── */
+.forecastControls {
+  display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 20px;
   flex-wrap: wrap;
-  justify-content: center;
-  margin-top: var(--space-sm);
+  margin-bottom: 12px;
 }
 
 /* ── Unit toggle (ft / m) ── */
