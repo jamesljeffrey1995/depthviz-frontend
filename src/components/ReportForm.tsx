@@ -4,6 +4,7 @@ import type { VisibilityReport } from '../lib/underwaterVisibility'
 import { submitReport } from '../lib/api'
 import { feetToMetres } from '../lib/units'
 import VisibilityAnalyser from './VisibilityAnalyser'
+import { KelpVisibilityNote } from './KelpVisibilityNote'
 import styles from './ReportForm.module.css'
 
 interface Props {
@@ -56,6 +57,17 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
     () => allDays.find(d => d.date === selectedDate) ?? day,
     [allDays, selectedDate, day]
   )
+
+  // Surface the kelp-bed explainer when the user reports poor visibility near
+  // kelp against a forecast that was meaningfully better — the classic
+  // "clear offshore, murky in the canopy" case that isn't a forecast error.
+  const showKelpNote = useMemo(() => {
+    if (!/\b(kelp|seaweed|weeds?|fronds?|canopy)\b/i.test(notes)) return false
+    const actual = parseFloat(actualVis)
+    if (isNaN(actual) || !activeDay) return false
+    const predicted = activeDay.vis_corrected ?? activeDay.vis_estimate
+    return predicted - actual >= 2
+  }, [notes, actualVis, activeDay])
 
   const handleSubmit = async () => {
     if (!locationId) {
@@ -184,6 +196,8 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
           maxLength={500}
         />
       </div>
+
+      {showKelpNote && <KelpVisibilityNote defaultOpen />}
 
       <div className={styles.field}>
         <label className={styles.label}>Dive video analysis (optional)</label>
