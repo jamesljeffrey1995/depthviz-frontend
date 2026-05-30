@@ -6,6 +6,7 @@ import { getWaterQuality } from '../lib/units'
 import { SwellCompass } from './SwellCompass'
 import { VisTrendChart } from './VisTrendChart'
 import { SwellChart } from './SwellChart'
+import { KelpVisibilityNote } from './KelpVisibilityNote'
 import styles from './DayDetail.module.css'
 
 interface Props {
@@ -329,6 +330,10 @@ export function DayDetail({ day, locationName, reportCount, units = 'm', isAdmin
           </div>
         </div>
       )}
+
+      {/* Local-microenvironment caveat: clear offshore vs murky inside kelp.
+          Collapsed by default — educational, not data-driven. */}
+      <KelpVisibilityNote />
 
       {/* Algae bloom risk — always visible when present */}
       {(day.algae.risk !== 'low' || day.algae.drivers.length > 0) && (
