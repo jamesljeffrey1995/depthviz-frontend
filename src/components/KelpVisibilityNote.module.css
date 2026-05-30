@@ -1,0 +1,107 @@
+.note {
+  margin-bottom: 16px;
+  background: rgba(26, 138, 90, 0.06);
+  border: 1px solid rgba(26, 138, 90, 0.22);
+  border-left: 3px solid #1a8a5a;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  padding: 10px 14px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.toggle:hover {
+  color: var(--accent);
+}
+
+.toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.toggleArrow {
+  opacity: 0.6;
+  font-size: 9px;
+}
+
+.body {
+  padding: 0 14px 14px;
+}
+
+.lead {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-bright);
+  margin: 0 0 12px;
+}
+
+.factors {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.factor {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 12px;
+  border-left: 2px solid rgba(26, 138, 90, 0.35);
+}
+
+.factorTitle {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: #4ecb8d;
+}
+
+.factorDetail {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.tip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(0, 201, 255, 0.06);
+  border-left: 3px solid var(--accent);
+  padding: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.tipLabel {
+  font-size: 8px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0.8;
+}
+
+.tipText {
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--text-bright);
+}
+
+.footnote {
+  font-size: 10px;
+  line-height: 1.55;
+  color: var(--text);
+  opacity: 0.7;
+  margin: 0;
+}
