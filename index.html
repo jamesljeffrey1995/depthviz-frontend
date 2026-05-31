@@ -18,7 +18,7 @@
          NOTE: frame-ancestors is omitted here because <meta> CSP does not
          support it; X-Frame-Options: DENY in _headers covers that instead. -->
     <meta http-equiv="Content-Security-Policy"
-          content="default-src 'self'; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.tile.openstreetmap.org; connect-src 'self' https://*.supabase.co https://geocoding-api.open-meteo.com; font-src 'self'; media-src 'self' blob:; worker-src 'self' blob:" />
+          content="default-src 'self'; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://gibs.earthdata.nasa.gov https://coastwatch.noaa.gov https://tiles.maps.eox.at; connect-src 'self' https://*.supabase.co https://geocoding-api.open-meteo.com; font-src 'self'; media-src 'self' blob:; worker-src 'self' blob:" />
 
     <!-- Theme / PWA -->
     <meta name="theme-color" content="#020d14" />

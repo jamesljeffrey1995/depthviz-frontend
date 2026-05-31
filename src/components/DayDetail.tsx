@@ -7,11 +7,15 @@ import { SwellCompass } from './SwellCompass'
 import { VisTrendChart } from './VisTrendChart'
 import { SwellChart } from './SwellChart'
 import { KelpVisibilityNote } from './KelpVisibilityNote'
+import { SatelliteImageryCard } from './SatelliteImageryCard'
 import styles from './DayDetail.module.css'
 
 interface Props {
   day: DayForecast
   locationName: string
+  /** Spot coordinates — used to fetch satellite imagery for the selected day. */
+  lat?: number
+  lon?: number
   reportCount: number
   /** Wave-height display unit — must match the units the API was asked to
    *  return so wave_height/swell_height numbers are labelled correctly. */
@@ -148,7 +152,7 @@ function buildTrace(day: DayForecast): TraceRow[] {
   return rows
 }
 
-export function DayDetail({ day, locationName, reportCount, units = 'm', isAdmin = false, biasOffset = null, globalBiasOffset = null, maxDiveDepth, days, selectedIndex = 0, onSelectDay }: Props) {
+export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm', isAdmin = false, biasOffset = null, globalBiasOffset = null, maxDiveDepth, days, selectedIndex = 0, onSelectDay }: Props) {
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [showConditions, setShowConditions] = useState(defaultConditionsOpen)
   const trendDays = days && days.length > 1 ? days : null
@@ -167,7 +171,8 @@ export function DayDetail({ day, locationName, reportCount, units = 'm', isAdmin
   const humSev  = getHumiditySeverity(day.humidity)
 
   const elevatedWarnings = getElevatedWarnings(day)
-  const advancedAvailable = hasAdvancedData(day) || isAdmin
+  const hasCoords = lat != null && lon != null
+  const advancedAvailable = hasAdvancedData(day) || isAdmin || hasCoords
 
   const dominantWave = Math.max(day.wave_height ?? 0, day.swell_height ?? 0)
   // Server-side gate thresholds are in meters; normalize for comparison regardless of display units
@@ -513,6 +518,11 @@ export function DayDetail({ day, locationName, reportCount, units = 'm', isAdmin
                 </div>
               )}
             </div>
+          )}
+
+          {/* Satellite imagery — true-colour + chlorophyll for this spot/day */}
+          {hasCoords && (
+            <SatelliteImageryCard lat={lat!} lon={lon!} date={day.date} />
           )}
 
           {/* Water quality indicator */}

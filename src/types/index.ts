@@ -49,6 +49,24 @@ export interface WaterQuality {
   erddap_obs_date: string | null
 }
 
+export interface SatelliteLayer {
+  kind: 'true_colour' | 'sentinel2' | 'chlorophyll'
+  title: string
+  url: string
+  image_date: string
+  is_exact_date: boolean
+  source: string
+  attribution: string
+  description: string
+}
+
+export interface SatelliteImagery {
+  lat: number
+  lon: number
+  bbox: [number, number, number, number]
+  layers: SatelliteLayer[]
+}
+
 export interface SwellComponent {
   type: 'primary' | 'secondary' | 'wind_wave'
   label: string

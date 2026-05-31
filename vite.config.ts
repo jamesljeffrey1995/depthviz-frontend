@@ -8,7 +8,11 @@ const cspValue = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://*.tile.openstreetmap.org",
+  // Map tiles (OpenStreetMap) + satellite imagery fetched directly by the
+  // browser: NASA GIBS (true-colour), NOAA CoastWatch ERDDAP (chlorophyll),
+  // and EOX (10 m Sentinel-2 cloudless). Keep in sync with public/_headers
+  // and the inline CSP in index.html.
+  "img-src 'self' data: blob: https://*.tile.openstreetmap.org https://gibs.earthdata.nasa.gov https://coastwatch.noaa.gov https://tiles.maps.eox.at",
   "connect-src 'self' https://*.supabase.co https://geocoding-api.open-meteo.com",
   "font-src 'self'",
   // Dive-video analysis loads user-selected clips into a <video> element via

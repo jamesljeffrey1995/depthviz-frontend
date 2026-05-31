@@ -21,6 +21,7 @@ import type {
   QuarantinedListResponse,
   ReportCreate,
   ReportRead,
+  SatelliteImagery,
   TidesResponse,
   UserProfile,
 } from '../types'
@@ -161,6 +162,7 @@ const TTL = {
   HISTORY: 5 * 60 * 1000,       // 5 min
   STATS: 2 * 60 * 1000,         // 2 min   – community data changes often
   LEADERBOARD: 5 * 60 * 1000,   // 5 min
+  SATELLITE: 60 * 60 * 1000,    // 1 hour  – satellite imagery updates ~daily
 }
 
 // Geocoding
@@ -298,6 +300,21 @@ export async function getTides(lat: number, lon: number, name: string, date?: st
   })
   const result = await apiFetch<TidesResponse>(`/tides?${params}`)
   cacheSet(key, result, TTL.TIDES)
+  return result
+}
+
+// Satellite imagery (true-colour + chlorophyll) for a location/date
+export async function getSatelliteImagery(lat: number, lon: number, date?: string): Promise<SatelliteImagery> {
+  const key = `satellite:${lat}:${lon}:${date ?? 'today'}`
+  const cached = cacheGet<SatelliteImagery>(key)
+  if (cached) return cached
+
+  const params = new URLSearchParams({
+    lat: String(lat), lon: String(lon),
+    ...(date ? { date } : {}),
+  })
+  const result = await apiFetch<SatelliteImagery>(`/satellite/imagery?${params}`)
+  cacheSet(key, result, TTL.SATELLITE)
   return result
 }
 

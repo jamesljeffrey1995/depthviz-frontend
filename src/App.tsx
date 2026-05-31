@@ -470,6 +470,8 @@ export default function App() {
                     <DayDetail
                       day={forecast.days[selectedDay]}
                       locationName={forecast.location_name}
+                      lat={forecast.lat}
+                      lon={forecast.lon}
                       reportCount={forecast.report_count}
                       units={units}
                       isAdmin={isAdmin}
