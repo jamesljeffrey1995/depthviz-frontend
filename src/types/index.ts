@@ -50,7 +50,7 @@ export interface WaterQuality {
 }
 
 export interface SatelliteLayer {
-  kind: 'true_colour' | 'chlorophyll'
+  kind: 'true_colour' | 'sentinel2' | 'chlorophyll'
   title: string
   url: string
   image_date: string

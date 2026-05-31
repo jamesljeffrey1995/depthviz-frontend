@@ -90,8 +90,8 @@ export function SatelliteImageryCard({ lat, lon, date }: Props) {
         <div className={styles.loadingRow}>Loading satellite imagery…</div>
       )}
       <div className={styles.footnote}>
-        Imagery updates roughly daily and may lag clear-sky passes. True-colour from NASA
-        GIBS; chlorophyll-a from NOAA CoastWatch.
+        Daily layers may lag clear-sky passes. True-colour from NASA GIBS; chlorophyll-a from
+        NOAA CoastWatch; high-res 10 m mosaic © Sentinel-2 cloudless (s2maps.eu) by EOX.
       </div>
     </div>
   )
