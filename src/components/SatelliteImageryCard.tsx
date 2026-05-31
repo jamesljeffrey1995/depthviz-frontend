@@ -69,30 +69,38 @@ export function SatelliteImageryCard({ lat, lon, date }: Props) {
     setError(false)
     getSatelliteImagery(lat, lon, date)
       .then(res => { if (!cancelled) setData(res) })
-      .catch(() => { if (!cancelled) setError(true) })
+      .catch((err) => {
+        if (cancelled) return
+        console.warn('Satellite imagery fetch failed', err)
+        setError(true)
+      })
     return () => { cancelled = true }
   }, [lat, lon, date])
-
-  if (error) return null
 
   return (
     <div className={styles.card}>
       <div className={styles.header}>
         <div className={styles.label}>Satellite Imagery</div>
       </div>
-      {data ? (
-        <div className={styles.grid}>
-          {data.layers.map(layer => (
-            <ImageTile key={layer.kind} layer={layer} />
-          ))}
-        </div>
+      {error ? (
+        <div className={styles.loadingRow}>Satellite imagery is unavailable right now.</div>
       ) : (
-        <div className={styles.loadingRow}>Loading satellite imagery…</div>
+        <>
+          {data ? (
+            <div className={styles.grid}>
+              {data.layers.map(layer => (
+                <ImageTile key={layer.kind} layer={layer} />
+              ))}
+            </div>
+          ) : (
+            <div className={styles.loadingRow}>Loading satellite imagery…</div>
+          )}
+          <div className={styles.footnote}>
+            Daily layers may lag clear-sky passes. True-colour from NASA GIBS; chlorophyll-a from
+            NOAA CoastWatch; high-res 10 m mosaic © Sentinel-2 cloudless (s2maps.eu) by EOX.
+          </div>
+        </>
       )}
-      <div className={styles.footnote}>
-        Daily layers may lag clear-sky passes. True-colour from NASA GIBS; chlorophyll-a from
-        NOAA CoastWatch; high-res 10 m mosaic © Sentinel-2 cloudless (s2maps.eu) by EOX.
-      </div>
     </div>
   )
 }
