@@ -14,6 +14,15 @@ const FIELD_LABELS: Record<string, string> = {
   swell_period: 'Swell Period (seconds)',
 }
 
+function fieldUnit(fieldName: string): string {
+  switch (fieldName) {
+    case 'sea_temp': return '°C'
+    case 'wind_speed': return 'kn'
+    case 'swell_period': return 's'
+    default: return 'm'
+  }
+}
+
 interface Props {
   user: User
   locations: Location[]
@@ -86,14 +95,21 @@ export function DisputeForm({
     }
 
     setSubmitting(true)
-    setUploading(Boolean(imageFile))
-    try {
-      let imageUrl: string | undefined
-      if (imageFile) {
-        imageUrl = await uploadImage(imageFile) ?? undefined
-        setUploading(false)
-      }
+    let imageUrl: string | undefined
 
+    if (imageFile) {
+      setUploading(true)
+      try {
+        imageUrl = await uploadImage(imageFile) ?? undefined
+      } catch (uploadErr) {
+        // Image upload failure is non-fatal — submit without the image rather than blocking the report
+        console.warn('Dispute image upload failed, submitting without photo:', uploadErr)
+        setError('Photo upload failed — dispute will be submitted without the image.')
+      }
+      setUploading(false)
+    }
+
+    try {
       const payload: DataDisputeCreate = {
         location_id: locationId ? Number(locationId) : undefined,
         report_date: reportDate,
@@ -102,18 +118,19 @@ export function DisputeForm({
         forecast_value: forecastValue ? parseFloat(forecastValue) : undefined,
         image_url: imageUrl,
       }
-
       const dispute = await submitDispute(payload)
       setResult(dispute)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Submission failed — please try again')
-      setUploading(false)
     } finally {
       setSubmitting(false)
     }
   }
 
   if (result) {
+    // Derive units from the immutable result, not the mutable field state
+    const unit = fieldUnit(result.field_disputed)
+
     return (
       <div className={styles.container}>
         <div className={styles.successCard}>
@@ -128,7 +145,7 @@ export function DisputeForm({
               <div className={styles.aiTitle}>AI Image Analysis</div>
               <div className={styles.aiRow}>
                 <span>Extracted reading</span>
-                <strong>{result.ai_extracted_value.toFixed(1)} {field === 'sea_temp' ? '°C' : field === 'wind_speed' ? 'kn' : field === 'swell_period' ? 's' : 'm'}</strong>
+                <strong>{result.ai_extracted_value.toFixed(1)} {unit}</strong>
               </div>
               <div className={styles.aiRow}>
                 <span>Confidence</span>
@@ -137,7 +154,7 @@ export function DisputeForm({
               {result.ai_notes && (
                 <div className={styles.aiNotes}>{result.ai_notes}</div>
               )}
-              {result.ai_extracted_value != null && Math.abs(result.ai_extracted_value - result.reported_value) < 1 && (
+              {Math.abs(result.ai_extracted_value - result.reported_value) < 1 && (
                 <div className={styles.aiMatch}>
                   AI reading matches your reported value — strong evidence
                 </div>
@@ -157,12 +174,12 @@ export function DisputeForm({
           <div className={styles.disputeSummary}>
             <div className={styles.aiRow}>
               <span>Your reading</span>
-              <strong>{result.reported_value} {field === 'sea_temp' ? '°C' : field === 'wind_speed' ? 'kn' : field === 'swell_period' ? 's' : 'm'}</strong>
+              <strong>{result.reported_value} {unit}</strong>
             </div>
             {result.forecast_value != null && (
               <div className={styles.aiRow}>
                 <span>Forecast value</span>
-                <strong>{result.forecast_value} {field === 'sea_temp' ? '°C' : field === 'wind_speed' ? 'kn' : field === 'swell_period' ? 's' : 'm'}</strong>
+                <strong>{result.forecast_value} {unit}</strong>
               </div>
             )}
             <div className={styles.aiRow}>
