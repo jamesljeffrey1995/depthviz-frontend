@@ -84,6 +84,7 @@ export default function App() {
 
   const navigate = useNavigate()
   const location = useLocation()
+  const currentPath = location.pathname
 
   const adminEmail = import.meta.env.VITE_ADMIN_EMAIL as string | undefined
   const isAdmin = !!user?.email && !!adminEmail && user.email === adminEmail
@@ -192,9 +193,6 @@ export default function App() {
   }
 
   const todayIndex = forecast?.days.findIndex(d => d.date === new Date().toISOString().split('T')[0]) ?? -1
-
-  // Current path for bottom nav highlighting
-  const currentPath = location.pathname
 
   if (authLoading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
