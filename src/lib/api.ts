@@ -11,6 +11,8 @@ import type {
   CatchCreate,
   CatchRead,
   CleaningResult,
+  DataDispute,
+  DataDisputeCreate,
   FeedItem,
   ForecastResponse,
   GeocodingResult,
@@ -550,4 +552,16 @@ export async function getFeed(params: {
     offset: String(params.offset),
   }).toString()
   return apiFetch(`/feed?${qs}`)
+}
+
+// Data Disputes
+export async function submitDispute(data: DataDisputeCreate): Promise<DataDispute> {
+  return apiFetch<DataDispute>('/disputes', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function getMyDisputes(): Promise<DataDispute[]> {
+  return apiFetch<DataDispute[]>('/disputes/mine')
 }

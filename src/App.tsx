@@ -36,6 +36,9 @@ const FriendsPanel = lazy(() => import('./components/FriendsPanel').then(m => ({
 const ApneaTablesPage = lazy(() => import('./components/ApneaTablesPage').then(m => ({ default: m.ApneaTablesPage })))
 const ApneaTableEditor = lazy(() => import('./components/ApneaTableEditor').then(m => ({ default: m.ApneaTableEditor })))
 const ApneaTableRunner = lazy(() => import('./components/ApneaTableRunner').then(m => ({ default: m.ApneaTableRunner })))
+const PlacesDashboard = lazy(() => import('./components/PlacesDashboard').then(m => ({ default: m.PlacesDashboard })))
+const WeeklyOverview = lazy(() => import('./components/WeeklyOverview').then(m => ({ default: m.WeeklyOverview })))
+const DisputeForm = lazy(() => import('./components/DisputeForm').then(m => ({ default: m.DisputeForm })))
 
 /** Reads the :page URL param so direct links to /legal/terms work correctly. */
 function LegalRouteWrapper({ onBack }: { onBack: () => void }) {
@@ -67,6 +70,7 @@ export default function App() {
   const [showAuth, setShowAuth] = useState(false)
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null)
   const [units, setUnits] = useState<'ft' | 'm'>('ft')
+  const [weekView, setWeekView] = useState(false)
   const [diveDepth, setDiveDepth] = useState<number>(() => {
     const VALID_DEPTHS = [5, 10, 15, 20, 30]
     try {
@@ -100,6 +104,11 @@ export default function App() {
       setSelectedDay(todayIdx >= 0 ? todayIdx : Math.max(0, forecast.days.length - 1))
     }
   }, [forecast])
+
+  // Reset week view when leaving forecast
+  useEffect(() => {
+    if (currentPath !== '/forecast') setWeekView(false)
+  }, [currentPath])
 
   const prevUnitsRef = useRef<'ft' | 'm'>(units)
   useEffect(() => {
@@ -252,24 +261,39 @@ export default function App() {
 
       {error && <div className={styles.error} role="alert">{error}</div>}
 
-      {status === 'success' && forecast && ['/forecast', '/tides', '/report', '/history'].includes(currentPath) && (
+      {status === 'success' && forecast && ['/forecast', '/tides', '/report', '/history', '/dispute'].includes(currentPath) && (
         <div className={styles.nav} role="navigation" aria-label="Forecast sections">
-          {(['forecast', 'tides', 'report'] as const).map(v => {
-            const label = v === 'forecast' ? 'Forecast' : v === 'tides' ? 'Tides' : 'Log Dive'
-            const path = v === 'forecast' ? '/forecast' : v === 'tides' ? '/tides' : '/report'
-            return (
-              <button
-                key={v}
-                className={`${styles.navBtn} ${currentPath === path ? styles.navActive : ''}`}
-                onClick={() => v === 'report' ? handleReportClick() : navigate(path)}
-                aria-label={v === 'report' && !user ? `${label} (sign in required)` : label}
-                aria-current={currentPath === path ? 'page' : undefined}
-              >
-                {label}
-                {v === 'report' && !user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}
-              </button>
-            )
-          })}
+          <button
+            className={`${styles.navBtn} ${currentPath === '/forecast' && !weekView ? styles.navActive : ''}`}
+            onClick={() => { navigate('/forecast'); setWeekView(false) }}
+            aria-current={currentPath === '/forecast' && !weekView ? 'page' : undefined}
+          >
+            Forecast
+          </button>
+          <button
+            className={`${styles.navBtn} ${currentPath === '/forecast' && weekView ? styles.navActive : ''}`}
+            onClick={() => { navigate('/forecast'); setWeekView(true) }}
+            aria-label="Weekly conditions overview"
+            aria-current={currentPath === '/forecast' && weekView ? 'page' : undefined}
+          >
+            Week
+          </button>
+          <button
+            className={`${styles.navBtn} ${currentPath === '/tides' ? styles.navActive : ''}`}
+            onClick={() => navigate('/tides')}
+            aria-current={currentPath === '/tides' ? 'page' : undefined}
+          >
+            Tides
+          </button>
+          <button
+            className={`${styles.navBtn} ${currentPath === '/report' ? styles.navActive : ''}`}
+            onClick={() => handleReportClick()}
+            aria-label={!user ? 'Log Dive (sign in required)' : 'Log Dive'}
+            aria-current={currentPath === '/report' ? 'page' : undefined}
+          >
+            Log Dive
+            {!user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}
+          </button>
           <button
             className={`${styles.navBtn} ${selectedLocationId ? styles.navActive : ''}`}
             onClick={() => handleSaveLocation(false)}
@@ -294,6 +318,16 @@ export default function App() {
               aria-current={currentPath === '/history' ? 'page' : undefined}
             >
               Dive Logs
+            </button>
+          )}
+          {user && (
+            <button
+              className={`${styles.navBtn} ${currentPath === '/dispute' ? styles.navActive : ''}`}
+              onClick={() => navigate('/dispute')}
+              aria-label="Report incorrect forecast data"
+              aria-current={currentPath === '/dispute' ? 'page' : undefined}
+            >
+              Report Issue
             </button>
           )}
         </div>
@@ -341,22 +375,26 @@ export default function App() {
             </Suspense>
           } />
 
-          {/* Map (home) */}
+          {/* Map / Dashboard (home) */}
           <Route path="/" element={
             <>
               {(status === 'loading' || isRevalidating) && (
                 <div className={styles.loadingBar} role="status" aria-live="polite">{isRevalidating ? 'Fetching conditions...' : 'Reading conditions...'}</div>
               )}
-              {status === 'idle' && (
+              {/* Logged-in users see their saved places dashboard; the map is below */}
+              {user && status === 'idle' && locations.filter(l => !l.is_predefined).length > 0 && (
                 <Suspense fallback={null}>
-                  <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} locations={locations} />
+                  <PlacesDashboard
+                    locations={locations.filter(l => !l.is_predefined).slice(0, 8)}
+                    userUid={user.id}
+                    units={units}
+                    onSelectLocation={handleSpotSelect}
+                  />
                 </Suspense>
               )}
-              {status === 'success' && (
-                <Suspense fallback={null}>
-                  <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} locations={locations} />
-                </Suspense>
-              )}
+              <Suspense fallback={null}>
+                <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} locations={locations} />
+              </Suspense>
             </>
           } />
 
@@ -465,23 +503,37 @@ export default function App() {
                       </select>
                     </div>
                   </div>
-                  <ForecastStrip days={forecast.days} selectedIndex={selectedDay} onSelect={setSelectedDay} />
-                  {forecast.days[selectedDay] && (
-                    <DayDetail
-                      day={forecast.days[selectedDay]}
-                      locationName={forecast.location_name}
-                      lat={forecast.lat}
-                      lon={forecast.lon}
-                      reportCount={forecast.report_count}
-                      units={units}
-                      isAdmin={isAdmin}
-                      biasOffset={forecast.bias_offset}
-                      globalBiasOffset={forecast.global_bias_offset}
-                      maxDiveDepth={diveDepth}
-                      days={forecast.days}
-                      selectedIndex={selectedDay}
-                      onSelectDay={setSelectedDay}
-                    />
+                  {weekView ? (
+                    <Suspense fallback={null}>
+                      <WeeklyOverview
+                        days={forecast.days}
+                        locationName={forecast.location_name}
+                        units={units}
+                        selectedIndex={selectedDay}
+                        onSelectDay={(i) => { setSelectedDay(i); setWeekView(false) }}
+                      />
+                    </Suspense>
+                  ) : (
+                    <>
+                      <ForecastStrip days={forecast.days} selectedIndex={selectedDay} onSelect={setSelectedDay} />
+                      {forecast.days[selectedDay] && (
+                        <DayDetail
+                          day={forecast.days[selectedDay]}
+                          locationName={forecast.location_name}
+                          lat={forecast.lat}
+                          lon={forecast.lon}
+                          reportCount={forecast.report_count}
+                          units={units}
+                          isAdmin={isAdmin}
+                          biasOffset={forecast.bias_offset}
+                          globalBiasOffset={forecast.global_bias_offset}
+                          maxDiveDepth={diveDepth}
+                          days={forecast.days}
+                          selectedIndex={selectedDay}
+                          onSelectDay={setSelectedDay}
+                        />
+                      )}
+                    </>
                   )}
                 </>
               )}
@@ -568,6 +620,26 @@ export default function App() {
             ) : (
               <div className={styles.empty}>
                 <div className={styles.emptyText}>Select a saved location to view dive logs</div>
+              </div>
+            )
+          } />
+
+          {/* Data Dispute */}
+          <Route path="/dispute" element={
+            user ? (
+              <Suspense fallback={null}>
+                <DisputeForm
+                  user={user}
+                  locations={locations}
+                  defaultLocationId={selectedLocationId}
+                  defaultDate={forecast?.days[selectedDay]?.date}
+                  onClose={() => navigate(forecast ? '/forecast' : '/')}
+                />
+              </Suspense>
+            ) : (
+              <div className={styles.empty}>
+                <div className={styles.emptyText}>Sign in to report incorrect data</div>
+                <button className={styles.navBtn} onClick={() => setShowAuth(true)} style={{ marginTop: 16 }}>Sign in</button>
               </div>
             )
           } />
