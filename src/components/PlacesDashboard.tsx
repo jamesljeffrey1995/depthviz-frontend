@@ -1,11 +1,11 @@
 import { useEffect, useState, useCallback } from 'react'
 import type { DayForecast, Location } from '../types'
 import { getForecast } from '../lib/api'
-import { decryptCoords } from '../lib/spotCrypto'
+import { decryptCoords, hasSpotKey } from '../lib/spotCrypto'
 import styles from './PlacesDashboard.module.css'
 
 interface PlaceConditions {
-  status: 'idle' | 'loading' | 'done' | 'error'
+  status: 'idle' | 'loading' | 'done' | 'error' | 'private_no_key'
   today: DayForecast | null
   days: DayForecast[]
   bestDayIdx: number
@@ -44,14 +44,11 @@ function MiniStrip({ days, bestDayIdx }: { days: DayForecast[]; bestDayIdx: numb
   )
 }
 
-/** Returns the index of the best upcoming/today day within the full days array. */
+/** Returns the index of the best day within a (already-sliced) days array. */
 function bestDayIndex(days: DayForecast[]): number {
-  const todayStr = new Date().toISOString().split('T')[0]
   let best = 0
   let bestVis = -1
   for (let i = 0; i < days.length; i++) {
-    // Skip historical days before today
-    if (days[i].date < todayStr && !days[i].is_forecast) continue
     const vis = days[i].vis_corrected ?? days[i].vis_estimate
     if (vis > bestVis) { bestVis = vis; best = i }
   }
@@ -70,6 +67,13 @@ export function PlacesDashboard({ locations, userUid, units, onSelectLocation }:
       let lat = loc.lat
       let lon = loc.lon
       if (loc.encrypted_lat && loc.encrypted_lon) {
+        if (!(await hasSpotKey(userUid))) {
+          setConditions(prev => ({
+            ...prev,
+            [loc.id]: { status: 'private_no_key', today: null, days: [], bestDayIdx: 0, resolvedLat: loc.lat, resolvedLon: loc.lon },
+          }))
+          return
+        }
         const decrypted = await decryptCoords(loc.encrypted_lat, loc.encrypted_lon, userUid)
         lat = decrypted.lat
         lon = decrypted.lon
@@ -77,15 +81,17 @@ export function PlacesDashboard({ locations, userUid, units, onSelectLocation }:
       const forecast = await getForecast(lat, lon, loc.name, units, loc.id)
       const todayStr = new Date().toISOString().split('T')[0]
       const todayIdx = forecast.days.findIndex(d => d.date === todayStr)
-      const today = todayIdx >= 0 ? forecast.days[todayIdx] : forecast.days[0] ?? null
+      // Slice to 7 days from today so the mini strip shows a clean 7-day window
+      const startIdx = todayIdx >= 0 ? todayIdx : 0
+      const displayDays = forecast.days.slice(startIdx, startIdx + 7)
+      const today = displayDays[0] ?? null
       setConditions(prev => ({
         ...prev,
         [loc.id]: {
           status: 'done',
           today,
-          days: forecast.days,
-          // bestDayIdx computed over the full days array so it aligns with the mini strip
-          bestDayIdx: bestDayIndex(forecast.days),
+          days: displayDays,
+          bestDayIdx: bestDayIndex(displayDays),
           resolvedLat: lat,
           resolvedLon: lon,
         },
@@ -190,6 +196,10 @@ export function PlacesDashboard({ locations, userUid, units, onSelectLocation }:
 
               {cond?.status === 'error' && (
                 <div className={styles.condError}>Conditions unavailable</div>
+              )}
+
+              {cond?.status === 'private_no_key' && (
+                <div className={styles.condError}>Saved on another device — open there to view</div>
               )}
 
               {/* Mini 7-day strip */}
