@@ -598,6 +598,33 @@ export interface ApneaTableCreate {
   is_public?: boolean
 }
 
+// Data Disputes
+export interface DataDisputeCreate {
+  location_id?: number
+  report_date: string
+  field_disputed: string
+  reported_value: number
+  forecast_value?: number
+  image_url?: string
+}
+
+export interface DataDispute {
+  id: number
+  location_id: number | null
+  user_id: string
+  report_date: string
+  field_disputed: string
+  reported_value: number
+  forecast_value: number | null
+  image_url: string | null
+  ai_extracted_value: number | null
+  ai_confidence: number | null
+  ai_notes: string | null
+  status: 'pending' | 'accepted' | 'rejected'
+  admin_notes: string | null
+  created_at: string
+}
+
 export interface ApneaTableUpdate {
   name?: string
   description?: string | null
