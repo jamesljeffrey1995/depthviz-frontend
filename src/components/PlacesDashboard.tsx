@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import type { DayForecast, Location } from '../types'
 import { getForecast } from '../lib/api'
-import { decryptCoords, hasSpotKey } from '../lib/spotCrypto'
+import { decryptCoords } from '../lib/spotCrypto'
 import styles from './PlacesDashboard.module.css'
 
 interface PlaceConditions {
@@ -67,16 +67,18 @@ export function PlacesDashboard({ locations, userUid, units, onSelectLocation }:
       let lat = loc.lat
       let lon = loc.lon
       if (loc.encrypted_lat && loc.encrypted_lon) {
-        if (!(await hasSpotKey(userUid))) {
+        try {
+          const decrypted = await decryptCoords(loc.encrypted_lat, loc.encrypted_lon, userUid)
+          lat = decrypted.lat
+          lon = decrypted.lon
+        } catch (decryptErr) {
+          const isMissingKey = decryptErr instanceof Error && decryptErr.message.startsWith('Missing spot encryption key')
           setConditions(prev => ({
             ...prev,
-            [loc.id]: { status: 'private_no_key', today: null, days: [], bestDayIdx: 0, resolvedLat: loc.lat, resolvedLon: loc.lon },
+            [loc.id]: { status: isMissingKey ? 'private_no_key' : 'error', today: null, days: [], bestDayIdx: 0, resolvedLat: loc.lat, resolvedLon: loc.lon },
           }))
           return
         }
-        const decrypted = await decryptCoords(loc.encrypted_lat, loc.encrypted_lon, userUid)
-        lat = decrypted.lat
-        lon = decrypted.lon
       }
       const forecast = await getForecast(lat, lon, loc.name, units, loc.id)
       const todayStr = new Date().toISOString().split('T')[0]
@@ -210,7 +212,8 @@ export function PlacesDashboard({ locations, userUid, units, onSelectLocation }:
               <button
                 className={styles.viewBtn}
                 onClick={() => handleView(loc)}
-                aria-label={`View full forecast for ${loc.name}`}
+                disabled={cond?.status === 'private_no_key'}
+                aria-label={cond?.status === 'private_no_key' ? `${loc.name} — encryption key not available on this device` : `View full forecast for ${loc.name}`}
               >
                 View Forecast →
               </button>
