@@ -479,7 +479,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                       <span className={styles.debugDelta} style={{ color: '#4ecb8d' }}>
                         {r.actual_vis.toFixed(1)}m
                       </span>
-                      <span className={styles.debugRunning} style={{ color: r.error < -0.5 ? '#e05555' : r.error > 0.5 ? '#4ecb8d' : 'rgba(255,255,255,0.5)' }}>
+                      <span className={styles.debugRunning} style={{ color: r.error < 0 ? '#e05555' : r.error > 0 ? '#4ecb8d' : 'rgba(255,255,255,0.5)' }}>
                         {r.model_predicted.toFixed(1)}m
                         <span style={{ fontSize: '0.7rem', marginLeft: 4, opacity: 0.7 }}>
                           ({r.error > 0 ? '+' : ''}{r.error.toFixed(1)})
