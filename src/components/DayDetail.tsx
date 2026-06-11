@@ -216,6 +216,16 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                 </span>
               )}
               {' '}({reportCount} reports)
+              {day.bias_attribution && day.bias_attribution.knn && day.bias_attribution.knn.confidence !== 'insufficient_data' && (
+                <span className={styles.correctedOffset} style={{
+                  color: day.bias_attribution.knn.confidence === 'high' ? '#4ecb8d'
+                    : day.bias_attribution.knn.confidence === 'medium' ? '#d4850a'
+                    : '#e05555',
+                  marginLeft: 4,
+                }}>
+                  {day.bias_attribution.knn.confidence} conf.
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -451,6 +461,41 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                   </div>
                 ))}
               </div>
+
+              {/* KNN local bias correction */}
+              {day.bias_attribution && day.bias_attribution.knn && day.bias_attribution.knn.logs_used > 0 && (
+                <div className={styles.debugSection}>
+                  <div className={styles.debugSectionTitle}>KNN BIAS CORRECTION</div>
+                  <div className={styles.debugRow}>
+                    <span className={styles.debugLabel}>KNN bias offset</span>
+                    <span className={styles.debugValue} style={{ color: day.bias_attribution.knn.bias < 0 ? '#e05555' : '#4ecb8d' }}>
+                      {day.bias_attribution.knn.bias >= 0 ? '+' : ''}{day.bias_attribution.knn.bias.toFixed(3)}m
+                    </span>
+                  </div>
+                  <div className={styles.debugRow}>
+                    <span className={styles.debugLabel}>Confidence</span>
+                    <span className={styles.debugValue} style={{
+                      color: day.bias_attribution.knn.confidence === 'high' ? '#4ecb8d'
+                        : day.bias_attribution.knn.confidence === 'medium' ? '#d4850a'
+                        : '#e05555'
+                    }}>
+                      {day.bias_attribution.knn.confidence.toUpperCase().replace('_', ' ')}
+                    </span>
+                  </div>
+                  <div className={styles.debugRow}>
+                    <span className={styles.debugLabel}>Logs used / excluded / softened</span>
+                    <span className={styles.debugValue}>
+                      {day.bias_attribution.knn.logs_used} / {day.bias_attribution.knn.logs_excluded} / {day.bias_attribution.knn.outliers_softened}
+                    </span>
+                  </div>
+                  {day.bias_attribution.knn.mean_distance != null && (
+                    <div className={styles.debugRow}>
+                      <span className={styles.debugLabel}>Mean distance (norm.)</span>
+                      <span className={styles.debugValue}>{day.bias_attribution.knn.mean_distance.toFixed(4)}</span>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Similar past dives — historical evidence driving the local bias */}
               {day.bias_attribution && day.bias_attribution.similar_reports.length > 0 && (

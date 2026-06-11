@@ -84,10 +84,20 @@ export interface SimilarReport {
   similarity: number
 }
 
+export interface KnnBiasResult {
+  bias: number
+  logs_used: number
+  logs_excluded: number
+  outliers_softened: number
+  confidence: 'insufficient_data' | 'low' | 'medium' | 'high'
+  mean_distance: number | null
+}
+
 export interface BiasAttribution {
   similar_reports: SimilarReport[]
   mean_error: number
   total_reports: number
+  knn: KnnBiasResult | null
 }
 
 export interface DayForecast {
