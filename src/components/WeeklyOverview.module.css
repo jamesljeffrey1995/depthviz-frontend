@@ -63,7 +63,6 @@
   cursor: pointer;
   font-family: var(--font-mono);
   position: relative;
-  overflow: hidden;
   transition: border-color var(--transition-base), background var(--transition-base);
   scroll-snap-align: start;
   text-align: center;
