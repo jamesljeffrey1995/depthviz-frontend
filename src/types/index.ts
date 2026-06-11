@@ -75,6 +75,21 @@ export interface SwellComponent {
   dir_label: string | null
 }
 
+export interface SimilarReport {
+  date: string
+  actual_vis: number
+  model_predicted: number
+  error: number
+  conditions: string
+  similarity: number
+}
+
+export interface BiasAttribution {
+  similar_reports: SimilarReport[]
+  mean_error: number
+  total_reports: number
+}
+
 export interface DayForecast {
   date: string
   is_forecast: boolean
@@ -104,6 +119,7 @@ export interface DayForecast {
   resuspension: Resuspension | null
   river_discharge: RiverDischarge | null
   water_quality: WaterQuality | null
+  bias_attribution: BiasAttribution | null
 }
 
 export interface ForecastResponse {
