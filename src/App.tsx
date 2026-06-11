@@ -12,7 +12,7 @@ import { CookieBanner } from './components/CookieBanner'
 import { getLocations, createLocation } from './lib/api'
 import { encryptCoords } from './lib/spotCrypto'
 import { formatLocationName } from './types'
-import type { GeocodingResult, Location } from './types'
+import type { GeocodingResult, Location, ForecastResponse } from './types'
 import type { LegalPageType } from './components/LegalPage'
 import styles from './App.module.css'
 
@@ -54,7 +54,7 @@ function LegalRouteWrapper({ onBack }: { onBack: () => void }) {
 
 export default function App() {
   const { user, loading: authLoading } = useAuth()
-  const { status, forecast, error, isRevalidating, searchByCoords } = useConditions()
+  const { status, forecast, error, isRevalidating, searchByCoords, init } = useConditions()
   const serviceStatus = useServiceStatus()
   const downServices = ([
     ['open_meteo', 'Open-Meteo'],
@@ -69,7 +69,9 @@ export default function App() {
   const [currentName, setCurrentName] = useState('')
   const [showAuth, setShowAuth] = useState(false)
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null)
-  const [units, setUnits] = useState<'ft' | 'm'>('ft')
+  const [units, setUnits] = useState<'ft' | 'm'>(() => {
+    try { return (localStorage.getItem('dv_units') as 'ft' | 'm') ?? 'ft' } catch { return 'ft' }
+  })
   const [weekView, setWeekView] = useState(false)
   const [diveDepth, setDiveDepth] = useState<number>(() => {
     const VALID_DEPTHS = [5, 10, 15, 20, 30]
@@ -85,6 +87,7 @@ export default function App() {
   const navigate = useNavigate()
   const location = useLocation()
   const currentPath = location.pathname
+  const autoLoadedRef = useRef(false)
 
   const adminEmail = import.meta.env.VITE_ADMIN_EMAIL as string | undefined
   const isAdmin = !!user?.email && !!adminEmail && user.email === adminEmail
@@ -119,6 +122,52 @@ export default function App() {
       searchByCoords(currentLat, currentLon, currentName || undefined, selectedLocationId ?? undefined, units)
     }
   }, [units, currentLat, currentLon, currentName, selectedLocationId, searchByCoords])
+
+  // Persist units preference
+  useEffect(() => {
+    try { localStorage.setItem('dv_units', units) } catch {}
+  }, [units])
+
+  // Persist last known forecast for stale display on return visits
+  useEffect(() => {
+    if (!forecast) return
+    try { localStorage.setItem('dv_last_forecast', JSON.stringify(forecast)) } catch {}
+  }, [forecast])
+
+  // Persist last searched location
+  useEffect(() => {
+    if (currentLat === null || currentLon === null) return
+    try {
+      localStorage.setItem('dv_last_location', JSON.stringify({
+        lat: currentLat, lon: currentLon, name: currentName, locationId: selectedLocationId,
+      }))
+    } catch {}
+  }, [currentLat, currentLon, currentName, selectedLocationId])
+
+  // On startup, restore last location + stale forecast so returning users never
+  // see the full "Reading conditions..." spinner — the stale data shows immediately
+  // while searchByCoords fetches fresh data in the background.
+  useEffect(() => {
+    if (authLoading || autoLoadedRef.current) return
+    autoLoadedRef.current = true
+    try {
+      const locRaw = localStorage.getItem('dv_last_location')
+      if (!locRaw) return
+      const loc = JSON.parse(locRaw) as { lat: number; lon: number; name: string; locationId: number | null }
+      if (typeof loc.lat !== 'number' || typeof loc.lon !== 'number') return
+      setCurrentLat(loc.lat)
+      setCurrentLon(loc.lon)
+      setCurrentName(loc.name ?? '')
+      setSelectedLocationId(loc.locationId ?? null)
+      const forecastRaw = localStorage.getItem('dv_last_forecast')
+      if (forecastRaw) {
+        init(JSON.parse(forecastRaw) as ForecastResponse)
+      }
+      searchByCoords(loc.lat, loc.lon, loc.name, loc.locationId ?? undefined, units)
+    } catch {}
+    // init and searchByCoords are stable (useCallback []); units captured once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading])
 
   const getLocalSuggestions = (query: string): GeocodingResult[] => {
     const q = query.toLowerCase()

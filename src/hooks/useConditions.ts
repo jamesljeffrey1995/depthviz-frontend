@@ -14,6 +14,12 @@ export function useConditions() {
   const [state, setState] = useState<State>({ status: 'idle', forecast: null, error: '', isRevalidating: false })
   const searchIdRef = useRef(0)
 
+  /** Pre-populate forecast state from a stored snapshot so the stale-while-revalidate
+   *  path is taken on startup instead of the full loading spinner. */
+  const init = useCallback((initialForecast: ForecastResponse) => {
+    setState({ status: 'success', forecast: initialForecast, error: '', isRevalidating: false })
+  }, [])
+
   const search = useCallback(async (query: string, units: 'ft' | 'm' = 'ft') => {
     const id = ++searchIdRef.current
     // Keep previous forecast visible while loading (stale-while-revalidate)
@@ -59,5 +65,5 @@ export function useConditions() {
     }
   }, [])
 
-  return { ...state, search, searchByCoords }
+  return { ...state, search, searchByCoords, init }
 }
