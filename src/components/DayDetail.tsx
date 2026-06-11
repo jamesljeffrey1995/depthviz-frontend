@@ -216,7 +216,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                 </span>
               )}
               {' '}({reportCount} reports)
-              {day.bias_attribution?.knn && day.bias_attribution.knn.confidence !== 'insufficient_data' && (
+              {day.bias_attribution && day.bias_attribution.knn && day.bias_attribution.knn.confidence !== 'insufficient_data' && (
                 <span className={styles.correctedOffset} style={{
                   color: day.bias_attribution.knn.confidence === 'high' ? '#4ecb8d'
                     : day.bias_attribution.knn.confidence === 'medium' ? '#d4850a'
@@ -463,7 +463,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
               </div>
 
               {/* KNN local bias correction */}
-              {day.bias_attribution?.knn && day.bias_attribution.knn.logs_used > 0 && (
+              {day.bias_attribution && day.bias_attribution.knn && day.bias_attribution.knn.logs_used > 0 && (
                 <div className={styles.debugSection}>
                   <div className={styles.debugSectionTitle}>KNN BIAS CORRECTION</div>
                   <div className={styles.debugRow}>
