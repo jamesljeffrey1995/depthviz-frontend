@@ -3,6 +3,10 @@
 }
 
 .header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-xs);
   margin-bottom: var(--space-md);
 }
 
@@ -18,7 +22,7 @@
   letter-spacing: 0.1em;
   color: var(--text);
   opacity: 0.6;
-  margin-left: var(--space-sm);
+  margin-left: 0;
 }
 
 /* ── Grid: horizontal scroll on small screens, 7-col on wide ── */

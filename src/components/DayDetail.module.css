@@ -453,10 +453,30 @@
   background: rgba(255, 60, 60, 0.08);
   border-bottom: 1px solid rgba(255, 80, 80, 0.15);
   color: rgba(255, 100, 100, 0.65);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
   font-size: 8px;
   letter-spacing: 0.3em;
   text-transform: uppercase;
   padding: 7px 14px;
+}
+
+.debugPanelTitleMain {
+  display: inline-flex;
+  align-items: center;
+}
+
+.debugPanelTitleMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.debugPanelTitleMeta::before {
+  content: '-';
+  opacity: 0.55;
 }
 
 .debugSection {

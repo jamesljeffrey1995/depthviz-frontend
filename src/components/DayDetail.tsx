@@ -397,7 +397,10 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
           {/* Admin debug trace panel */}
           {isAdmin && (
             <div className={styles.debugPanel}>
-              <div className={styles.debugPanelTitle}>VIZ TRACE — ADMIN</div>
+              <div className={styles.debugPanelTitle}>
+                <span className={styles.debugPanelTitleMain}>VIZ TRACE</span>
+                <span className={styles.debugPanelTitleMeta}>ADMIN</span>
+              </div>
 
               {/* Output summary */}
               <div className={styles.debugSection}>
