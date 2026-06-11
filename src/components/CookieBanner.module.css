@@ -1,11 +1,16 @@
 .banner {
   position: fixed;
-  bottom: 0;
+  /* Sit above the fixed bottom navigation (min-height 56px) so the
+     Accept/Decline buttons aren't hidden behind it on mobile. */
+  bottom: calc(56px + env(safe-area-inset-bottom, 0px));
   left: 0;
   right: 0;
-  z-index: 200;
+  /* Above the bottom nav (z-index 1100) but below modal overlays such as
+     AuthModal (z-index 1200), which render earlier in the DOM. */
+  z-index: 1101;
   background: rgba(4, 30, 46, 0.95);
   border-top: 1px solid rgba(0, 201, 255, 0.2);
+  border-bottom: 1px solid rgba(0, 201, 255, 0.2);
   backdrop-filter: blur(12px);
   padding: 16px 20px;
   animation: slideUp 0.3s ease-out;
