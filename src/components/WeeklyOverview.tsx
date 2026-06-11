@@ -42,7 +42,7 @@ export const WeeklyOverview = memo(function WeeklyOverview({ days, locationName,
     <div className={styles.container}>
       <div className={styles.header}>
         <span className={styles.location}>{locationName}</span>
-        <span className={styles.subtitle}>— 7-day conditions at a glance</span>
+        <span className={styles.subtitle}>7-day conditions at a glance</span>
       </div>
       <div className={styles.grid} role="list" aria-label="Weekly conditions">
         {days.map((day, i) => {
