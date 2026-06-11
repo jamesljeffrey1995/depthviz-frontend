@@ -529,7 +529,7 @@
 
 .debugTableHeader {
   display: grid;
-  grid-template-columns: 1.8fr 1.4fr 50px 50px;
+  grid-template-columns: 1.8fr 1.4fr 48px 72px;
   gap: 4px;
   font-size: 7px;
   letter-spacing: 0.2em;
@@ -542,7 +542,7 @@
 
 .debugTableRow {
   display: grid;
-  grid-template-columns: 1.8fr 1.4fr 50px 50px;
+  grid-template-columns: 1.8fr 1.4fr 48px 72px;
   gap: 4px;
   align-items: center;
   padding: 3px 0;
@@ -587,6 +587,8 @@
   letter-spacing: 0.04em;
   color: var(--text-bright);
   text-align: right;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 /* ── Shallow-water depth advisory ── */

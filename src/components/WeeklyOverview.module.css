@@ -63,6 +63,7 @@
   cursor: pointer;
   font-family: var(--font-mono);
   position: relative;
+  overflow: hidden;
   transition: border-color var(--transition-base), background var(--transition-base);
   scroll-snap-align: start;
   text-align: center;
@@ -176,6 +177,8 @@
   opacity: 0.5;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  min-width: 0;
+  flex-shrink: 0;
 }
 
 .metricLabel.algae {
@@ -186,6 +189,10 @@
 .metricVal {
   font-size: 10px;
   color: var(--text-bright);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ── Algae severity colors ── */
