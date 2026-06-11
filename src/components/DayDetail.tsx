@@ -210,9 +210,9 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
           {day.vis_corrected !== null && (
             <div className={styles.correctedNote}>
               AI-corrected
-              {day.vis_corrected_offset != null && (
+              {day.vis_corrected_offset != null && Math.round(day.vis_corrected_offset * 10) !== 0 && (
                 <span className={styles.correctedOffset}>
-                  {' '}{day.vis_corrected_offset >= 0 ? '+' : ''}{day.vis_corrected_offset.toFixed(1)}m
+                  {' '}{day.vis_corrected_offset >= 0 ? '+' : ''}{(Math.round(day.vis_corrected_offset * 10) / 10).toFixed(1)}m
                 </span>
               )}
               {' '}({reportCount} reports)
