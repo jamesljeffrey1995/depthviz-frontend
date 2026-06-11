@@ -384,7 +384,7 @@ function ResidualTable({ residuals, summary, quarantined, onQuarantine }: Residu
               <th style={{ padding: '4px 5px', textAlign: 'right' }}>Pred</th>
               <th style={{ padding: '4px 5px', textAlign: 'right' }}>Error</th>
               <th style={{ padding: '4px 5px', textAlign: 'right' }}>Conf</th>
-              <th style={{ padding: '4px 5px' }}></th>
+              <th style={{ padding: '4px 5px', textAlign: 'center' }} scope="col">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -410,6 +410,7 @@ function ResidualTable({ residuals, summary, quarantined, onQuarantine }: Residu
                       <button
                         onClick={() => onQuarantine(r.id)}
                         title="Quarantine this report"
+                        aria-label={`Quarantine report ${r.id}`}
                         style={{
                           background: 'rgba(192,57,43,0.12)',
                           border: '1px solid rgba(192,57,43,0.35)',
@@ -478,11 +479,15 @@ export function MLCharts({ trainingLog }: MLChartsProps) {
   }, [])
 
   async function handleQuarantine(id: number) {
+    setQuarantinedIds(prev => new Set([...prev, id]))
     try {
       await quarantineReport(id)
-      setQuarantinedIds(prev => new Set([...prev, id]))
     } catch {
-      // keep the button active if the request fails
+      setQuarantinedIds(prev => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
     }
   }
 
