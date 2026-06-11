@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getMLPredictions, getFeatureImportance } from '../lib/api'
+import { getMLPredictions, getFeatureImportance, quarantineReport } from '../lib/api'
 import type {
   MLPredictionPoint, MLTrainingLogEntry, FeatureImportance,
   MLResidual, MLResidualSummary,
@@ -349,9 +349,11 @@ function FeatureImportanceChart({ features }: FeatureImportanceChartProps) {
 interface ResidualTableProps {
   residuals: MLResidual[]
   summary: MLResidualSummary | null
+  quarantined: Set<number>
+  onQuarantine: (id: number) => void
 }
 
-function ResidualTable({ residuals, summary }: ResidualTableProps) {
+function ResidualTable({ residuals, summary, quarantined, onQuarantine }: ResidualTableProps) {
   if (residuals.length === 0) return <div className={styles.empty}>No residual data</div>
 
   const share = summary?.top3_sse_share ?? null
@@ -382,24 +384,51 @@ function ResidualTable({ residuals, summary }: ResidualTableProps) {
               <th style={{ padding: '4px 5px', textAlign: 'right' }}>Pred</th>
               <th style={{ padding: '4px 5px', textAlign: 'right' }}>Error</th>
               <th style={{ padding: '4px 5px', textAlign: 'right' }}>Conf</th>
+              <th style={{ padding: '4px 5px' }}></th>
             </tr>
           </thead>
           <tbody>
-            {residuals.map(r => (
-              <tr key={r.id} style={{ borderTop: '1px solid rgba(139,184,204,0.15)' }}>
-                <td style={{ padding: '4px 5px' }}>{r.date}</td>
-                <td style={{ padding: '4px 5px' }}>{r.location}</td>
-                <td style={{ padding: '4px 5px', textAlign: 'right' }}>{r.actual.toFixed(1)}</td>
-                <td style={{ padding: '4px 5px', textAlign: 'right' }}>{r.predicted.toFixed(1)}</td>
-                <td style={{ padding: '4px 5px', textAlign: 'right',
-                             color: Math.abs(r.error) > 2 ? 'var(--danger)' : 'var(--text-bright)' }}>
-                  {r.error > 0 ? '+' : ''}{r.error.toFixed(1)}m
-                </td>
-                <td style={{ padding: '4px 5px', textAlign: 'right' }}>
-                  {r.video_confidence !== null ? r.video_confidence.toFixed(2) : '—'}
-                </td>
-              </tr>
-            ))}
+            {residuals.map(r => {
+              const isQ = quarantined.has(r.id)
+              return (
+                <tr key={r.id} style={{ borderTop: '1px solid rgba(139,184,204,0.15)', opacity: isQ ? 0.4 : 1 }}>
+                  <td style={{ padding: '4px 5px' }}>{r.date}</td>
+                  <td style={{ padding: '4px 5px' }}>{r.location}</td>
+                  <td style={{ padding: '4px 5px', textAlign: 'right' }}>{r.actual.toFixed(1)}</td>
+                  <td style={{ padding: '4px 5px', textAlign: 'right' }}>{r.predicted.toFixed(1)}</td>
+                  <td style={{ padding: '4px 5px', textAlign: 'right',
+                               color: Math.abs(r.error) > 2 ? 'var(--danger)' : 'var(--text-bright)' }}>
+                    {r.error > 0 ? '+' : ''}{r.error.toFixed(1)}m
+                  </td>
+                  <td style={{ padding: '4px 5px', textAlign: 'right' }}>
+                    {r.video_confidence !== null ? r.video_confidence.toFixed(2) : '—'}
+                  </td>
+                  <td style={{ padding: '4px 5px' }}>
+                    {isQ ? (
+                      <span style={{ color: 'var(--text-dim, #8bb8cc)', fontSize: 10 }}>quarantined</span>
+                    ) : (
+                      <button
+                        onClick={() => onQuarantine(r.id)}
+                        title="Quarantine this report"
+                        style={{
+                          background: 'rgba(192,57,43,0.12)',
+                          border: '1px solid rgba(192,57,43,0.35)',
+                          color: 'rgba(192,57,43,0.85)',
+                          borderRadius: 3,
+                          padding: '1px 6px',
+                          fontSize: 10,
+                          cursor: 'pointer',
+                          fontFamily: 'monospace',
+                          lineHeight: '16px',
+                        }}
+                      >
+                        Q
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>
@@ -419,6 +448,7 @@ export function MLCharts({ trainingLog }: MLChartsProps) {
   const [summary, setSummary] = useState<MLResidualSummary | null>(null)
   const [features, setFeatures] = useState<FeatureImportance[]>([])
   const [loading, setLoading] = useState(true)
+  const [quarantinedIds, setQuarantinedIds] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     let cancelled = false
@@ -447,13 +477,27 @@ export function MLCharts({ trainingLog }: MLChartsProps) {
     }
   }, [])
 
+  async function handleQuarantine(id: number) {
+    try {
+      await quarantineReport(id)
+      setQuarantinedIds(prev => new Set([...prev, id]))
+    } catch {
+      // keep the button active if the request fails
+    }
+  }
+
   if (loading) return <div className={styles.loading}>Loading chart data...</div>
 
   return (
     <div className={styles.chartsContainer}>
       <ScatterPlot points={predictions} />
       <ErrorHistogram points={predictions} />
-      <ResidualTable residuals={residuals} summary={summary} />
+      <ResidualTable
+        residuals={residuals}
+        summary={summary}
+        quarantined={quarantinedIds}
+        onQuarantine={handleQuarantine}
+      />
       <FeatureImportanceChart features={features} />
       <MetricsTimeline trainingLog={trainingLog} />
     </div>
