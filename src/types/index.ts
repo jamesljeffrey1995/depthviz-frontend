@@ -80,6 +80,7 @@ export interface DayForecast {
   is_forecast: boolean
   vis_estimate: number
   vis_corrected: number | null
+  vis_corrected_offset: number | null
   verdict: string
   color_class: string
   wave_height: number

@@ -208,7 +208,15 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
           <div className={`${styles.visNumber} ${styles[day.color_class]}`}>{vis.toFixed(1)}</div>
           <div className={styles.visUnit}>metres</div>
           {day.vis_corrected !== null && (
-            <div className={styles.correctedNote}>AI-corrected ({reportCount} reports)</div>
+            <div className={styles.correctedNote}>
+              AI-corrected
+              {day.vis_corrected_offset != null && (
+                <span className={styles.correctedOffset}>
+                  {' '}{day.vis_corrected_offset >= 0 ? '+' : ''}{day.vis_corrected_offset.toFixed(1)}m
+                </span>
+              )}
+              {' '}({reportCount} reports)
+            </div>
           )}
         </div>
       </div>
