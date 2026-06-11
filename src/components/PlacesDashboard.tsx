@@ -201,7 +201,7 @@ export function PlacesDashboard({ locations, userUid, units, onSelectLocation }:
               )}
 
               {cond?.status === 'private_no_key' && (
-                <div className={styles.condError}>Saved on another device — open there to view</div>
+                <div className={styles.condError}>Encryption key unavailable — re-save this spot to restore access</div>
               )}
 
               {/* Mini 7-day strip */}

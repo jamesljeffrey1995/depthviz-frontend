@@ -196,6 +196,19 @@ export async function getForecast(lat: number, lon: number, name: string, units:
   return result
 }
 
+// Spot key sync
+export async function getSpotKeyMaterial(): Promise<string | null> {
+  const data = await apiFetch<{ key_material: string | null }>('/profile/me/spot-key')
+  return data.key_material
+}
+
+export async function saveSpotKeyMaterial(keyMaterial: string): Promise<void> {
+  await apiFetch('/profile/me/spot-key', {
+    method: 'PUT',
+    body: JSON.stringify({ key_material: keyMaterial }),
+  })
+}
+
 // Locations
 export async function getLocations(): Promise<Location[]> {
   const key = 'locations'
