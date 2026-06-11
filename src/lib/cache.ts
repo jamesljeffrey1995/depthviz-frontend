@@ -42,7 +42,7 @@ export function cacheGet<T>(key: string): T | undefined {
   }
   const ls = lsRead<T>(key)
   if (!ls) return undefined
-  if (Date.now() > ls.expiresAt) {
+  if (typeof ls.expiresAt !== 'number' || Date.now() > ls.expiresAt) {
     lsRemove(key)
     return undefined
   }

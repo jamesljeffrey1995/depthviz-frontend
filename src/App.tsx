@@ -70,7 +70,10 @@ export default function App() {
   const [showAuth, setShowAuth] = useState(false)
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null)
   const [units, setUnits] = useState<'ft' | 'm'>(() => {
-    try { return (localStorage.getItem('dv_units') as 'ft' | 'm') ?? 'ft' } catch { return 'ft' }
+    try {
+      const v = localStorage.getItem('dv_units')
+      return v === 'ft' || v === 'm' ? v : 'ft'
+    } catch { return 'ft' }
   })
   const [weekView, setWeekView] = useState(false)
   const [diveDepth, setDiveDepth] = useState<number>(() => {
@@ -128,11 +131,11 @@ export default function App() {
     try { localStorage.setItem('dv_units', units) } catch {}
   }, [units])
 
-  // Persist last known forecast for stale display on return visits
+  // Persist last known forecast with its units so restore can reject a units mismatch
   useEffect(() => {
     if (!forecast) return
-    try { localStorage.setItem('dv_last_forecast', JSON.stringify(forecast)) } catch {}
-  }, [forecast])
+    try { localStorage.setItem('dv_last_forecast', JSON.stringify({ units, forecast })) } catch {}
+  }, [forecast, units])
 
   // Persist last searched location
   useEffect(() => {
@@ -157,11 +160,14 @@ export default function App() {
       if (typeof loc.lat !== 'number' || typeof loc.lon !== 'number') return
       setCurrentLat(loc.lat)
       setCurrentLon(loc.lon)
-      setCurrentName(loc.name ?? '')
-      setSelectedLocationId(loc.locationId ?? null)
+      setCurrentName(typeof loc.name === 'string' ? loc.name : '')
+      setSelectedLocationId(typeof loc.locationId === 'number' ? loc.locationId : null)
       const forecastRaw = localStorage.getItem('dv_last_forecast')
       if (forecastRaw) {
-        init(JSON.parse(forecastRaw) as ForecastResponse)
+        const stored = JSON.parse(forecastRaw) as { units?: string; forecast?: ForecastResponse }
+        if (stored?.units === units && stored.forecast) {
+          init(stored.forecast)
+        }
       }
       searchByCoords(loc.lat, loc.lon, loc.name, loc.locationId ?? undefined, units)
     } catch {}
