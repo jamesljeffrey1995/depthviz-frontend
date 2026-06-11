@@ -18,6 +18,16 @@ function legacyStorageKey(uid: string): string {
   return `depthviz_spot_key_${uid}`
 }
 
+// Tracks UIDs whose key has already been uploaded this session to avoid
+// redundant PUT requests when multiple spots are decrypted on load.
+const _syncedUids = new Set<string>()
+
+function scheduleUpload(uid: string, key: CryptoKey): void {
+  if (_syncedUids.has(uid)) return
+  _syncedUids.add(uid)
+  exportKey(key).then(jwk => saveSpotKeyMaterial(jwk)).catch(() => { /* best-effort */ })
+}
+
 // ── IndexedDB helpers ──────────────────────────────────────────────────────
 
 function openDB(): Promise<IDBDatabase> {
@@ -80,23 +90,24 @@ async function importLegacyKey(b64: string): Promise<CryptoKey> {
  * Used for decryption so a missing key is always explicit.
  */
 async function resolveSpotKey(uid: string): Promise<CryptoKey | null> {
-  const db = await openDB()
-
-  // 1. Local IndexedDB
-  const existing = await idbGet(db, uid)
-  if (existing) {
-    // Best-effort: upload if this key was never synced (non-extractable keys will throw and be silently ignored)
-    exportKey(existing).then(jwk => saveSpotKeyMaterial(jwk)).catch(() => { /* non-extractable or network error */ })
-    return existing
-  }
+  // 1. Local IndexedDB — wrapped so unavailability falls through
+  let db: IDBDatabase | null = null
+  try {
+    db = await openDB()
+    const existing = await idbGet(db, uid)
+    if (existing) {
+      scheduleUpload(uid, existing)
+      return existing
+    }
+  } catch { /* IndexedDB unavailable — continue to fallbacks */ }
 
   // 2. Legacy localStorage migration
   const legacy = localStorage.getItem(legacyStorageKey(uid))
   if (legacy) {
     const key = await importLegacyKey(legacy)
-    await idbPut(db, uid, key)
+    if (db) try { await idbPut(db, uid, key) } catch { /* best-effort */ }
     localStorage.removeItem(legacyStorageKey(uid))
-    exportKey(key).then(jwk => saveSpotKeyMaterial(jwk)).catch(() => { /* best-effort */ })
+    scheduleUpload(uid, key)
     return key
   }
 
@@ -105,7 +116,7 @@ async function resolveSpotKey(uid: string): Promise<CryptoKey | null> {
     const jwkJson = await getSpotKeyMaterial()
     if (jwkJson) {
       const key = await importKey(jwkJson)
-      await idbPut(db, uid, key)
+      if (db) try { await idbPut(db, uid, key) } catch { /* best-effort */ }
       return key
     }
   } catch { /* network error — treat as no key */ }
@@ -124,14 +135,16 @@ export async function getOrCreateSpotKey(uid: string): Promise<CryptoKey> {
   const key = await resolveSpotKey(uid)
   if (key) return key
 
-  const db = await openDB()
+  let db: IDBDatabase | null = null
+  try { db = await openDB() } catch { /* best-effort */ }
+
   const newKey = await crypto.subtle.generateKey(
     { name: ALGO, length: KEY_LENGTH },
     true,
     ['encrypt', 'decrypt'],
   )
-  await idbPut(db, uid, newKey)
-  exportKey(newKey).then(jwk => saveSpotKeyMaterial(jwk)).catch(() => { /* best-effort */ })
+  if (db) try { await idbPut(db, uid, newKey) } catch { /* best-effort */ }
+  scheduleUpload(uid, newKey)
   return newKey
 }
 
