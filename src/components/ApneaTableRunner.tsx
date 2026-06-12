@@ -1,9 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import type { User } from '@supabase/supabase-js'
-import { copyApneaTable, getApneaTable } from '../lib/api'
+import { copyApneaTable, createApneaTable, getApneaTable } from '../lib/api'
 import type { ApneaCycle, ApneaTable } from '../types'
 import styles from './ApneaTableRunner.module.css'
+
+// Lazy so the qrcode dependency stays out of the runner chunk until the
+// user actually opens the share dialog.
+const ShareTableModal = lazy(() => import('./ShareTableModal').then(m => ({ default: m.ShareTableModal })))
 
 type Phase = 'idle' | 'prep' | 'hold' | 'rest' | 'done'
 
@@ -58,19 +62,25 @@ function useBeep() {
 interface Props {
   user: User | null
   onShowAuth: () => void
+  /** When set, render this table (decoded from a share link) instead of
+   *  fetching by the :id route param. Shared tables aren't persisted, so
+   *  Edit is unavailable and Copy becomes "Save to my tables". */
+  sharedTable?: ApneaTable
 }
 
-export function ApneaTableRunner({ user, onShowAuth }: Props) {
+export function ApneaTableRunner({ user, onShowAuth, sharedTable }: Props) {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
+  const isShared = sharedTable !== undefined
   // Reject non-numeric route params up front — Number("foo") gives NaN, and
   // a NaN id would otherwise be passed through to /apnea/tables/NaN.
-  const parsedId = id !== undefined ? Number(id) : NaN
+  const parsedId = !isShared && id !== undefined ? Number(id) : NaN
   const tableId = Number.isFinite(parsedId) ? parsedId : null
 
-  const [table, setTable] = useState<ApneaTable | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [table, setTable] = useState<ApneaTable | null>(sharedTable ?? null)
+  const [loading, setLoading] = useState(!isShared)
   const [error, setError] = useState('')
+  const [reloadKey, setReloadKey] = useState(0)
 
   const [phase, setPhase] = useState<Phase>('idle')
   const [cycleIdx, setCycleIdx] = useState(0)
@@ -78,6 +88,7 @@ export function ApneaTableRunner({ user, onShowAuth }: Props) {
   const [phaseDuration, setPhaseDuration] = useState(0)
   const [audioOn, setAudioOn] = useState(true)
   const [copying, setCopying] = useState(false)
+  const [showShare, setShowShare] = useState(false)
 
   // Latest audioOn value, read from inside setTimeout callbacks that would
   // otherwise capture the value at the time they were scheduled.
@@ -98,8 +109,9 @@ export function ApneaTableRunner({ user, onShowAuth }: Props) {
     if (audioOnRef.current) beep(freq, ms)
   }, [beep])
 
-  // Load table
+  // Load table (skipped for shared tables — the data came from the link itself)
   useEffect(() => {
+    if (isShared) return
     if (tableId === null) {
       setLoading(false)
       setError('Invalid table id')
@@ -107,12 +119,13 @@ export function ApneaTableRunner({ user, onShowAuth }: Props) {
     }
     let cancelled = false
     setLoading(true)
+    setError('')
     getApneaTable(tableId)
       .then(t => { if (!cancelled) setTable(t) })
       .catch(e => { if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load') })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [tableId])
+  }, [tableId, isShared, reloadKey])
 
   // Tick loop — drives the timer regardless of phase.
   // Uses a monotonic deadline rather than counting interval ticks, so the
@@ -254,13 +267,25 @@ export function ApneaTableRunner({ user, onShowAuth }: Props) {
 
   const handleCopy = async () => {
     if (!user) { onShowAuth(); return }
-    if (tableId === null) return
     setCopying(true)
     try {
-      const copy = await copyApneaTable(tableId)
-      navigate(`/training/${copy.id}/edit`)
+      if (isShared && table) {
+        // Shared tables only exist inside the link — persist a private copy.
+        const saved = await createApneaTable({
+          name: table.name,
+          description: table.description,
+          table_type: table.table_type,
+          difficulty: table.difficulty,
+          cycles: table.cycles,
+          is_public: false,
+        })
+        navigate(`/training/${saved.id}`)
+      } else if (tableId !== null) {
+        const copy = await copyApneaTable(tableId)
+        navigate(`/training/${copy.id}/edit`)
+      }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to copy')
+      setError(e instanceof Error ? e.message : isShared ? 'Failed to save' : 'Failed to copy')
     } finally {
       setCopying(false)
     }
@@ -292,11 +317,18 @@ export function ApneaTableRunner({ user, onShowAuth }: Props) {
   if (loading) {
     return <div className={styles.wrap}><div className={styles.subtitle}>Loading…</div></div>
   }
-  if (error || !table) {
+  // Only fall back to the full-screen error when there's no table to show;
+  // errors during a session (e.g. a failed copy) render inline instead.
+  if (!table) {
     return (
       <div className={styles.wrap}>
         <div className={styles.error}>{error || 'Table not found'}</div>
-        <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={() => navigate('/training')}>Back to library</button>
+        <div className={styles.controls} style={{ justifyContent: 'flex-start' }}>
+          {!isShared && tableId !== null && (
+            <button className={styles.btn} onClick={() => setReloadKey(k => k + 1)}>Retry</button>
+          )}
+          <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={() => navigate('/training')}>Back to library</button>
+        </div>
       </div>
     )
   }
@@ -346,10 +378,17 @@ export function ApneaTableRunner({ user, onShowAuth }: Props) {
         )}
         {!isOwner && (
           <button className={styles.iconBtn} onClick={handleCopy} disabled={copying}>
-            {copying ? 'Copying…' : 'Copy to my tables'}
+            {copying
+              ? (isShared ? 'Saving…' : 'Copying…')
+              : (isShared ? 'Save to my tables' : 'Copy to my tables')}
           </button>
         )}
+        <button className={`${styles.iconBtn} ${styles.iconBtnAccent}`} onClick={() => setShowShare(true)}>
+          Share / QR
+        </button>
       </div>
+
+      {error && <div className={styles.error} role="alert">{error}</div>}
 
       <div className={styles.warning}>
         <strong>Dry training only</strong>
@@ -429,6 +468,12 @@ export function ApneaTableRunner({ user, onShowAuth }: Props) {
           )
         })}
       </div>
+
+      {showShare && (
+        <Suspense fallback={null}>
+          <ShareTableModal table={table} onClose={() => setShowShare(false)} />
+        </Suspense>
+      )}
     </div>
   )
 }

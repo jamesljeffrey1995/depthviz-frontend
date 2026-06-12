@@ -36,6 +36,7 @@ const FriendsPanel = lazy(() => import('./components/FriendsPanel').then(m => ({
 const ApneaTablesPage = lazy(() => import('./components/ApneaTablesPage').then(m => ({ default: m.ApneaTablesPage })))
 const ApneaTableEditor = lazy(() => import('./components/ApneaTableEditor').then(m => ({ default: m.ApneaTableEditor })))
 const ApneaTableRunner = lazy(() => import('./components/ApneaTableRunner').then(m => ({ default: m.ApneaTableRunner })))
+const ApneaSharedTable = lazy(() => import('./components/ApneaSharedTable').then(m => ({ default: m.ApneaSharedTable })))
 const PlacesDashboard = lazy(() => import('./components/PlacesDashboard').then(m => ({ default: m.PlacesDashboard })))
 const WeeklyOverview = lazy(() => import('./components/WeeklyOverview').then(m => ({ default: m.WeeklyOverview })))
 const DisputeForm = lazy(() => import('./components/DisputeForm').then(m => ({ default: m.DisputeForm })))
@@ -657,6 +658,14 @@ export default function App() {
                 <button className={styles.navBtn} onClick={() => setShowAuth(true)} style={{ marginTop: 16 }}>Sign in</button>
               </div>
             )
+          } />
+          {/* Shared-table links (QR codes) — table data travels in the URL
+              fragment, so this static segment must win over /training/:id,
+              which React Router's ranking guarantees. */}
+          <Route path="/training/shared" element={
+            <Suspense fallback={null}>
+              <ApneaSharedTable user={user} onShowAuth={() => setShowAuth(true)} />
+            </Suspense>
           } />
           <Route path="/training/:id" element={
             <Suspense fallback={null}>

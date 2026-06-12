@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -55,5 +56,14 @@ export default defineConfig({
   },
   preview: {
     headers: securityHeaders,
+  },
+  test: {
+    // src/lib/supabase.ts throws at import time without these, which broke
+    // any test that (transitively) imports lib/api.ts on a fresh clone with
+    // no .env. Tests never talk to Supabase — stub values are enough.
+    env: {
+      VITE_SUPABASE_URL: 'http://localhost:54321',
+      VITE_SUPABASE_ANON_KEY: 'test-anon-key',
+    },
   },
 })
