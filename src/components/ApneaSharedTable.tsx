@@ -40,5 +40,8 @@ export function ApneaSharedTable({ user, onShowAuth }: Props) {
     )
   }
 
-  return <ApneaTableRunner user={user} onShowAuth={onShowAuth} sharedTable={table} />
+  // Key by the fragment so a hash-only navigation (same route, different
+  // shared table) remounts the runner — its table/session state is
+  // initialised from the prop and would otherwise go stale.
+  return <ApneaTableRunner key={hash} user={user} onShowAuth={onShowAuth} sharedTable={table} />
 }

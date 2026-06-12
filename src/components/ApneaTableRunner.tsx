@@ -112,6 +112,10 @@ export function ApneaTableRunner({ user, onShowAuth, sharedTable }: Props) {
   // Load table (skipped for shared tables — the data came from the link itself)
   useEffect(() => {
     if (isShared) return
+    // Clear any previously loaded table so navigating between /training/:id
+    // routes (or a failed retry) can't show a stale table behind the
+    // loading/error state.
+    setTable(null)
     if (tableId === null) {
       setLoading(false)
       setError('Invalid table id')

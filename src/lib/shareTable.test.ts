@@ -4,7 +4,7 @@
  * ApneaTableCreate rules — otherwise "Save to my tables" would fail, or
  * worse, a crafted link could smuggle absurd values into the runner UI.
  */
-import { describe, expect, test, beforeAll } from 'vitest'
+import { describe, expect, test, beforeAll, afterAll, vi } from 'vitest'
 import { buildShareUrl, decodeShareFragment, SHARE_PATH } from './shareTable'
 import type { ApneaTable } from '../types'
 
@@ -12,7 +12,13 @@ const ORIGIN = 'https://depthviz.example'
 
 beforeAll(() => {
   // buildShareUrl reads window.location.origin; tests run in plain Node.
-  ;(globalThis as Record<string, unknown>).window = { location: { origin: ORIGIN } }
+  // Stub (rather than assign) so the global is restored afterwards and
+  // can't leak `typeof window !== 'undefined'` paths into other test files.
+  vi.stubGlobal('window', { location: { origin: ORIGIN } })
+})
+
+afterAll(() => {
+  vi.unstubAllGlobals()
 })
 
 function makeTable(overrides: Partial<ApneaTable> = {}): ApneaTable {
