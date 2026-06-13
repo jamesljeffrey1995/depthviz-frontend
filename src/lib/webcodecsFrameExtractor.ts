@@ -6,7 +6,7 @@
 // WebCodecs' VideoDecoder does the decoding. Supported on iOS Safari 16.4+
 // and all modern desktop browsers.
 
-import MP4Box, { DataStream, type MP4Box as MP4BoxFile, type MP4Info, type MP4Sample, type MP4VideoTrack } from 'mp4box'
+import { createFile, DataStream, type MP4Box as MP4BoxFile, type MP4Info, type MP4Sample, type MP4VideoTrack } from 'mp4box'
 
 export interface WebCodecsExtractOpts {
   maxFrames?: number
@@ -37,11 +37,11 @@ export async function extractFramesViaWebCodecs(
   log('info', 'reading file into memory for mp4box demux')
   const buffer = await file.arrayBuffer()
 
-  const mp4 = MP4Box.createFile()
+  const mp4 = createFile()
 
   // Parse the container.
   const info = await new Promise<{ track: MP4VideoTrack; info: MP4Info }>((resolve, reject) => {
-    mp4.onError = (e) => reject(new Error(`mp4box parse error: ${e}`))
+    mp4.onError = (_module, message) => reject(new Error(`mp4box parse error: ${message}`))
     mp4.onReady = (parsed) => {
       const vt = parsed.videoTracks[0]
       if (!vt) {
@@ -136,7 +136,7 @@ export async function extractFramesViaWebCodecs(
   let totalFed = 0
   let done = false
   await new Promise<void>((resolve, reject) => {
-    mp4.onError = (e) => reject(new Error(`mp4box extract error: ${e}`))
+    mp4.onError = (_module, message) => reject(new Error(`mp4box extract error: ${message}`))
     mp4.onSamples = (_trackId, _ref, samples: MP4Sample[]) => {
       if (done) return
       for (const s of samples) {
