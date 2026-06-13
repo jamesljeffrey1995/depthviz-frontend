@@ -24,6 +24,10 @@ export interface Resuspension {
   depth_m: number | null
   bottom_orbital_velocity: number | null
   bed_shear_stress: number | null
+  seabed_class: SeabedClass | null
+  critical_shear: number | null
+  resuspension_risk: number
+  recovery_state: number
   risk_level: string
   penalty: number
   note: string | null
@@ -156,6 +160,8 @@ export interface BestVisResponse {
   failedCount?: number
 }
 
+export type SeabedClass = 'rock' | 'gravel' | 'sand' | 'mixed' | 'mud'
+
 export interface Location {
   id: number
   name: string
@@ -167,6 +173,9 @@ export interface Location {
   user_vote: 'up' | 'down' | null
   encrypted_lat: string | null
   encrypted_lon: string | null
+  // Per-site bathymetry/substrate for the seabed-resuspension model (#155).
+  depth_m: number | null
+  seabed_class: SeabedClass | null
 }
 
 export interface ReportCreate {
