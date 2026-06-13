@@ -9,6 +9,7 @@ import { SearchBar } from './components/SearchBar'
 import { ForecastStrip } from './components/ForecastStrip'
 import { DayDetail } from './components/DayDetail'
 import { CookieBanner } from './components/CookieBanner'
+import PwaStatus from './components/PwaStatus'
 import { getLocations, createLocation, getMyProfile } from './lib/api'
 import { encryptCoords } from './lib/spotCrypto'
 import { formatLocationName } from './types'
@@ -145,7 +146,7 @@ export default function App() {
   // Persist last known forecast with its units so restore can reject a units mismatch
   useEffect(() => {
     if (!forecast) return
-    try { localStorage.setItem('dv_last_forecast', JSON.stringify({ units, forecast })) } catch {}
+    try { localStorage.setItem('dv_last_forecast', JSON.stringify({ units, forecast, savedAt: Date.now() })) } catch {}
   }, [forecast, units])
 
   // Persist last searched location
@@ -300,6 +301,8 @@ export default function App() {
           {user ? (user.email ?? 'U')[0].toUpperCase() : 'Sign in'}
         </button>
       </header>
+
+      <PwaStatus />
 
       {downServices.length > 0 && (
         <div className={styles.outageBanner} role="alert" aria-live="polite">

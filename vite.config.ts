@@ -1,6 +1,7 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 
 // Full CSP shared across dev, preview, and production (public/_headers).
 // 'unsafe-eval' + 'wasm-unsafe-eval' are required because the Emscripten glue
@@ -33,7 +34,84 @@ const securityHeaders: Record<string, string> = {
 }
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    VitePWA({
+      // Service worker auto-updates in the background; the app shows a small
+      // "update available" affordance via the virtual:pwa-register hook.
+      registerType: 'prompt',
+      // We register the SW manually in main.tsx (via virtual:pwa-register) so
+      // no inline <script> is injected — the CSP is script-src 'self' with no
+      // 'unsafe-inline', which an injected registration snippet would violate.
+      injectRegister: false,
+      // PWA install metadata. Replaces the ad-hoc apple-/theme- meta tags with
+      // a real web app manifest (those meta tags stay in index.html as iOS
+      // fallbacks). Icons live in public/icons/.
+      manifest: {
+        name: 'DepthViz — Underwater Visibility Forecast',
+        short_name: 'DepthViz',
+        description:
+          'Real-time underwater visibility forecasts for spearfishers and freedivers — swell, current and ocean data with AI calibration and community dive reports.',
+        start_url: '/',
+        scope: '/',
+        display: 'standalone',
+        theme_color: '#020d14',
+        background_color: '#020d14',
+        categories: ['sports', 'weather', 'navigation'],
+        icons: [
+          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+      },
+      workbox: {
+        // Precache the app shell so the SPA boots with no connectivity at the
+        // coast. Skip very large chunks (opencv-js is ~10 MB and only used for
+        // on-demand dive-video analysis, which isn't needed offline).
+        globPatterns: ['**/*.{js,css,html,woff,woff2,svg,png,ico}'],
+        // opencv-js (~11 MB, bundled into opencv.worker-*.js) powers on-demand
+        // dive-video analysis only — never precache it, both to keep installs
+        // small and because it isn't needed offline.
+        globIgnores: ['**/opencv*'],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        // SPA fallback for client-side routes; never hijack the API.
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/api/],
+        runtimeCaching: [
+          {
+            // Forecast / tides data: prefer the network so divers see fresh
+            // conditions when online, but fall back to the last cached response
+            // when offline. The app also keeps the latest forecast in
+            // localStorage (dv_last_forecast) for instant first paint.
+            urlPattern: /\/(forecast|tides)(\/best)?(\?.*)?$/,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'dv-forecast-tides',
+              networkTimeoutSeconds: 6,
+              expiration: { maxEntries: 60, maxAgeSeconds: 7 * 24 * 60 * 60 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            // Map + satellite imagery tiles for the area you last viewed, so the
+            // map degrades gracefully offline instead of going blank.
+            urlPattern: /^https:\/\/([a-z]\.tile\.openstreetmap\.org|gibs\.earthdata\.nasa\.gov|coastwatch\.noaa\.gov|tiles\.maps\.eox\.at)\//,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'dv-map-tiles',
+              expiration: { maxEntries: 300, maxAgeSeconds: 14 * 24 * 60 * 60 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
+      },
+      // Keep the SW out of `npm run dev` to avoid stale-cache confusion during
+      // development; verify the offline UX with `npm run build && npm run preview`.
+      devOptions: { enabled: false },
+    }),
+  ],
   worker: {
     format: 'es',
   },
