@@ -40,9 +40,10 @@ export default defineConfig({
       // Service worker auto-updates in the background; the app shows a small
       // "update available" affordance via the virtual:pwa-register hook.
       registerType: 'prompt',
-      // We register the SW manually in main.tsx (via virtual:pwa-register) so
-      // no inline <script> is injected — the CSP is script-src 'self' with no
-      // 'unsafe-inline', which an injected registration snippet would violate.
+      // The SW is registered via useRegisterSW() in src/components/PwaStatus.tsx
+      // (virtual:pwa-register/react), not via an injected inline <script> — the
+      // CSP is script-src 'self' with no 'unsafe-inline', which an injected
+      // registration snippet would violate.
       injectRegister: false,
       // PWA install metadata. Replaces the ad-hoc apple-/theme- meta tags with
       // a real web app manifest (those meta tags stay in index.html as iOS
