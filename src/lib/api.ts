@@ -259,7 +259,9 @@ export async function updateLocation(
   })
   cacheDelete('locations')
   // Depth/seabed feed the resuspension model, so cached forecasts are now stale.
-  cacheDeleteByPrefix('forecast')
+  // Match the full `forecast:` key namespace (see getForecast) so we don't wipe
+  // unrelated keys that merely start with "forecast".
+  cacheDeleteByPrefix('forecast:')
   return result
 }
 

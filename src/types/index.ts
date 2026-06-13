@@ -24,7 +24,7 @@ export interface Resuspension {
   depth_m: number | null
   bottom_orbital_velocity: number | null
   bed_shear_stress: number | null
-  seabed_class: string | null
+  seabed_class: SeabedClass | null
   critical_shear: number | null
   resuspension_risk: number
   recovery_state: number

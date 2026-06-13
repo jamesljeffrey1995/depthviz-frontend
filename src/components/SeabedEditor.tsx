@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { updateLocation } from '../lib/api'
+import { ApiError, updateLocation } from '../lib/api'
 import type { Location, SeabedClass } from '../types'
 import styles from './SeabedEditor.module.css'
 
@@ -61,8 +61,11 @@ export function SeabedEditor({ location, onUpdated }: Props) {
       onUpdated(updated)
       setSaved(true)
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Could not save'
-      setError(/403|forbidden|authoriz/i.test(msg) ? 'Only the spot owner can edit this' : msg)
+      if (e instanceof ApiError && e.status === 403) {
+        setError('Only the spot owner can edit this')
+      } else {
+        setError(e instanceof Error ? e.message : 'Could not save')
+      }
     } finally {
       setSaving(false)
     }
