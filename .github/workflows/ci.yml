@@ -24,7 +24,8 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # Vite 7 requires Node ^20.19 || >=22.12; pin to 22 to match local dev.
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
@@ -50,10 +51,11 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 22
 
-      # Informational: report known-high vulnerabilities to the logs without failing
+      # npm audit reads package-lock.json directly, so this job needs no install
+      # (hence no npm cache). Informational: report known-high vulnerabilities to
+      # the logs without failing
       # the check, since current advisories are all in transitive dev-only tooling.
       # Remediation is driven by Dependabot (see .github/dependabot.yml). The `|| true`
       # keeps the check green; drop it to make the audit blocking once deps are clean.
