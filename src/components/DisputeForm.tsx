@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import type { User } from '@supabase/supabase-js'
 import type { DataDispute, DataDisputeCreate, Location } from '../types'
 import { submitDispute } from '../lib/api'
-import { supabase } from '../lib/supabase'
+import { uploadDisputeImage } from '../lib/disputeUpload'
 import styles from './DisputeForm.module.css'
 
 const FIELD_LABELS: Record<string, string> = {
@@ -34,7 +34,6 @@ interface Props {
 }
 
 export function DisputeForm({
-  user,
   locations,
   defaultLocationId,
   defaultDate,
@@ -71,19 +70,6 @@ export function DisputeForm({
     reader.readAsDataURL(file)
   }
 
-  const uploadImage = async (file: File): Promise<string | null> => {
-    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
-    const path = `${user.id}/${Date.now()}.${ext}`
-    const { error: uploadErr } = await supabase.storage
-      .from('dispute-evidence')
-      .upload(path, file, { upsert: false, contentType: file.type })
-    if (uploadErr) {
-      throw new Error(`Image upload failed: ${uploadErr.message}`)
-    }
-    const { data } = supabase.storage.from('dispute-evidence').getPublicUrl(path)
-    return data.publicUrl
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -100,7 +86,7 @@ export function DisputeForm({
     if (imageFile) {
       setUploading(true)
       try {
-        imageUrl = await uploadImage(imageFile) ?? undefined
+        imageUrl = await uploadDisputeImage(imageFile)
       } catch (uploadErr) {
         // Image upload failure is non-fatal — submit without the image rather than blocking the report
         console.warn('Dispute image upload failed, submitting without photo:', uploadErr)
