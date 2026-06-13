@@ -81,11 +81,15 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/api/],
         runtimeCaching: [
           {
-            // Forecast / tides data: prefer the network so divers see fresh
+            // Forecast / tides API data: prefer the network so divers see fresh
             // conditions when online, but fall back to the last cached response
             // when offline. The app also keeps the latest forecast in
             // localStorage (dv_last_forecast) for instant first paint.
-            urlPattern: /\/(forecast|tides)(\/best)?(\?.*)?$/,
+            //
+            // Scoped to the /api/ base (see API_BASE in src/lib/api.ts) so it
+            // matches the JSON endpoints only — NOT the SPA navigation routes
+            // /forecast and /tides, which must fall through to navigateFallback.
+            urlPattern: /\/api\/(forecast|tides)(\/best)?(\?.*)?$/,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'dv-forecast-tides',
@@ -94,17 +98,13 @@ export default defineConfig({
               cacheableResponse: { statuses: [0, 200] },
             },
           },
-          {
-            // Map + satellite imagery tiles for the area you last viewed, so the
-            // map degrades gracefully offline instead of going blank.
-            urlPattern: /^https:\/\/([a-z]\.tile\.openstreetmap\.org|gibs\.earthdata\.nasa\.gov|coastwatch\.noaa\.gov|tiles\.maps\.eox\.at)\//,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'dv-map-tiles',
-              expiration: { maxEntries: 300, maxAgeSeconds: 14 * 24 * 60 * 60 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
+          // NOTE: map/satellite tiles are intentionally NOT runtime-cached by
+          // the service worker. Those tile domains (OSM/NASA GIBS/CoastWatch/
+          // EOX) are only in the CSP img-src, not connect-src; a SW fetch() to
+          // cache them is a connect-src operation and would be blocked. Issue
+          // #171 requires staying within the existing CSP, so we leave tile
+          // loading to Leaflet's <img> requests (covered by img-src) and don't
+          // widen connect-src here.
         ],
       },
       // Keep the SW out of `npm run dev` to avoid stale-cache confusion during
