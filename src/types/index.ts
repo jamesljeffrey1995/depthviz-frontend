@@ -210,6 +210,9 @@ export interface UserProfile {
   report_count: number
   mean_accuracy: number | null
   trusted: boolean
+  // Server-verified admin flag from /profile/me. The backend re-checks admin
+  // identity on every /admin/* route, so this only controls UI visibility.
+  is_admin: boolean
 }
 
 export interface LeaderboardEntry {
