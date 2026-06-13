@@ -24,6 +24,7 @@ import type {
   ReportCreate,
   ReportRead,
   SatelliteImagery,
+  SeabedClass,
   TidesResponse,
   UserProfile,
 } from '../types'
@@ -241,6 +242,25 @@ export async function createLocation(
 export async function deleteLocation(id: number): Promise<void> {
   await apiFetch(`/locations/${id}`, { method: 'DELETE' })
   cacheDelete('locations')
+}
+
+/**
+ * Update per-site bathymetry/substrate used by the seabed-resuspension model
+ * (issue #155). Only the spot's creator may edit it. PATCH semantics: omit a
+ * field to leave it unchanged; send `null` to clear it.
+ */
+export async function updateLocation(
+  id: number,
+  params: { depth_m?: number | null; seabed_class?: SeabedClass | null },
+): Promise<Location> {
+  const result = await apiFetch<Location>(`/locations/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(params),
+  })
+  cacheDelete('locations')
+  // Depth/seabed feed the resuspension model, so cached forecasts are now stale.
+  cacheDeleteByPrefix('forecast')
+  return result
 }
 
 export async function voteLocation(id: number, direction: 'up' | 'down'): Promise<Location> {

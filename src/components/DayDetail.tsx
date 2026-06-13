@@ -693,11 +693,17 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                 {day.resuspension.depth_m != null && (
                   <span>Depth: {day.resuspension.depth_m.toFixed(1)}m</span>
                 )}
+                {day.resuspension.seabed_class && (
+                  <span>Seabed: {day.resuspension.seabed_class}</span>
+                )}
                 {day.resuspension.bottom_orbital_velocity != null && (
                   <span>Orbital vel: {day.resuspension.bottom_orbital_velocity.toFixed(2)} m/s</span>
                 )}
                 {day.resuspension.bed_shear_stress != null && (
                   <span>Shear: {day.resuspension.bed_shear_stress.toFixed(3)} Pa</span>
+                )}
+                {day.resuspension.recovery_state > 0.05 && (
+                  <span>Recovery: {Math.round(day.resuspension.recovery_state * 100)}%</span>
                 )}
               </div>
               <div className={styles.waterQualityMeta}>

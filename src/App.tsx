@@ -8,6 +8,7 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { SearchBar } from './components/SearchBar'
 import { ForecastStrip } from './components/ForecastStrip'
 import { DayDetail } from './components/DayDetail'
+import { SeabedEditor } from './components/SeabedEditor'
 import { CookieBanner } from './components/CookieBanner'
 import PwaStatus from './components/PwaStatus'
 import { getLocations, createLocation, getMyProfile } from './lib/api'
@@ -600,6 +601,23 @@ export default function App() {
                           onSelectDay={setSelectedDay}
                         />
                       )}
+                      {/* Per-site bathymetry/substrate editor for saved spots (#155) —
+                          lets the owner sharpen the seabed-resuspension forecast. */}
+                      {(() => {
+                        const savedLoc = locations.find(l => l.id === selectedLocationId)
+                        if (!user || !savedLoc || savedLoc.is_predefined) return null
+                        return (
+                          <SeabedEditor
+                            location={savedLoc}
+                            onUpdated={(updated) => {
+                              setLocations(prev => prev.map(l => l.id === updated.id ? updated : l))
+                              if (currentLat !== null && currentLon !== null) {
+                                searchByCoords(currentLat, currentLon, currentName || undefined, updated.id, units)
+                              }
+                            }}
+                          />
+                        )
+                      })()}
                     </>
                   )}
                 </>
