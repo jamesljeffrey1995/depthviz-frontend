@@ -40,14 +40,15 @@ export function SeabedEditor({ location, onUpdated }: Props) {
   }, [location.id, location.depth_m, location.seabed_class])
 
   const depthNum = depth.trim() === '' ? null : Number(depth)
-  const depthInvalid = depthNum != null && (Number.isNaN(depthNum) || depthNum < 0 || depthNum > 11000)
+  // Depth must be > 0 (the API treats 0 as "unset"); blank clears it.
+  const depthInvalid = depthNum != null && (Number.isNaN(depthNum) || depthNum <= 0 || depthNum > 11000)
   const dirty =
     (depthNum ?? null) !== (location.depth_m ?? null) ||
     (seabed || null) !== (location.seabed_class ?? null)
 
   async function handleSave() {
     if (depthInvalid) {
-      setError('Enter a depth between 0 and 11000 m')
+      setError('Enter a depth between 0 and 11000 m (leave blank for auto)')
       return
     }
     setSaving(true)
