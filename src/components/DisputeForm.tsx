@@ -1,5 +1,4 @@
 import { useState, useRef } from 'react'
-import type { User } from '@supabase/supabase-js'
 import type { DataDispute, DataDisputeCreate, Location } from '../types'
 import { submitDispute } from '../lib/api'
 import { uploadDisputeImage } from '../lib/disputeUpload'
@@ -24,7 +23,6 @@ function fieldUnit(fieldName: string): string {
 }
 
 interface Props {
-  user: User
   locations: Location[]
   defaultLocationId?: number | null
   defaultDate?: string

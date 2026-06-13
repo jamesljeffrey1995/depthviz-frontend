@@ -39,6 +39,20 @@ export function disputeImageExtension(fileName: string): string {
   return ALLOWED_EXT[raw] ?? 'jpg'
 }
 
+// MIME type per normalised extension. Some browsers report an empty `File.type`
+// (notably HEIC on certain mobile browsers), which would otherwise store the
+// object with a missing/incorrect content type.
+const EXT_MIME: Record<string, string> = {
+  jpg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+  heic: 'image/heic',
+}
+
+export function disputeImageContentType(file: File): string {
+  return file.type || EXT_MIME[disputeImageExtension(file.name)] || 'application/octet-stream'
+}
+
 /**
  * Minimal shape of the Supabase storage bucket API this module depends on.
  * Declaring it lets tests inject a fake without constructing a real client.
@@ -53,6 +67,7 @@ export interface DisputeStorage {
     path: string,
     expiresIn: number,
   ): Promise<{ data: { signedUrl: string } | null; error: { message: string } | null }>
+  remove?(paths: string[]): Promise<{ error: { message: string } | null }>
 }
 
 /**
@@ -73,7 +88,7 @@ export async function uploadDisputeImage(
 
   const { error: uploadErr } = await storage.upload(path, file, {
     upsert: false,
-    contentType: file.type,
+    contentType: disputeImageContentType(file),
   })
   if (uploadErr) {
     throw new Error(`Image upload failed: ${uploadErr.message}`)
@@ -81,6 +96,13 @@ export async function uploadDisputeImage(
 
   const { data, error: signErr } = await storage.createSignedUrl(path, SIGNED_URL_TTL_SECONDS)
   if (signErr || !data?.signedUrl) {
+    // The upload succeeded but we can't hand back a usable link — best-effort
+    // delete so a transient signing error doesn't leave an orphaned object.
+    try {
+      await storage.remove?.([path])
+    } catch {
+      // ignore: cleanup is best-effort and must not mask the original failure
+    }
     throw new Error(`Could not create signed link: ${signErr?.message ?? 'unknown error'}`)
   }
   return data.signedUrl

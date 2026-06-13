@@ -5,6 +5,7 @@
 import { describe, expect, test, vi } from 'vitest'
 import {
   disputeImageExtension,
+  disputeImageContentType,
   uploadDisputeImage,
   SIGNED_URL_TTL_SECONDS,
   type DisputeStorage,
@@ -14,18 +15,29 @@ function fakeFile(name: string, type = 'image/jpeg'): File {
   return new File([new Uint8Array([1, 2, 3])], name, { type })
 }
 
-/** A DisputeStorage that records what it was asked to upload/sign. */
+/** A DisputeStorage that records what it was asked to upload/sign/remove. */
 function fakeStorage(overrides: Partial<DisputeStorage> = {}) {
-  const calls = { uploadPath: '' as string, signPath: '' as string, signTtl: 0 }
+  const calls = {
+    uploadPath: '' as string,
+    uploadContentType: '' as string,
+    signPath: '' as string,
+    signTtl: 0,
+    removed: [] as string[],
+  }
   const storage: DisputeStorage = {
-    upload: vi.fn(async (path: string) => {
+    upload: vi.fn(async (path: string, _file: File, opts: { upsert: boolean; contentType: string }) => {
       calls.uploadPath = path
+      calls.uploadContentType = opts.contentType
       return { error: null }
     }),
     createSignedUrl: vi.fn(async (path: string, ttl: number) => {
       calls.signPath = path
       calls.signTtl = ttl
       return { data: { signedUrl: `https://proj.supabase.co/storage/v1/object/sign/${path}?token=t` }, error: null }
+    }),
+    remove: vi.fn(async (paths: string[]) => {
+      calls.removed.push(...paths)
+      return { error: null }
     }),
     ...overrides,
   }
@@ -45,6 +57,18 @@ describe('disputeImageExtension', () => {
     expect(disputeImageExtension('a.gif')).toBe('jpg')
     expect(disputeImageExtension('noextension')).toBe('jpg')
     expect(disputeImageExtension('weird.name.exe')).toBe('jpg')
+  })
+})
+
+describe('disputeImageContentType', () => {
+  test('uses the browser-reported type when present', () => {
+    expect(disputeImageContentType(fakeFile('a.heic', 'image/heic'))).toBe('image/heic')
+  })
+  test('falls back to a type derived from the extension when File.type is empty', () => {
+    expect(disputeImageContentType(fakeFile('a.heic', ''))).toBe('image/heic')
+    expect(disputeImageContentType(fakeFile('a.png', ''))).toBe('image/png')
+    // unknown extension normalises to jpg → image/jpeg
+    expect(disputeImageContentType(fakeFile('a.gif', ''))).toBe('image/jpeg')
   })
 })
 
@@ -100,9 +124,31 @@ describe('uploadDisputeImage', () => {
     await expect(uploadDisputeImage(fakeFile('dive.jpg'), storage)).rejects.toThrow(/bucket missing/)
   })
 
+  test('passes a content type derived from the extension when File.type is empty', async () => {
+    const { storage, calls } = fakeStorage()
+    await uploadDisputeImage(fakeFile('dive.heic', ''), storage)
+    expect(calls.uploadContentType).toBe('image/heic')
+  })
+
   test('throws when signing fails (and does not return an unsigned link)', async () => {
     const { storage } = fakeStorage({
       createSignedUrl: vi.fn(async () => ({ data: null, error: { message: 'denied' } })),
+    })
+    await expect(uploadDisputeImage(fakeFile('dive.jpg'), storage)).rejects.toThrow(/denied/)
+  })
+
+  test('cleans up the orphaned object when signing fails', async () => {
+    const { storage, calls } = fakeStorage({
+      createSignedUrl: vi.fn(async () => ({ data: null, error: { message: 'denied' } })),
+    })
+    await expect(uploadDisputeImage(fakeFile('dive.jpg'), storage)).rejects.toThrow(/denied/)
+    expect(calls.removed).toEqual([calls.uploadPath])
+  })
+
+  test('still throws the signing error even if cleanup fails', async () => {
+    const { storage } = fakeStorage({
+      createSignedUrl: vi.fn(async () => ({ data: null, error: { message: 'denied' } })),
+      remove: vi.fn(async () => { throw new Error('remove blew up') }),
     })
     await expect(uploadDisputeImage(fakeFile('dive.jpg'), storage)).rejects.toThrow(/denied/)
   })

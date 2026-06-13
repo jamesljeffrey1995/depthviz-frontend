@@ -701,7 +701,6 @@ export default function App() {
             user ? (
               <Suspense fallback={null}>
                 <DisputeForm
-                  user={user}
                   locations={locations}
                   defaultLocationId={selectedLocationId}
                   defaultDate={forecast?.days[selectedDay]?.date}
