@@ -122,7 +122,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id: string) => {
-          if (id.includes('leaflet') || id.includes('react-leaflet')) return 'vendor-leaflet'
+          if (id.includes('leaflet')) return 'vendor-leaflet'
           if (id.includes('@supabase')) return 'vendor-supabase'
           // opencv is imported only inside src/workers/opencv.worker.ts;
           // Vite bundles it into the worker chunk automatically.
