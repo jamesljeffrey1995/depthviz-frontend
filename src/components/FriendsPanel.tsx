@@ -17,7 +17,7 @@ export function FriendsPanel({ onClose }: FriendsPanelProps) {
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([])
   const [searching, setSearching] = useState(false)
   const [sentIds, setSentIds] = useState<Set<string>>(new Set())
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>()
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   // Load friends and requests on mount
   useEffect(() => {

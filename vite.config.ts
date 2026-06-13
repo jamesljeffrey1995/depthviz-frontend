@@ -121,9 +121,9 @@ export default defineConfig({
     chunkSizeWarningLimit: 12_000,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-leaflet': ['leaflet', 'react-leaflet'],
-          'vendor-supabase': ['@supabase/supabase-js'],
+        manualChunks: (id: string) => {
+          if (id.includes('leaflet')) return 'vendor-leaflet'
+          if (id.includes('@supabase')) return 'vendor-supabase'
           // opencv is imported only inside src/workers/opencv.worker.ts;
           // Vite bundles it into the worker chunk automatically.
         },

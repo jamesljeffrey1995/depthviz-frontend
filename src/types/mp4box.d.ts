@@ -29,7 +29,7 @@ declare module 'mp4box' {
 
   export interface MP4Box {
     onReady: ((info: MP4Info) => void) | null
-    onError: ((err: string) => void) | null
+    onError: ((module: string, message: string) => void) | null
     onSamples: ((trackId: number, ref: unknown, samples: MP4Sample[]) => void) | null
     appendBuffer(buffer: ArrayBuffer & { fileStart: number }): number
     flush(): void

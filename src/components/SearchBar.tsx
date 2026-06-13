@@ -16,7 +16,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [selectedResult, setSelectedResult] = useState<GeocodingResult | null>(null)
   const [activeIndex, setActiveIndex] = useState(-1)
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>()
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const abortRef = useRef<AbortController | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const listId = 'search-suggestions'
