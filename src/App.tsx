@@ -9,7 +9,7 @@ import { SearchBar } from './components/SearchBar'
 import { ForecastStrip } from './components/ForecastStrip'
 import { DayDetail } from './components/DayDetail'
 import { CookieBanner } from './components/CookieBanner'
-import { getLocations, createLocation } from './lib/api'
+import { getLocations, createLocation, getMyProfile } from './lib/api'
 import { encryptCoords } from './lib/spotCrypto'
 import { formatLocationName } from './types'
 import type { GeocodingResult, Location, ForecastResponse } from './types'
@@ -93,8 +93,18 @@ export default function App() {
   const currentPath = location.pathname
   const autoLoadedRef = useRef(false)
 
-  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL as string | undefined
-  const isAdmin = !!user?.email && !!adminEmail && user.email === adminEmail
+  // Admin status is decided by the server (via /profile/me's is_admin), never
+  // by a client flag or a value baked into the bundle. The backend also
+  // re-checks admin identity on every /admin/* route, so this only gates UI.
+  const [isAdmin, setIsAdmin] = useState(false)
+  useEffect(() => {
+    if (!user) { setIsAdmin(false); return }
+    let cancelled = false
+    getMyProfile()
+      .then(p => { if (!cancelled) setIsAdmin(!!p.is_admin) })
+      .catch(() => { if (!cancelled) setIsAdmin(false) })
+    return () => { cancelled = true }
+  }, [user])
 
   // Auto-close auth modal when user signs in
   useEffect(() => {

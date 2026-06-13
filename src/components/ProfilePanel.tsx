@@ -104,7 +104,7 @@ export function ProfilePanel({ onClose }: ProfilePanelProps) {
       <div className={styles.tabs}>
         <button className={`${styles.tab} ${tab === 'mine' ? styles.tabActive : ''}`} onClick={() => setTab('mine')}>My Reports</button>
         <button className={`${styles.tab} ${tab === 'board' ? styles.tabActive : ''}`} onClick={() => setTab('board')}>Leaderboard</button>
-        {profile?.trusted && (
+        {profile?.is_admin && (
           <button className={`${styles.tab} ${tab === 'admin' ? styles.tabActive : ''}`} onClick={() => setTab('admin')}>Admin</button>
         )}
       </div>
@@ -147,7 +147,7 @@ export function ProfilePanel({ onClose }: ProfilePanelProps) {
         </div>
       )}
 
-      {tab === 'admin' && profile?.trusted && (
+      {tab === 'admin' && profile?.is_admin && (
         <Suspense fallback={null}>
           <AdminPanel />
         </Suspense>
