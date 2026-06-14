@@ -382,6 +382,10 @@ export async function getAdminStats(): Promise<AdminStats> {
   return apiFetch<AdminStats>('/admin/stats')
 }
 
+export async function getDataOverview(): Promise<import('../types').DataOverview> {
+  return apiFetch('/admin/data-overview')
+}
+
 export async function getOutlierPreview(): Promise<OutlierPreview> {
   return apiFetch<OutlierPreview>('/admin/outliers/preview')
 }
