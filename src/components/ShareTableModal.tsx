@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import QRCode from 'qrcode'
 import type { ApneaTable } from '../types'
 import { buildShareUrl } from '../lib/shareTable'
+import { useDialog } from '../hooks/useDialog'
 import styles from './ShareTableModal.module.css'
 
 interface Props {
@@ -15,45 +16,14 @@ interface Props {
  * public, and keeps working even if the original table is edited or deleted.
  */
 export function ShareTableModal({ table, onClose }: Props) {
-  const modalRef = useRef<HTMLDivElement>(null)
+  // ESC-to-close, focus trap, scroll lock and focus restoration.
+  const modalRef = useDialog<HTMLDivElement>(onClose)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [shareUrl, setShareUrl] = useState('')
   const [qrError, setQrError] = useState(false)
   const [copied, setCopied] = useState(false)
 
   const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
-
-  // ESC key to close
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [onClose])
-
-  // Trap focus inside modal
-  useEffect(() => {
-    const modal = modalRef.current
-    if (!modal) return
-    const focusable = modal.querySelectorAll<HTMLElement>(
-      'button, input, [tabindex]:not([tabindex="-1"])'
-    )
-    const first = focusable[0]
-    const last = focusable[focusable.length - 1]
-
-    const handler = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return
-      if (e.shiftKey) {
-        if (document.activeElement === first) { e.preventDefault(); last.focus() }
-      } else {
-        if (document.activeElement === last) { e.preventDefault(); first.focus() }
-      }
-    }
-    document.addEventListener('keydown', handler)
-    first?.focus()
-    return () => document.removeEventListener('keydown', handler)
-  }, [])
 
   useEffect(() => {
     const url = buildShareUrl(table)
@@ -102,6 +72,7 @@ export function ShareTableModal({ table, onClose }: Props) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="share-modal-title"
+        tabIndex={-1}
       >
         <button className={styles.close} onClick={onClose} aria-label="Close share dialog">✕</button>
 
