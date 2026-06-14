@@ -55,14 +55,18 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
   // request's `finally` from clearing the spinner for a newer one, or stale
   // data from one tab landing in another (issue #169).
   const reqId = useRef(0)
-  const beginRequest = () => {
+  // Stable across renders (only touch the ref and stable state setters) so
+  // they can be safely listed in the memoized loaders' dependency arrays.
+  const beginRequest = useCallback(() => {
     setError(null)
     setLoading(true)
     reqId.current += 1
     return reqId.current
-  }
-  const isCurrent = (id: number) => reqId.current === id
-  const endRequest = (id: number) => { if (isCurrent(id)) setLoading(false) }
+  }, [])
+  const isCurrent = useCallback((id: number) => reqId.current === id, [])
+  const endRequest = useCallback((id: number) => {
+    if (reqId.current === id) setLoading(false)
+  }, [])
 
   const loadStats = useCallback(async () => {
     try {
@@ -82,7 +86,7 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
     } finally {
       endRequest(id)
     }
-  }, [])
+  }, [beginRequest, isCurrent, endRequest])
 
   useEffect(() => { loadStats(); loadOverview() }, [loadStats, loadOverview])
 
@@ -631,8 +635,8 @@ function DataOverviewDashboard({ data }: DataOverviewDashboardProps) {
         {contributors.top.length === 0 ? (
           <div style={{ fontSize: 11, opacity: 0.5 }}>No contributors yet</div>
         ) : (
-          contributors.top.map((c, i) => (
-            <div key={`${c.name}-${i}`} className={styles.barRow}>
+          contributors.top.map(c => (
+            <div key={c.user_id} className={styles.barRow}>
               <span className={styles.barLabel}>
                 {c.name}{c.trusted && <span className={styles.trustedTag}> trusted</span>}
               </span>

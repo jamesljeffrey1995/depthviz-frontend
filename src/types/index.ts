@@ -361,6 +361,7 @@ export interface DataOverviewTopLocation {
 }
 
 export interface DataOverviewContributor {
+  user_id: string
   name: string
   report_count: number
   mean_accuracy: number | null
