@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   getAdminStats,
+  getDataOverview,
   getOutlierPreview,
   runOutlierCleaning,
   getQuarantinedReports,
@@ -10,6 +11,7 @@ import {
 } from '../lib/api'
 import type {
   AdminStats,
+  DataOverview,
   OutlierPreview,
   CleaningResult,
   QuarantinedReport,
@@ -25,9 +27,20 @@ interface AdminPanelProps {
 
 type Tab = 'overview' | 'quarantined' | 'clean' | 'ml'
 
+// Log the diagnostic and return a user-facing message. Previously every
+// `catch (e)` discarded `e` entirely (issue #169) — losing the real cause and
+// tripping the unused-binding lint.
+function describeError(e: unknown, fallback: string): string {
+  console.error(fallback, e)
+  return e instanceof Error && e.message ? `${fallback}: ${e.message}` : fallback
+}
+
+const NF = new Intl.NumberFormat()
+
 export function AdminPanel({ onBack }: AdminPanelProps) {
   const [tab, setTab] = useState<Tab>('overview')
   const [stats, setStats] = useState<AdminStats | null>(null)
+  const [overview, setOverview] = useState<DataOverview | null>(null)
   const [preview, setPreview] = useState<OutlierPreview | null>(null)
   const [cleanResult, setCleanResult] = useState<CleaningResult | null>(null)
   const [quarantined, setQuarantined] = useState<QuarantinedReport[]>([])
@@ -36,55 +49,82 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Monotonic request id. A tab switch (or reload) bumps this; each async
+  // loader captures the value at start and only writes state/clears `loading`
+  // if it is still the latest in-flight request. Prevents a slow earlier
+  // request's `finally` from clearing the spinner for a newer one, or stale
+  // data from one tab landing in another (issue #169).
+  const reqId = useRef(0)
+  // Stable across renders (only touch the ref and stable state setters) so
+  // they can be safely listed in the memoized loaders' dependency arrays.
+  const beginRequest = useCallback(() => {
+    setError(null)
+    setLoading(true)
+    reqId.current += 1
+    return reqId.current
+  }, [])
+  const isCurrent = useCallback((id: number) => reqId.current === id, [])
+  const endRequest = useCallback((id: number) => {
+    if (reqId.current === id) setLoading(false)
+  }, [])
+
   const loadStats = useCallback(async () => {
     try {
-      const s = await getAdminStats()
-      setStats(s)
+      setStats(await getAdminStats())
     } catch (e) {
-      setError('Failed to load admin stats')
+      setError(describeError(e, 'Failed to load admin stats'))
     }
   }, [])
 
-  useEffect(() => { loadStats() }, [loadStats])
+  const loadOverview = useCallback(async () => {
+    const id = beginRequest()
+    try {
+      const data = await getDataOverview()
+      if (isCurrent(id)) setOverview(data)
+    } catch (e) {
+      if (isCurrent(id)) setError(describeError(e, 'Failed to load data overview'))
+    } finally {
+      endRequest(id)
+    }
+  }, [beginRequest, isCurrent, endRequest])
+
+  useEffect(() => { loadStats(); loadOverview() }, [loadStats, loadOverview])
 
   const handlePreview = async () => {
-    setLoading(true)
-    setError(null)
+    const id = beginRequest()
     try {
       const p = await getOutlierPreview()
-      setPreview(p)
+      if (isCurrent(id)) setPreview(p)
     } catch (e) {
-      setError('Failed to load outlier preview')
+      if (isCurrent(id)) setError(describeError(e, 'Failed to load outlier preview'))
     } finally {
-      setLoading(false)
+      endRequest(id)
     }
   }
 
   const handleClean = async () => {
-    setLoading(true)
-    setError(null)
+    const id = beginRequest()
     setCleanResult(null)
     try {
       const result = await runOutlierCleaning()
-      setCleanResult(result)
+      if (isCurrent(id)) setCleanResult(result)
       await loadStats()
     } catch (e) {
-      setError('Failed to run outlier cleaning')
+      if (isCurrent(id)) setError(describeError(e, 'Failed to run outlier cleaning'))
     } finally {
-      setLoading(false)
+      endRequest(id)
     }
   }
 
   const loadQuarantined = async () => {
-    setLoading(true)
-    setError(null)
+    const id = beginRequest()
     try {
       const data = await getQuarantinedReports()
-      setQuarantined(data.reports)
+      if (isCurrent(id)) setQuarantined(data.reports)
     } catch (e) {
-      setError('Failed to load quarantined reports')
+      if (isCurrent(id)) setError(describeError(e, 'Failed to load quarantined reports'))
     } finally {
-      setLoading(false)
+      endRequest(id)
     }
   }
 
@@ -94,40 +134,44 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
       setQuarantined(prev => prev.filter(r => r.id !== id))
       await loadStats()
     } catch (e) {
-      setError('Failed to restore report')
+      setError(describeError(e, 'Failed to restore report'))
     }
   }
 
   const loadMLStatus = async () => {
-    setLoading(true)
-    setError(null)
+    const id = beginRequest()
     try {
       const data = await getMLStatus()
-      setMlStatus(data)
+      if (isCurrent(id)) setMlStatus(data)
     } catch (e) {
-      setError('Failed to load ML status')
+      if (isCurrent(id)) setError(describeError(e, 'Failed to load ML status'))
     } finally {
-      setLoading(false)
+      endRequest(id)
     }
   }
 
   const handleRetrain = async () => {
-    setLoading(true)
-    setError(null)
+    const id = beginRequest()
     setRetrainResult(null)
     try {
       const result = await forceRetrain()
-      setRetrainResult(result)
+      if (isCurrent(id)) setRetrainResult(result)
       await loadMLStatus()
     } catch (e) {
-      setError('Failed to retrain model')
+      if (isCurrent(id)) setError(describeError(e, 'Failed to retrain model'))
     } finally {
-      setLoading(false)
+      endRequest(id)
     }
   }
 
   const handleTabChange = (t: Tab) => {
     setTab(t)
+    // Bump the request id so any in-flight loader from the previous tab is
+    // ignored when it resolves.
+    reqId.current += 1
+    setLoading(false)
+    setError(null)
+    if (t === 'overview') loadOverview()
     if (t === 'quarantined') loadQuarantined()
     if (t === 'clean') { setPreview(null); setCleanResult(null) }
     if (t === 'ml') { setRetrainResult(null); loadMLStatus() }
@@ -183,17 +227,17 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
       {error && <div className={styles.error}>{error}</div>}
 
       {/* Overview tab */}
-      {tab === 'overview' && stats && (
+      {tab === 'overview' && (
         <div className={styles.section}>
+          {loading && !overview && <div className={styles.loading}>Loading data overview...</div>}
+
+          {overview && <DataOverviewDashboard data={overview} />}
+
           <p className={styles.info}>
             The outlier detection system uses a two-pass approach: z-score analysis within
             sliding time windows (&plusmn;3 days) and IQR-based detection across all reports
             per location. Reports beyond 2.5 standard deviations or 2&times; IQR are quarantined.
           </p>
-          <div className={styles.statDetail}>
-            <span>Total locations:</span>
-            <span className={styles.statDetailVal}>{stats.total_locations}</span>
-          </div>
         </div>
       )}
 
@@ -413,8 +457,8 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
                 <div className={styles.previewResult}>
                   <div className={styles.previewHeader}>Recent Training Runs</div>
                   <div className={styles.previewList}>
-                    {mlStatus.training_log.map((lg, i) => (
-                      <div key={i} className={styles.previewItem}>
+                    {mlStatus.training_log.map(lg => (
+                      <div key={`${lg.created_at}-${lg.trigger}`} className={styles.previewItem}>
                         [{lg.trigger}] {new Date(lg.created_at).toLocaleString()} — MAE={lg.global_mae?.toFixed(3) ?? '—'}, {lg.locations_updated} locs, {lg.duration_ms}ms
                       </div>
                     ))}
@@ -450,5 +494,160 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
         </div>
       )}
     </div>
+  )
+}
+
+// ── Data overview dashboard ──────────────────────────────────────────────────
+
+function fmtDate(iso: string | null): string {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  return isNaN(d.getTime()) ? iso : d.toLocaleDateString()
+}
+
+function daysAgo(iso: string | null): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return ''
+  const diff = Math.floor((Date.now() - d.getTime()) / 86400000)
+  if (diff <= 0) return 'today'
+  if (diff === 1) return 'yesterday'
+  return `${diff}d ago`
+}
+
+interface DataOverviewDashboardProps {
+  data: DataOverview
+}
+
+function DataOverviewDashboard({ data }: DataOverviewDashboardProps) {
+  const { volume, growth, freshness, quality, disputes_by_status, coverage, contributors, activity } = data
+  const maxActivity = Math.max(1, ...activity.map(a => a.count))
+  const maxLocReports = Math.max(1, ...coverage.top_locations.map(l => l.report_count))
+
+  const metrics: { val: string; lbl: string; sub?: string }[] = [
+    { val: NF.format(volume.total_reports), lbl: 'Reports', sub: `+${growth.reports_7d} this week` },
+    { val: NF.format(volume.total_locations), lbl: 'Locations', sub: `${coverage.locations_with_reports} with data` },
+    { val: NF.format(volume.total_users), lbl: 'Users', sub: `+${growth.new_users_30d} in 30d` },
+    { val: NF.format(contributors.total), lbl: 'Contributors', sub: 'reported visibility' },
+    { val: NF.format(volume.total_catches), lbl: 'Catches', sub: `+${growth.catches_30d} in 30d` },
+    { val: NF.format(volume.weather_observations), lbl: 'Weather Obs', sub: 'accumulated history' },
+  ]
+
+  return (
+    <>
+      {/* Headline metrics */}
+      <div className={styles.metricGrid}>
+        {metrics.map(m => (
+          <div key={m.lbl} className={styles.metricCard}>
+            <div className={styles.metricVal}>{m.val}</div>
+            <div className={styles.metricLbl}>{m.lbl}</div>
+            {m.sub && <div className={styles.metricSub}>{m.sub}</div>}
+          </div>
+        ))}
+      </div>
+
+      {/* 14-day activity sparkline */}
+      <div className={styles.previewResult}>
+        <div className={styles.previewHeader}>Report Activity — last 14 days</div>
+        <div className={styles.spark}>
+          {activity.map(a => (
+            <div key={a.date} className={styles.sparkCol} title={`${fmtDate(a.date)}: ${a.count} report${a.count === 1 ? '' : 's'}`}>
+              <div
+                className={styles.sparkBar}
+                style={{ height: `${Math.round((a.count / maxActivity) * 100)}%`, opacity: a.count > 0 ? 1 : 0.15 }}
+              />
+            </div>
+          ))}
+        </div>
+        <div className={styles.sparkAxis}>
+          <span>{fmtDate(activity[0]?.date ?? null)}</span>
+          <span>{NF.format(growth.reports_30d)} in last 30d</span>
+          <span>today</span>
+        </div>
+      </div>
+
+      {/* Data quality */}
+      <div className={styles.previewResult}>
+        <div className={styles.previewHeader}>Data Quality</div>
+        <div className={styles.previewStats}>
+          <div>Active reports: <strong>{NF.format(volume.active_reports)}</strong> ({NF.format(volume.quarantined_reports)} quarantined)</div>
+          <div>With video analysis: <strong>{NF.format(quality.reports_with_video)}</strong> ({quality.video_coverage_pct}%)</div>
+          <div>With satellite chl-a: <strong>{NF.format(quality.reports_with_satellite)}</strong> ({quality.satellite_coverage_pct}%)</div>
+          <div>Avg trust weight: <strong>{quality.avg_trust_weight?.toFixed(3) ?? '—'}</strong></div>
+          <div>Avg user accuracy: <strong>{quality.avg_user_accuracy != null ? `${quality.avg_user_accuracy.toFixed(2)}m` : '—'}</strong> mean error</div>
+        </div>
+      </div>
+
+      {/* Freshness */}
+      <div className={styles.previewResult}>
+        <div className={styles.previewHeader}>Data Freshness</div>
+        <div className={styles.previewStats}>
+          <div>Latest report: <strong>{fmtDate(freshness.latest_report)}</strong> <span style={{ opacity: 0.5 }}>{daysAgo(freshness.latest_report)}</span></div>
+          <div>Latest catch: <strong>{fmtDate(freshness.latest_catch)}</strong> <span style={{ opacity: 0.5 }}>{daysAgo(freshness.latest_catch)}</span></div>
+          <div>Latest weather obs: <strong>{fmtDate(freshness.latest_observation)}</strong> <span style={{ opacity: 0.5 }}>{daysAgo(freshness.latest_observation)}</span></div>
+        </div>
+      </div>
+
+      {/* Disputes */}
+      <div className={styles.previewResult}>
+        <div className={styles.previewHeader}>Disputes ({NF.format(volume.total_disputes)})</div>
+        {Object.keys(disputes_by_status).length === 0 ? (
+          <div style={{ fontSize: 11, opacity: 0.5 }}>No disputes submitted</div>
+        ) : (
+          <div className={styles.pillRow}>
+            {Object.entries(disputes_by_status).map(([status, count]) => (
+              <span
+                key={status}
+                className={styles.pill}
+                style={{ color: status === 'pending' ? 'var(--accent)' : status === 'accepted' ? 'var(--excellent)' : 'var(--danger)' }}
+              >
+                {status}: <strong>{count}</strong>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Top locations by report count */}
+      <div className={styles.previewResult}>
+        <div className={styles.previewHeader}>Top Locations by Data</div>
+        {coverage.top_locations.length === 0 ? (
+          <div style={{ fontSize: 11, opacity: 0.5 }}>No reports yet</div>
+        ) : (
+          coverage.top_locations.map(loc => (
+            <div key={loc.location_id} className={styles.barRow}>
+              <span className={styles.barLabel} title={loc.location_name}>{loc.location_name}</span>
+              <span className={styles.barTrack}>
+                <span className={styles.barFill} style={{ width: `${Math.round((loc.report_count / maxLocReports) * 100)}%` }} />
+              </span>
+              <span className={styles.barCount}>{loc.report_count}</span>
+            </div>
+          ))
+        )}
+        {coverage.locations_without_reports > 0 && (
+          <div className={styles.previewMore}>{coverage.locations_without_reports} location(s) have no reports yet</div>
+        )}
+      </div>
+
+      {/* Top contributors */}
+      <div className={styles.previewResult}>
+        <div className={styles.previewHeader}>Top Contributors</div>
+        {contributors.top.length === 0 ? (
+          <div style={{ fontSize: 11, opacity: 0.5 }}>No contributors yet</div>
+        ) : (
+          contributors.top.map(c => (
+            <div key={c.user_id} className={styles.barRow}>
+              <span className={styles.barLabel}>
+                {c.name}{c.trusted && <span className={styles.trustedTag}> trusted</span>}
+              </span>
+              <span className={styles.barMeta}>
+                {c.mean_accuracy != null ? `±${c.mean_accuracy.toFixed(1)}m` : '—'}
+              </span>
+              <span className={styles.barCount}>{c.report_count}</span>
+            </div>
+          ))
+        )}
+      </div>
+    </>
   )
 }

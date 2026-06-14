@@ -353,6 +353,69 @@ export interface AdminStats {
   total_locations: number
 }
 
+export interface DataOverviewTopLocation {
+  location_id: number
+  location_name: string
+  report_count: number
+  latest_report: string | null
+}
+
+export interface DataOverviewContributor {
+  user_id: string
+  name: string
+  report_count: number
+  mean_accuracy: number | null
+  trusted: boolean
+}
+
+export interface DataOverviewActivityDay {
+  date: string
+  count: number
+}
+
+export interface DataOverview {
+  volume: {
+    total_reports: number
+    active_reports: number
+    quarantined_reports: number
+    total_locations: number
+    total_users: number
+    total_catches: number
+    total_disputes: number
+    weather_observations: number
+  }
+  growth: {
+    reports_7d: number
+    reports_30d: number
+    catches_30d: number
+    new_users_30d: number
+  }
+  freshness: {
+    latest_report: string | null
+    latest_catch: string | null
+    latest_observation: string | null
+  }
+  quality: {
+    reports_with_video: number
+    reports_with_satellite: number
+    video_coverage_pct: number
+    satellite_coverage_pct: number
+    avg_trust_weight: number | null
+    avg_user_accuracy: number | null
+  }
+  disputes_by_status: Record<string, number>
+  coverage: {
+    locations_with_reports: number
+    locations_without_reports: number
+    top_locations: DataOverviewTopLocation[]
+  }
+  contributors: {
+    total: number
+    top: DataOverviewContributor[]
+  }
+  activity: DataOverviewActivityDay[]
+}
+
 export interface OutlierPreview {
   total_reports: number
   locations: number
