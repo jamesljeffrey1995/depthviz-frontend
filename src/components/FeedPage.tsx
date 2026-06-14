@@ -75,12 +75,27 @@ export function FeedPage({ user }: Props) {
     fetchFeed(true)
   }, [fetchFeed])
 
+  // Switching scope/filter resets pagination and supersedes any in-flight
+  // request synchronously (not just in the post-paint reload effect), so a
+  // "Load More" click in the window before the reload runs can't read the old
+  // offset and append the new scope's page onto the previous list.
+  function resetForReload() {
+    requestSeq.current++
+    offsetRef.current = 0
+    setItems([])
+    setTotal(0)
+  }
+
   function handleScopeChange(newScope: Scope) {
     if (newScope === 'friends' && !user) return
+    if (newScope === scope) return
+    resetForReload()
     setScope(newScope)
   }
 
   function handleFilterChange(newFilter: FilterType) {
+    if (newFilter === filterType) return
+    resetForReload()
     setFilterType(newFilter)
   }
 
