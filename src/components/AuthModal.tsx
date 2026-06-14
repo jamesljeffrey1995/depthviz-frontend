@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import { useDialog } from '../hooks/useDialog'
 import styles from './AuthModal.module.css'
 
 interface Props {
@@ -12,39 +13,8 @@ export function AuthModal({ onClose }: Props) {
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const modalRef = useRef<HTMLDivElement>(null)
-
-  // ESC key to close
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [onClose])
-
-  // Trap focus inside modal
-  useEffect(() => {
-    const modal = modalRef.current
-    if (!modal) return
-    const focusable = modal.querySelectorAll<HTMLElement>(
-      'button, input, [tabindex]:not([tabindex="-1"])'
-    )
-    const first = focusable[0]
-    const last = focusable[focusable.length - 1]
-
-    const handler = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return
-      if (e.shiftKey) {
-        if (document.activeElement === first) { e.preventDefault(); last.focus() }
-      } else {
-        if (document.activeElement === last) { e.preventDefault(); first.focus() }
-      }
-    }
-    document.addEventListener('keydown', handler)
-    first?.focus()
-    return () => document.removeEventListener('keydown', handler)
-  }, [sent])
+  // ESC-to-close, focus trap, scroll lock and focus restoration.
+  const modalRef = useDialog<HTMLDivElement>(onClose)
 
   const handleSubmit = async () => {
     if (!email.trim()) return
@@ -72,6 +42,7 @@ export function AuthModal({ onClose }: Props) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-modal-title"
+        tabIndex={-1}
       >
         <button className={styles.close} onClick={onClose} aria-label="Close sign in dialog">✕</button>
 

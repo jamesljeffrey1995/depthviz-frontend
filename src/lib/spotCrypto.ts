@@ -3,7 +3,17 @@
  *
  * Uses AES-256-GCM via the Web Crypto API. Keys are exportable (JWK) and
  * synced to the server on creation so they work across all devices for the
- * same account. Coordinates remain encrypted at rest in the database.
+ * same account.
+ *
+ * THREAT MODEL (be precise — see issue #152): the AES key is uploaded to the
+ * server in plaintext alongside the ciphertext so it can sync across devices.
+ * This protects against a database-only dump that excludes the key column, and
+ * keeps coordinates out of analytics/log surfaces — but it does NOT make
+ * coordinates confidential against the operator, who holds both the key and the
+ * ciphertext. Coordinates are therefore operator-recoverable. Making them
+ * confidential against the server would require wrapping the key with a
+ * user-supplied passphrase before upload (PBKDF2/Argon2), which is a deliberate
+ * UX/product change and is tracked separately.
  */
 
 import { getSpotKeyMaterial, saveSpotKeyMaterial } from './api'
@@ -173,7 +183,14 @@ export async function decryptCoord(encrypted: string, key: CryptoKey): Promise<n
     key,
     ciphertext,
   )
-  return parseFloat(new TextDecoder().decode(decrypted))
+  const value = parseFloat(new TextDecoder().decode(decrypted))
+  // GCM authenticates the ciphertext, so a wrong key fails decrypt() above.
+  // A non-finite result here means the stored plaintext was corrupt — surface
+  // it rather than returning NaN that silently propagates into the map.
+  if (!Number.isFinite(value)) {
+    throw new Error('Decrypted coordinate is not a finite number')
+  }
+  return value
 }
 
 /** Encrypt both lat and lon for a private spot. */
@@ -202,10 +219,16 @@ export async function decryptCoords(
   if (!key) {
     throw new Error(`Missing spot encryption key for user ${uid}`)
   }
-  return {
-    lat: await decryptCoord(encrypted_lat, key),
-    lon: await decryptCoord(encrypted_lon, key),
+  const lat = await decryptCoord(encrypted_lat, key)
+  const lon = await decryptCoord(encrypted_lon, key)
+  // Sanity-check the decrypted values are real coordinates. With AES-GCM a
+  // wrong key fails authentication in decryptCoord, but corrupt ciphertext or
+  // a future key/format mismatch could still yield out-of-range numbers — fail
+  // loudly rather than dropping a pin at (0,0) or off the map.
+  if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+    throw new Error('Decrypted coordinates are out of range')
   }
+  return { lat, lon }
 }
 
 /** Check if a spot key is available locally or on the server. */
