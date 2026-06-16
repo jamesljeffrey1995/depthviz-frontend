@@ -42,11 +42,23 @@ const ApneaSharedTable = lazy(() => import('./components/ApneaSharedTable').then
 const PlacesDashboard = lazy(() => import('./components/PlacesDashboard').then(m => ({ default: m.PlacesDashboard })))
 const WeeklyOverview = lazy(() => import('./components/WeeklyOverview').then(m => ({ default: m.WeeklyOverview })))
 const DisputeForm = lazy(() => import('./components/DisputeForm').then(m => ({ default: m.DisputeForm })))
+const WeightCalculator = lazy(() => import('./components/WeightCalculator').then(m => ({ default: m.WeightCalculator })))
+
+/** Footer labels for each legal page, in display order. */
+const LEGAL_LABELS: Record<LegalPageType, string> = {
+  privacy: 'Privacy',
+  terms: 'Terms',
+  cookies: 'Cookies',
+  security: 'Security',
+  contact: 'Contact',
+  accessibility: 'Accessibility',
+  disclaimer: 'Disclaimer',
+}
 
 /** Reads the :page URL param so direct links to /legal/terms work correctly. */
 function LegalRouteWrapper({ onBack }: { onBack: () => void }) {
   const { page } = useParams<{ page: string }>()
-  const validPages: LegalPageType[] = ['privacy', 'terms', 'cookies', 'security', 'contact', 'accessibility']
+  const validPages: LegalPageType[] = ['privacy', 'terms', 'cookies', 'security', 'contact', 'accessibility', 'disclaimer']
   const resolved: LegalPageType = validPages.includes(page as LegalPageType) ? (page as LegalPageType) : 'privacy'
   return (
     <Suspense fallback={null}>
@@ -428,6 +440,13 @@ export default function App() {
 
           {/* Legal pages — reads :page param directly so direct URLs work */}
           <Route path="/legal/:page" element={<LegalRouteWrapper onBack={() => navigate(-1)} />} />
+
+          {/* Weight belt calculator — freediving neutral-buoyancy estimate */}
+          <Route path="/weight" element={
+            <Suspense fallback={null}>
+              <WeightCalculator onNavigateLegal={(p) => navigate(`/legal/${p}`)} />
+            </Suspense>
+          } />
 
           {/* Feed */}
           <Route path="/feed" element={
@@ -828,14 +847,19 @@ export default function App() {
         <div className={styles.footerDisclaimer}>
           Not a substitute for local knowledge · Always dive with a buddy
         </div>
+        <nav className={styles.footerLinks} aria-label="Tools">
+          <button className={styles.footerLink} onClick={() => navigate('/weight')}>
+            Weight Calculator
+          </button>
+        </nav>
         <nav className={styles.footerLinks} aria-label="Legal">
-          {(['privacy', 'terms', 'cookies', 'security', 'contact', 'accessibility'] as LegalPageType[]).map(p => (
+          {(Object.keys(LEGAL_LABELS) as LegalPageType[]).map(p => (
             <button
               key={p}
               className={styles.footerLink}
               onClick={() => navigate(`/legal/${p}`)}
             >
-              {p === 'privacy' ? 'Privacy' : p === 'terms' ? 'Terms' : p === 'cookies' ? 'Cookies' : p === 'security' ? 'Security' : p === 'contact' ? 'Contact' : 'Accessibility'}
+              {LEGAL_LABELS[p]}
             </button>
           ))}
         </nav>
