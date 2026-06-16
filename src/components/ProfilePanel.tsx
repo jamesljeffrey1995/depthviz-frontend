@@ -8,9 +8,10 @@ const AdminPanel = lazy(() => import('./AdminPanel').then(m => ({ default: m.Adm
 
 interface ProfilePanelProps {
   onClose?: () => void
+  onNavigateFriends?: () => void
 }
 
-export function ProfilePanel({ onClose }: ProfilePanelProps) {
+export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) {
   const { user, signOut } = useAuth()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [reports, setReports] = useState<ReportRead[]>([])
@@ -98,6 +99,19 @@ export function ProfilePanel({ onClose }: ProfilePanelProps) {
             <div className={styles.statLbl}>Status</div>
           </div>
         </div>
+      )}
+
+      {/* Friends — moved here from the bottom navigation bar */}
+      {onNavigateFriends && (
+        <button className={styles.friendsBtn} onClick={onNavigateFriends}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 00-3-3.87" />
+            <path d="M16 3.13a4 4 0 010 7.75" />
+          </svg>
+          Friends
+        </button>
       )}
 
       {/* Tabs */}

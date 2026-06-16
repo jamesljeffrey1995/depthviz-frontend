@@ -55,6 +55,17 @@
 .statVal { font-family: var(--font-display); font-size: 20px; color: var(--text-bright); margin-bottom: 3px; }
 .statLbl { font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; opacity: .4; }
 
+.friendsBtn {
+  width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: rgba(0,201,255,0.06); border: 1px solid rgba(0,201,255,0.18);
+  color: var(--accent); font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.2em; text-transform: uppercase; padding: 11px; cursor: pointer;
+  margin-bottom: 14px; transition: background 0.15s;
+}
+.friendsBtn:hover { background: rgba(0,201,255,0.12); }
+.friendsBtn svg { width: 15px; height: 15px; flex-shrink: 0; }
+
 .tabs { display: flex; gap: 6px; margin-bottom: 14px; }
 .tab {
   flex: 1; background: rgba(4,30,46,0.6); border: 1px solid rgba(0,201,255,0.08);

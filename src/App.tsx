@@ -44,9 +44,11 @@ const WeeklyOverview = lazy(() => import('./components/WeeklyOverview').then(m =
 const DisputeForm = lazy(() => import('./components/DisputeForm').then(m => ({ default: m.DisputeForm })))
 const WeightCalculator = lazy(() => import('./components/WeightCalculator').then(m => ({ default: m.WeightCalculator })))
 
-/** Routes that actually render a forecast and therefore need conditions data.
- *  The home page ("/") deliberately omits a forecast, so it must not trigger a
- *  conditions fetch on load. */
+/** Routes that depend on a loaded location's conditions context (the forecast
+ *  itself plus its forecast-adjacent pages — tides, report, history, dispute).
+ *  On startup we restore the last location's stale forecast and revalidate it
+ *  for these routes. The home page ("/") shows only the map and has no such
+ *  dependency, so it must not trigger a conditions fetch on load. */
 const FORECAST_ROUTES = ['/forecast', '/tides', '/report', '/history', '/dispute']
 
 /** Footer labels for each legal page, in display order. */
@@ -428,7 +430,7 @@ export default function App() {
           <Route path="/profile" element={
             user ? (
               <Suspense fallback={null}>
-                <ProfilePanel onClose={() => navigate(-1)} />
+                <ProfilePanel onClose={() => navigate(-1)} onNavigateFriends={() => navigate('/friends')} />
               </Suspense>
             ) : null
           } />
@@ -818,18 +820,19 @@ export default function App() {
           <span>Train</span>
         </button>
         <button
-          className={`${styles.bottomNavBtn} ${currentPath === '/friends' ? styles.bottomNavActive : ''}`}
-          onClick={() => { if (user) navigate('/friends'); else setShowAuth(true) }}
-          aria-label={user ? 'Friends' : 'Friends (sign in required)'}
-          aria-current={currentPath === '/friends' ? 'page' : undefined}
+          className={`${styles.bottomNavBtn} ${currentPath === '/weight' ? styles.bottomNavActive : ''}`}
+          onClick={() => navigate('/weight')}
+          aria-label="Weight belt calculator"
+          aria-current={currentPath === '/weight' ? 'page' : undefined}
         >
           <svg className={styles.bottomNavIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M23 21v-2a4 4 0 00-3-3.87" />
-            <path d="M16 3.13a4 4 0 010 7.75" />
+            <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
+            <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
+            <path d="M7 21h10" />
+            <path d="M12 3v18" />
+            <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" />
           </svg>
-          <span>Friends</span>
+          <span>Weight</span>
         </button>
         <button
           className={`${styles.bottomNavBtn} ${currentPath === '/profile' ? styles.bottomNavActive : ''}`}
@@ -856,11 +859,6 @@ export default function App() {
         <div className={styles.footerDisclaimer}>
           Not a substitute for local knowledge · Always dive with a buddy
         </div>
-        <nav className={styles.footerLinks} aria-label="Tools">
-          <button className={styles.footerLink} onClick={() => navigate('/weight')}>
-            Weight Calculator
-          </button>
-        </nav>
         <nav className={styles.footerLinks} aria-label="Legal">
           {(Object.keys(LEGAL_LABELS) as LegalPageType[]).map(p => (
             <button
