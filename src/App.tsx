@@ -44,6 +44,11 @@ const WeeklyOverview = lazy(() => import('./components/WeeklyOverview').then(m =
 const DisputeForm = lazy(() => import('./components/DisputeForm').then(m => ({ default: m.DisputeForm })))
 const WeightCalculator = lazy(() => import('./components/WeightCalculator').then(m => ({ default: m.WeightCalculator })))
 
+/** Routes that actually render a forecast and therefore need conditions data.
+ *  The home page ("/") deliberately omits a forecast, so it must not trigger a
+ *  conditions fetch on load. */
+const FORECAST_ROUTES = ['/forecast', '/tides', '/report', '/history', '/dispute']
+
 /** Footer labels for each legal page, in display order. */
 const LEGAL_LABELS: Record<LegalPageType, string> = {
   privacy: 'Privacy',
@@ -172,9 +177,11 @@ export default function App() {
     } catch {}
   }, [currentLat, currentLon, currentName, selectedLocationId])
 
-  // On startup, restore last location + stale forecast so returning users never
-  // see the full "Reading conditions..." spinner — the stale data shows immediately
-  // while searchByCoords fetches fresh data in the background.
+  // On startup, restore the last location so the map can re-center on it. Only
+  // when the initial route actually shows a forecast do we restore the stale
+  // forecast and revalidate in the background — that way returning users on a
+  // forecast page never see the full "Reading conditions..." spinner, while the
+  // home page ("/") loads without firing an unexpected conditions fetch.
   useEffect(() => {
     if (authLoading || autoLoadedRef.current) return
     autoLoadedRef.current = true
@@ -187,6 +194,8 @@ export default function App() {
       setCurrentLon(loc.lon)
       setCurrentName(typeof loc.name === 'string' ? loc.name : '')
       setSelectedLocationId(typeof loc.locationId === 'number' ? loc.locationId : null)
+      // Home page has no forecast — don't restore a snapshot or fetch conditions.
+      if (!FORECAST_ROUTES.includes(currentPath)) return
       const forecastRaw = localStorage.getItem('dv_last_forecast')
       if (forecastRaw) {
         const stored = JSON.parse(forecastRaw) as { units?: string; forecast?: ForecastResponse }
@@ -196,7 +205,7 @@ export default function App() {
       }
       searchByCoords(loc.lat, loc.lon, loc.name, loc.locationId ?? undefined, units)
     } catch {}
-    // init and searchByCoords are stable (useCallback []); units captured once on mount
+    // init and searchByCoords are stable (useCallback []); units & currentPath captured once on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading])
 
@@ -341,7 +350,7 @@ export default function App() {
 
       {error && <div className={styles.error} role="alert">{error}</div>}
 
-      {status === 'success' && forecast && ['/forecast', '/tides', '/report', '/history', '/dispute'].includes(currentPath) && (
+      {status === 'success' && forecast && FORECAST_ROUTES.includes(currentPath) && (
         <div className={styles.nav} role="navigation" aria-label="Forecast sections">
           <button
             className={`${styles.navBtn} ${currentPath === '/forecast' && !weekView ? styles.navActive : ''}`}
