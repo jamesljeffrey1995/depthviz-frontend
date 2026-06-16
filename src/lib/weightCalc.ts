@@ -90,7 +90,8 @@ function roundHalf(kg: number): number {
 
 /**
  * Estimate the starting weight-belt load.
- * Returns 0 kg (no weight) when the diver is already non-positive at depth.
+ * The result is floored at 0 kg and can round down to 0 for a diver who is
+ * barely buoyant at the target depth (e.g. lean build, no wetsuit, deep target).
  */
 export function calculateWeight(input: WeightCalcInput): WeightCalcResult {
   const heightCm = clamp(input.heightCm, 120, 230)

@@ -65,7 +65,7 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
         save you trial-and-error. You <em>must</em> confirm your weighting with an in-water
         buoyancy check in shallow water, and never freedive alone.{' '}
         {onNavigateLegal && (
-          <button className={styles.inlineLink} onClick={() => onNavigateLegal('disclaimer')}>
+          <button type="button" className={styles.inlineLink} onClick={() => onNavigateLegal('disclaimer')}>
             Read the full disclaimer
           </button>
         )}
@@ -104,7 +104,9 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
               inputMode="decimal"
               value={imperial ? +(heightCm / IN_TO_CM).toFixed(1) : Math.round(heightCm)}
               onChange={e => {
-                const v = Number(e.target.value)
+                // Ignore empty/partial input (NaN) so clearing the field doesn't snap to 0.
+                const v = e.target.valueAsNumber
+                if (Number.isNaN(v)) return
                 setHeightCm(imperial ? v * IN_TO_CM : v)
               }}
             />
@@ -120,7 +122,9 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
               inputMode="decimal"
               value={imperial ? +(weightKg / LB_TO_KG).toFixed(1) : Math.round(weightKg)}
               onChange={e => {
-                const v = Number(e.target.value)
+                // Ignore empty/partial input (NaN) so clearing the field doesn't snap to 0.
+                const v = e.target.valueAsNumber
+                if (Number.isNaN(v)) return
                 setWeightKg(imperial ? v * LB_TO_KG : v)
               }}
             />

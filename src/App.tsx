@@ -44,6 +44,17 @@ const WeeklyOverview = lazy(() => import('./components/WeeklyOverview').then(m =
 const DisputeForm = lazy(() => import('./components/DisputeForm').then(m => ({ default: m.DisputeForm })))
 const WeightCalculator = lazy(() => import('./components/WeightCalculator').then(m => ({ default: m.WeightCalculator })))
 
+/** Footer labels for each legal page, in display order. */
+const LEGAL_LABELS: Record<LegalPageType, string> = {
+  privacy: 'Privacy',
+  terms: 'Terms',
+  cookies: 'Cookies',
+  security: 'Security',
+  contact: 'Contact',
+  accessibility: 'Accessibility',
+  disclaimer: 'Disclaimer',
+}
+
 /** Reads the :page URL param so direct links to /legal/terms work correctly. */
 function LegalRouteWrapper({ onBack }: { onBack: () => void }) {
   const { page } = useParams<{ page: string }>()
@@ -842,13 +853,13 @@ export default function App() {
           </button>
         </nav>
         <nav className={styles.footerLinks} aria-label="Legal">
-          {(['privacy', 'terms', 'cookies', 'security', 'contact', 'accessibility', 'disclaimer'] as LegalPageType[]).map(p => (
+          {(Object.keys(LEGAL_LABELS) as LegalPageType[]).map(p => (
             <button
               key={p}
               className={styles.footerLink}
               onClick={() => navigate(`/legal/${p}`)}
             >
-              {p === 'privacy' ? 'Privacy' : p === 'terms' ? 'Terms' : p === 'cookies' ? 'Cookies' : p === 'security' ? 'Security' : p === 'contact' ? 'Contact' : p === 'accessibility' ? 'Accessibility' : 'Disclaimer'}
+              {LEGAL_LABELS[p]}
             </button>
           ))}
         </nav>
