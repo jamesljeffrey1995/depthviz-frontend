@@ -592,6 +592,41 @@
   text-overflow: ellipsis;
 }
 
+/* Similar Past Dives table — wider last column to fit "X.Xm (+Y.Y)" */
+.debugTableHeaderDives {
+  display: grid;
+  grid-template-columns: auto 1fr 56px minmax(90px, 1fr);
+  gap: 4px;
+  font-size: 7px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.22);
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  margin-bottom: 2px;
+}
+
+.debugTableRowDives {
+  display: grid;
+  grid-template-columns: auto 1fr 56px minmax(90px, 1fr);
+  gap: 4px;
+  align-items: center;
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.debugTableRowDives:last-child {
+  border-bottom: none;
+}
+
+.debugRunningDives {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--text-bright);
+  text-align: right;
+  white-space: nowrap;
+}
+
 /* ── Shallow-water depth advisory ── */
 .shallowNote {
   background: rgba(212, 133, 10, 0.08);

@@ -512,14 +512,14 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                       {day.bias_attribution.mean_error > 0 ? '+' : ''}{day.bias_attribution.mean_error.toFixed(2)}m
                     </span>
                   </div>
-                  <div className={styles.debugTableHeader}>
+                  <div className={styles.debugTableHeaderDives}>
                     <span>Date</span>
                     <span>Conditions</span>
                     <span>Actual</span>
                     <span>Model said</span>
                   </div>
                   {day.bias_attribution.similar_reports.map((r, i) => (
-                    <div key={i} className={styles.debugTableRow}>
+                    <div key={i} className={styles.debugTableRowDives}>
                       <span className={styles.debugStep} style={{ color: 'rgba(255,255,255,0.6)' }}>
                         {(() => { const [y,m,d] = r.date.split('-').map(Number); return new Date(y, (m??1)-1, d??1).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) })()}
                       </span>
@@ -527,7 +527,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                       <span className={styles.debugDelta} style={{ color: '#4ecb8d' }}>
                         {r.actual_vis.toFixed(1)}m
                       </span>
-                      <span className={styles.debugRunning} style={{ color: r.error < 0 ? '#e05555' : r.error > 0 ? '#4ecb8d' : 'rgba(255,255,255,0.5)' }}>
+                      <span className={styles.debugRunningDives} style={{ color: r.error < 0 ? '#e05555' : r.error > 0 ? '#4ecb8d' : 'rgba(255,255,255,0.5)' }}>
                         {r.model_predicted.toFixed(1)}m
                         <span style={{ fontSize: '0.7rem', marginLeft: 4, opacity: 0.7 }}>
                           ({r.error > 0 ? '+' : ''}{r.error.toFixed(1)})
