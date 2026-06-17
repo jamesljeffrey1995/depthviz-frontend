@@ -595,7 +595,7 @@
 /* Similar Past Dives table — wider last column to fit "X.Xm (+Y.Y)" */
 .debugTableHeaderDives {
   display: grid;
-  grid-template-columns: 1fr 2fr 56px 1fr;
+  grid-template-columns: auto 1fr 56px minmax(90px, 1fr);
   gap: 4px;
   font-size: 7px;
   letter-spacing: 0.2em;
@@ -608,7 +608,7 @@
 
 .debugTableRowDives {
   display: grid;
-  grid-template-columns: 1fr 2fr 56px 1fr;
+  grid-template-columns: auto 1fr 56px minmax(90px, 1fr);
   gap: 4px;
   align-items: center;
   padding: 3px 0;
