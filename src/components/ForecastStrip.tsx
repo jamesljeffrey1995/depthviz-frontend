@@ -20,7 +20,7 @@ function formatDate(dateStr: string): string {
 }
 
 function primaryDriver(factors: VisibilityFactor[]): string | null {
-  const negative = factors.filter(f => f.penalty < -0.5)
+  const negative = factors.filter(f => f.penalty <= -0.5)
   if (!negative.length) return null
   const worst = negative.reduce((a, b) => b.penalty < a.penalty ? b : a)
   const n = worst.name
@@ -61,7 +61,7 @@ export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, 
               className={cls}
               onClick={() => onSelect(i)}
               aria-pressed={i === selectedIndex}
-              aria-label={`${formatDate(day.date)}: ${vis.toFixed(1)} metres visibility, ${day.verdict}${day.algae.risk !== 'low' ? `, algae risk ${day.algae.risk}` : ''}`}
+              aria-label={`${formatDate(day.date)}: ${vis.toFixed(1)} metres visibility, ${day.verdict}${day.algae.risk !== 'low' ? `, algae risk ${day.algae.risk}` : ''}${driver ? `, main factor: ${driver}` : ''}`}
             >
               <div className={styles.dateLabel}>{formatDate(day.date)}</div>
               <div className={`${styles.vis} ${colorClass}`} aria-hidden="true">{vis.toFixed(1)}</div>
