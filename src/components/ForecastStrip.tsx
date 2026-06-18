@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import type { DayForecast } from '../types'
+import type { DayForecast, VisibilityFactor } from '../types'
 import styles from './ForecastStrip.module.css'
 
 interface Props {
@@ -19,6 +19,28 @@ function formatDate(dateStr: string): string {
   return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric' })
 }
 
+function primaryDriver(factors: VisibilityFactor[]): string | null {
+  const negative = factors.filter(f => f.penalty < -0.5)
+  if (!negative.length) return null
+  const worst = negative.reduce((a, b) => b.penalty < a.penalty ? b : a)
+  const n = worst.name
+  if (n.startsWith('Swell')) return `SWELL ${worst.value}`
+  if (n === 'Wind') return `WIND ${worst.value}`
+  if (n === 'Precip') return `RAIN ${worst.value}`
+  if (n === 'Sea Temp') {
+    const raw = worst.note?.replace('Algae: ', '') ?? ''
+    return `ALGAE ${raw === 'high' ? 'HIGH' : 'MOD'}`
+  }
+  if (n.startsWith('Turbidity')) return 'TURBID'
+  if (n.startsWith('CDM')) return 'CDM'
+  if (n.startsWith('Seabed')) return 'SEABED'
+  if (n.startsWith('River')) return 'RIVER'
+  if (n === 'Cloud Cover') return 'CLOUD'
+  if (n.startsWith('BGC')) return 'BGC'
+  if (n === 'Wind Dir') return 'ONSHORE'
+  return n.slice(0, 7).toUpperCase()
+}
+
 export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, onSelect }: Props) {
   return (
     <div className={styles.strip}>
@@ -31,6 +53,7 @@ export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, 
             i === selectedIndex ? styles.active : '',
             day.is_forecast ? styles.forecast : '',
           ].join(' ')
+          const driver = primaryDriver(day.factors)
 
           return (
             <button
@@ -49,6 +72,9 @@ export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, 
                   <span className={`${styles.algaePip} ${styles[`algae${day.algae.risk.charAt(0).toUpperCase() + day.algae.risk.slice(1)}`]}`} />
                 )}
               </div>
+              {driver && (
+                <div className={styles.driver} aria-hidden="true">{driver}</div>
+              )}
             </button>
           )
         })}
