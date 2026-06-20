@@ -735,3 +735,71 @@ export interface ApneaTableUpdate {
   cycles?: ApneaCycle[]
   is_public?: boolean
 }
+
+// ── News / Announcements ──────────────────────────────────────────────────
+export interface Announcement {
+  id: number
+  title: string
+  body: string
+  author_name: string
+  is_published: boolean
+  is_pinned: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface AnnouncementInput {
+  title: string
+  body: string
+  is_published?: boolean
+  is_pinned?: boolean
+}
+
+// ── Discussion forum ──────────────────────────────────────────────────────
+export interface ForumCategory {
+  id: number
+  slug: string
+  name: string
+  description: string | null
+  thread_count: number
+}
+
+export interface ForumThreadSummary {
+  id: number
+  title: string
+  author_name: string
+  reply_count: number
+  is_locked: boolean
+  is_pinned: boolean
+  created_at: string
+  last_post_at: string
+}
+
+export interface ForumPost {
+  id: number
+  body: string
+  author_name: string
+  author_uid: string
+  created_at: string
+}
+
+export interface ForumThreadDetail {
+  thread: {
+    id: number
+    title: string
+    author_name: string
+    author_uid: string
+    is_locked: boolean
+    is_pinned: boolean
+    reply_count: number
+    created_at: string
+    category: { slug: string; name: string } | null
+  }
+  posts: ForumPost[]
+}
+
+export interface ForumCategoryView {
+  category: { id: number; slug: string; name: string; description: string | null }
+  threads: ForumThreadSummary[]
+  total: number
+}
