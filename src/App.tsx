@@ -57,6 +57,11 @@ const ForumThreadPage = lazy(() => import('./components/ForumPage').then(m => ({
  *  dependency, so it must not trigger a conditions fetch on load. */
 const FORECAST_ROUTES = ['/forecast', '/tides', '/report', '/history', '/dispute']
 
+/** Routes the bottom-nav "Map" tab represents — the map plus the forecast-area
+ *  pages the website-style top nav groups under "Forecast". Keeps the bottom
+ *  tab highlighted while a user is anywhere in that area. */
+const MAP_GROUP_ROUTES = ['/map', '/forecast', '/tides', '/best']
+
 /** Footer labels for each legal page, in display order. */
 const LEGAL_LABELS: Record<LegalPageType, string> = {
   privacy: 'Privacy',
@@ -824,10 +829,10 @@ export default function App() {
           <span>Home</span>
         </button>
         <button
-          className={`${styles.bottomNavBtn} ${currentPath === '/map' ? styles.bottomNavActive : ''}`}
+          className={`${styles.bottomNavBtn} ${MAP_GROUP_ROUTES.includes(currentPath) ? styles.bottomNavActive : ''}`}
           onClick={() => navigate('/map')}
           aria-label="Map"
-          aria-current={currentPath === '/map' ? 'page' : undefined}
+          aria-current={MAP_GROUP_ROUTES.includes(currentPath) ? 'page' : undefined}
         >
           <svg className={styles.bottomNavIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />

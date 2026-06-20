@@ -81,6 +81,7 @@ export function ForumCategoryPage({ user, onShowAuth }: ForumProps) {
 
   const load = useCallback(() => {
     setLoading(true)
+    setError('')
     getForumCategory(slug, { limit: 50 })
       .then(setView)
       .catch(e => setError(e instanceof Error ? e.message : 'Failed to load'))
@@ -181,7 +182,14 @@ export function ForumThreadPage({ user, onShowAuth }: ForumProps) {
   const [posting, setPosting] = useState(false)
 
   const load = useCallback(() => {
+    if (!Number.isInteger(threadId) || threadId <= 0) {
+      setDetail(null)
+      setError('Thread not found.')
+      setLoading(false)
+      return
+    }
     setLoading(true)
+    setError('')
     getForumThread(threadId)
       .then(setDetail)
       .catch(e => setError(e instanceof Error ? e.message : 'Failed to load thread'))
@@ -208,6 +216,7 @@ export function ForumThreadPage({ user, onShowAuth }: ForumProps) {
 
   async function removePost(postId: number, isOpener: boolean) {
     if (!confirm(isOpener ? 'Delete this thread?' : 'Delete this post?')) return
+    setError('')
     try {
       await deleteForumPost(postId)
       if (isOpener) {

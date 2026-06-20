@@ -24,6 +24,7 @@ export function NewsPage({ isAdmin }: Props) {
 
   const load = useCallback(() => {
     setLoading(true)
+    setError('')
     // Admins also see unpublished drafts so they can finish them.
     getNews({ includeUnpublished: isAdmin, limit: 100 })
       .then(setItems)
@@ -68,6 +69,7 @@ export function NewsPage({ isAdmin }: Props) {
 
   async function remove(id: number) {
     if (!confirm('Delete this announcement?')) return
+    setError('')
     try {
       await deleteNews(id)
       setItems(prev => prev.filter(a => a.id !== id))

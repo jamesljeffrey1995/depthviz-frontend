@@ -566,6 +566,19 @@
   flex-shrink: 0;
 }
 
+/* On wider screens the website-style top nav is the primary navigation, so the
+   mobile bottom tab bar is hidden to avoid duplicating it. The extra bottom
+   padding that reserved space for the fixed bar is reclaimed too. */
+@media (min-width: 481px) {
+  .bottomNav {
+    display: none;
+  }
+
+  .container {
+    padding-bottom: var(--space-xl);
+  }
+}
+
 /* ── Responsive ── */
 @media (max-width: 480px) {
   .container {
