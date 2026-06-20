@@ -2,6 +2,12 @@ import { supabase } from './supabase'
 import { cacheGet, cacheSet, cacheDelete, cacheDeleteByPrefix } from './cache'
 import type {
   AdminStats,
+  Announcement,
+  AnnouncementInput,
+  ForumCategory,
+  ForumCategoryView,
+  ForumPost,
+  ForumThreadDetail,
   ApneaDifficulty,
   ApneaTable,
   ApneaTableCreate,
@@ -603,4 +609,62 @@ export async function submitDispute(data: DataDisputeCreate): Promise<DataDisput
 
 export async function getMyDisputes(): Promise<DataDispute[]> {
   return apiFetch<DataDispute[]>('/disputes/mine')
+}
+
+// ── News / Announcements ──────────────────────────────────────────────────
+export async function getNews(opts?: { includeUnpublished?: boolean; limit?: number }): Promise<Announcement[]> {
+  const qs = new URLSearchParams()
+  if (opts?.includeUnpublished) qs.set('include_unpublished', 'true')
+  if (opts?.limit) qs.set('limit', String(opts.limit))
+  const q = qs.toString()
+  const data = await apiFetch<{ items: Announcement[] }>(`/news${q ? `?${q}` : ''}`)
+  return data.items
+}
+
+export async function createNews(input: AnnouncementInput): Promise<Announcement> {
+  return apiFetch<Announcement>('/news', { method: 'POST', body: JSON.stringify(input) })
+}
+
+export async function updateNews(id: number, input: Partial<AnnouncementInput>): Promise<Announcement> {
+  return apiFetch<Announcement>(`/news/${id}`, { method: 'PUT', body: JSON.stringify(input) })
+}
+
+export async function deleteNews(id: number): Promise<void> {
+  await apiFetch(`/news/${id}`, { method: 'DELETE' })
+}
+
+// ── Discussion forum ──────────────────────────────────────────────────────
+export async function getForumCategories(): Promise<ForumCategory[]> {
+  const data = await apiFetch<{ categories: ForumCategory[] }>('/forum/categories')
+  return data.categories
+}
+
+export async function getForumCategory(slug: string, opts?: { limit?: number; offset?: number }): Promise<ForumCategoryView> {
+  const qs = new URLSearchParams()
+  if (opts?.limit) qs.set('limit', String(opts.limit))
+  if (opts?.offset) qs.set('offset', String(opts.offset))
+  const q = qs.toString()
+  return apiFetch<ForumCategoryView>(`/forum/categories/${encodeURIComponent(slug)}${q ? `?${q}` : ''}`)
+}
+
+export async function getForumThread(id: number): Promise<ForumThreadDetail> {
+  return apiFetch<ForumThreadDetail>(`/forum/threads/${id}`)
+}
+
+export async function createForumThread(slug: string, title: string, body: string): Promise<{ id: number; title: string; slug: string }> {
+  return apiFetch(`/forum/categories/${encodeURIComponent(slug)}/threads`, {
+    method: 'POST',
+    body: JSON.stringify({ title, body }),
+  })
+}
+
+export async function createForumPost(threadId: number, body: string): Promise<ForumPost> {
+  return apiFetch<ForumPost>(`/forum/threads/${threadId}/posts`, {
+    method: 'POST',
+    body: JSON.stringify({ body }),
+  })
+}
+
+export async function deleteForumPost(postId: number): Promise<void> {
+  await apiFetch(`/forum/posts/${postId}`, { method: 'DELETE' })
 }

@@ -10,6 +10,7 @@ import { ForecastStrip } from './components/ForecastStrip'
 import { DayDetail } from './components/DayDetail'
 import { SeabedEditor } from './components/SeabedEditor'
 import { CookieBanner } from './components/CookieBanner'
+import { TopNav } from './components/TopNav'
 import PwaStatus from './components/PwaStatus'
 import { getLocations, createLocation, getMyProfile } from './lib/api'
 import { encryptCoords } from './lib/spotCrypto'
@@ -43,6 +44,11 @@ const PlacesDashboard = lazy(() => import('./components/PlacesDashboard').then(m
 const WeeklyOverview = lazy(() => import('./components/WeeklyOverview').then(m => ({ default: m.WeeklyOverview })))
 const DisputeForm = lazy(() => import('./components/DisputeForm').then(m => ({ default: m.DisputeForm })))
 const WeightCalculator = lazy(() => import('./components/WeightCalculator').then(m => ({ default: m.WeightCalculator })))
+const HomePage = lazy(() => import('./components/HomePage').then(m => ({ default: m.HomePage })))
+const NewsPage = lazy(() => import('./components/NewsPage').then(m => ({ default: m.NewsPage })))
+const ForumIndex = lazy(() => import('./components/ForumPage').then(m => ({ default: m.ForumIndex })))
+const ForumCategoryPage = lazy(() => import('./components/ForumPage').then(m => ({ default: m.ForumCategoryPage })))
+const ForumThreadPage = lazy(() => import('./components/ForumPage').then(m => ({ default: m.ForumThreadPage })))
 
 /** Routes that depend on a loaded location's conditions context (the forecast
  *  itself plus its forecast-adjacent pages — tides, report, history, dispute).
@@ -50,6 +56,11 @@ const WeightCalculator = lazy(() => import('./components/WeightCalculator').then
  *  for these routes. The home page ("/") shows only the map and has no such
  *  dependency, so it must not trigger a conditions fetch on load. */
 const FORECAST_ROUTES = ['/forecast', '/tides', '/report', '/history', '/dispute']
+
+/** Routes the bottom-nav "Map" tab represents — the map plus the forecast-area
+ *  pages the website-style top nav groups under "Forecast". Keeps the bottom
+ *  tab highlighted while a user is anywhere in that area. */
+const MAP_GROUP_ROUTES = ['/map', '/forecast', '/tides', '/best']
 
 /** Footer labels for each legal page, in display order. */
 const LEGAL_LABELS: Record<LegalPageType, string> = {
@@ -309,8 +320,8 @@ export default function App() {
           role="button"
           tabIndex={0}
           style={{ cursor: 'pointer' }}
-          onClick={() => navigate(status === 'success' ? '/forecast' : '/')}
-          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') navigate(status === 'success' ? '/forecast' : '/') }}
+          onClick={() => navigate('/')}
+          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') navigate('/') }}
         >DEPTH<span>VIZ</span></div>
         <div className={styles.tagline}>Underwater visibility forecast</div>
         <p className={styles.valueProp}>
@@ -325,6 +336,8 @@ export default function App() {
           {user ? (user.email ?? 'U')[0].toUpperCase() : 'Sign in'}
         </button>
       </header>
+
+      <TopNav />
 
       <PwaStatus />
 
@@ -473,8 +486,41 @@ export default function App() {
             </Suspense>
           } />
 
-          {/* Map / Dashboard (home) */}
+          {/* Home — website landing page (news + quick links) */}
           <Route path="/" element={
+            <Suspense fallback={null}>
+              <HomePage />
+            </Suspense>
+          } />
+
+          {/* News / announcements */}
+          <Route path="/news" element={
+            <Suspense fallback={null}>
+              <NewsPage isAdmin={isAdmin} />
+            </Suspense>
+          } />
+
+          {/* Discussion forum. The static /forum/thread/:id segment is declared
+              before /forum/:slug so React Router ranks it ahead of the category
+              route and a thread link never resolves as a category slug. */}
+          <Route path="/forum" element={
+            <Suspense fallback={null}>
+              <ForumIndex />
+            </Suspense>
+          } />
+          <Route path="/forum/thread/:id" element={
+            <Suspense fallback={null}>
+              <ForumThreadPage user={user} onShowAuth={() => setShowAuth(true)} />
+            </Suspense>
+          } />
+          <Route path="/forum/:slug" element={
+            <Suspense fallback={null}>
+              <ForumCategoryPage user={user} onShowAuth={() => setShowAuth(true)} />
+            </Suspense>
+          } />
+
+          {/* Map / Dashboard */}
+          <Route path="/map" element={
             <>
               {(status === 'loading' || isRevalidating) && (
                 <div className={styles.loadingBar} role="status" aria-live="polite">{isRevalidating ? 'Fetching conditions...' : 'Reading conditions...'}</div>
@@ -773,12 +819,23 @@ export default function App() {
         <button
           className={`${styles.bottomNavBtn} ${currentPath === '/' ? styles.bottomNavActive : ''}`}
           onClick={() => navigate('/')}
-          aria-label="Map"
+          aria-label="Home"
           aria-current={currentPath === '/' ? 'page' : undefined}
         >
           <svg className={styles.bottomNavIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
             <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+          <span>Home</span>
+        </button>
+        <button
+          className={`${styles.bottomNavBtn} ${MAP_GROUP_ROUTES.includes(currentPath) ? styles.bottomNavActive : ''}`}
+          onClick={() => navigate('/map')}
+          aria-label="Map"
+          aria-current={MAP_GROUP_ROUTES.includes(currentPath) ? 'page' : undefined}
+        >
+          <svg className={styles.bottomNavIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
           </svg>
           <span>Map</span>
         </button>

@@ -1,0 +1,47 @@
+.topNav {
+  margin: 0 0 var(--space-xl);
+  border-top: 1px solid rgba(0, 201, 255, 0.12);
+  border-bottom: 1px solid rgba(0, 201, 255, 0.12);
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+}
+
+.link {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: color var(--transition-base), background var(--transition-base);
+}
+
+.link:hover {
+  color: var(--text-bright);
+  background: rgba(0, 201, 255, 0.06);
+}
+
+.active {
+  color: var(--accent);
+  background: rgba(0, 201, 255, 0.1);
+}
+
+/* On narrow mobile the bottom tab bar is the primary navigation, so hide the
+   website-style top nav to avoid duplicating it. */
+@media (max-width: 480px) {
+  .topNav {
+    display: none;
+  }
+}
