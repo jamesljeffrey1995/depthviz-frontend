@@ -612,10 +612,11 @@ export async function getMyDisputes(): Promise<DataDispute[]> {
 }
 
 // ── News / Announcements ──────────────────────────────────────────────────
-export async function getNews(opts?: { includeUnpublished?: boolean; limit?: number }): Promise<Announcement[]> {
+export async function getNews(opts?: { includeUnpublished?: boolean; limit?: number; category?: string }): Promise<Announcement[]> {
   const qs = new URLSearchParams()
   if (opts?.includeUnpublished) qs.set('include_unpublished', 'true')
   if (opts?.limit) qs.set('limit', String(opts.limit))
+  if (opts?.category) qs.set('category', opts.category)
   const q = qs.toString()
   const data = await apiFetch<{ items: Announcement[] }>(`/news${q ? `?${q}` : ''}`)
   return data.items

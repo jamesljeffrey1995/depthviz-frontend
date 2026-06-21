@@ -152,6 +152,54 @@
   border: 1px solid var(--warn);
 }
 
+/* Category badge on a card — accent outline, palette colours only. */
+.badge {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  color: var(--accent);
+  background: rgba(0, 201, 255, 0.1);
+  border: 1px solid rgba(0, 201, 255, 0.4);
+}
+
+.summary {
+  margin: var(--space-sm) 0 0;
+  color: var(--text-bright);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ── Category filter chips ── */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.chip,
+.chipActive {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  border: 1px solid rgba(0, 201, 255, 0.25);
+  background: transparent;
+  color: var(--text);
+}
+
+.chip:hover { border-color: var(--accent); color: var(--text-bright); }
+
+.chipActive {
+  background: var(--accent);
+  color: var(--ocean-deep);
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
 .meta {
   font-size: 11px;
   color: var(--text);

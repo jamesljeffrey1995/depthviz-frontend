@@ -740,7 +740,9 @@ export interface ApneaTableUpdate {
 export interface Announcement {
   id: number
   title: string
+  summary: string | null
   body: string
+  category: string | null
   author_name: string
   is_published: boolean
   is_pinned: boolean
@@ -750,7 +752,9 @@ export interface Announcement {
 
 export interface AnnouncementInput {
   title: string
+  summary?: string
   body: string
+  category?: string
   is_published?: boolean
   is_pinned?: boolean
 }

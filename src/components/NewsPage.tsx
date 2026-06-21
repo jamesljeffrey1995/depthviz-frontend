@@ -11,7 +11,7 @@ interface Props {
   isAdmin: boolean
 }
 
-const EMPTY = { title: '', body: '', is_pinned: false, is_published: true }
+const EMPTY = { title: '', summary: '', body: '', category: '', is_pinned: false, is_published: true }
 
 export function NewsPage({ isAdmin }: Props) {
   const [items, setItems] = useState<Announcement[]>([])
@@ -21,6 +21,16 @@ export function NewsPage({ isAdmin }: Props) {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [draft, setDraft] = useState(EMPTY)
   const [saving, setSaving] = useState(false)
+  // Client-side category filter. Empty string means "all".
+  const [activeCategory, setActiveCategory] = useState('')
+
+  // Distinct categories present in the loaded posts, in first-seen order.
+  const categories = Array.from(
+    new Set(items.map(i => i.category).filter((c): c is string => !!c))
+  )
+  const visibleItems = activeCategory
+    ? items.filter(i => i.category === activeCategory)
+    : items
 
   const load = useCallback(() => {
     setLoading(true)
@@ -42,7 +52,14 @@ export function NewsPage({ isAdmin }: Props) {
 
   function startEdit(a: Announcement) {
     setEditingId(a.id)
-    setDraft({ title: a.title, body: a.body, is_pinned: a.is_pinned, is_published: a.is_published })
+    setDraft({
+      title: a.title,
+      summary: a.summary ?? '',
+      body: a.body,
+      category: a.category ?? '',
+      is_pinned: a.is_pinned,
+      is_published: a.is_published,
+    })
     setComposerOpen(true)
   }
 
@@ -98,6 +115,20 @@ export function NewsPage({ isAdmin }: Props) {
             maxLength={200}
             onChange={e => setDraft({ ...draft, title: e.target.value })}
           />
+          <input
+            className={styles.input}
+            placeholder="Category (optional, e.g. Gear & Beginner Tips)"
+            value={draft.category}
+            maxLength={100}
+            onChange={e => setDraft({ ...draft, category: e.target.value })}
+          />
+          <input
+            className={styles.input}
+            placeholder="One-line summary (optional)"
+            value={draft.summary}
+            maxLength={300}
+            onChange={e => setDraft({ ...draft, summary: e.target.value })}
+          />
           <textarea
             className={styles.textarea}
             placeholder="Write your announcement…"
@@ -130,22 +161,44 @@ export function NewsPage({ isAdmin }: Props) {
         </div>
       )}
 
+      {categories.length > 0 && (
+        <div className={styles.filters} role="group" aria-label="Filter by category">
+          <button
+            className={activeCategory === '' ? styles.chipActive : styles.chip}
+            onClick={() => setActiveCategory('')}
+          >
+            All
+          </button>
+          {categories.map(c => (
+            <button
+              key={c}
+              className={activeCategory === c ? styles.chipActive : styles.chip}
+              onClick={() => setActiveCategory(c)}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+      )}
+
       {loading ? (
         <p className={styles.muted}>Loading…</p>
-      ) : items.length === 0 ? (
+      ) : visibleItems.length === 0 ? (
         <p className={styles.muted}>No announcements yet.</p>
       ) : (
         <ul className={styles.list}>
-          {items.map(a => (
+          {visibleItems.map(a => (
             <li key={a.id} className={styles.card}>
               <div className={styles.cardHead}>
                 {a.is_pinned && <span className={styles.pin}>Pinned</span>}
                 {!a.is_published && <span className={styles.draft}>Draft</span>}
+                {a.category && <span className={styles.badge}>{a.category}</span>}
                 <h2 className={styles.cardTitle}>{a.title}</h2>
               </div>
               <div className={styles.meta}>
                 {a.author_name} · {formatDate(a.created_at)}
               </div>
+              {a.summary && <p className={styles.summary}>{a.summary}</p>}
               <p className={styles.body}>{a.body}</p>
               {isAdmin && (
                 <div className={styles.adminRow}>
