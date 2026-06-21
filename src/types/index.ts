@@ -752,9 +752,9 @@ export interface Announcement {
 
 export interface AnnouncementInput {
   title: string
-  summary?: string
+  summary?: string | null
   body: string
-  category?: string
+  category?: string | null
   is_published?: boolean
   is_pinned?: boolean
 }

@@ -67,11 +67,18 @@ export function NewsPage({ isAdmin }: Props) {
     if (!draft.title.trim() || !draft.body.trim()) return
     setSaving(true)
     setError('')
+    // Optional text fields: blank → null so we store the API's null rather than
+    // an empty string for these nullable columns.
+    const payload = {
+      ...draft,
+      summary: draft.summary.trim() || null,
+      category: draft.category.trim() || null,
+    }
     try {
       if (editingId !== null) {
-        await updateNews(editingId, draft)
+        await updateNews(editingId, payload)
       } else {
-        await createNews(draft)
+        await createNews(payload)
       }
       setComposerOpen(false)
       setDraft(EMPTY)
@@ -164,6 +171,8 @@ export function NewsPage({ isAdmin }: Props) {
       {categories.length > 0 && (
         <div className={styles.filters} role="group" aria-label="Filter by category">
           <button
+            type="button"
+            aria-pressed={activeCategory === ''}
             className={activeCategory === '' ? styles.chipActive : styles.chip}
             onClick={() => setActiveCategory('')}
           >
@@ -172,6 +181,8 @@ export function NewsPage({ isAdmin }: Props) {
           {categories.map(c => (
             <button
               key={c}
+              type="button"
+              aria-pressed={activeCategory === c}
               className={activeCategory === c ? styles.chipActive : styles.chip}
               onClick={() => setActiveCategory(c)}
             >
@@ -184,7 +195,9 @@ export function NewsPage({ isAdmin }: Props) {
       {loading ? (
         <p className={styles.muted}>Loading…</p>
       ) : visibleItems.length === 0 ? (
-        <p className={styles.muted}>No announcements yet.</p>
+        <p className={styles.muted}>
+          {activeCategory ? `No posts in “${activeCategory}” yet.` : 'No announcements yet.'}
+        </p>
       ) : (
         <ul className={styles.list}>
           {visibleItems.map(a => (
