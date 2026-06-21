@@ -83,10 +83,13 @@ export function HomePage() {
                 <button className={styles.newsItem} onClick={() => navigate('/news')}>
                   <div className={styles.newsItemHead}>
                     {n.is_pinned && <span className={styles.pin}>Pinned</span>}
+                    {n.category && <span className={styles.newsBadge}>{n.category}</span>}
                     <span className={styles.newsTitle}>{n.title}</span>
                     <span className={styles.newsDate}>{timeAgo(n.created_at)}</span>
                   </div>
-                  <p className={styles.newsExcerpt}>{n.body.slice(0, 160)}{n.body.length > 160 ? '…' : ''}</p>
+                  <p className={styles.newsExcerpt}>
+                    {n.summary || `${n.body.slice(0, 160)}${n.body.length > 160 ? '…' : ''}`}
+                  </p>
                 </button>
               </li>
             ))}

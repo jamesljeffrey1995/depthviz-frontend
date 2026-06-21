@@ -151,6 +151,17 @@
   border-radius: var(--radius-sm);
 }
 
+.newsBadge {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(0, 201, 255, 0.1);
+  border: 1px solid rgba(0, 201, 255, 0.4);
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+}
+
 .newsTitle {
   color: var(--text-bright);
   font-size: 14px;
