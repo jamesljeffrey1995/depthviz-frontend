@@ -83,6 +83,16 @@ describe('competition API', () => {
     expect(JSON.parse(init.body as string).weight_grams).toBe(2500)
   })
 
+  test('createFish can tally a catch with no weight yet (pending)', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ id: 2, pending: true, weight_kg: null })))
+    await createFish(3, { competitor_id: 9, species: 'Pollock' })
+    const [url, init] = lastCall()
+    expect(String(url)).toContain('/admin/competition/3/fish')
+    const body = JSON.parse(init.body as string)
+    expect(body.species).toBe('Pollock')
+    expect(body.weight_grams).toBeUndefined()
+  })
+
   test('downloadCompetitionCsv fetches the export route with auth', async () => {
     // jsdom isn't configured; stub the DOM bits the download helper touches.
     const click = vi.fn()

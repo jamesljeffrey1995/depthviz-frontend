@@ -1004,8 +1004,10 @@ export interface FishEntry {
   competitor_name: string | null
   team_id: number | null
   species: string
-  weight_grams: number
-  weight_kg: number
+  // Null when the fish has been tallied as caught but not yet weighed.
+  weight_grams: number | null
+  weight_kg: number | null
+  pending: boolean
   length_cm: number | null
   entered_at: string
   judge_initials: string | null
@@ -1020,7 +1022,8 @@ export interface FishEntry {
 export interface FishEntryInput {
   competitor_id: number
   species: string
-  weight_grams: number
+  // Omit/null to record a pending catch; a weight can be added later.
+  weight_grams?: number | null
   length_cm?: number | null
   judge_initials?: string | null
   notes?: string | null
@@ -1113,6 +1116,8 @@ export interface CompetitionResults {
   species_hunter: { competitor_id: number; competitor_name: string; species_count: number } | null
   totals: {
     total_fish: number
+    weighed_fish: number
+    pending_fish: number
     total_weight_grams: number
     total_weight_kg: number
     disqualified: number

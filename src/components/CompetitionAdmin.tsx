@@ -13,7 +13,7 @@ import type {
   Competition, CompetitionInput, CompetitionStatus,
   Competitor, CompetitorInput, CompetitorStatus,
   CompetitionTeam, WaterStatusBoard,
-  FishEntry, CompetitionIncident, IncidentType,
+  FishEntry, FishEntryInput, CompetitionIncident, IncidentType,
   ScoringRule, CompetitionResults,
 } from '../types'
 import styles from './CompetitionAdmin.module.css'
@@ -826,110 +826,235 @@ function TeamsTab({ cid }: { cid: number }) {
 }
 
 // ── Weigh-in tab ─────────────────────────────────────────────────────────────
+//
+// Two-step, table-driven flow built for the day:
+//   1. A table of every competitor — tap one to open their card.
+//   2. On the card, a +/- stepper per species tallies fish as they're caught
+//      (each "+" records a fish with no weight yet). Weights, lengths and DQs
+//      are filled in afterwards on the per-fish list.
 
 function WeighInTab({ cid }: { cid: number }) {
   const [entries, setEntries] = useState<FishEntry[]>([])
   const [competitors, setCompetitors] = useState<Competitor[]>([])
   const [species, setSpecies] = useState<string[]>([])
   const [error, setError] = useState('')
-  const [competitorId, setCompetitorId] = useState<number | ''>('')
-  const [sp, setSp] = useState('')
-  const [weight, setWeight] = useState('')
-  const [length, setLength] = useState('')
-  const [initials, setInitials] = useState('')
-  const [saving, setSaving] = useState(false)
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [search, setSearch] = useState('')
 
   const load = useCallback(() => {
-    Promise.all([listFish(cid), listCompetitors(cid), getSpeciesList(cid)])
-      .then(([f, c, s]) => { setEntries(f); setCompetitors(c); setSpecies(s); if (!sp && s[0]) setSp(s[0]) })
+    return Promise.all([listFish(cid), listCompetitors(cid), getSpeciesList(cid)])
+      .then(([f, c, s]) => { setEntries(f); setCompetitors(c); setSpecies(s) })
       .catch(e => setError(errMsg(e)))
-  // sp excluded so we don't reset the dropdown on every keystroke.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cid])
   useEffect(() => { load() }, [load])
 
-  async function add() {
-    const w = parseFloat(weight)
-    if (!competitorId || !sp || !(w > 0)) { setError('Competitor, species and a positive weight are required.'); return }
-    setSaving(true); setError('')
-    try {
-      await createFish(cid, {
-        competitor_id: Number(competitorId),
-        species: sp,
-        weight_grams: w,
-        length_cm: length ? parseFloat(length) : null,
-        judge_initials: initials || null,
-      })
-      setWeight(''); setLength('')
-      load()
-    } catch (e) { setError(errMsg(e)) } finally { setSaving(false) }
+  const byCompetitor = useMemo(() => {
+    const m = new Map<number, FishEntry[]>()
+    for (const f of entries) {
+      const arr = m.get(f.competitor_id) ?? []
+      arr.push(f)
+      m.set(f.competitor_id, arr)
+    }
+    return m
+  }, [entries])
+
+  const selected = selectedId !== null ? competitors.find(c => c.id === selectedId) ?? null : null
+
+  if (selected) {
+    return (
+      <CompetitorWeighIn
+        cid={cid}
+        competitor={selected}
+        species={species}
+        entries={byCompetitor.get(selected.id) ?? []}
+        onBack={() => setSelectedId(null)}
+        onChanged={load}
+        onError={setError}
+        error={error}
+      />
+    )
   }
 
-  async function toggleDq(f: FishEntry) {
-    const reason = f.disqualified ? null : (prompt('Disqualification reason?') ?? 'Disqualified')
-    await updateFish(cid, f.id, { disqualified: !f.disqualified, disqualification_reason: reason })
-    load()
-  }
-
-  async function remove(f: FishEntry) {
-    if (!confirm('Delete this entry?')) return
-    await deleteFish(cid, f.id); load()
-  }
+  const filtered = competitors.filter(
+    c => !search || c.full_name.toLowerCase().includes(search.trim().toLowerCase()),
+  )
 
   return (
     <div>
-      <div className={styles.card}>
-        <h2 className={styles.cardTitle}>Quick weigh-in</h2>
-        <div className={styles.weighGrid}>
-          <select className={styles.input} value={competitorId}
-                  onChange={e => setCompetitorId(e.target.value ? Number(e.target.value) : '')}>
-            <option value="">Competitor…</option>
-            {competitors.map(c => <option key={c.id} value={c.id}>{c.full_name}</option>)}
-          </select>
-          <select className={styles.input} value={sp} onChange={e => setSp(e.target.value)}>
-            {species.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-          <input className={styles.input} type="number" inputMode="decimal" placeholder="Weight (g)"
-                 value={weight} onChange={e => setWeight(e.target.value)} />
-          <input className={styles.input} type="number" inputMode="decimal" placeholder="Length (cm)"
-                 value={length} onChange={e => setLength(e.target.value)} />
-          <input className={styles.input} placeholder="Judge initials" maxLength={10}
-                 value={initials} onChange={e => setInitials(e.target.value)} />
-          <button className={styles.btnPrimary} onClick={add} disabled={saving}>{saving ? '…' : 'Add fish'}</button>
-        </div>
-        <div className={styles.formActions}>
-          <button className={styles.btnGhost} onClick={() => downloadCompetitionCsv(cid, 'fish')}>Export CSV</button>
-        </div>
+      <div className={styles.toolbar}>
+        <input className={styles.input} placeholder="Search competitor"
+               value={search} onChange={e => setSearch(e.target.value)} />
+        <button className={styles.btnGhost} onClick={() => downloadCompetitionCsv(cid, 'fish')}>Export CSV</button>
       </div>
 
       {error && <p className={styles.error} role="alert">{error}</p>}
 
-      {entries.length === 0 ? (
-        <p className={styles.muted}>No fish weighed in yet.</p>
+      {filtered.length === 0 ? (
+        <p className={styles.muted}>No competitors yet — add them on the Competitors tab.</p>
       ) : (
-        <ul className={styles.cardList}>
-          {entries.map(f => (
-            <li key={f.id} className={f.disqualified ? `${styles.compCard} ${styles.dqCard}` : styles.compCard}>
-              <div className={styles.compCardHead}>
-                <span className={styles.compName}>{f.species} · {f.weight_kg} kg</span>
-                {f.disqualified && <span className={`${styles.badge} ${styles.badgeOverdue}`}>DQ</span>}
-              </div>
-              <div className={styles.boardMeta}>
-                {f.competitor_name ?? 'Unknown'} · {fmtTime(f.entered_at)}
-                {f.length_cm ? ` · ${f.length_cm} cm` : ''}
-                {f.judge_initials ? ` · judge ${f.judge_initials}` : ''}
-              </div>
-              {f.disqualified && f.disqualification_reason && (
-                <div className={styles.warnText}>DQ: {f.disqualification_reason}</div>
-              )}
-              <div className={styles.actionRow}>
-                <button className={styles.linkBtn} onClick={() => toggleDq(f)}>{f.disqualified ? 'Reinstate' : 'Disqualify'}</button>
-                <button className={styles.linkBtnDanger} onClick={() => remove(f)}>Delete</button>
-              </div>
-            </li>
-          ))}
+        <ul className={styles.weighTable}>
+          {filtered.map(c => {
+            const fish = byCompetitor.get(c.id) ?? []
+            const live = fish.filter(f => !f.disqualified)
+            const pending = live.filter(f => f.pending).length
+            const kg = live.reduce((sum, f) => sum + (f.weight_kg ?? 0), 0)
+            return (
+              <li key={c.id}>
+                <button className={styles.weighRow} onClick={() => setSelectedId(c.id)}>
+                  <span className={styles.weighRowName}>{c.full_name}</span>
+                  <span className={styles.weighRowStats}>
+                    <span className={styles.weighStat}>{live.length} fish</span>
+                    <span className={styles.weighStat}>{kg.toFixed(2)} kg</span>
+                    {pending > 0 && <span className={styles.weighPending}>{pending} to weigh</span>}
+                  </span>
+                  <span className={styles.weighChevron} aria-hidden="true">›</span>
+                </button>
+              </li>
+            )
+          })}
         </ul>
       )}
+    </div>
+  )
+}
+
+function CompetitorWeighIn({
+  cid, competitor, species, entries, onBack, onChanged, onError, error,
+}: {
+  cid: number
+  competitor: Competitor
+  species: string[]
+  entries: FishEntry[]
+  onBack: () => void
+  onChanged: () => Promise<unknown>
+  onError: (msg: string) => void
+  error: string
+}) {
+  const [busy, setBusy] = useState(false)
+
+  // Count per species (excludes disqualified so the tally reflects live catches).
+  const countFor = (sp: string) => entries.filter(f => f.species === sp && !f.disqualified).length
+
+  async function addOne(sp: string) {
+    setBusy(true); onError('')
+    try {
+      await createFish(cid, { competitor_id: competitor.id, species: sp })
+      await onChanged()
+    } catch (e) { onError(errMsg(e)) } finally { setBusy(false) }
+  }
+
+  async function removeOne(sp: string) {
+    // Remove the most recently added of this species, preferring an unweighed
+    // (pending) one so a recorded weight isn't lost to an accidental tap.
+    const candidates = entries
+      .filter(f => f.species === sp && !f.disqualified)
+      .sort((a, b) => a.created_at.localeCompare(b.created_at))
+    if (candidates.length === 0) return
+    const target = candidates.filter(f => f.pending).pop() ?? candidates[candidates.length - 1]
+    setBusy(true); onError('')
+    try {
+      await deleteFish(cid, target.id)
+      await onChanged()
+    } catch (e) { onError(errMsg(e)) } finally { setBusy(false) }
+  }
+
+  async function setField(f: FishEntry, patch: Partial<FishEntryInput>) {
+    onError('')
+    try { await updateFish(cid, f.id, patch); await onChanged() }
+    catch (e) { onError(errMsg(e)) }
+  }
+
+  async function toggleDq(f: FishEntry) {
+    const reason = f.disqualified ? null : (prompt('Disqualification reason?') ?? 'Disqualified')
+    await setField(f, { disqualified: !f.disqualified, disqualification_reason: reason })
+  }
+
+  async function remove(f: FishEntry) {
+    if (!confirm('Delete this entry?')) return
+    onError('')
+    try { await deleteFish(cid, f.id); await onChanged() }
+    catch (e) { onError(errMsg(e)) }
+  }
+
+  const sortedEntries = [...entries].sort((a, b) => a.created_at.localeCompare(b.created_at))
+
+  return (
+    <div>
+      <div className={styles.toolbar}>
+        <button className={styles.btnGhost} onClick={onBack}>‹ All competitors</button>
+        <span className={styles.compName}>{competitor.full_name}</span>
+      </div>
+
+      {error && <p className={styles.error} role="alert">{error}</p>}
+
+      <div className={styles.card}>
+        <h2 className={styles.cardTitle}>Tally catches</h2>
+        <ul className={styles.tallyList}>
+          {species.map(sp => {
+            const n = countFor(sp)
+            return (
+              <li key={sp} className={styles.tallyRow}>
+                <span className={styles.tallySpecies}>{sp}</span>
+                <div className={styles.stepper}>
+                  <button className={styles.stepBtn} disabled={busy || n === 0}
+                          aria-label={`Remove one ${sp}`} onClick={() => removeOne(sp)}>−</button>
+                  <span className={n > 0 ? styles.stepCountOn : styles.stepCount}>{n}</span>
+                  <button className={styles.stepBtnAdd} disabled={busy}
+                          aria-label={`Add one ${sp}`} onClick={() => addOne(sp)}>+</button>
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+      </div>
+
+      <div className={styles.card}>
+        <h2 className={styles.cardTitle}>Weights &amp; details</h2>
+        {sortedEntries.length === 0 ? (
+          <p className={styles.muted}>No fish tallied yet. Use the steppers above.</p>
+        ) : (
+          <ul className={styles.cardList}>
+            {sortedEntries.map(f => (
+              <li key={f.id} className={f.disqualified ? `${styles.compCard} ${styles.dqCard}` : styles.compCard}>
+                <div className={styles.compCardHead}>
+                  <span className={styles.compName}>{f.species}</span>
+                  {f.disqualified
+                    ? <span className={`${styles.badge} ${styles.badgeOverdue}`}>DQ</span>
+                    : f.pending && <span className={`${styles.badge} ${styles.badgeWarn}`}>To weigh</span>}
+                </div>
+                <div className={styles.weighFields}>
+                  <label className={styles.field}><span>Weight (g)</span>
+                    <input className={styles.input} type="number" inputMode="decimal"
+                           defaultValue={f.weight_grams ?? ''}
+                           key={`w-${f.id}-${f.weight_grams ?? ''}`}
+                           onBlur={e => {
+                             const v = e.target.value.trim()
+                             const num = v === '' ? null : parseFloat(v)
+                             if (num !== null && !(num > 0)) return
+                             if (num !== (f.weight_grams ?? null)) setField(f, { weight_grams: num })
+                           }} /></label>
+                  <label className={styles.field}><span>Length (cm)</span>
+                    <input className={styles.input} type="number" inputMode="decimal"
+                           defaultValue={f.length_cm ?? ''}
+                           key={`l-${f.id}-${f.length_cm ?? ''}`}
+                           onBlur={e => {
+                             const v = e.target.value.trim()
+                             const num = v === '' ? null : parseFloat(v)
+                             if (num !== (f.length_cm ?? null)) setField(f, { length_cm: num })
+                           }} /></label>
+                </div>
+                {f.disqualified && f.disqualification_reason && (
+                  <div className={styles.warnText}>DQ: {f.disqualification_reason}</div>
+                )}
+                <div className={styles.actionRow}>
+                  <button className={styles.linkBtn} onClick={() => toggleDq(f)}>{f.disqualified ? 'Reinstate' : 'Disqualify'}</button>
+                  <button className={styles.linkBtnDanger} onClick={() => remove(f)}>Delete</button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   )
 }
@@ -962,6 +1087,9 @@ function ResultsTab({ cid }: { cid: number }) {
       <div className={styles.countBar}>
         <div className={styles.count}><strong>{t.total_fish}</strong><span>Fish</span></div>
         <div className={styles.count}><strong>{t.total_weight_kg}</strong><span>Total kg</span></div>
+        {t.pending_fish > 0 && (
+          <div className={`${styles.count} ${styles.countWarn}`}><strong>{t.pending_fish}</strong><span>To weigh</span></div>
+        )}
         <div className={styles.count}><strong>{t.disqualified}</strong><span>DQ</span></div>
         <div className={styles.count}><strong>{t.competitors}</strong><span>Competitors</span></div>
       </div>
