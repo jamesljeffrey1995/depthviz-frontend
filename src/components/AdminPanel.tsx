@@ -8,9 +8,12 @@ import {
   restoreReport,
   getMLStatus,
   forceRetrain,
+  listDisputes,
+  reviewDispute,
 } from '../lib/api'
 import type {
   AdminStats,
+  DataDispute,
   DataOverview,
   OutlierPreview,
   CleaningResult,
@@ -25,7 +28,7 @@ interface AdminPanelProps {
   onBack?: () => void
 }
 
-type Tab = 'overview' | 'quarantined' | 'clean' | 'ml'
+type Tab = 'overview' | 'quarantined' | 'disputes' | 'clean' | 'ml'
 
 // Log the diagnostic and return a user-facing message. Previously every
 // `catch (e)` discarded `e` entirely (issue #169) — losing the real cause and
@@ -37,6 +40,16 @@ function describeError(e: unknown, fallback: string): string {
 
 const NF = new Intl.NumberFormat()
 
+const FIELD_LABELS: Record<string, string> = {
+  visibility_m: 'Visibility (m)',
+  wave_height: 'Wave Height',
+  swell_height: 'Swell Height',
+  wind_speed: 'Wind Speed',
+  precipitation: 'Precipitation',
+  sea_temp: 'Sea Temp',
+  air_temp: 'Air Temp',
+}
+
 export function AdminPanel({ onBack }: AdminPanelProps) {
   const [tab, setTab] = useState<Tab>('overview')
   const [stats, setStats] = useState<AdminStats | null>(null)
@@ -44,6 +57,10 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
   const [preview, setPreview] = useState<OutlierPreview | null>(null)
   const [cleanResult, setCleanResult] = useState<CleaningResult | null>(null)
   const [quarantined, setQuarantined] = useState<QuarantinedReport[]>([])
+  const [disputes, setDisputes] = useState<DataDispute[]>([])
+  const [disputeFilter, setDisputeFilter] = useState<'all' | 'pending' | 'accepted' | 'rejected'>('pending')
+  const [reviewingId, setReviewingId] = useState<number | null>(null)
+  const [reviewNotes, setReviewNotes] = useState('')
   const [mlStatus, setMlStatus] = useState<MLStatus | null>(null)
   const [retrainResult, setRetrainResult] = useState<MLRetrainResult | null>(null)
   const [loading, setLoading] = useState(false)
@@ -83,6 +100,18 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
       if (isCurrent(id)) setOverview(data)
     } catch (e) {
       if (isCurrent(id)) setError(describeError(e, 'Failed to load data overview'))
+    } finally {
+      endRequest(id)
+    }
+  }, [beginRequest, isCurrent, endRequest])
+
+  const loadDisputes = useCallback(async (status?: string) => {
+    const id = beginRequest()
+    try {
+      const data = await listDisputes(status)
+      if (isCurrent(id)) setDisputes(data)
+    } catch (e) {
+      if (isCurrent(id)) setError(describeError(e, 'Failed to load disputes'))
     } finally {
       endRequest(id)
     }
@@ -138,6 +167,22 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
     }
   }
 
+  const handleReviewDispute = async (disputeId: number, status: 'accepted' | 'rejected') => {
+    try {
+      const updated = await reviewDispute(disputeId, { status, admin_notes: reviewNotes || undefined })
+      if (disputeFilter === 'all') {
+        setDisputes(prev => prev.map(d => d.id === disputeId ? updated : d))
+      } else {
+        setDisputes(prev => prev.filter(d => d.id !== disputeId))
+      }
+      setReviewingId(null)
+      setReviewNotes('')
+      await loadStats()
+    } catch (e) {
+      setError(describeError(e, 'Failed to review dispute'))
+    }
+  }
+
   const loadMLStatus = async () => {
     const id = beginRequest()
     try {
@@ -173,6 +218,7 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
     setError(null)
     if (t === 'overview') loadOverview()
     if (t === 'quarantined') loadQuarantined()
+    if (t === 'disputes') { setReviewingId(null); setReviewNotes(''); loadDisputes(disputeFilter === 'all' ? undefined : disputeFilter) }
     if (t === 'clean') { setPreview(null); setCleanResult(null) }
     if (t === 'ml') { setRetrainResult(null); loadMLStatus() }
   }
@@ -213,13 +259,13 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
 
       {/* Tabs */}
       <div className={styles.tabs}>
-        {(['overview', 'quarantined', 'clean', 'ml'] as Tab[]).map(t => (
+        {(['overview', 'quarantined', 'disputes', 'clean', 'ml'] as Tab[]).map(t => (
           <button
             key={t}
             className={`${styles.tab} ${tab === t ? styles.tabActive : ''}`}
             onClick={() => handleTabChange(t)}
           >
-            {t === 'overview' ? 'Overview' : t === 'quarantined' ? 'Quarantined' : t === 'clean' ? 'Clean Outliers' : 'ML Model'}
+            {t === 'overview' ? 'Overview' : t === 'quarantined' ? 'Quarantined' : t === 'disputes' ? 'Disputes' : t === 'clean' ? 'Clean Outliers' : 'ML Model'}
           </button>
         ))}
       </div>
@@ -271,6 +317,134 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
               </div>
             )
           })}
+        </div>
+      )}
+
+      {/* Disputes tab */}
+      {tab === 'disputes' && (
+        <div className={styles.section}>
+          <div className={styles.filterRow}>
+            {(['all', 'pending', 'accepted', 'rejected'] as const).map(f => (
+              <button
+                key={f}
+                className={`${styles.filterBtn} ${disputeFilter === f ? styles.filterBtnActive : ''}`}
+                onClick={() => {
+                  setDisputeFilter(f)
+                  loadDisputes(f === 'all' ? undefined : f)
+                }}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+
+          {loading && <div className={styles.loading}>Loading disputes...</div>}
+          {!loading && disputes.length === 0 && (
+            <div className={styles.empty}>
+              No {disputeFilter !== 'all' ? disputeFilter + ' ' : ''}disputes
+            </div>
+          )}
+
+          {disputes.map(d => (
+            <div key={d.id} className={styles.disputeCard}>
+              <div className={styles.disputeHeader}>
+                <div>
+                  <span className={styles.disputeDate}>{d.report_date}</span>
+                  <span className={styles.disputeId}> #{d.id}</span>
+                </div>
+                <span
+                  className={styles.disputeStatus}
+                  style={{
+                    color: d.status === 'pending'
+                      ? 'var(--accent)'
+                      : d.status === 'accepted'
+                        ? 'var(--excellent)'
+                        : 'var(--danger)',
+                  }}
+                >
+                  {d.status}
+                </span>
+              </div>
+
+              <div className={styles.disputeField}>
+                <span className={styles.disputeFieldName}>
+                  {FIELD_LABELS[d.field_disputed] ?? d.field_disputed}
+                </span>
+                <span>Reported: <strong>{d.reported_value}</strong></span>
+                {d.forecast_value != null && (
+                  <span>Forecast: <strong>{d.forecast_value}</strong></span>
+                )}
+              </div>
+
+              {(d.ai_extracted_value != null || d.ai_notes) && (
+                <div className={styles.disputeAI}>
+                  <span className={styles.disputeAILabel}>AI</span>
+                  {d.ai_extracted_value != null && (
+                    <span>extracted {d.ai_extracted_value} (conf {d.ai_confidence?.toFixed(2) ?? '—'})</span>
+                  )}
+                  {d.ai_notes && <span className={styles.disputeAINotes}>{d.ai_notes}</span>}
+                </div>
+              )}
+
+              {d.image_url && (
+                <a
+                  href={d.image_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.disputeImageLink}
+                >
+                  View evidence photo
+                </a>
+              )}
+
+              {d.admin_notes && (
+                <div className={styles.disputeAdminNotes}>Admin: {d.admin_notes}</div>
+              )}
+
+              {d.status === 'pending' && (
+                reviewingId === d.id ? (
+                  <div className={styles.disputeReviewPanel}>
+                    <textarea
+                      className={styles.notesInput}
+                      placeholder="Admin notes (optional)"
+                      value={reviewNotes}
+                      onChange={e => setReviewNotes(e.target.value)}
+                      rows={2}
+                    />
+                    <div className={styles.actionRow}>
+                      <button
+                        className={styles.acceptBtn}
+                        onClick={() => handleReviewDispute(d.id, 'accepted')}
+                        disabled={loading}
+                      >
+                        Accept
+                      </button>
+                      <button
+                        className={styles.rejectBtn}
+                        onClick={() => handleReviewDispute(d.id, 'rejected')}
+                        disabled={loading}
+                      >
+                        Reject
+                      </button>
+                      <button
+                        className={styles.cancelBtn}
+                        onClick={() => { setReviewingId(null); setReviewNotes('') }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    className={styles.reviewBtn}
+                    onClick={() => { setReviewingId(d.id); setReviewNotes('') }}
+                  >
+                    Review
+                  </button>
+                )
+              )}
+            </div>
+          ))}
         </div>
       )}
 
@@ -497,7 +671,7 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
   )
 }
 
-// ── Data overview dashboard ──────────────────────────────────────────────────
+// ── Data overview dashboard ──────────────────────────────────────────────
 
 function fmtDate(iso: string | null): string {
   if (!iso) return '—'

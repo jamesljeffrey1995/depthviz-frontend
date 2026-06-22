@@ -188,3 +188,88 @@
   text-transform: capitalize; font-family: var(--font-mono);
 }
 .pill strong { color: var(--text-bright); }
+
+/* ── Disputes tab ────────────────────────────────────────────────────────── */
+
+.filterRow { display: flex; gap: 6px; }
+.filterBtn {
+  background: rgba(4,30,46,0.6); border: 1px solid rgba(0,201,255,0.08);
+  color: var(--text); font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 0.15em; text-transform: uppercase; padding: 6px 12px; cursor: pointer;
+}
+.filterBtn:hover { border-color: rgba(0,201,255,0.2); color: var(--accent); }
+.filterBtnActive { border-color: rgba(0,201,255,0.35); color: var(--accent); background: rgba(0,201,255,0.08); }
+
+.disputeCard {
+  background: rgba(2,13,20,0.4); border: 1px solid rgba(0,201,255,0.08);
+  padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;
+}
+.disputeHeader { display: flex; justify-content: space-between; align-items: center; }
+.disputeDate { color: var(--text-bright); font-size: 11px; }
+.disputeId { opacity: .35; font-size: 10px; font-family: var(--font-mono); }
+.disputeStatus {
+  font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
+  font-family: var(--font-mono); font-weight: bold;
+}
+.disputeField {
+  display: flex; gap: 12px; align-items: center; font-size: 11px; flex-wrap: wrap;
+}
+.disputeFieldName {
+  color: var(--accent); font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.05em; background: rgba(0,201,255,0.06);
+  border: 1px solid rgba(0,201,255,0.12); padding: 2px 6px;
+}
+.disputeField strong { color: var(--text-bright); }
+.disputeAI {
+  display: flex; gap: 8px; align-items: flex-start; font-size: 10px;
+  opacity: .65; flex-wrap: wrap;
+}
+.disputeAILabel {
+  color: var(--accent); font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 0.1em; text-transform: uppercase; flex-shrink: 0;
+}
+.disputeAINotes { font-style: italic; opacity: .75; }
+.disputeImageLink {
+  font-size: 10px; color: var(--accent); opacity: .7; text-decoration: none;
+  letter-spacing: 0.05em; font-family: var(--font-mono); align-self: flex-start;
+}
+.disputeImageLink:hover { opacity: 1; text-decoration: underline; }
+.disputeAdminNotes {
+  font-size: 10px; opacity: .55; font-style: italic;
+  border-left: 2px solid rgba(0,201,255,0.2); padding-left: 8px;
+}
+.disputeReviewPanel { display: flex; flex-direction: column; gap: 6px; }
+.notesInput {
+  width: 100%; background: rgba(2,13,20,0.6); border: 1px solid rgba(0,201,255,0.15);
+  color: var(--text); font-family: var(--font-mono); font-size: 11px;
+  padding: 8px; resize: vertical; box-sizing: border-box;
+}
+.notesInput:focus { outline: none; border-color: rgba(0,201,255,0.35); }
+.notesInput::placeholder { opacity: .35; }
+.reviewBtn {
+  align-self: flex-start;
+  background: rgba(0,201,255,0.06); border: 1px solid rgba(0,201,255,0.18);
+  color: var(--accent); font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 0.15em; text-transform: uppercase; padding: 5px 12px; cursor: pointer;
+}
+.reviewBtn:hover { background: rgba(0,201,255,0.12); }
+.acceptBtn {
+  flex: 1; background: rgba(15,179,122,0.1); border: 1px solid rgba(15,179,122,0.3);
+  color: var(--excellent); font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 0.15em; text-transform: uppercase; padding: 7px; cursor: pointer;
+}
+.acceptBtn:hover { background: rgba(15,179,122,0.2); }
+.acceptBtn:disabled { opacity: .4; cursor: not-allowed; }
+.rejectBtn {
+  flex: 1; background: rgba(192,57,43,0.1); border: 1px solid rgba(192,57,43,0.3);
+  color: var(--danger); font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 0.15em; text-transform: uppercase; padding: 7px; cursor: pointer;
+}
+.rejectBtn:hover { background: rgba(192,57,43,0.2); }
+.rejectBtn:disabled { opacity: .4; cursor: not-allowed; }
+.cancelBtn {
+  background: none; border: 1px solid rgba(0,201,255,0.1);
+  color: var(--text); font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 0.15em; text-transform: uppercase; padding: 7px 14px; cursor: pointer; opacity: .6;
+}
+.cancelBtn:hover { opacity: 1; }
