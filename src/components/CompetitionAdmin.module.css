@@ -1,0 +1,333 @@
+/* Competition operations — mobile-first admin UI.
+   Reuses the DepthViz palette/tokens defined in index.css. Big tap targets,
+   clear status badges, "in water" and "overdue" made highly visible. */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding-bottom: var(--space-2xl);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  letter-spacing: 0.06em;
+  color: var(--text-bright);
+  margin: 0;
+}
+
+.headActions {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.privateNote {
+  font-size: 11px;
+  color: var(--warn);
+  border: 1px solid rgba(212, 133, 10, 0.4);
+  background: rgba(212, 133, 10, 0.08);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  margin: 0;
+}
+
+.error { color: var(--danger); font-size: 13px; }
+.muted { color: var(--text); opacity: 0.6; font-size: 13px; }
+
+/* ── Buttons ── */
+.btnPrimary,
+.btnGhost,
+.btnDanger {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  padding: 11px 16px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  min-height: 44px;            /* comfortable tap target */
+}
+
+.btnPrimary { background: var(--accent); color: var(--ocean-deep); border: 1px solid var(--accent); }
+.btnPrimary:hover { box-shadow: var(--shadow-glow); }
+.btnGhost { background: transparent; color: var(--text); border: 1px solid rgba(0, 201, 255, 0.25); }
+.btnDanger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+.btnPrimary:disabled, .btnGhost:disabled, .btnDanger:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Inputs ── */
+.input,
+.textarea,
+.select {
+  width: 100%;
+  background: var(--ocean-deep);
+  border: 1px solid rgba(0, 201, 255, 0.2);
+  border-radius: var(--radius-md);
+  color: var(--text-bright);
+  font-family: var(--font-mono);
+  font-size: 16px;             /* 16px avoids iOS zoom-on-focus */
+  padding: 11px 12px;
+  box-sizing: border-box;
+  min-height: 44px;
+}
+.textarea { resize: vertical; line-height: 1.5; min-height: auto; }
+.select { max-width: 60vw; }
+
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  gap: var(--space-xs);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+}
+.tab, .tabActive {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  padding: 9px 14px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  border: 1px solid rgba(0, 201, 255, 0.2);
+  background: transparent;
+  color: var(--text);
+  white-space: nowrap;
+}
+.tabActive { background: var(--accent); color: var(--ocean-deep); border-color: var(--accent); font-weight: 700; }
+
+/* ── Cards ── */
+.card {
+  background: rgba(4, 30, 46, 0.5);
+  border: 1px solid rgba(0, 201, 255, 0.12);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+.cardTitle { font-size: 16px; color: var(--text-bright); margin: 0; }
+.sectionTitle {
+  font-family: var(--font-display);
+  font-size: 22px;
+  letter-spacing: 0.05em;
+  color: var(--text-bright);
+  margin: var(--space-md) 0 var(--space-sm);
+}
+.cardList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-sm); }
+
+/* ── Form layout ── */
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-sm);
+}
+@media (min-width: 560px) {
+  .formGrid { grid-template-columns: 1fr 1fr; }
+}
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field > span { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text); opacity: 0.7; }
+.formActions { display: flex; justify-content: flex-end; gap: var(--space-sm); flex-wrap: wrap; }
+.checkRow { display: flex; gap: var(--space-md); flex-wrap: wrap; }
+.checkInline { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text); }
+.detailRow { display: flex; justify-content: space-between; gap: var(--space-md); font-size: 13px; color: var(--text); }
+.detailRow strong { color: var(--text-bright); text-align: right; }
+.notes { font-size: 13px; color: var(--text); white-space: pre-wrap; line-height: 1.5; margin: 0; }
+
+.toolbar { display: flex; gap: var(--space-sm); flex-wrap: wrap; align-items: center; }
+.toolbar .input { flex: 1 1 160px; width: auto; }
+
+/* ── Count bar (board / results summary) ── */
+.countBar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+.count {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 6px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0, 201, 255, 0.15);
+  background: rgba(4, 30, 46, 0.6);
+}
+.count strong { font-size: 24px; color: var(--text-bright); font-family: var(--font-display); }
+.count span { font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text); opacity: 0.7; }
+.countWater { border-color: var(--accent); }
+.countWater strong { color: var(--accent); }
+.countReturned { border-color: var(--good); }
+.countReturned strong { color: var(--excellent); }
+.countOverdue { border-color: var(--danger); background: rgba(192, 57, 43, 0.15); }
+.countOverdue strong { color: var(--danger); }
+.countWarn { border-color: var(--warn); }
+.countWarn strong { color: var(--warn); }
+
+/* ── Filter chips ── */
+.filterRow { display: flex; gap: var(--space-xs); flex-wrap: wrap; align-items: center; margin-bottom: var(--space-md); }
+.chip, .chipActive {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  border: 1px solid rgba(0, 201, 255, 0.25);
+  background: transparent;
+  color: var(--text);
+  min-height: 38px;
+}
+.chipActive { background: var(--accent); color: var(--ocean-deep); border-color: var(--accent); font-weight: 700; }
+.refreshBtn {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid rgba(0, 201, 255, 0.25);
+  color: var(--accent);
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  width: 38px; height: 38px;
+  cursor: pointer;
+}
+
+/* ── Status badges ── */
+.badge {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  color: var(--text-bright);
+  border: 1px solid rgba(0, 201, 255, 0.3);
+}
+.badge_not_arrived { color: var(--text); border-color: rgba(139, 184, 204, 0.4); }
+.badge_registered { color: var(--accent); border-color: var(--accent); }
+.badge_in_water { color: var(--ocean-deep); background: var(--accent); border-color: var(--accent); }
+.badge_returned { color: var(--ocean-deep); background: var(--excellent); border-color: var(--excellent); }
+.badge_late { color: var(--ocean-deep); background: var(--warn); border-color: var(--warn); }
+.badge_withdrawn { color: var(--text); opacity: 0.7; border-color: rgba(139, 184, 204, 0.3); }
+.badgeOverdue { color: #fff; background: var(--danger); border-color: var(--danger); }
+.badgeWarn { color: var(--ocean-deep); background: var(--warn); border-color: var(--warn); }
+
+/* ── Water board cards ── */
+.boardList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-sm); }
+.boardCard {
+  background: rgba(4, 30, 46, 0.6);
+  border: 1px solid rgba(0, 201, 255, 0.15);
+  border-left: 4px solid rgba(0, 201, 255, 0.3);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.boardCardOverdue { border-color: var(--danger); border-left-color: var(--danger); background: rgba(192, 57, 43, 0.12); }
+.boardCardHead { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-sm); }
+.boardName { font-size: 16px; color: var(--text-bright); font-weight: 700; }
+.boardMeta { font-size: 12px; color: var(--text); opacity: 0.85; }
+.warnText { color: var(--warn); font-weight: 700; }
+.boardTimes { display: flex; gap: var(--space-md); flex-wrap: wrap; font-size: 12px; color: var(--text); }
+.boardEmergency { font-size: 12px; color: var(--text); opacity: 0.85; }
+.callLink { color: var(--accent); text-decoration: none; font-weight: 700; }
+.callLink:hover { text-decoration: underline; }
+
+/* ── Quick action buttons ── */
+.actionRow { display: flex; gap: var(--space-xs); flex-wrap: wrap; margin-top: 4px; }
+.actBtn, .actBtnGhost {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  min-height: 44px;
+  border: 1px solid rgba(0, 201, 255, 0.3);
+  background: rgba(0, 201, 255, 0.08);
+  color: var(--text-bright);
+  flex: 1 1 auto;
+}
+.actWater { background: var(--accent); color: var(--ocean-deep); border-color: var(--accent); }
+.actReturn { background: var(--excellent); color: var(--ocean-deep); border-color: var(--excellent); }
+.actBtnGhost { background: transparent; color: var(--text); }
+.actBtn:disabled, .actBtnGhost:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Competitor / generic cards ── */
+.compCard {
+  background: rgba(4, 30, 46, 0.5);
+  border: 1px solid rgba(0, 201, 255, 0.12);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.compCardHead { display: flex; justify-content: space-between; align-items: center; gap: var(--space-sm); }
+.compName { font-size: 15px; color: var(--text-bright); font-weight: 700; }
+.dqCard { border-color: var(--danger); }
+.tagRow { display: flex; gap: var(--space-xs); flex-wrap: wrap; }
+.tagOn, .tagOff {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  min-height: 34px;
+}
+.tagOn { background: var(--good); color: #fff; border: 1px solid var(--good); }
+.tagOff { background: transparent; color: var(--warn); border: 1px solid var(--warn); }
+
+.linkBtn, .linkBtnDanger {
+  background: none;
+  border: none;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 8px 4px;
+  min-height: 38px;
+}
+.linkBtn { color: var(--accent); }
+.linkBtnDanger { color: var(--danger); }
+.linkBtn:hover, .linkBtnDanger:hover { text-decoration: underline; }
+
+/* ── Weigh-in grid ── */
+.weighGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-sm);
+}
+@media (min-width: 560px) {
+  .weighGrid { grid-template-columns: 1fr 1fr; }
+}
+.weighGrid .input { width: 100%; }
+
+/* ── Leaderboard rows ── */
+.leaderRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: rgba(4, 30, 46, 0.5);
+  border: 1px solid rgba(0, 201, 255, 0.12);
+  border-radius: var(--radius-md);
+  padding: 10px var(--space-md);
+}
+.rank {
+  font-family: var(--font-display);
+  font-size: 22px;
+  color: var(--accent);
+  min-width: 28px;
+  text-align: center;
+}
+.leaderName { flex: 1 1 auto; color: var(--text-bright); font-size: 14px; }
+.leaderPts { font-size: 12px; color: var(--text); white-space: nowrap; }
