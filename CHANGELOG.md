@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.4.0...v1.4.1) (2026-06-22)
+
+
+### Bug Fixes
+
+* navigate to forecast immediately on search so loading state is visible ([48d8891](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/48d889106e1b05b87b4e12edb57d8202d33427b3))
+
 # [1.4.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.3.0...v1.4.0) (2026-06-22)
 
 
