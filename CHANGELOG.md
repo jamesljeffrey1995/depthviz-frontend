@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.1.0...v1.2.0) (2026-06-22)
+
+
+### Features
+
+* update contact emails to [@depthviz](https://github.com/depthviz).uk ([16cb458](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/16cb4584caf3850d2bdaa3afa8a845a4f80ca105))
+
 # [1.1.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.0.0...v1.1.0) (2026-06-22)
 
 
