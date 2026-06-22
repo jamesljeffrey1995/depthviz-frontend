@@ -50,6 +50,7 @@ const ForumIndex = lazy(() => import('./components/ForumPage').then(m => ({ defa
 const ForumCategoryPage = lazy(() => import('./components/ForumPage').then(m => ({ default: m.ForumCategoryPage })))
 const ForumThreadPage = lazy(() => import('./components/ForumPage').then(m => ({ default: m.ForumThreadPage })))
 const ChangelogPage = lazy(() => import('./components/ChangelogPage').then(m => ({ default: m.ChangelogPage })))
+const CompetitionAdmin = lazy(() => import('./components/CompetitionAdmin').then(m => ({ default: m.CompetitionAdmin })))
 
 /** Routes that depend on a loaded location's conditions context (the forecast
  *  itself plus its forecast-adjacent pages — tides, report, history, dispute).
@@ -130,12 +131,17 @@ export default function App() {
   // by a client flag or a value baked into the bundle. The backend also
   // re-checks admin identity on every /admin/* route, so this only gates UI.
   const [isAdmin, setIsAdmin] = useState(false)
+  // Tracks whether the server admin check has completed, so admin-only routes
+  // can show "checking" instead of flashing "not authorised" for a real admin.
+  const [adminChecked, setAdminChecked] = useState(false)
   useEffect(() => {
-    if (!user) { setIsAdmin(false); return }
+    if (!user) { setIsAdmin(false); setAdminChecked(true); return }
     let cancelled = false
+    setAdminChecked(false)
     getMyProfile()
       .then(p => { if (!cancelled) setIsAdmin(!!p.is_admin) })
       .catch(() => { if (!cancelled) setIsAdmin(false) })
+      .finally(() => { if (!cancelled) setAdminChecked(true) })
     return () => { cancelled = true }
   }, [user])
 
@@ -817,6 +823,27 @@ export default function App() {
                 <div className={styles.emptyText}>Sign in to report incorrect data</div>
                 <button className={styles.navBtn} onClick={() => setShowAuth(true)} style={{ marginTop: 16 }}>Sign in</button>
               </div>
+            )
+          } />
+
+          {/* Admin-only competition operations. No public nav links point here;
+              the route is gated on the server-verified isAdmin flag and the
+              backend re-enforces require_admin on every request. Non-admins and
+              signed-out users get a neutral message, never the operational UI. */}
+          <Route path="/admin/competition" element={
+            !user ? (
+              <div className={styles.empty}>
+                <div className={styles.emptyText}>Sign in required</div>
+                <button className={styles.navBtn} onClick={() => setShowAuth(true)} style={{ marginTop: 16 }}>Sign in</button>
+              </div>
+            ) : !adminChecked ? (
+              <div className={styles.empty}><div className={styles.emptyText}>Checking access…</div></div>
+            ) : isAdmin ? (
+              <Suspense fallback={null}>
+                <CompetitionAdmin isAdmin={isAdmin} />
+              </Suspense>
+            ) : (
+              <div className={styles.empty}><div className={styles.emptyText}>Not found</div></div>
             )
           } />
         </Routes>

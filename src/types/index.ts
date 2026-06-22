@@ -807,3 +807,251 @@ export interface ForumCategoryView {
   threads: ForumThreadSummary[]
   total: number
 }
+
+// ── Competition operations (admin-only) ────────────────────────────────────
+// Mirrors the /admin/competition API. None of this is ever exposed publicly;
+// the frontend gates the whole area on the server-verified `is_admin` flag and
+// the backend re-checks require_admin on every request.
+
+export type CompetitionStatus =
+  | 'draft' | 'open' | 'active' | 'weigh_in' | 'finished' | 'cancelled'
+export type CompetitionVisibility = 'admin' | 'released'
+export type CompetitorStatus =
+  | 'not_arrived' | 'registered' | 'in_water' | 'returned' | 'late' | 'withdrawn'
+export type ExperienceLevel = 'beginner' | 'intermediate' | 'experienced'
+export type IncidentType =
+  | 'late_return' | 'injury' | 'lost_contact' | 'equipment' | 'weather' | 'other'
+
+export interface Competition {
+  id: number
+  name: string
+  competition_date: string
+  backup_date: string | null
+  location_site: string | null
+  boundaries_notes: string | null
+  start_time: string | null
+  finish_time: string | null
+  sign_in_deadline: string | null
+  weigh_in_start: string | null
+  status: CompetitionStatus
+  visibility: CompetitionVisibility
+  created_at: string
+  updated_at: string
+}
+
+export interface CompetitionInput {
+  name: string
+  competition_date: string
+  backup_date?: string | null
+  location_site?: string | null
+  boundaries_notes?: string | null
+  start_time?: string | null
+  finish_time?: string | null
+  sign_in_deadline?: string | null
+  weigh_in_start?: string | null
+  status?: CompetitionStatus
+  visibility?: CompetitionVisibility
+}
+
+export interface CompetitionTeam {
+  id: number
+  competition_id: number
+  name: string
+  intended_dive_area: string | null
+  notes: string | null
+  member_count: number
+  created_at: string
+  updated_at: string
+}
+
+export interface CompetitionTeamInput {
+  name: string
+  intended_dive_area?: string | null
+  notes?: string | null
+}
+
+export interface Competitor {
+  id: number
+  competition_id: number
+  team_id: number | null
+  team_name: string | null
+  intended_dive_area: string | null
+  full_name: string
+  phone: string | null
+  email: string | null
+  emergency_contact_name: string | null
+  emergency_contact_phone: string | null
+  vehicle_reg: string | null
+  experience_level: ExperienceLevel | null
+  float_colour: string | null
+  medical_notes: string | null
+  paid: boolean
+  waiver_accepted: boolean
+  notes: string | null
+  status: CompetitorStatus
+  signed_out_at: string | null
+  returned_at: string | null
+  minutes_overdue: number
+  is_overdue: boolean
+  has_team: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface CompetitorInput {
+  full_name: string
+  phone?: string | null
+  email?: string | null
+  emergency_contact_name?: string | null
+  emergency_contact_phone?: string | null
+  vehicle_reg?: string | null
+  experience_level?: ExperienceLevel | null
+  float_colour?: string | null
+  medical_notes?: string | null
+  paid?: boolean
+  waiver_accepted?: boolean
+  notes?: string | null
+  team_id?: number | null
+  status?: CompetitorStatus
+}
+
+export interface BoardCounts {
+  total: number
+  not_arrived: number
+  registered: number
+  in_water: number
+  returned: number
+  late: number
+  withdrawn: number
+  overdue: number
+  no_team: number
+}
+
+export interface WaterStatusBoard {
+  competition: Competition
+  counts: BoardCounts
+  items: Competitor[]
+}
+
+export interface FishEntry {
+  id: number
+  competition_id: number
+  competitor_id: number
+  competitor_name: string | null
+  team_id: number | null
+  species: string
+  weight_grams: number
+  weight_kg: number
+  length_cm: number | null
+  entered_at: string
+  judge_initials: string | null
+  notes: string | null
+  disqualified: boolean
+  disqualification_reason: string | null
+  points_override: number | null
+  created_at: string
+  updated_at: string
+}
+
+export interface FishEntryInput {
+  competitor_id: number
+  species: string
+  weight_grams: number
+  length_cm?: number | null
+  judge_initials?: string | null
+  notes?: string | null
+  disqualified?: boolean
+  disqualification_reason?: string | null
+  points_override?: number | null
+}
+
+export interface CompetitionIncident {
+  id: number
+  competition_id: number
+  competitor_id: number | null
+  team_id: number | null
+  incident_type: IncidentType
+  occurred_at: string
+  notes: string | null
+  resolved: boolean
+  resolution_notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface IncidentInput {
+  incident_type: IncidentType
+  competitor_id?: number | null
+  team_id?: number | null
+  occurred_at?: string | null
+  notes?: string | null
+  resolved?: boolean
+  resolution_notes?: string | null
+}
+
+export interface ScoringRule {
+  id: number
+  competition_id: number
+  points_per_gram: number
+  species_bonus: Record<string, number>
+  use_team_scoring: boolean
+  updated_at: string
+}
+
+export interface ScoringRuleInput {
+  points_per_gram?: number
+  species_bonus?: Record<string, number>
+  use_team_scoring?: boolean
+}
+
+export interface IndividualResult {
+  rank: number
+  competitor_id: number
+  competitor_name: string
+  team_id: number | null
+  team_name: string | null
+  points: number
+  total_weight_grams: number
+  total_weight_kg: number
+  fish_count: number
+  species_count: number
+}
+
+export interface TeamResult {
+  rank: number
+  team_id: number
+  team_name: string
+  points: number
+  total_weight_grams: number
+  total_weight_kg: number
+  fish_count: number
+  member_count: number
+}
+
+export interface BiggestFish {
+  fish_id: number
+  competitor_id: number
+  competitor_name: string | null
+  species: string
+  weight_grams: number
+  weight_kg: number
+  length_cm: number | null
+}
+
+export interface CompetitionResults {
+  competition: Competition
+  scoring_rule: ScoringRule
+  individual: IndividualResult[]
+  teams: TeamResult[]
+  biggest_fish: BiggestFish | null
+  biggest_by_species: (BiggestFish & { species: string })[]
+  species_count: { species: string; count: number }[]
+  species_hunter: { competitor_id: number; competitor_name: string; species_count: number } | null
+  totals: {
+    total_fish: number
+    total_weight_grams: number
+    total_weight_kg: number
+    disqualified: number
+    competitors: number
+  }
+}

@@ -684,3 +684,202 @@ export async function createForumPost(threadId: number, body: string): Promise<F
 export async function deleteForumPost(postId: number): Promise<void> {
   await apiFetch(`/forum/posts/${postId}`, { method: 'DELETE' })
 }
+
+// ── Competition operations (admin-only) ────────────────────────────────────
+// Every call hits /admin/competition, which the backend guards with
+// require_admin (401 unauthenticated, 403 non-admin). The UI is additionally
+// hidden behind the server-verified is_admin flag.
+import type {
+  Competition,
+  CompetitionInput,
+  CompetitionTeam,
+  CompetitionTeamInput,
+  Competitor,
+  CompetitorInput,
+  WaterStatusBoard,
+  CompetitorStatus,
+  FishEntry,
+  FishEntryInput,
+  CompetitionIncident,
+  IncidentInput,
+  ScoringRule,
+  ScoringRuleInput,
+  CompetitionResults,
+} from '../types'
+
+const COMP_BASE = '/admin/competition'
+
+export async function listCompetitions(): Promise<Competition[]> {
+  const data = await apiFetch<{ items: Competition[] }>(COMP_BASE)
+  return data.items
+}
+
+export async function getCompetition(id: number): Promise<Competition> {
+  return apiFetch<Competition>(`${COMP_BASE}/${id}`)
+}
+
+export async function createCompetition(input: CompetitionInput): Promise<Competition> {
+  return apiFetch<Competition>(COMP_BASE, { method: 'POST', body: JSON.stringify(input) })
+}
+
+export async function updateCompetition(id: number, input: Partial<CompetitionInput>): Promise<Competition> {
+  return apiFetch<Competition>(`${COMP_BASE}/${id}`, { method: 'PUT', body: JSON.stringify(input) })
+}
+
+export async function deleteCompetition(id: number): Promise<void> {
+  await apiFetch(`${COMP_BASE}/${id}`, { method: 'DELETE' })
+}
+
+// Teams / buddies
+export async function listTeams(cid: number): Promise<CompetitionTeam[]> {
+  const data = await apiFetch<{ items: CompetitionTeam[] }>(`${COMP_BASE}/${cid}/teams`)
+  return data.items
+}
+
+export async function createTeam(cid: number, input: CompetitionTeamInput): Promise<CompetitionTeam> {
+  return apiFetch<CompetitionTeam>(`${COMP_BASE}/${cid}/teams`, { method: 'POST', body: JSON.stringify(input) })
+}
+
+export async function updateTeam(cid: number, teamId: number, input: Partial<CompetitionTeamInput>): Promise<CompetitionTeam> {
+  return apiFetch<CompetitionTeam>(`${COMP_BASE}/${cid}/teams/${teamId}`, { method: 'PUT', body: JSON.stringify(input) })
+}
+
+export async function deleteTeam(cid: number, teamId: number): Promise<void> {
+  await apiFetch(`${COMP_BASE}/${cid}/teams/${teamId}`, { method: 'DELETE' })
+}
+
+// Competitors
+export interface CompetitorFilters {
+  status?: CompetitorStatus
+  q?: string
+  unpaid?: boolean
+  no_team?: boolean
+}
+
+export async function listCompetitors(cid: number, filters?: CompetitorFilters): Promise<Competitor[]> {
+  const qs = new URLSearchParams()
+  if (filters?.status) qs.set('status', filters.status)
+  if (filters?.q) qs.set('q', filters.q)
+  if (filters?.unpaid) qs.set('unpaid', 'true')
+  if (filters?.no_team) qs.set('no_team', 'true')
+  const q = qs.toString()
+  const data = await apiFetch<{ items: Competitor[] }>(`${COMP_BASE}/${cid}/competitors${q ? `?${q}` : ''}`)
+  return data.items
+}
+
+export async function createCompetitor(cid: number, input: CompetitorInput): Promise<Competitor> {
+  return apiFetch<Competitor>(`${COMP_BASE}/${cid}/competitors`, { method: 'POST', body: JSON.stringify(input) })
+}
+
+export async function updateCompetitor(cid: number, competitorId: number, input: Partial<CompetitorInput>): Promise<Competitor> {
+  return apiFetch<Competitor>(`${COMP_BASE}/${cid}/competitors/${competitorId}`, { method: 'PUT', body: JSON.stringify(input) })
+}
+
+export async function deleteCompetitor(cid: number, competitorId: number): Promise<void> {
+  await apiFetch(`${COMP_BASE}/${cid}/competitors/${competitorId}`, { method: 'DELETE' })
+}
+
+// Water status board
+export async function getBoard(cid: number): Promise<WaterStatusBoard> {
+  return apiFetch<WaterStatusBoard>(`${COMP_BASE}/${cid}/board`)
+}
+
+export async function getOverdue(cid: number): Promise<WaterStatusBoard> {
+  return apiFetch<WaterStatusBoard>(`${COMP_BASE}/${cid}/overdue`)
+}
+
+export async function setWaterStatus(
+  cid: number,
+  competitorId: number,
+  status: CompetitorStatus,
+  note?: string,
+): Promise<Competitor> {
+  return apiFetch<Competitor>(`${COMP_BASE}/${cid}/competitors/${competitorId}/status`, {
+    method: 'POST',
+    body: JSON.stringify({ status, note: note ?? null }),
+  })
+}
+
+// Fish weigh-in
+export async function listFish(
+  cid: number,
+  filters?: { competitor_id?: number; team_id?: number; species?: string },
+): Promise<FishEntry[]> {
+  const qs = new URLSearchParams()
+  if (filters?.competitor_id) qs.set('competitor_id', String(filters.competitor_id))
+  if (filters?.team_id) qs.set('team_id', String(filters.team_id))
+  if (filters?.species) qs.set('species', filters.species)
+  const q = qs.toString()
+  const data = await apiFetch<{ items: FishEntry[] }>(`${COMP_BASE}/${cid}/fish${q ? `?${q}` : ''}`)
+  return data.items
+}
+
+export async function getSpeciesList(cid: number): Promise<string[]> {
+  const data = await apiFetch<{ species: string[] }>(`${COMP_BASE}/${cid}/species`)
+  return data.species
+}
+
+export async function createFish(cid: number, input: FishEntryInput): Promise<FishEntry> {
+  return apiFetch<FishEntry>(`${COMP_BASE}/${cid}/fish`, { method: 'POST', body: JSON.stringify(input) })
+}
+
+export async function updateFish(cid: number, fishId: number, input: Partial<FishEntryInput>): Promise<FishEntry> {
+  return apiFetch<FishEntry>(`${COMP_BASE}/${cid}/fish/${fishId}`, { method: 'PUT', body: JSON.stringify(input) })
+}
+
+export async function deleteFish(cid: number, fishId: number): Promise<void> {
+  await apiFetch(`${COMP_BASE}/${cid}/fish/${fishId}`, { method: 'DELETE' })
+}
+
+// Incidents
+export async function listIncidents(cid: number, resolved?: boolean): Promise<CompetitionIncident[]> {
+  const qs = resolved === undefined ? '' : `?resolved=${resolved}`
+  const data = await apiFetch<{ items: CompetitionIncident[] }>(`${COMP_BASE}/${cid}/incidents${qs}`)
+  return data.items
+}
+
+export async function createIncident(cid: number, input: IncidentInput): Promise<CompetitionIncident> {
+  return apiFetch<CompetitionIncident>(`${COMP_BASE}/${cid}/incidents`, { method: 'POST', body: JSON.stringify(input) })
+}
+
+export async function updateIncident(cid: number, incidentId: number, input: Partial<IncidentInput>): Promise<CompetitionIncident> {
+  return apiFetch<CompetitionIncident>(`${COMP_BASE}/${cid}/incidents/${incidentId}`, { method: 'PUT', body: JSON.stringify(input) })
+}
+
+// Scoring & results
+export async function getScoringRule(cid: number): Promise<ScoringRule> {
+  return apiFetch<ScoringRule>(`${COMP_BASE}/${cid}/scoring-rule`)
+}
+
+export async function updateScoringRule(cid: number, input: ScoringRuleInput): Promise<ScoringRule> {
+  return apiFetch<ScoringRule>(`${COMP_BASE}/${cid}/scoring-rule`, { method: 'PUT', body: JSON.stringify(input) })
+}
+
+export async function getResults(cid: number): Promise<CompetitionResults> {
+  return apiFetch<CompetitionResults>(`${COMP_BASE}/${cid}/results`)
+}
+
+// CSV export. apiFetch always parses JSON, so CSV downloads use a dedicated
+// authenticated fetch that streams the response into a browser download. `kind`
+// maps to the export endpoints: competitors | teams | water-log | fish | results.
+export type CsvExportKind = 'competitors' | 'teams' | 'water-log' | 'fish' | 'results'
+
+export async function downloadCompetitionCsv(cid: number, kind: CsvExportKind): Promise<void> {
+  const { data: { session } } = await supabase.auth.getSession()
+  const headers: Record<string, string> = {}
+  if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`
+  const res = await fetch(`${API_BASE}${COMP_BASE}/${cid}/export/${kind}.csv`, { headers })
+  if (!res.ok) {
+    const body = await res.text()
+    throw new ApiError(res.status, parseErrorBody(body) || `Export failed (${res.status})`)
+  }
+  const blob = await res.blob()
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${kind}_competition_${cid}.csv`
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+}
