@@ -49,6 +49,7 @@ const NewsPage = lazy(() => import('./components/NewsPage').then(m => ({ default
 const ForumIndex = lazy(() => import('./components/ForumPage').then(m => ({ default: m.ForumIndex })))
 const ForumCategoryPage = lazy(() => import('./components/ForumPage').then(m => ({ default: m.ForumCategoryPage })))
 const ForumThreadPage = lazy(() => import('./components/ForumPage').then(m => ({ default: m.ForumThreadPage })))
+const ChangelogPage = lazy(() => import('./components/ChangelogPage').then(m => ({ default: m.ChangelogPage })))
 
 /** Routes that depend on a loaded location's conditions context (the forecast
  *  itself plus its forecast-adjacent pages — tides, report, history, dispute).
@@ -500,6 +501,13 @@ export default function App() {
             </Suspense>
           } />
 
+          {/* Release changelog */}
+          <Route path="/changelog" element={
+            <Suspense fallback={null}>
+              <ChangelogPage onBack={() => navigate(-1)} />
+            </Suspense>
+          } />
+
           {/* Discussion forum. The static /forum/thread/:id segment is declared
               before /forum/:slug so React Router ranks it ahead of the category
               route and a thread link never resolves as a category slug. */}
@@ -926,6 +934,12 @@ export default function App() {
               {LEGAL_LABELS[p]}
             </button>
           ))}
+          <button
+            className={styles.footerLink}
+            onClick={() => navigate('/changelog')}
+          >
+            Changelog
+          </button>
         </nav>
         <a
           href="https://buymeacoffee.com/depthviz"
