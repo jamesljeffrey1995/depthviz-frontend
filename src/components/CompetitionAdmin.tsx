@@ -7,7 +7,7 @@ import {
   listFish, createFish, updateFish, deleteFish, getSpeciesList,
   listIncidents, createIncident, updateIncident,
   getScoringRule, updateScoringRule, getResults,
-  downloadCompetitionCsv,
+  downloadCompetitionCsv, autoPairBuddies,
 } from '../lib/api'
 import type {
   Competition, CompetitionInput, CompetitionStatus,
@@ -753,6 +753,16 @@ function TeamsTab({ cid }: { cid: number }) {
     await deleteTeam(cid, t.id); load()
   }
 
+  async function autoPair() {
+    if (!confirm('Randomly pair every competitor who still has no buddy? An odd one out joins a pair to make a trio.')) return
+    try {
+      const r = await autoPairBuddies(cid)
+      setError('')
+      alert(`Paired ${r.competitors_paired} competitor(s) into ${r.teams_created} buddy team(s).`)
+      load()
+    } catch (e) { setError(errMsg(e)) }
+  }
+
   return (
     <div>
       <div className={styles.card}>
@@ -763,6 +773,16 @@ function TeamsTab({ cid }: { cid: number }) {
           <button className={styles.btnPrimary} onClick={add}>Add</button>
           <button className={styles.btnGhost} onClick={() => downloadCompetitionCsv(cid, 'teams')}>Export CSV</button>
         </div>
+      </div>
+
+      <div className={styles.card}>
+        <h2 className={styles.cardTitle}>Dive-day buddy assignment</h2>
+        <p className={styles.muted}>
+          Randomly pairs everyone still without a buddy (solo divers and those whose
+          invited buddy never registered) into buddy teams of two. An odd one out joins
+          a pair to make a trio.
+        </p>
+        <button className={styles.btnPrimary} onClick={autoPair}>Randomly assign buddies</button>
       </div>
 
       {error && <p className={styles.error} role="alert">{error}</p>}

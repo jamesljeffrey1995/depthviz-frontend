@@ -705,6 +705,10 @@ import type {
   ScoringRule,
   ScoringRuleInput,
   CompetitionResults,
+  OpenCompetition,
+  MyRegistration,
+  RegistrationInput,
+  AutoPairResult,
 } from '../types'
 
 const COMP_BASE = '/admin/competition'
@@ -882,4 +886,40 @@ export async function downloadCompetitionCsv(cid: number, kind: CsvExportKind): 
   a.click()
   a.remove()
   URL.revokeObjectURL(url)
+}
+
+// Dive-day: randomly pair every competitor still without a buddy (admin-only).
+export async function autoPairBuddies(cid: number): Promise<AutoPairResult> {
+  return apiFetch<AutoPairResult>(`${COMP_BASE}/${cid}/auto-pair-buddies`, { method: 'POST' })
+}
+
+// ── Self-service competition registration (logged-in divers) ────────────────
+// Hits /competition (get_current_user, any account — not admin). Lets a diver
+// browse open competitions, register themselves, nominate a buddy by email, and
+// manage or withdraw their own registration.
+const REG_BASE = '/competition'
+
+export async function listOpenCompetitions(): Promise<OpenCompetition[]> {
+  const data = await apiFetch<{ items: OpenCompetition[] }>(`${REG_BASE}/open`)
+  return data.items
+}
+
+export async function getOpenCompetition(cid: number): Promise<OpenCompetition> {
+  return apiFetch<OpenCompetition>(`${REG_BASE}/${cid}`)
+}
+
+export async function registerForCompetition(cid: number, input: RegistrationInput): Promise<MyRegistration> {
+  return apiFetch<MyRegistration>(`${REG_BASE}/${cid}/register`, { method: 'POST', body: JSON.stringify(input) })
+}
+
+export async function getMyRegistration(cid: number): Promise<MyRegistration> {
+  return apiFetch<MyRegistration>(`${REG_BASE}/${cid}/registration`)
+}
+
+export async function updateMyRegistration(cid: number, input: Partial<RegistrationInput>): Promise<MyRegistration> {
+  return apiFetch<MyRegistration>(`${REG_BASE}/${cid}/registration`, { method: 'PUT', body: JSON.stringify(input) })
+}
+
+export async function withdrawRegistration(cid: number): Promise<void> {
+  await apiFetch(`${REG_BASE}/${cid}/registration`, { method: 'DELETE' })
 }

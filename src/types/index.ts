@@ -821,6 +821,8 @@ export type CompetitorStatus =
 export type ExperienceLevel = 'beginner' | 'intermediate' | 'experienced'
 export type IncidentType =
   | 'late_return' | 'injury' | 'lost_contact' | 'equipment' | 'weather' | 'other'
+export type BuddyStatus = 'none' | 'invited' | 'paired' | 'auto_assigned' | 'expired'
+export type TeamFormation = 'manual' | 'buddy_invite' | 'random'
 
 export interface Competition {
   id: number
@@ -859,6 +861,7 @@ export interface CompetitionTeam {
   name: string
   intended_dive_area: string | null
   notes: string | null
+  formation: TeamFormation
   member_count: number
   created_at: string
   updated_at: string
@@ -889,6 +892,9 @@ export interface Competitor {
   waiver_accepted: boolean
   notes: string | null
   status: CompetitorStatus
+  buddy_status: BuddyStatus
+  buddy_invite_email: string | null
+  self_registered: boolean
   signed_out_at: string | null
   returned_at: string | null
   minutes_overdue: number
@@ -896,6 +902,64 @@ export interface Competitor {
   has_team: boolean
   created_at: string
   updated_at: string
+}
+
+// ── Self-service registration (logged-in divers; /competition) ──────────────
+
+export interface OpenCompetition {
+  id: number
+  name: string
+  competition_date: string
+  location_site: string | null
+  boundaries_notes: string | null
+  start_time: string | null
+  finish_time: string | null
+  sign_in_deadline: string | null
+  status: CompetitionStatus
+  registration_open: boolean
+  already_registered: boolean
+}
+
+export interface MyRegistration {
+  id: number
+  competition_id: number
+  full_name: string
+  phone: string | null
+  email: string | null
+  emergency_contact_name: string | null
+  emergency_contact_phone: string | null
+  vehicle_reg: string | null
+  experience_level: ExperienceLevel | null
+  float_colour: string | null
+  medical_notes: string | null
+  waiver_accepted: boolean
+  paid: boolean
+  status: CompetitorStatus
+  buddy_status: BuddyStatus
+  buddy_invite_email: string | null
+  buddy_name: string | null
+  has_buddy: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface RegistrationInput {
+  full_name: string
+  phone?: string | null
+  emergency_contact_name?: string | null
+  emergency_contact_phone?: string | null
+  vehicle_reg?: string | null
+  experience_level?: ExperienceLevel | null
+  float_colour?: string | null
+  medical_notes?: string | null
+  waiver_accepted?: boolean
+  buddy_invite_email?: string | null
+}
+
+export interface AutoPairResult {
+  teams_created: number
+  competitors_paired: number
+  leftover_solo_id: number | null
 }
 
 export interface CompetitorInput {

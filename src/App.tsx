@@ -51,6 +51,7 @@ const ForumCategoryPage = lazy(() => import('./components/ForumPage').then(m => 
 const ForumThreadPage = lazy(() => import('./components/ForumPage').then(m => ({ default: m.ForumThreadPage })))
 const ChangelogPage = lazy(() => import('./components/ChangelogPage').then(m => ({ default: m.ChangelogPage })))
 const CompetitionAdmin = lazy(() => import('./components/CompetitionAdmin').then(m => ({ default: m.CompetitionAdmin })))
+const CompetitionRegister = lazy(() => import('./components/CompetitionRegister').then(m => ({ default: m.CompetitionRegister })))
 
 /** Routes that depend on a loaded location's conditions context (the forecast
  *  itself plus its forecast-adjacent pages — tides, report, history, dispute).
@@ -830,6 +831,18 @@ export default function App() {
               the route is gated on the server-verified isAdmin flag and the
               backend re-enforces require_admin on every request. Non-admins and
               signed-out users get a neutral message, never the operational UI. */}
+          <Route path="/competition" element={
+            !user ? (
+              <div className={styles.empty}>
+                <div className={styles.emptyText}>Sign in to register for competitions</div>
+                <button className={styles.navBtn} onClick={() => setShowAuth(true)} style={{ marginTop: 16 }}>Sign in</button>
+              </div>
+            ) : (
+              <Suspense fallback={null}>
+                <CompetitionRegister />
+              </Suspense>
+            )
+          } />
           <Route path="/admin/competition" element={
             !user ? (
               <div className={styles.empty}>
