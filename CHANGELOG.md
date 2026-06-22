@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.3.0...v1.4.0) (2026-06-22)
+
+
+### Features
+
+* add admin-only competition operations area at /admin/competition ([d105af0](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/d105af00dee833df19685abe549b6d255d7dc2b4))
+
 # [1.3.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.2.0...v1.3.0) (2026-06-22)
 
 
