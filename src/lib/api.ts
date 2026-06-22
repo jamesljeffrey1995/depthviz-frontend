@@ -611,6 +611,21 @@ export async function getMyDisputes(): Promise<DataDispute[]> {
   return apiFetch<DataDispute[]>('/disputes/mine')
 }
 
+export async function listDisputes(status?: string): Promise<DataDispute[]> {
+  const qs = status ? `?status=${encodeURIComponent(status)}` : ''
+  return apiFetch<DataDispute[]>(`/disputes${qs}`)
+}
+
+export async function reviewDispute(
+  id: number,
+  body: { status: 'accepted' | 'rejected'; admin_notes?: string },
+): Promise<DataDispute> {
+  return apiFetch<DataDispute>(`/disputes/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  })
+}
+
 // ── News / Announcements ──────────────────────────────────────────────────
 export async function getNews(opts?: { includeUnpublished?: boolean; limit?: number; category?: string }): Promise<Announcement[]> {
   const qs = new URLSearchParams()
