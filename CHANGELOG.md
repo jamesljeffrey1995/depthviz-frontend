@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.0.0...v1.1.0) (2026-06-22)
+
+
+### Features
+
+* surface changelog on website at /changelog ([bfc7d5f](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/bfc7d5f6b3c8e6e3a7aa8ba1c73e9414976be68d))
+
 # 1.0.0 (2026-06-22)
 
 
