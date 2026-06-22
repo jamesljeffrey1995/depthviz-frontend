@@ -251,8 +251,8 @@ export default function App() {
       setCurrentName(name)
       const matched = findLocationByCoords(coords.latitude, coords.longitude, locations)
       setSelectedLocationId(matched?.id ?? null)
-      await searchByCoords(coords.latitude, coords.longitude, name, matched?.id, units)
       navigate('/forecast')
+      searchByCoords(coords.latitude, coords.longitude, name, matched?.id, units)
     } catch (e) { console.error(e) }
   }
 
@@ -266,8 +266,8 @@ export default function App() {
       setCurrentName(name)
       const matched = findLocationByCoords(loc.latitude, loc.longitude, locations)
       setSelectedLocationId(matched?.id ?? null)
-      await searchByCoords(loc.latitude, loc.longitude, name, matched?.id, units)
       navigate('/forecast')
+      searchByCoords(loc.latitude, loc.longitude, name, matched?.id, units)
     }
   }
 
@@ -291,14 +291,14 @@ export default function App() {
     navigate('/report')
   }
 
-  const handleSpotSelect = async (lat: number, lon: number, name: string, locationId?: number) => {
+  const handleSpotSelect = (lat: number, lon: number, name: string, locationId?: number) => {
     setCurrentLat(lat)
     setCurrentLon(lon)
     setCurrentName(name)
     const resolvedId = locationId ?? findLocationByCoords(lat, lon, locations)?.id ?? null
     setSelectedLocationId(resolvedId)
-    await searchByCoords(lat, lon, name, resolvedId ?? undefined, units)
     navigate('/forecast')
+    searchByCoords(lat, lon, name, resolvedId ?? undefined, units)
   }
 
   const todayIndex = forecast?.days.findIndex(d => d.date === new Date().toISOString().split('T')[0]) ?? -1
@@ -358,15 +358,15 @@ export default function App() {
         onSearch={handleSearch}
         onLocate={handleLocate}
         getSuggestions={async (q) => getLocalSuggestions(q)}
-        onSelectSuggestion={async (r) => {
+        onSelectSuggestion={(r) => {
           const name = formatLocationName(r)
           setCurrentLat(r.latitude)
           setCurrentLon(r.longitude)
           setCurrentName(name)
           const matched = findLocationByCoords(r.latitude, r.longitude, locations)
           setSelectedLocationId(matched?.id ?? null)
-          await searchByCoords(r.latitude, r.longitude, name, matched?.id, units)
           navigate('/forecast')
+          searchByCoords(r.latitude, r.longitude, name, matched?.id, units)
         }}
       />
 
