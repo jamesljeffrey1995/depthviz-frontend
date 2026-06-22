@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.2.0...v1.3.0) (2026-06-22)
+
+
+### Features
+
+* add disputes management tab to AdminPanel ([a71ebdd](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/a71ebddf2795db682038d9337908f758ba83971b))
+
 # [1.2.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.1.0...v1.2.0) (2026-06-22)
 
 
