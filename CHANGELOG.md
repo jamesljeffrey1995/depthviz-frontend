@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.4.1...v1.5.0) (2026-06-22)
+
+
+### Features
+
+* **competition:** table-driven weigh-in with catch tally and later weighing ([c8d4986](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/c8d498680baea0162961a19d7e105fbdc6f9e403))
+
 ## [1.4.1](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.4.0...v1.4.1) (2026-06-22)
 
 
