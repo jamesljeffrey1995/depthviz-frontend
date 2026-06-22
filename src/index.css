@@ -46,6 +46,19 @@ html {
   scroll-behavior: smooth;
   /* Prevent font-size bump on orientation change in iOS */
   -webkit-text-size-adjust: 100%;
+  /* Keep skip-link and in-page anchor targets clear of the top edge. */
+  scroll-padding-top: var(--space-lg);
+}
+
+/* On mobile the fixed bottom navigation (min 56px + safe-area inset) can cover
+   a control when focus — or an in-page anchor — scrolls it to the bottom edge.
+   Reserve that space so the focused element stays visible (WCAG 2.2 SC 2.4.11
+   Focus Not Obscured). The bar is hidden at >=481px, so this only applies
+   where it is actually present. */
+@media (max-width: 480px) {
+  html {
+    scroll-padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 html, body, #root {
