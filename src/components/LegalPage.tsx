@@ -127,7 +127,7 @@ function Disclaimer() {
       <div className={styles.section}>
         <h3>Questions</h3>
         <div className={styles.contactCard}>
-          <p>Email: <a href="mailto:hello@depthviz.com">hello@depthviz.com</a></p>
+          <p>Email: <a href="mailto:hello@depthviz.uk">hello@depthviz.uk</a></p>
         </div>
       </div>
     </>
@@ -283,7 +283,7 @@ function SecurityPolicy() {
         <p>If you discover a security vulnerability in DepthViz, please report it responsibly. Do not publicly disclose the issue until we have had a chance to address it.</p>
         <div className={styles.contactCard}>
           <p>
-            Email: <a href="mailto:security@depthviz.com">security@depthviz.com</a><br />
+            Email: <a href="mailto:security@depthviz.uk">security@depthviz.uk</a><br />
             Please include a description of the vulnerability, steps to reproduce, and any potential impact.
           </p>
         </div>
@@ -294,7 +294,7 @@ function SecurityPolicy() {
         <h3>Abuse reporting</h3>
         <p>To report abusive behaviour, fraudulent dive reports, or any other misuse of the platform:</p>
         <div className={styles.contactCard}>
-          <p>Email: <a href="mailto:abuse@depthviz.com">abuse@depthviz.com</a></p>
+          <p>Email: <a href="mailto:abuse@depthviz.uk">abuse@depthviz.uk</a></p>
         </div>
       </div>
     </>
@@ -316,16 +316,16 @@ function ContactPage() {
             [DepthViz]<br />
             [Stratford Grove West]<br />
             [Newcastle upon Tyne, United Kingdom]<br /><br />
-            General enquiries: <a href="mailto:hello@depthviz.com">hello@depthviz.com</a><br />
-            Security issues: <a href="mailto:security@depthviz.com">security@depthviz.com</a><br />
-            Abuse reports: <a href="mailto:abuse@depthviz.com">abuse@depthviz.com</a>
+            General enquiries: <a href="mailto:hello@depthviz.uk">hello@depthviz.uk</a><br />
+            Security issues: <a href="mailto:security@depthviz.uk">security@depthviz.uk</a><br />
+            Abuse reports: <a href="mailto:abuse@depthviz.uk">abuse@depthviz.uk</a>
           </p>
         </div>
       </div>
 
       <div className={styles.section}>
         <h3>Support</h3>
-        <p>For questions about your account, dive reports, or forecast data, email <a href="mailto:hello@depthviz.com">hello@depthviz.com</a>. We aim to respond within a few working days.</p>
+        <p>For questions about your account, dive reports, or forecast data, email <a href="mailto:hello@depthviz.uk">hello@depthviz.uk</a>. We aim to respond within a few working days.</p>
       </div>
 
       <div className={styles.section}>
@@ -366,7 +366,7 @@ function AccessibilityStatement() {
 
       <div className={styles.section}>
         <h3>Feedback</h3>
-        <p>Email <a href="mailto:hello@depthviz.com">hello@depthviz.com</a> with any accessibility concerns or suggestions.</p>
+        <p>Email <a href="mailto:hello@depthviz.uk">hello@depthviz.uk</a> with any accessibility concerns or suggestions.</p>
       </div>
     </>
   )
