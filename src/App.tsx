@@ -4,6 +4,7 @@ import { useAuth } from './hooks/useAuth'
 import { useConditions } from './hooks/useConditions'
 import { useGeolocation } from './hooks/useGeolocation'
 import { useServiceStatus } from './hooks/useServiceStatus'
+import { useMediaQuery } from './hooks/useMediaQuery'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { SearchBar } from './components/SearchBar'
 import { ForecastStrip } from './components/ForecastStrip'
@@ -127,6 +128,15 @@ export default function App() {
   const location = useLocation()
   const currentPath = location.pathname
   const autoLoadedRef = useRef(false)
+
+  // Expanded window class (tablet landscape / desktop). At this width the map
+  // route group becomes a list-detail layout: the map stays visible in a left
+  // pane while the forecast/tides/best detail fills the right. Driven by width
+  // (not orientation) so high zoom and split-screen collapse back to a single
+  // column — keeping WCAG Reflow and Orientation satisfied.
+  const isExpanded = useMediaQuery('(min-width: 900px)')
+  const splitView = isExpanded && MAP_GROUP_ROUTES.includes(currentPath)
+  const detailPaneRef = useRef<HTMLDivElement>(null)
 
   // Admin status is decided by the server (via /profile/me's is_admin), never
   // by a client flag or a value baked into the bundle. The backend also
@@ -300,7 +310,38 @@ export default function App() {
     setSelectedLocationId(resolvedId)
     navigate('/forecast')
     searchByCoords(lat, lon, name, resolvedId ?? undefined, units)
+    // In the split layout the map stays put and only the detail pane changes,
+    // so move focus there to announce the update for keyboard / screen-reader
+    // users (list-detail focus handling).
+    if (isExpanded) {
+      requestAnimationFrame(() => detailPaneRef.current?.focus())
+    }
   }
+
+  // The map + saved-places dashboard. Rendered as the `/map` route on its own
+  // in compact/medium layouts, and reused in the persistent left pane of the
+  // expanded split layout (defined once so there is never a second map mounted).
+  const mapView = (
+    <>
+      {(status === 'loading' || isRevalidating) && (
+        <div className={styles.loadingBar} role="status" aria-live="polite">{isRevalidating ? 'Fetching conditions...' : 'Reading conditions...'}</div>
+      )}
+      {/* Logged-in users see their saved places dashboard; the map is below */}
+      {user && status === 'idle' && locations.filter(l => !l.is_predefined).length > 0 && (
+        <Suspense fallback={null}>
+          <PlacesDashboard
+            locations={locations.filter(l => !l.is_predefined).slice(0, 8)}
+            userUid={user.id}
+            units={units}
+            onSelectLocation={handleSpotSelect}
+          />
+        </Suspense>
+      )}
+      <Suspense fallback={null}>
+        <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} locations={locations} />
+      </Suspense>
+    </>
+  )
 
   const todayIndex = forecast?.days.findIndex(d => d.date === new Date().toISOString().split('T')[0]) ?? -1
 
@@ -312,7 +353,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-    <div className={styles.container}>
+    <div className={`${styles.container}${splitView ? ` ${styles.containerWide}` : ''}`}>
 
       {/* Skip to main content — keyboard navigation */}
       <a href="#main-content" className="skip-link">Skip to content</a>
@@ -355,6 +396,7 @@ export default function App() {
         </div>
       )}
 
+      <div className={styles.searchWrap}>
       <SearchBar
         onSearch={handleSearch}
         onLocate={handleLocate}
@@ -370,6 +412,7 @@ export default function App() {
           searchByCoords(r.latitude, r.longitude, name, matched?.id, units)
         }}
       />
+      </div>
 
       {error && <div className={styles.error} role="alert">{error}</div>}
 
@@ -445,7 +488,19 @@ export default function App() {
         </div>
       )}
 
-      <main id="main-content" tabIndex={-1}>
+      <main id="main-content" tabIndex={-1} className={splitView ? styles.splitView : undefined}>
+        {splitView && (
+          <aside className={styles.mapPane} aria-label="Dive spot map">
+            {mapView}
+          </aside>
+        )}
+        <div
+          ref={detailPaneRef}
+          className={splitView ? styles.detailPane : undefined}
+          tabIndex={splitView ? -1 : undefined}
+          role={splitView ? 'region' : undefined}
+          aria-label={splitView ? 'Forecast detail' : undefined}
+        >
         <Routes>
           {/* Profile */}
           <Route path="/profile" element={
@@ -534,27 +589,16 @@ export default function App() {
             </Suspense>
           } />
 
-          {/* Map / Dashboard */}
+          {/* Map / Dashboard. In the expanded split layout the map lives in the
+              persistent left pane, so the route itself only prompts the user to
+              pick a spot; otherwise it renders the full map view. */}
           <Route path="/map" element={
-            <>
-              {(status === 'loading' || isRevalidating) && (
-                <div className={styles.loadingBar} role="status" aria-live="polite">{isRevalidating ? 'Fetching conditions...' : 'Reading conditions...'}</div>
-              )}
-              {/* Logged-in users see their saved places dashboard; the map is below */}
-              {user && status === 'idle' && locations.filter(l => !l.is_predefined).length > 0 && (
-                <Suspense fallback={null}>
-                  <PlacesDashboard
-                    locations={locations.filter(l => !l.is_predefined).slice(0, 8)}
-                    userUid={user.id}
-                    units={units}
-                    onSelectLocation={handleSpotSelect}
-                  />
-                </Suspense>
-              )}
-              <Suspense fallback={null}>
-                <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} locations={locations} />
-              </Suspense>
-            </>
+            splitView ? (
+              <div className={styles.empty}>
+                <div className={styles.emptyIcon} aria-hidden="true">&#128205;</div>
+                <div className={styles.emptyText}>Choose a spot on the map<br />to see its visibility forecast</div>
+              </div>
+            ) : mapView
           } />
 
           {/* Best Visibility */}
@@ -860,6 +904,7 @@ export default function App() {
             )
           } />
         </Routes>
+        </div>
       </main>
 
       {/* Bottom Navigation Bar */}

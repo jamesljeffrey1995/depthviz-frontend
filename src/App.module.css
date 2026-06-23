@@ -6,6 +6,55 @@
   padding: var(--space-xl) var(--space-md) 100px;
 }
 
+/* ── Adaptive layout (medium / expanded window classes) ──────────────────
+   Compact (<600px): single column, unchanged.
+   Medium (600–899px): a slightly wider shell for denser card grids.
+   Expanded (>=900px, map route group only): list-detail split view. */
+@media (min-width: 600px) {
+  .container {
+    max-width: 760px;
+  }
+}
+
+/* Only the map route group opts into the wide shell; single-column pages
+   (news, forum, training…) keep their comfortable reading measure. */
+@media (min-width: 900px) {
+  .containerWide {
+    max-width: 1200px;
+  }
+}
+
+/* Keep text-led chrome at a comfortable measure even when the shell is wide,
+   so the search field doesn't stretch across the full split width. No-op at
+   narrower widths where the container is already <= this cap. */
+.searchWrap {
+  max-width: 680px;
+  margin-inline: auto;
+}
+
+/* List-detail: persistent map pane on the left, routed detail on the right.
+   minmax(0, …) on the detail column lets charts/tables shrink instead of
+   forcing horizontal overflow. */
+.splitView {
+  display: grid;
+  grid-template-columns: minmax(300px, 1fr) minmax(0, 1.4fr);
+  gap: var(--space-lg);
+  align-items: start;
+}
+
+.mapPane {
+  position: sticky;
+  top: var(--space-md);
+}
+
+.detailPane {
+  min-width: 0;
+}
+
+.detailPane:focus {
+  outline: none;
+}
+
 /* ── Header ── */
 .header {
   text-align: center;
