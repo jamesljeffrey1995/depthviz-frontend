@@ -28,6 +28,7 @@ vi.mock('./cache', () => ({
 import {
   listCompetitions, createCompetition, setWaterStatus,
   createFish, downloadCompetitionCsv,
+  getStandings, sendTestAlert,
 } from './api'
 
 function jsonResponse(body: unknown) {
@@ -110,5 +111,29 @@ describe('competition API', () => {
     const [url] = lastCall()
     expect(String(url)).toContain('/admin/competition/7/export/competitors.csv')
     expect(click).toHaveBeenCalled()
+  })
+
+  test('getStandings hits the competitor-facing (non-admin) standings endpoint', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ competition_id: 4, released: false, items: [] })))
+    await getStandings(4)
+    const [url, init] = lastCall()
+    // Must use the diver-facing /competition route, never the admin one.
+    expect(String(url)).toContain('/competition/4/standings')
+    expect(String(url)).not.toContain('/admin/')
+    expect(init.method ?? 'GET').toBe('GET')
+  })
+
+  test('sendTestAlert defaults to all channels and forwards the chosen channel', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({
+      slack: { enabled: true, configured: true, sent: true },
+      email: { enabled: true, configured: true, recipients: [], sent: true },
+      sms: { enabled: true, configured: true, recipients: [], sent: true },
+    })))
+    await sendTestAlert(3)
+    expect(String(lastCall()[0])).toContain('/admin/competition/3/test-alert?channel=all')
+    await sendTestAlert(3, 'sms')
+    const [url, init] = lastCall()
+    expect(String(url)).toContain('/admin/competition/3/test-alert?channel=sms')
+    expect(init.method).toBe('POST')
   })
 })

@@ -840,6 +840,7 @@ export interface Competition {
   overdue_grace_minutes: number
   alert_slack_enabled: boolean
   alert_email_enabled: boolean
+  alert_sms_enabled: boolean
   alert_emails: string | null
   created_at: string
   updated_at: string
@@ -860,21 +861,32 @@ export interface CompetitionInput {
   overdue_grace_minutes?: number
   alert_slack_enabled?: boolean
   alert_email_enabled?: boolean
+  alert_sms_enabled?: boolean
   alert_emails?: string | null
 }
 
 // Deployment-level channel state + escalation cadence for overdue alerts.
+// `sms_*` describes the Twilio diver-alert leg: while a diver is overdue they
+// get up to `sms_max` texts spaced `sms_interval_minutes` apart; if they're
+// still overdue after `escalation_after_minutes`, organisers are escalated to
+// (`escalation_email`) and Slack with the diver's full details.
 export interface NotificationStatus {
   slack_configured: boolean
   email_configured: boolean
+  sms_configured: boolean
   realert_minutes: number
   sweep_interval_seconds: number
+  sms_max: number
+  sms_interval_minutes: number
+  escalation_after_minutes: number
+  escalation_email: string | null
 }
 
-// Per-channel result of an admin "send test alert".
+// Per-channel result of an admin "send test alert". `sms` mirrors the Twilio leg.
 export interface TestAlertResult {
   slack: { enabled: boolean; configured: boolean; sent: boolean }
   email: { enabled: boolean; configured: boolean; recipients: string[]; sent: boolean }
+  sms: { enabled: boolean; configured: boolean; recipients: string[]; sent: boolean }
 }
 
 export interface CompetitionTeam {
@@ -1005,6 +1017,33 @@ export interface AutoPairResult {
   teams_created: number
   competitors_paired: number
   leftover_solo_id: number | null
+}
+
+// Competitor-facing standings row. Deliberately PII-free: a registered diver may
+// see the full field with everyone's catches, but never emails, phone numbers,
+// emergency contacts, vehicle regs or medical notes. The backend builds this
+// from the same scoring as the admin results and is responsible for redaction.
+export interface CompetitorStanding {
+  competitor_id: number
+  full_name: string
+  team_name: string | null
+  status: CompetitorStatus
+  rank: number | null
+  points: number
+  total_weight_grams: number
+  total_weight_kg: number
+  fish_count: number
+  species_count: number
+}
+
+// Response from GET /competition/{cid}/standings (any registered diver).
+// `released` is false until an organiser releases scores; the field/table may
+// still list competitors and their catch counts before then, depending on the
+// backend policy.
+export interface CompetitionStandings {
+  competition_id: number
+  released: boolean
+  items: CompetitorStanding[]
 }
 
 export interface CompetitorInput {

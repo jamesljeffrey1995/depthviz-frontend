@@ -171,3 +171,48 @@
 .statusReturned { border-color: var(--good); background: rgba(39, 174, 96, 0.12); }
 .statusWaiting { border-color: var(--warn); background: rgba(243, 156, 18, 0.08); }
 .statusHint { font-size: 0.8rem; opacity: 0.7; margin: 4px 0 0; }
+
+/* Competitor-facing standings table — the whole field with everyone's catches.
+   PII is redacted server-side; this view never shows contact details and carries
+   no admin controls. */
+.standings { margin-top: var(--space-lg); }
+.standingsHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+.standingsHead h2 { margin: 0; }
+.provisional {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--warn);
+  color: var(--text-bright);
+  background: rgba(243, 156, 18, 0.12);
+}
+.tableWrap { overflow-x: auto; }
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.table th,
+.table td {
+  padding: var(--space-xs) var(--space-sm);
+  text-align: left;
+  border-bottom: 1px solid rgba(0, 201, 255, 0.15);
+  white-space: nowrap;
+}
+.table th {
+  font-weight: 600;
+  color: var(--text-bright);
+  opacity: 0.85;
+}
+.table td.num,
+.table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.table tbody tr:hover { background: rgba(0, 201, 255, 0.05); }
+.rankCell { font-weight: 700; color: var(--text-bright); }

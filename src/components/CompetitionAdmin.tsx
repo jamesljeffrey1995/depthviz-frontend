@@ -190,7 +190,7 @@ const EMPTY_COMP: CompetitionInput = {
   boundaries_notes: '', start_time: '', finish_time: '', sign_in_deadline: '',
   weigh_in_start: '', status: 'draft', visibility: 'admin',
   overdue_grace_minutes: 30, alert_slack_enabled: true, alert_email_enabled: true,
-  alert_emails: '',
+  alert_sms_enabled: true, alert_emails: '',
 }
 
 function CompetitionForm({
@@ -217,6 +217,7 @@ function CompetitionForm({
           overdue_grace_minutes: initial.overdue_grace_minutes,
           alert_slack_enabled: initial.alert_slack_enabled,
           alert_email_enabled: initial.alert_email_enabled,
+          alert_sms_enabled: initial.alert_sms_enabled,
           alert_emails: initial.alert_emails ?? '',
         }
       : EMPTY_COMP,
@@ -347,6 +348,11 @@ function CompetitionForm({
                  onChange={e => set('alert_email_enabled', e.target.checked)} />
           <span>Send overdue alerts by email</span>
         </label>
+        <label className={styles.checkInline}>
+          <input type="checkbox" checked={draft.alert_sms_enabled ?? true}
+                 onChange={e => set('alert_sms_enabled', e.target.checked)} />
+          <span>Send overdue alerts by SMS (Twilio)</span>
+        </label>
       </div>
       <label className={styles.field}>
         <span>Boundaries / area notes</span>
@@ -407,14 +413,14 @@ function OverviewTab({ comp, onChanged }: { comp: Competition; onChanged: () => 
 function NotificationPanel({ comp }: { comp: Competition }) {
   const [status, setStatus] = useState<NotificationStatus | null>(null)
   const [result, setResult] = useState<TestAlertResult | null>(null)
-  const [busy, setBusy] = useState<'slack' | 'email' | 'both' | null>(null)
+  const [busy, setBusy] = useState<'slack' | 'email' | 'sms' | 'all' | null>(null)
   const [err, setErr] = useState('')
 
   useEffect(() => {
     getNotificationStatus().then(setStatus).catch(() => setStatus(null))
   }, [])
 
-  async function test(channel: 'slack' | 'email' | 'both') {
+  async function test(channel: 'slack' | 'email' | 'sms' | 'all') {
     setBusy(channel); setErr(''); setResult(null)
     try {
       setResult(await sendTestAlert(comp.id, channel))
@@ -427,15 +433,26 @@ function NotificationPanel({ comp }: { comp: Competition }) {
 
   const slackOn = comp.alert_slack_enabled
   const emailOn = comp.alert_email_enabled
+  const smsOn = comp.alert_sms_enabled
   const slackReady = slackOn && status?.slack_configured
   const emailReady = emailOn && status?.email_configured
+  const smsReady = smsOn && status?.sms_configured
+
+  // Plain-English summary of the Twilio diver-alert leg, e.g. "up to 2 texts".
+  const smsCadence = status
+    ? `up to ${status.sms_max} text${status.sms_max === 1 ? '' : 's'}`
+      + (status.sms_max > 1 ? ` (~${status.sms_interval_minutes} min apart)` : '')
+    : ''
 
   return (
     <div className={styles.card} style={{ marginTop: 'var(--space-md)' }}>
       <h3 className={styles.cardTitle}>Safety alerts</h3>
       <p className={styles.notes}>
         If a diver is still in the water {comp.overdue_grace_minutes} min past the sign-in
-        deadline, organisers are paged automatically{status ? `, then re-paged every ${status.realert_minutes} min while they stay overdue` : ''}.
+        deadline, they're texted{smsCadence ? ` ${smsCadence}` : ''} and emailed to sign in
+        {status ? `; if they're still overdue after ${status.escalation_after_minutes} min, `
+          + `${status.escalation_email ? status.escalation_email + ' and ' : ''}Slack are `
+          + `escalated to with the diver's full details and emergency contact` : ''}.
       </p>
       <div className={styles.detailRow}>
         <span>Slack</span>
@@ -445,19 +462,23 @@ function NotificationPanel({ comp }: { comp: Competition }) {
         <span>Email</span>
         <strong>{!emailOn ? 'Off for this event' : status?.email_configured ? 'Ready' : 'Enabled — SMTP not configured on server'}</strong>
       </div>
+      <div className={styles.detailRow}>
+        <span>SMS (Twilio)</span>
+        <strong>{!smsOn ? 'Off for this event' : status?.sms_configured ? 'Ready' : 'Enabled — Twilio not configured on server'}</strong>
+      </div>
       {comp.alert_emails && (
         <div className={styles.detailRow}><span>Extra recipients</span><strong>{comp.alert_emails}</strong></div>
       )}
-      {!slackReady && !emailReady && (
+      {!slackReady && !emailReady && !smsReady && (
         <p className={styles.warnText}>
           No alert channel is deliverable right now — overdue divers will still be flagged
-          on the board, but no Slack/email will be sent.
+          on the board, but no Slack/email/SMS will be sent.
         </p>
       )}
       {err && <p className={styles.error} role="alert">{err}</p>}
       {result && (
-        <p className={result.slack.sent || result.email.sent ? styles.notes : styles.warnText}>
-          Test sent — Slack: {channelWord(result.slack)} · Email: {channelWord(result.email)}
+        <p className={result.slack.sent || result.email.sent || result.sms.sent ? styles.notes : styles.warnText}>
+          Test sent — Slack: {channelWord(result.slack)} · Email: {channelWord(result.email)} · SMS: {channelWord(result.sms)}
           {result.email.sent && result.email.recipients.length > 0
             ? ` (${result.email.recipients.join(', ')})` : ''}
         </p>
@@ -481,10 +502,18 @@ function NotificationPanel({ comp }: { comp: Competition }) {
         </button>
         <button
           className={styles.btnGhost}
-          onClick={() => test('both')}
-          disabled={busy !== null || (!slackReady && !emailReady)}
+          onClick={() => test('sms')}
+          disabled={busy !== null || !smsReady}
+          title={!smsOn ? 'SMS is off for this event' : !status?.sms_configured ? 'Twilio not configured on server' : undefined}
         >
-          {busy === 'both' ? 'Sending…' : 'Test both'}
+          {busy === 'sms' ? 'Sending…' : 'Test SMS'}
+        </button>
+        <button
+          className={styles.btnGhost}
+          onClick={() => test('all')}
+          disabled={busy !== null || (!slackReady && !emailReady && !smsReady)}
+        >
+          {busy === 'all' ? 'Sending…' : 'Test all'}
         </button>
       </div>
     </div>
