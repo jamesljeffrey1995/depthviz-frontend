@@ -706,8 +706,11 @@ import type {
   ScoringRuleInput,
   CompetitionResults,
   OpenCompetition,
+  MyCompetition,
   MyRegistration,
   RegistrationInput,
+  NotificationStatus,
+  TestAlertResult,
   AutoPairResult,
 } from '../types'
 
@@ -893,6 +896,17 @@ export async function autoPairBuddies(cid: number): Promise<AutoPairResult> {
   return apiFetch<AutoPairResult>(`${COMP_BASE}/${cid}/auto-pair-buddies`, { method: 'POST' })
 }
 
+// Overdue safety notifications (admin-only).
+// Whether Slack/email are configured at the deployment level + escalation cadence.
+export async function getNotificationStatus(): Promise<NotificationStatus> {
+  return apiFetch<NotificationStatus>(`${COMP_BASE}/notifications/status`)
+}
+
+// Fire a harmless test alert on this competition's enabled channels.
+export async function sendTestAlert(cid: number): Promise<TestAlertResult> {
+  return apiFetch<TestAlertResult>(`${COMP_BASE}/${cid}/test-alert`, { method: 'POST' })
+}
+
 // ── Self-service competition registration (logged-in divers) ────────────────
 // Hits /competition (get_current_user, any account — not admin). Lets a diver
 // browse open competitions, register themselves, nominate a buddy by email, and
@@ -901,6 +915,13 @@ const REG_BASE = '/competition'
 
 export async function listOpenCompetitions(): Promise<OpenCompetition[]> {
   const data = await apiFetch<{ items: OpenCompetition[] }>(`${REG_BASE}/open`)
+  return data.items
+}
+
+// Competitions the current diver is registered for (run-up + live day), each
+// with their own water status. Keeps the event visible after sign-ups close.
+export async function listMyCompetitions(): Promise<MyCompetition[]> {
+  const data = await apiFetch<{ items: MyCompetition[] }>(`${REG_BASE}/mine`)
   return data.items
 }
 

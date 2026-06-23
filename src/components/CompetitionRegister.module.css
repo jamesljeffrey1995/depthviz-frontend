@@ -134,3 +134,40 @@
 .buddyStatus.ok { border-color: var(--good); }
 .buddyStatus.pending { border-color: var(--accent); }
 .buddyStatus.warn { border-color: var(--warn); background: rgba(243, 156, 18, 0.1); }
+
+/* ── My competitions (run-up + live day) ── */
+.sectionTitle {
+  font-family: var(--font-display);
+  color: var(--text-bright);
+  font-size: 1rem;
+  margin: var(--space-lg) 0 var(--space-xs);
+  letter-spacing: 0.02em;
+}
+
+.liveTag {
+  display: inline-block;
+  margin-left: var(--space-sm);
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ocean-deep);
+  background: var(--danger);
+}
+
+/* Live water-status banner on the diver's own card. */
+.statusBanner {
+  margin-top: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0, 201, 255, 0.25);
+  background: rgba(4, 30, 46, 0.6);
+  font-size: 0.95rem;
+  color: var(--text-bright);
+}
+.statusBanner strong { color: var(--text-bright); }
+.statusInWater { border-color: var(--accent); background: rgba(0, 201, 255, 0.1); }
+.statusReturned { border-color: var(--good); background: rgba(39, 174, 96, 0.12); }
+.statusWaiting { border-color: var(--warn); background: rgba(243, 156, 18, 0.08); }
+.statusHint { font-size: 0.8rem; opacity: 0.7; margin: 4px 0 0; }

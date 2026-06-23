@@ -837,6 +837,10 @@ export interface Competition {
   weigh_in_start: string | null
   status: CompetitionStatus
   visibility: CompetitionVisibility
+  overdue_grace_minutes: number
+  alert_slack_enabled: boolean
+  alert_email_enabled: boolean
+  alert_emails: string | null
   created_at: string
   updated_at: string
 }
@@ -853,6 +857,24 @@ export interface CompetitionInput {
   weigh_in_start?: string | null
   status?: CompetitionStatus
   visibility?: CompetitionVisibility
+  overdue_grace_minutes?: number
+  alert_slack_enabled?: boolean
+  alert_email_enabled?: boolean
+  alert_emails?: string | null
+}
+
+// Deployment-level channel state + escalation cadence for overdue alerts.
+export interface NotificationStatus {
+  slack_configured: boolean
+  email_configured: boolean
+  realert_minutes: number
+  sweep_interval_seconds: number
+}
+
+// Per-channel result of an admin "send test alert".
+export interface TestAlertResult {
+  slack: { enabled: boolean; configured: boolean; sent: boolean }
+  email: { enabled: boolean; configured: boolean; recipients: string[]; sent: boolean }
 }
 
 export interface CompetitionTeam {
@@ -899,6 +921,7 @@ export interface Competitor {
   returned_at: string | null
   minutes_overdue: number
   is_overdue: boolean
+  overdue_alerted_at: string | null
   has_team: boolean
   created_at: string
   updated_at: string
@@ -918,6 +941,28 @@ export interface OpenCompetition {
   status: CompetitionStatus
   registration_open: boolean
   already_registered: boolean
+}
+
+// A registrant's day-view of a competition they're in: public info + their own
+// live water status (from GET /competition/mine). Shown once sign-ups close so
+// a diver keeps sight of their event through the live day.
+export interface MyCompetition {
+  id: number
+  name: string
+  competition_date: string
+  location_site: string | null
+  boundaries_notes: string | null
+  start_time: string | null
+  finish_time: string | null
+  sign_in_deadline: string | null
+  status: CompetitionStatus
+  registration_open: boolean
+  already_registered: boolean
+  my_status: CompetitorStatus
+  my_registration_id: number
+  signed_out_at: string | null
+  returned_at: string | null
+  is_live: boolean
 }
 
 export interface MyRegistration {

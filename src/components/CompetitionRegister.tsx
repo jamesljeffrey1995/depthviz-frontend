@@ -1,17 +1,76 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   listOpenCompetitions,
+  listMyCompetitions,
   getMyRegistration,
   registerForCompetition,
   updateMyRegistration,
   withdrawRegistration,
 } from '../lib/api'
 import type {
-  OpenCompetition, MyRegistration, RegistrationInput,
+  OpenCompetition, MyCompetition, MyRegistration, RegistrationInput,
   ExperienceLevel, BuddyStatus,
 } from '../types'
 import { ApiError } from '../lib/api'
 import styles from './CompetitionRegister.module.css'
+
+// How an in-progress competition's status reads to a registered diver.
+const COMP_STATUS_LABEL: Record<string, string> = {
+  open: 'Registration open',
+  active: 'Competition in progress',
+  weigh_in: 'Weigh-in underway',
+}
+
+function fmtClock(iso: string | null): string {
+  if (!iso) return '—'
+  const d = new Date(iso.endsWith('Z') || iso.includes('+') ? iso : iso + 'Z')
+  return Number.isNaN(d.getTime())
+    ? '—'
+    : d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+}
+
+// Adapt a "my competition" day-view row to the OpenCompetition shape the detail
+// view expects, so tapping it reuses the existing registration detail flow.
+function toOpen(m: MyCompetition): OpenCompetition {
+  return {
+    id: m.id,
+    name: m.name,
+    competition_date: m.competition_date,
+    location_site: m.location_site,
+    boundaries_notes: m.boundaries_notes,
+    start_time: m.start_time,
+    finish_time: m.finish_time,
+    sign_in_deadline: m.sign_in_deadline,
+    status: m.status,
+    registration_open: m.registration_open,
+    already_registered: m.already_registered,
+  }
+}
+
+// The diver's own live water status on competition day. Read-only — an admin
+// signs people in and out of the water on the board; this just mirrors it.
+function MyWaterStatus({ comp }: { comp: MyCompetition }) {
+  const s = comp.my_status
+  let cls = styles.statusWaiting
+  let line: React.ReactNode = <>Not signed into the water yet.</>
+  if (s === 'in_water') {
+    cls = styles.statusInWater
+    line = <><strong>You are in the water</strong> — since {fmtClock(comp.signed_out_at)}.</>
+  } else if (s === 'returned') {
+    cls = styles.statusReturned
+    line = <><strong>Back on shore</strong> — signed in at {fmtClock(comp.returned_at)}.</>
+  } else if (s === 'withdrawn') {
+    line = <>Withdrawn from this competition.</>
+  } else if (s === 'registered' || s === 'not_arrived') {
+    line = <>Checked in — waiting to be signed into the water.</>
+  }
+  return (
+    <div className={`${styles.statusBanner} ${cls}`}>
+      {line}
+      <p className={styles.statusHint}>Water sign-in/out is managed by an organiser on the day.</p>
+    </div>
+  )
+}
 
 const EXPERIENCE_LABELS: Record<ExperienceLevel, string> = {
   beginner: 'Beginner',
@@ -52,6 +111,7 @@ function fmtDate(iso: string): string {
 
 export function CompetitionRegister() {
   const [comps, setComps] = useState<OpenCompetition[] | null>(null)
+  const [mine, setMine] = useState<MyCompetition[]>([])
   const [selected, setSelected] = useState<OpenCompetition | null>(null)
   const [registration, setRegistration] = useState<MyRegistration | null>(null)
   const [form, setForm] = useState<RegistrationInput>(emptyForm)
@@ -65,7 +125,12 @@ export function CompetitionRegister() {
     setLoading(true)
     setError(null)
     try {
-      setComps(await listOpenCompetitions())
+      const [open, registered] = await Promise.all([
+        listOpenCompetitions(),
+        listMyCompetitions().catch(() => [] as MyCompetition[]),
+      ])
+      setComps(open)
+      setMine(registered)
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Could not load competitions')
     } finally {
@@ -74,6 +139,15 @@ export function CompetitionRegister() {
   }, [])
 
   useEffect(() => { loadList() }, [loadList])
+
+  // While a registered event is live, refresh so the diver's own water status
+  // (signed out / returned, set by the admin on the board) stays current.
+  const hasLive = mine.some(m => m.is_live)
+  useEffect(() => {
+    if (selected || !hasLive) return
+    const id = setInterval(() => { listMyCompetitions().then(setMine).catch(() => {}) }, 20000)
+    return () => clearInterval(id)
+  }, [selected, hasLive])
 
   const openComp = useCallback(async (comp: OpenCompetition) => {
     setSelected(comp)
@@ -155,17 +229,48 @@ export function CompetitionRegister() {
 
   // ── List view ──────────────────────────────────────────────────────────────
   if (!selected) {
+    const mineIds = new Set(mine.map(m => m.id))
+    // Don't duplicate a competition that's already in "Your competitions".
+    const openComps = (comps ?? []).filter(c => !mineIds.has(c.id))
     return (
       <div className={styles.container}>
-        <h1 className={styles.title}>Competition registration</h1>
+        <h1 className={styles.title}>Competitions</h1>
         {error && <div className={styles.error}>{error}</div>}
+
+        {mine.length > 0 && (
+          <>
+            <h2 className={styles.sectionTitle}>Your competitions</h2>
+            <ul className={styles.cardList}>
+              {mine.map(m => (
+                <li key={m.id}>
+                  <button className={styles.compCard} onClick={() => openComp(toOpen(m))}>
+                    <div className={styles.compName}>
+                      {m.name}
+                      {m.is_live && <span className={styles.liveTag}>LIVE</span>}
+                    </div>
+                    <div className={styles.compMeta}>{fmtDate(m.competition_date)}</div>
+                    {m.location_site && <div className={styles.compMeta}>{m.location_site}</div>}
+                    <div className={styles.compMeta}>{COMP_STATUS_LABEL[m.status] ?? m.status}</div>
+                    {m.is_live && <MyWaterStatus comp={m} />}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+
+        {mine.length > 0 && <h2 className={styles.sectionTitle}>Open for registration</h2>}
         {loading ? (
           <div className={styles.muted}>Loading…</div>
-        ) : !comps || comps.length === 0 ? (
-          <div className={styles.empty}>No competitions are open for registration right now.</div>
+        ) : openComps.length === 0 ? (
+          <div className={styles.empty}>
+            {mine.length > 0
+              ? 'No other competitions are open for registration right now.'
+              : 'No competitions are open for registration right now.'}
+          </div>
         ) : (
           <ul className={styles.cardList}>
-            {comps.map(c => (
+            {openComps.map(c => (
               <li key={c.id}>
                 <button className={styles.compCard} onClick={() => openComp(c)}>
                   <div className={styles.compName}>{c.name}</div>
