@@ -21,6 +21,8 @@
   font-size: 20px;
   color: var(--accent);
   letter-spacing: 0.08em;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .date {

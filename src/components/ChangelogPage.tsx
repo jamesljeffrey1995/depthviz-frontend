@@ -18,11 +18,18 @@ function parseChangelog(raw: string): ChangelogEntry[] {
   let currentSection: { heading: string; items: string[] } | null = null
 
   for (const line of raw.split('\n')) {
-    const versionMatch = line.match(/^#\s+(\S+)\s+\((\d{4}-\d{2}-\d{2})\)/)
+    // Match both `#` minor/major and `##` patch headings. The version label is
+    // usually a markdown link like `[1.5.0](https://…/compare/v1.4.1...v1.5.0)`,
+    // so capture everything up to the trailing `(date)` and then strip the link
+    // wrapper down to its display text — otherwise the full compare URL renders
+    // in the header and overflows the card.
+    const versionMatch = line.match(/^#+\s+(.+?)\s+\((\d{4}-\d{2}-\d{2})\)/)
     if (versionMatch) {
       if (currentSection && current) current.sections.push(currentSection)
       if (current) entries.push(current)
-      current = { version: versionMatch[1], date: versionMatch[2], sections: [] }
+      const linkMatch = versionMatch[1].match(/^\[([^\]]+)\]\([^)]+\)$/)
+      const version = linkMatch ? linkMatch[1] : versionMatch[1]
+      current = { version, date: versionMatch[2], sections: [] }
       currentSection = null
       continue
     }
@@ -36,10 +43,14 @@ function parseChangelog(raw: string): ChangelogEntry[] {
 
     const itemMatch = line.match(/^\*\s+(.+)/)
     if (itemMatch && currentSection) {
-      // Strip markdown commit links like ([abc1234](url)) at the end
+      // Strip markdown commit links like ([abc1234](url)) at the end, then drop
+      // leftover inline markdown (** ** emphasis, ` ` code) so the bare text reads
+      // cleanly instead of showing raw markers.
       const text = itemMatch[1]
         .replace(/\s*\(\[[\da-f]+\]\([^)]+\)\)/g, '')
         .replace(/\s*\[#[\w-]+\]\([^)]+\)/g, '')
+        .replace(/\*\*([^*]+)\*\*/g, '$1')
+        .replace(/`([^`]+)`/g, '$1')
         .trim()
       if (text) currentSection.items.push(text)
     }
