@@ -94,7 +94,8 @@ describe('competition API', () => {
     expect(body.weight_grams).toBeUndefined()
   })
 
-  test('downloadCompetitionCsv fetches the export route with auth', async () => {    // jsdom isn't configured; stub the DOM bits the download helper touches.
+  test('downloadCompetitionCsv fetches the export route with auth', async () => {
+    // jsdom isn't configured; stub the DOM bits the download helper touches.
     const click = vi.fn()
     const anchor = { href: '', download: '', click, remove: vi.fn() } as unknown as HTMLAnchorElement
     vi.stubGlobal('URL', { createObjectURL: () => 'blob:x', revokeObjectURL: vi.fn() })
