@@ -190,6 +190,7 @@ const EMPTY_COMP: CompetitionInput = {
   boundaries_notes: '', start_time: '', finish_time: '', sign_in_deadline: '',
   weigh_in_start: '', status: 'draft', visibility: 'admin',
   overdue_grace_minutes: 30, alert_slack_enabled: true, alert_email_enabled: true,
+  alert_sms_enabled: false,
   alert_emails: '',
 }
 
@@ -217,6 +218,7 @@ function CompetitionForm({
           overdue_grace_minutes: initial.overdue_grace_minutes,
           alert_slack_enabled: initial.alert_slack_enabled,
           alert_email_enabled: initial.alert_email_enabled,
+          alert_sms_enabled: initial.alert_sms_enabled,
           alert_emails: initial.alert_emails ?? '',
         }
       : EMPTY_COMP,
@@ -347,6 +349,11 @@ function CompetitionForm({
                  onChange={e => set('alert_email_enabled', e.target.checked)} />
           <span>Send overdue alerts by email</span>
         </label>
+        <label className={styles.checkInline}>
+          <input type="checkbox" checked={draft.alert_sms_enabled ?? false}
+                 onChange={e => set('alert_sms_enabled', e.target.checked)} />
+          <span>Text the overdue diver by SMS</span>
+        </label>
       </div>
       <label className={styles.field}>
         <span>Boundaries / area notes</span>
@@ -407,14 +414,14 @@ function OverviewTab({ comp, onChanged }: { comp: Competition; onChanged: () => 
 function NotificationPanel({ comp }: { comp: Competition }) {
   const [status, setStatus] = useState<NotificationStatus | null>(null)
   const [result, setResult] = useState<TestAlertResult | null>(null)
-  const [busy, setBusy] = useState<'slack' | 'email' | 'both' | null>(null)
+  const [busy, setBusy] = useState<'slack' | 'email' | 'sms' | 'both' | null>(null)
   const [err, setErr] = useState('')
 
   useEffect(() => {
     getNotificationStatus().then(setStatus).catch(() => setStatus(null))
   }, [])
 
-  async function test(channel: 'slack' | 'email' | 'both') {
+  async function test(channel: 'slack' | 'email' | 'sms' | 'both') {
     setBusy(channel); setErr(''); setResult(null)
     try {
       setResult(await sendTestAlert(comp.id, channel))
@@ -427,8 +434,10 @@ function NotificationPanel({ comp }: { comp: Competition }) {
 
   const slackOn = comp.alert_slack_enabled
   const emailOn = comp.alert_email_enabled
+  const smsOn = comp.alert_sms_enabled
   const slackReady = slackOn && status?.slack_configured
   const emailReady = emailOn && status?.email_configured
+  const smsReady = smsOn && status?.sms_configured
 
   return (
     <div className={styles.card} style={{ marginTop: 'var(--space-md)' }}>
@@ -436,6 +445,7 @@ function NotificationPanel({ comp }: { comp: Competition }) {
       <p className={styles.notes}>
         If a diver is still in the water {comp.overdue_grace_minutes} min past the sign-in
         deadline, organisers are paged automatically{status ? `, then re-paged every ${status.realert_minutes} min while they stay overdue` : ''}.
+        {status && smsOn ? ` The diver is also texted (up to ${status.cadence.diver_sms_max} SMS) and emailed (up to ${status.cadence.diver_email_max}) before the alert escalates to the organisers.` : ''}
       </p>
       <div className={styles.detailRow}>
         <span>Slack</span>
@@ -445,19 +455,23 @@ function NotificationPanel({ comp }: { comp: Competition }) {
         <span>Email</span>
         <strong>{!emailOn ? 'Off for this event' : status?.email_configured ? 'Ready' : 'Enabled — SMTP not configured on server'}</strong>
       </div>
+      <div className={styles.detailRow}>
+        <span>SMS</span>
+        <strong>{!smsOn ? 'Off for this event' : status?.sms_configured ? 'Ready' : 'Enabled — Twilio not configured on server'}</strong>
+      </div>
       {comp.alert_emails && (
         <div className={styles.detailRow}><span>Extra recipients</span><strong>{comp.alert_emails}</strong></div>
       )}
-      {!slackReady && !emailReady && (
+      {!slackReady && !emailReady && !smsReady && (
         <p className={styles.warnText}>
           No alert channel is deliverable right now — overdue divers will still be flagged
-          on the board, but no Slack/email will be sent.
+          on the board, but no Slack/email/SMS will be sent.
         </p>
       )}
       {err && <p className={styles.error} role="alert">{err}</p>}
       {result && (
-        <p className={result.slack.sent || result.email.sent ? styles.notes : styles.warnText}>
-          Test sent — Slack: {channelWord(result.slack)} · Email: {channelWord(result.email)}
+        <p className={result.slack.sent || result.email.sent || result.sms.sent ? styles.notes : styles.warnText}>
+          Test sent — Slack: {channelWord(result.slack)} · Email: {channelWord(result.email)} · SMS: {channelWord(result.sms)}
           {result.email.sent && result.email.recipients.length > 0
             ? ` (${result.email.recipients.join(', ')})` : ''}
         </p>
@@ -478,6 +492,14 @@ function NotificationPanel({ comp }: { comp: Competition }) {
           title={!emailOn ? 'Email is off for this event' : !status?.email_configured ? 'SMTP not configured on server' : undefined}
         >
           {busy === 'email' ? 'Sending…' : 'Test email'}
+        </button>
+        <button
+          className={styles.btnGhost}
+          onClick={() => test('sms')}
+          disabled={busy !== null || !smsReady}
+          title={!smsOn ? 'SMS is off for this event' : !status?.sms_configured ? 'Twilio not configured on server' : undefined}
+        >
+          {busy === 'sms' ? 'Sending…' : 'Test SMS'}
         </button>
         <button
           className={styles.btnGhost}
