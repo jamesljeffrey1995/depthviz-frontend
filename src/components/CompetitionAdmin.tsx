@@ -445,7 +445,7 @@ function NotificationPanel({ comp }: { comp: Competition }) {
       <p className={styles.notes}>
         If a diver is still in the water {comp.overdue_grace_minutes} min past the sign-in
         deadline, organisers are paged automatically{status ? `, then re-paged every ${status.realert_minutes} min while they stay overdue` : ''}.
-        {status && smsOn ? ` The diver is also texted (up to ${status.cadence.diver_sms_max} SMS) and emailed (up to ${status.cadence.diver_email_max}) before the alert escalates to the organisers.` : ''}
+        {status && smsOn ? ` The diver is also emailed (up to ${status.cadence.diver_email_max}) and texted (up to ${status.cadence.diver_sms_max} SMS) before the alert escalates to the organisers.` : ''}
       </p>
       <div className={styles.detailRow}>
         <span>Slack</span>
