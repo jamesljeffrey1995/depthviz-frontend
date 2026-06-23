@@ -15,6 +15,7 @@ const ITEMS: NavItem[] = [
   { label: 'Discussions', path: '/forum', match: p => p.startsWith('/forum') },
   { label: 'Weight Belt', path: '/weight', match: p => p === '/weight' },
   { label: 'Training', path: '/training', match: p => p.startsWith('/training') },
+  { label: 'Competitions', path: '/competition', match: p => p === '/competition' },
 ]
 
 /**

@@ -8,6 +8,7 @@ import {
   listIncidents, createIncident, updateIncident,
   getScoringRule, updateScoringRule, getResults,
   downloadCompetitionCsv, autoPairBuddies,
+  getNotificationStatus, sendTestAlert,
 } from '../lib/api'
 import type {
   Competition, CompetitionInput, CompetitionStatus,
@@ -15,6 +16,7 @@ import type {
   CompetitionTeam, WaterStatusBoard,
   FishEntry, FishEntryInput, CompetitionIncident, IncidentType,
   ScoringRule, CompetitionResults,
+  NotificationStatus, TestAlertResult,
 } from '../types'
 import styles from './CompetitionAdmin.module.css'
 
@@ -187,6 +189,8 @@ const EMPTY_COMP: CompetitionInput = {
   name: '', competition_date: '', backup_date: '', location_site: '',
   boundaries_notes: '', start_time: '', finish_time: '', sign_in_deadline: '',
   weigh_in_start: '', status: 'draft', visibility: 'admin',
+  overdue_grace_minutes: 30, alert_slack_enabled: true, alert_email_enabled: true,
+  alert_emails: '',
 }
 
 function CompetitionForm({
@@ -210,6 +214,10 @@ function CompetitionForm({
           weigh_in_start: initial.weigh_in_start ?? '',
           status: initial.status,
           visibility: initial.visibility,
+          overdue_grace_minutes: initial.overdue_grace_minutes,
+          alert_slack_enabled: initial.alert_slack_enabled,
+          alert_email_enabled: initial.alert_email_enabled,
+          alert_emails: initial.alert_emails ?? '',
         }
       : EMPTY_COMP,
   )
@@ -238,6 +246,7 @@ function CompetitionForm({
       finish_time: draft.finish_time || null,
       sign_in_deadline: draft.sign_in_deadline || null,
       weigh_in_start: draft.weigh_in_start || null,
+      alert_emails: (draft.alert_emails ?? '').trim() || null,
     }
     try {
       const saved = initial
@@ -314,6 +323,30 @@ function CompetitionForm({
             <option value="released">Released / public</option>
           </select>
         </label>
+        <label className={styles.field}>
+          <span>Overdue alert after (min past deadline)</span>
+          <input className={styles.input} type="number" min={0} max={600}
+                 value={draft.overdue_grace_minutes ?? 30}
+                 onChange={e => set('overdue_grace_minutes', Number(e.target.value))} />
+        </label>
+        <label className={styles.field}>
+          <span>Extra alert emails (comma-separated)</span>
+          <input className={styles.input} value={draft.alert_emails ?? ''} maxLength={2000}
+                 placeholder="safety@club.org, organiser@club.org"
+                 onChange={e => set('alert_emails', e.target.value)} />
+        </label>
+      </div>
+      <div className={styles.checkRow}>
+        <label className={styles.checkInline}>
+          <input type="checkbox" checked={draft.alert_slack_enabled ?? true}
+                 onChange={e => set('alert_slack_enabled', e.target.checked)} />
+          <span>Send overdue alerts to Slack</span>
+        </label>
+        <label className={styles.checkInline}>
+          <input type="checkbox" checked={draft.alert_email_enabled ?? true}
+                 onChange={e => set('alert_email_enabled', e.target.checked)} />
+          <span>Send overdue alerts by email</span>
+        </label>
       </div>
       <label className={styles.field}>
         <span>Boundaries / area notes</span>
@@ -361,8 +394,108 @@ function OverviewTab({ comp, onChanged }: { comp: Competition; onChanged: () => 
         <button className={styles.btnDanger} onClick={remove}>Delete</button>
         <button className={styles.btnPrimary} onClick={() => setEditing(true)}>Edit setup</button>
       </div>
+      <NotificationPanel comp={comp} />
     </div>
   )
+}
+
+// ── Overdue safety notifications ─────────────────────────────────────────────
+// Shows the per-event alert config and whether the deployment can actually
+// deliver on each channel, with a "send test" so an organiser can confirm
+// Slack/email reach them before relying on it on the day.
+
+function NotificationPanel({ comp }: { comp: Competition }) {
+  const [status, setStatus] = useState<NotificationStatus | null>(null)
+  const [result, setResult] = useState<TestAlertResult | null>(null)
+  const [busy, setBusy] = useState<'slack' | 'email' | 'both' | null>(null)
+  const [err, setErr] = useState('')
+
+  useEffect(() => {
+    getNotificationStatus().then(setStatus).catch(() => setStatus(null))
+  }, [])
+
+  async function test(channel: 'slack' | 'email' | 'both') {
+    setBusy(channel); setErr(''); setResult(null)
+    try {
+      setResult(await sendTestAlert(comp.id, channel))
+    } catch (e) {
+      setErr(errMsg(e))
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  const slackOn = comp.alert_slack_enabled
+  const emailOn = comp.alert_email_enabled
+  const slackReady = slackOn && status?.slack_configured
+  const emailReady = emailOn && status?.email_configured
+
+  return (
+    <div className={styles.card} style={{ marginTop: 'var(--space-md)' }}>
+      <h3 className={styles.cardTitle}>Safety alerts</h3>
+      <p className={styles.notes}>
+        If a diver is still in the water {comp.overdue_grace_minutes} min past the sign-in
+        deadline, organisers are paged automatically{status ? `, then re-paged every ${status.realert_minutes} min while they stay overdue` : ''}.
+      </p>
+      <div className={styles.detailRow}>
+        <span>Slack</span>
+        <strong>{!slackOn ? 'Off for this event' : status?.slack_configured ? 'Ready' : 'Enabled — not configured on server'}</strong>
+      </div>
+      <div className={styles.detailRow}>
+        <span>Email</span>
+        <strong>{!emailOn ? 'Off for this event' : status?.email_configured ? 'Ready' : 'Enabled — SMTP not configured on server'}</strong>
+      </div>
+      {comp.alert_emails && (
+        <div className={styles.detailRow}><span>Extra recipients</span><strong>{comp.alert_emails}</strong></div>
+      )}
+      {!slackReady && !emailReady && (
+        <p className={styles.warnText}>
+          No alert channel is deliverable right now — overdue divers will still be flagged
+          on the board, but no Slack/email will be sent.
+        </p>
+      )}
+      {err && <p className={styles.error} role="alert">{err}</p>}
+      {result && (
+        <p className={result.slack.sent || result.email.sent ? styles.notes : styles.warnText}>
+          Test sent — Slack: {channelWord(result.slack)} · Email: {channelWord(result.email)}
+          {result.email.sent && result.email.recipients.length > 0
+            ? ` (${result.email.recipients.join(', ')})` : ''}
+        </p>
+      )}
+      <div className={styles.formActions}>
+        <button
+          className={styles.btnGhost}
+          onClick={() => test('slack')}
+          disabled={busy !== null || !slackReady}
+          title={!slackOn ? 'Slack is off for this event' : !status?.slack_configured ? 'SLACK_WEBHOOK_URL not set on server' : undefined}
+        >
+          {busy === 'slack' ? 'Sending…' : 'Test Slack'}
+        </button>
+        <button
+          className={styles.btnGhost}
+          onClick={() => test('email')}
+          disabled={busy !== null || !emailReady}
+          title={!emailOn ? 'Email is off for this event' : !status?.email_configured ? 'SMTP not configured on server' : undefined}
+        >
+          {busy === 'email' ? 'Sending…' : 'Test email'}
+        </button>
+        <button
+          className={styles.btnGhost}
+          onClick={() => test('both')}
+          disabled={busy !== null || (!slackReady && !emailReady)}
+        >
+          {busy === 'both' ? 'Sending…' : 'Test both'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function channelWord(c: { enabled: boolean; configured: boolean; sent: boolean }): string {
+  if (c.sent) return 'sent ✓'
+  if (!c.enabled) return 'off'
+  if (!c.configured) return 'not configured'
+  return 'failed'
 }
 
 // ── Water status board tab (priority screen) ─────────────────────────────────
@@ -464,6 +597,7 @@ function BoardTab({ cid }: { cid: number }) {
                 <span>Out: {fmtTime(c2.signed_out_at)}</span>
                 <span>Back: {fmtTime(c2.returned_at)}</span>
                 {c2.is_overdue && <span className={styles.warnText}>+{c2.minutes_overdue} min overdue</span>}
+                {c2.overdue_alerted_at && <span className={styles.badgeOverdue}>Organisers paged</span>}
                 {c2.phone && <a className={styles.callLink} href={`tel:${c2.phone}`}>Call {c2.phone}</a>}
               </div>
 
