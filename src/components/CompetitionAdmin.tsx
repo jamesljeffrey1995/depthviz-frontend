@@ -407,21 +407,21 @@ function OverviewTab({ comp, onChanged }: { comp: Competition; onChanged: () => 
 function NotificationPanel({ comp }: { comp: Competition }) {
   const [status, setStatus] = useState<NotificationStatus | null>(null)
   const [result, setResult] = useState<TestAlertResult | null>(null)
-  const [busy, setBusy] = useState(false)
+  const [busy, setBusy] = useState<'slack' | 'email' | 'both' | null>(null)
   const [err, setErr] = useState('')
 
   useEffect(() => {
     getNotificationStatus().then(setStatus).catch(() => setStatus(null))
   }, [])
 
-  async function test() {
-    setBusy(true); setErr(''); setResult(null)
+  async function test(channel: 'slack' | 'email' | 'both') {
+    setBusy(channel); setErr(''); setResult(null)
     try {
-      setResult(await sendTestAlert(comp.id))
+      setResult(await sendTestAlert(comp.id, channel))
     } catch (e) {
       setErr(errMsg(e))
     } finally {
-      setBusy(false)
+      setBusy(null)
     }
   }
 
@@ -463,8 +463,28 @@ function NotificationPanel({ comp }: { comp: Competition }) {
         </p>
       )}
       <div className={styles.formActions}>
-        <button className={styles.btnGhost} onClick={test} disabled={busy}>
-          {busy ? 'Sending…' : 'Send test alert'}
+        <button
+          className={styles.btnGhost}
+          onClick={() => test('slack')}
+          disabled={busy !== null || !slackReady}
+          title={!slackOn ? 'Slack is off for this event' : !status?.slack_configured ? 'SLACK_WEBHOOK_URL not set on server' : undefined}
+        >
+          {busy === 'slack' ? 'Sending…' : 'Test Slack'}
+        </button>
+        <button
+          className={styles.btnGhost}
+          onClick={() => test('email')}
+          disabled={busy !== null || !emailReady}
+          title={!emailOn ? 'Email is off for this event' : !status?.email_configured ? 'SMTP not configured on server' : undefined}
+        >
+          {busy === 'email' ? 'Sending…' : 'Test email'}
+        </button>
+        <button
+          className={styles.btnGhost}
+          onClick={() => test('both')}
+          disabled={busy !== null || (!slackReady && !emailReady)}
+        >
+          {busy === 'both' ? 'Sending…' : 'Test both'}
         </button>
       </div>
     </div>

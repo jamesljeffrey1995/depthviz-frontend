@@ -903,8 +903,11 @@ export async function getNotificationStatus(): Promise<NotificationStatus> {
 }
 
 // Fire a harmless test alert on this competition's enabled channels.
-export async function sendTestAlert(cid: number): Promise<TestAlertResult> {
-  return apiFetch<TestAlertResult>(`${COMP_BASE}/${cid}/test-alert`, { method: 'POST' })
+export async function sendTestAlert(
+  cid: number,
+  channel: 'slack' | 'email' | 'both' = 'both',
+): Promise<TestAlertResult> {
+  return apiFetch<TestAlertResult>(`${COMP_BASE}/${cid}/test-alert?channel=${channel}`, { method: 'POST' })
 }
 
 // ── Self-service competition registration (logged-in divers) ────────────────
