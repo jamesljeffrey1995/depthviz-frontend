@@ -1,3 +1,11 @@
+# [1.6.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.5.0...v1.6.0) (2026-06-23)
+
+
+### Features
+
+* **competition:** registration entry point, day-view, and safety-alert settings ([caea913](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/caea913a6c4e77ab8c2b5044f3e0e23af652f6e1))
+* **competition:** separate test buttons for Slack, email, and both ([27d4554](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/27d45548ad56ff9896a89ece1b82409d84fdf724))
+
 # [1.5.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.4.1...v1.5.0) (2026-06-22)
 
 
