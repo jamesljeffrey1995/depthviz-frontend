@@ -840,6 +840,7 @@ export interface Competition {
   overdue_grace_minutes: number
   alert_slack_enabled: boolean
   alert_email_enabled: boolean
+  alert_sms_enabled: boolean
   alert_emails: string | null
   created_at: string
   updated_at: string
@@ -860,6 +861,7 @@ export interface CompetitionInput {
   overdue_grace_minutes?: number
   alert_slack_enabled?: boolean
   alert_email_enabled?: boolean
+  alert_sms_enabled?: boolean
   alert_emails?: string | null
 }
 
@@ -867,14 +869,28 @@ export interface CompetitionInput {
 export interface NotificationStatus {
   slack_configured: boolean
   email_configured: boolean
+  // Whether Twilio (SMS) is configured at the deployment level.
+  sms_configured: boolean
   realert_minutes: number
   sweep_interval_seconds: number
+  // How many direct-to-diver notifications are sent during the overdue window
+  // before the alert escalates to the organisers' email + Slack.
+  cadence: AlertCadence
+}
+
+// Direct-to-diver notification budget for a single overdue window. The backend
+// sends at most `diver_email_max` emails and `diver_sms_max` SMS to the overdue
+// diver across the window before escalating to competitions@depthviz.uk + Slack.
+export interface AlertCadence {
+  diver_email_max: number
+  diver_sms_max: number
 }
 
 // Per-channel result of an admin "send test alert".
 export interface TestAlertResult {
   slack: { enabled: boolean; configured: boolean; sent: boolean }
   email: { enabled: boolean; configured: boolean; recipients: string[]; sent: boolean }
+  sms: { enabled: boolean; configured: boolean; sent: boolean }
 }
 
 export interface CompetitionTeam {

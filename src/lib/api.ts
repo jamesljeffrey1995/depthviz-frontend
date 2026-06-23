@@ -905,7 +905,7 @@ export async function getNotificationStatus(): Promise<NotificationStatus> {
 // Fire a harmless test alert on this competition's enabled channels.
 export async function sendTestAlert(
   cid: number,
-  channel: 'slack' | 'email' | 'both' = 'both',
+  channel: 'slack' | 'email' | 'sms' | 'both' = 'both',
 ): Promise<TestAlertResult> {
   return apiFetch<TestAlertResult>(`${COMP_BASE}/${cid}/test-alert?channel=${channel}`, { method: 'POST' })
 }
