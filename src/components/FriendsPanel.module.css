@@ -22,9 +22,9 @@
 }
 
 /* Tabs */
-.tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
 .tab {
-  flex: 1; position: relative;
+  flex: 1; min-width: 0; position: relative;
   background: rgba(4, 30, 46, 0.6); border: 1px solid rgba(0, 201, 255, 0.08);
   color: var(--text); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.2em;
   text-transform: uppercase; padding: 8px; cursor: pointer;

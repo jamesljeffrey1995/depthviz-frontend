@@ -70,6 +70,10 @@ body {
   color: var(--text);
   font-family: var(--font-mono);
   overflow-x: hidden;
+  /* Long unbreakable tokens (URLs, emails, coordinates, model names) must
+     wrap inside their container instead of bleeding past the card edges.
+     overflow-wrap inherits, so this is a site-wide safety net. */
+  overflow-wrap: break-word;
   position: relative;
   /* Improve font rendering */
   -webkit-font-smoothing: antialiased;

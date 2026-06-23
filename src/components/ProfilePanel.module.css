@@ -66,11 +66,11 @@
 .friendsBtn:hover { background: rgba(0,201,255,0.12); }
 .friendsBtn svg { width: 15px; height: 15px; flex-shrink: 0; }
 
-.tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
 .tab {
-  flex: 1; background: rgba(4,30,46,0.6); border: 1px solid rgba(0,201,255,0.08);
+  flex: 1; min-width: 0; background: rgba(4,30,46,0.6); border: 1px solid rgba(0,201,255,0.08);
   color: var(--text); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.2em;
-  text-transform: uppercase; padding: 8px; cursor: pointer;
+  text-transform: uppercase; padding: 8px; cursor: pointer; overflow-wrap: anywhere;
 }
 .tab.tabActive { border-color: rgba(0,201,255,0.35); color: var(--accent); background: rgba(0,201,255,0.08); }
 
