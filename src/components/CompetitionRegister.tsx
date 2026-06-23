@@ -6,10 +6,11 @@ import {
   registerForCompetition,
   updateMyRegistration,
   withdrawRegistration,
+  getStandings,
 } from '../lib/api'
 import type {
   OpenCompetition, MyCompetition, MyRegistration, RegistrationInput,
-  ExperienceLevel, BuddyStatus,
+  ExperienceLevel, BuddyStatus, CompetitionStandings, CompetitorStatus,
 } from '../types'
 import { ApiError } from '../lib/api'
 import styles from './CompetitionRegister.module.css'
@@ -19,6 +20,16 @@ const COMP_STATUS_LABEL: Record<string, string> = {
   open: 'Registration open',
   active: 'Competition in progress',
   weigh_in: 'Weigh-in underway',
+}
+
+// Short water-status label for the competitor standings table.
+const WATER_STATUS_LABEL: Record<CompetitorStatus, string> = {
+  not_arrived: 'Not arrived',
+  registered: 'Checked in',
+  in_water: 'In water',
+  returned: 'Ashore',
+  late: 'Late',
+  withdrawn: 'Withdrawn',
 }
 
 function fmtClock(iso: string | null): string {
@@ -384,6 +395,10 @@ export function CompetitionRegister() {
           </div>
         </form>
       )}
+
+      {/* The whole field with everyone's catches — visible to a registered diver,
+          PII redacted server-side, no admin controls. */}
+      {selected.already_registered && <StandingsTable cid={selected.id} />}
     </div>
   )
 }
@@ -435,5 +450,65 @@ function RegisteredPanel({
         </button>
       </div>
     </div>
+  )
+}
+
+// Read-only standings: every competitor in the event with their catch tally and
+// score, PII redacted by the backend. This is the only competitor-facing view of
+// the field — it deliberately carries no admin controls, statuses to edit, or
+// contact details. Renders nothing if the diver isn't permitted to see it yet.
+function StandingsTable({ cid }: { cid: number }) {
+  const [data, setData] = useState<CompetitionStandings | null>(null)
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    setData(null)
+    setFailed(false)
+    getStandings(cid)
+      .then(d => { if (!cancelled) setData(d) })
+      .catch(() => { if (!cancelled) setFailed(true) })
+    return () => { cancelled = true }
+  }, [cid])
+
+  // Stay quiet until/unless there's something to show — the standings are a
+  // bonus on the registration page, not a hard requirement of it.
+  if (failed || !data || data.items.length === 0) return null
+
+  return (
+    <section className={styles.standings} aria-label="Competitor standings">
+      <div className={styles.standingsHead}>
+        <h2 className={styles.sectionTitle}>Competitors</h2>
+        {!data.released && <span className={styles.provisional}>Provisional</span>}
+      </div>
+      <div className={styles.tableWrap}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th className={styles.num}>#</th>
+              <th>Competitor</th>
+              <th>Team</th>
+              <th>Status</th>
+              <th className={styles.num}>Fish</th>
+              <th className={styles.num}>Weight</th>
+              <th className={styles.num}>Points</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.items.map(c => (
+              <tr key={c.competitor_id}>
+                <td className={`${styles.num} ${styles.rankCell}`}>{c.rank ?? '—'}</td>
+                <td>{c.full_name}</td>
+                <td>{c.team_name ?? '—'}</td>
+                <td>{WATER_STATUS_LABEL[c.status] ?? c.status}</td>
+                <td className={styles.num}>{c.fish_count}</td>
+                <td className={styles.num}>{c.total_weight_kg.toFixed(2)} kg</td>
+                <td className={styles.num}>{c.points}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
   )
 }

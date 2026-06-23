@@ -709,6 +709,7 @@ import type {
   MyCompetition,
   MyRegistration,
   RegistrationInput,
+  CompetitionStandings,
   NotificationStatus,
   TestAlertResult,
   AutoPairResult,
@@ -905,7 +906,7 @@ export async function getNotificationStatus(): Promise<NotificationStatus> {
 // Fire a harmless test alert on this competition's enabled channels.
 export async function sendTestAlert(
   cid: number,
-  channel: 'slack' | 'email' | 'both' = 'both',
+  channel: 'slack' | 'email' | 'sms' | 'both' | 'all' = 'all',
 ): Promise<TestAlertResult> {
   return apiFetch<TestAlertResult>(`${COMP_BASE}/${cid}/test-alert?channel=${channel}`, { method: 'POST' })
 }
@@ -946,4 +947,12 @@ export async function updateMyRegistration(cid: number, input: Partial<Registrat
 
 export async function withdrawRegistration(cid: number): Promise<void> {
   await apiFetch(`${REG_BASE}/${cid}/registration`, { method: 'DELETE' })
+}
+
+// Competitor-facing standings: the full field with everyone's catches, PII
+// redacted server-side. Any signed-in registered diver may read this; it carries
+// no admin controls and never exposes emails, phones, emergency contacts,
+// vehicle regs or medical notes.
+export async function getStandings(cid: number): Promise<CompetitionStandings> {
+  return apiFetch<CompetitionStandings>(`${REG_BASE}/${cid}/standings`)
 }
