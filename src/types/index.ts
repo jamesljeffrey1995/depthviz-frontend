@@ -121,6 +121,7 @@ export interface DayForecast {
   wind_speed: number
   wind_dir: number
   wind_dir_label: string
+  wind_gust: number | null
   precipitation: number
   air_temp: number
   sea_temp: number | null
