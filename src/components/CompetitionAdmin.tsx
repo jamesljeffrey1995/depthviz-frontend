@@ -494,8 +494,9 @@ function CompetitionForm({
           )}
         </span>
         <textarea className={styles.textarea} rows={6} value={draft.health_safety_notes ?? ''}
-                  placeholder="Buddy rules, floats, swim-only, sign-in/out accountability, legal restrictions, etc."
+                  placeholder={'One rule per line — each line shows as a bullet point.\nBuddy rules, floats, swim-only, sign-in/out accountability, legal restrictions, etc.'}
                   onChange={e => set('health_safety_notes', e.target.value)} />
+        <span className={styles.fieldHint}>Write one rule per line — each line becomes a bullet point on the brief.</span>
       </label>
 
       <h3 className={styles.sectionHeading}>Organiser contact</h3>
@@ -1744,40 +1745,40 @@ function ScheduleEditor({
         <ul className={styles.scheduleEditList}>
           {value.map((row, i) => (
             <li key={keysRef.current[i]} className={styles.scheduleEditRow}>
-              <input
-                className={styles.scheduleTimeInput}
-                placeholder="07:15"
-                value={row.time}
-                maxLength={20}
-                onChange={e => update(i, { time: e.target.value })}
-                aria-label="Time"
-              />
-              <div className={styles.scheduleTextCol}>
+              <div className={styles.scheduleRowTop}>
                 <input
-                  className={styles.input}
-                  placeholder="Title (e.g. Health & safety briefing)"
-                  value={row.title}
-                  maxLength={120}
-                  onChange={e => update(i, { title: e.target.value })}
-                  aria-label="Title"
+                  className={styles.scheduleTimeInput}
+                  placeholder="07:15"
+                  value={row.time}
+                  maxLength={20}
+                  onChange={e => update(i, { time: e.target.value })}
+                  aria-label="Time"
                 />
-                <textarea
-                  className={styles.textarea}
-                  rows={2}
-                  placeholder="Detail (optional)"
-                  value={row.detail ?? ''}
-                  onChange={e => update(i, { detail: e.target.value || null })}
-                  aria-label="Detail"
-                />
+                <div className={styles.scheduleRowActions}>
+                  <button type="button" className={styles.iconBtn} disabled={i === 0}
+                          onClick={() => move(i, -1)} aria-label="Move up">↑</button>
+                  <button type="button" className={styles.iconBtn} disabled={i === value.length - 1}
+                          onClick={() => move(i, 1)} aria-label="Move down">↓</button>
+                  <button type="button" className={styles.iconBtn} data-danger
+                          onClick={() => remove(i)} aria-label="Remove row">✕</button>
+                </div>
               </div>
-              <div className={styles.scheduleRowActions}>
-                <button type="button" className={styles.iconBtn} disabled={i === 0}
-                        onClick={() => move(i, -1)} aria-label="Move up">↑</button>
-                <button type="button" className={styles.iconBtn} disabled={i === value.length - 1}
-                        onClick={() => move(i, 1)} aria-label="Move down">↓</button>
-                <button type="button" className={styles.linkBtnDanger}
-                        onClick={() => remove(i)} aria-label="Remove row">✕</button>
-              </div>
+              <input
+                className={styles.input}
+                placeholder="Title (e.g. Health & safety briefing)"
+                value={row.title}
+                maxLength={120}
+                onChange={e => update(i, { title: e.target.value })}
+                aria-label="Title"
+              />
+              <textarea
+                className={styles.textarea}
+                rows={2}
+                placeholder="Detail (optional)"
+                value={row.detail ?? ''}
+                onChange={e => update(i, { detail: e.target.value || null })}
+                aria-label="Detail"
+              />
             </li>
           ))}
         </ul>
@@ -1963,7 +1964,11 @@ function TemplateTab({ comp, onChanged }: { comp: Competition; onChanged: () => 
         {comp.health_safety_notes && (
           <div className={`${styles.templateSection} ${styles.templateSafety}`}>
             <h2>⚠ Health &amp; safety</h2>
-            <p className={styles.templatePre}>{comp.health_safety_notes}</p>
+            <ul className={styles.safetyList}>
+              {comp.health_safety_notes.split('\n').map(l => l.trim()).filter(Boolean).map((line, i) => (
+                <li key={i}>{line}</li>
+              ))}
+            </ul>
           </div>
         )}
 

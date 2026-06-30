@@ -125,7 +125,11 @@ function CompDayInfo({ comp }: { comp: OpenCompetition }) {
       {hasSafety && (
         <section className={styles.safetyCard}>
           <h2 className={styles.infoHeading}>⚠ Health &amp; safety</h2>
-          <p className={styles.notes}>{comp.health_safety_notes}</p>
+          <ul className={styles.safetyList}>
+            {comp.health_safety_notes!.split('\n').map(l => l.trim()).filter(Boolean).map((line, i) => (
+              <li key={i}>{line}</li>
+            ))}
+          </ul>
         </section>
       )}
     </div>
