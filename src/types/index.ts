@@ -824,6 +824,12 @@ export type IncidentType =
 export type BuddyStatus = 'none' | 'invited' | 'paired' | 'auto_assigned' | 'expired'
 export type TeamFormation = 'manual' | 'buddy_invite' | 'random'
 
+export interface TargetSpecies {
+  species: string
+  min_weight_g?: number | null
+  notes?: string | null
+}
+
 export interface Competition {
   id: number
   name: string
@@ -841,6 +847,15 @@ export interface Competition {
   alert_slack_enabled: boolean
   alert_email_enabled: boolean
   alert_emails: string | null
+  organiser_name: string | null
+  organiser_phone: string | null
+  organiser_email: string | null
+  emergency_contact_name: string | null
+  emergency_contact_phone: string | null
+  additional_rules: string | null
+  entry_fee: string | null
+  prize_info: string | null
+  target_species: TargetSpecies[]
   created_at: string
   updated_at: string
 }
@@ -861,6 +876,15 @@ export interface CompetitionInput {
   alert_slack_enabled?: boolean
   alert_email_enabled?: boolean
   alert_emails?: string | null
+  organiser_name?: string | null
+  organiser_phone?: string | null
+  organiser_email?: string | null
+  emergency_contact_name?: string | null
+  emergency_contact_phone?: string | null
+  additional_rules?: string | null
+  entry_fee?: string | null
+  prize_info?: string | null
+  target_species?: TargetSpecies[]
 }
 
 // Deployment-level channel state + escalation cadence for overdue alerts.
