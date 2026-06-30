@@ -1,5 +1,6 @@
 import { memo } from 'react'
 import type { DayForecast } from '../types'
+import { WindArrow } from './WindArrow'
 import styles from './WeeklyOverview.module.css'
 
 interface Props {
@@ -52,6 +53,13 @@ export const WeeklyOverview = memo(function WeeklyOverview({ days, locationName,
           const isSelected = i === selectedIndex
           const colorCls = styles[day.color_class as keyof typeof styles] ?? ''
 
+          const windSpeed = Math.round(day.wind_speed)
+          const gust = day.wind_gust != null ? Math.round(day.wind_gust) : null
+          const showGust = gust != null && gust > windSpeed
+          const windDesc =
+            `${windSpeed}${showGust ? `–${gust}` : ''}kn` +
+            (day.wind_dir_label ? ` from ${day.wind_dir_label}` : '')
+
           return (
             <button
               key={day.date}
@@ -64,7 +72,7 @@ export const WeeklyOverview = memo(function WeeklyOverview({ days, locationName,
                 !day.is_forecast ? styles.historical : '',
               ].join(' ')}
               onClick={() => onSelectDay(i)}
-              aria-label={`${dayLabel} ${dateLabel}: ${vis.toFixed(1)} metres visibility, ${day.verdict}${isBest ? ', best day this week' : ''}`}
+              aria-label={`${dayLabel} ${dateLabel}: ${vis.toFixed(1)} metres visibility, ${day.verdict}, wind ${windDesc}${isBest ? ', best day this week' : ''}`}
               aria-pressed={isSelected}
             >
               {isBest && <div className={styles.bestBadge} aria-hidden="true">BEST</div>}
@@ -81,9 +89,15 @@ export const WeeklyOverview = memo(function WeeklyOverview({ days, locationName,
                   <span className={styles.metricLabel}>Wave</span>
                   <span className={styles.metricVal}>{day.wave_height.toFixed(1)}{units}</span>
                 </div>
-                <div className={styles.metric}>
+                <div className={styles.windRow} title={windDesc} aria-label={`Wind ${windDesc}`}>
                   <span className={styles.metricLabel}>Wind</span>
-                  <span className={styles.metricVal}>{Math.round(day.wind_speed)}kn</span>
+                  <span className={styles.windVal}>
+                    <WindArrow dir={day.wind_dir} size={12} title={`Wind from ${day.wind_dir_label}`} />
+                    <span className={styles.windSpeed}>
+                      {windSpeed}{showGust && <span className={styles.gust}>–{gust}</span>}<span className={styles.windUnit}>kn</span>
+                    </span>
+                    {day.wind_dir_label && <span className={styles.windDirLabel}>{day.wind_dir_label}</span>}
+                  </span>
                 </div>
                 {day.sea_temp != null && (
                   <div className={styles.metric}>
