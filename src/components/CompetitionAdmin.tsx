@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import {
   listCompetitions, createCompetition, updateCompetition, deleteCompetition,
   listCompetitors, createCompetitor, updateCompetitor, deleteCompetitor,
@@ -312,8 +312,15 @@ function CompetitionForm({
       meeting_point_notes: (draft.meeting_point_notes ?? '').trim() || null,
       health_safety_notes: (draft.health_safety_notes ?? '').trim() || null,
       target_species: draft.target_species ?? [],
-      // Drop blank/incomplete schedule rows so we never persist empty timeline entries.
-      schedule: (draft.schedule ?? []).filter(s => s.time?.trim() || s.title?.trim()),
+      // Normalise then drop blank rows so we never persist empty/whitespace-only
+      // timeline entries or stray padding that renders as odd spacing.
+      schedule: (draft.schedule ?? [])
+        .map(s => ({
+          time: (s.time ?? '').trim(),
+          title: (s.title ?? '').trim(),
+          detail: (s.detail ?? '').trim() || null,
+        }))
+        .filter(s => s.time || s.title),
     }
     try {
       const saved = initial
@@ -1690,10 +1697,20 @@ function ScheduleEditor({
   value: ScheduleItem[]
   onChange: (v: ScheduleItem[]) => void
 }) {
+  // Stable per-row keys so React identity follows a row when it's reordered —
+  // index keys would make focus/caret jump and inputs appear to swap. The keys
+  // ref is kept in lockstep with `value` by every mutator below, and reconciled
+  // to length here for external changes (initial load, "load preset", clear).
+  const keysRef = useRef<number[]>([])
+  const nextId = useRef(0)
+  while (keysRef.current.length < value.length) keysRef.current.push(nextId.current++)
+  if (keysRef.current.length > value.length) keysRef.current.length = value.length
+
   function update(i: number, patch: Partial<ScheduleItem>) {
     onChange(value.map((row, idx) => idx === i ? { ...row, ...patch } : row))
   }
   function remove(i: number) {
+    keysRef.current.splice(i, 1)
     onChange(value.filter((_, idx) => idx !== i))
   }
   function move(i: number, dir: -1 | 1) {
@@ -1701,9 +1718,12 @@ function ScheduleEditor({
     if (j < 0 || j >= value.length) return
     const next = [...value]
     ;[next[i], next[j]] = [next[j], next[i]]
+    const k = keysRef.current
+    ;[k[i], k[j]] = [k[j], k[i]]
     onChange(next)
   }
   function add() {
+    keysRef.current.push(nextId.current++)
     onChange([...value, { time: '', title: '', detail: '' }])
   }
 
@@ -1723,7 +1743,7 @@ function ScheduleEditor({
       ) : (
         <ul className={styles.scheduleEditList}>
           {value.map((row, i) => (
-            <li key={i} className={styles.scheduleEditRow}>
+            <li key={keysRef.current[i]} className={styles.scheduleEditRow}>
               <input
                 className={styles.scheduleTimeInput}
                 placeholder="07:15"
@@ -1914,7 +1934,8 @@ function TemplateTab({ comp, onChanged }: { comp: Competition; onChanged: () => 
             {comp.meeting_point_notes && <p className={styles.templatePre}>{comp.meeting_point_notes}</p>}
             {comp.meeting_point_lat != null && comp.meeting_point_lon != null && (
               <p className={styles.templateMapLink}>
-                Map: <a href={mapsLink(comp.meeting_point_lat, comp.meeting_point_lon)}>
+                Map: <a href={mapsLink(comp.meeting_point_lat, comp.meeting_point_lon)}
+                       target="_blank" rel="noopener noreferrer">
                   {comp.meeting_point_lat.toFixed(4)}, {comp.meeting_point_lon.toFixed(4)}
                 </a>
               </p>
@@ -1952,7 +1973,8 @@ function TemplateTab({ comp, onChanged }: { comp: Competition; onChanged: () => 
             {comp.boundaries_notes && <p className={styles.templatePre}>{comp.boundaries_notes}</p>}
             {comp.location_lat != null && comp.location_lon != null && (
               <p className={styles.templateMapLink}>
-                Dive area: <a href={mapsLink(comp.location_lat, comp.location_lon)}>
+                Dive area: <a href={mapsLink(comp.location_lat, comp.location_lon)}
+                             target="_blank" rel="noopener noreferrer">
                   {comp.location_lat.toFixed(4)}, {comp.location_lon.toFixed(4)}
                 </a>
               </p>
