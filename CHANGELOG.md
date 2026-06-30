@@ -1,3 +1,15 @@
+# [1.7.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.6.0...v1.7.0) (2026-06-30)
+
+
+### Bug Fixes
+
+* **competition:** treat 0g target-species minimum as "no minimum"; print only the brief ([97815fc](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/97815fcec8b5d2cb718f49c6d52201e01776d926))
+
+
+### Features
+
+* **competition:** organiser template tab with target species & brief ([d24cda5](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/d24cda506426c6504fa98a4866ad0c4e15bd8ef1))
+
 # [1.6.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.5.0...v1.6.0) (2026-06-23)
 
 
