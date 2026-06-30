@@ -1,3 +1,10 @@
+## [1.8.1](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.8.0...v1.8.1) (2026-06-30)
+
+
+### Bug Fixes
+
+* **competition:** readable itinerary rows + bulleted health & safety ([8adab79](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/8adab79c0a5ba763bc04c415477c962e6e793043))
+
 # [1.8.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.7.0...v1.8.0) (2026-06-30)
 
 
