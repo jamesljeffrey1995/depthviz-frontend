@@ -1,3 +1,15 @@
+# [1.8.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.7.0...v1.8.0) (2026-06-30)
+
+
+### Bug Fixes
+
+* **competition:** address review — schedule keys, value trimming, link targets ([df23766](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/df237667999757f561d186f2e5738dedbce2e1b2))
+
+
+### Features
+
+* **competition:** richer printable brief + map-pin location picker ([39a4d6f](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/39a4d6fa75c1cf3a25e61600213177a7a79f87a2))
+
 # [1.7.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.6.0...v1.7.0) (2026-06-30)
 
 
