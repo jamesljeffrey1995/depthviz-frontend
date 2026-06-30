@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import {
   listCompetitions, createCompetition, updateCompetition, deleteCompetition,
   listCompetitors, createCompetitor, updateCompetitor, deleteCompetitor,
@@ -17,9 +17,30 @@ import type {
   FishEntry, FishEntryInput, CompetitionIncident, IncidentType,
   ScoringRule, CompetitionResults,
   NotificationStatus, TestAlertResult,
-  TargetSpecies,
+  TargetSpecies, ScheduleItem,
 } from '../types'
+import { CompetitionLocationPicker, type PickedPoint } from './CompetitionLocationPicker'
 import styles from './CompetitionAdmin.module.css'
+
+// Sensible day-of defaults drawn from past club competition sheets — organisers
+// can load these as a starting point and tweak per event.
+const STANDARD_SCHEDULE: ScheduleItem[] = [
+  { time: '07:15', title: 'Competitors arrive', detail: 'Arrive at the meeting point for check-in, equipment prep and sign-in.' },
+  { time: '07:45', title: 'Health & safety briefing', detail: 'Be kitted up and ready. Mandatory briefing covering safety, rules and local regulations, plus Q&A.' },
+  { time: '07:50', title: 'Final gear check & depart to the water', detail: 'Divers heading to other locations can leave at this point. Double-check gear before entering the water.' },
+  { time: '08:00', title: 'Competition start', detail: 'Take short breaks as needed but stay within the competition zone.' },
+  { time: '12:00', title: 'Competition end', detail: 'All competitors must be back and signed in at the meeting point. Late arrivals may be penalised.' },
+  { time: '12:30', title: 'Weigh-in & score tabulation', detail: 'Judges weigh and measure the catch. Scores calculated per the competition rules.' },
+  { time: '13:45', title: 'Award ceremony', detail: 'Announcement of winners, group photos and celebration.' },
+]
+
+const STANDARD_HEALTH_SAFETY = [
+  'Competitors must pair up and stay together at all times for safety, and as a minimum share a float per pair (ideally one each).',
+  'Swim only — no motorised water vehicles are to be used by competitors.',
+  'All competitors start and finish at the designated meeting point. You may dive anywhere you like so long as you are back and signed in before the deadline.',
+  'You must sign in and out. Do not leave without signing back in — this is how we account for every diver.',
+  'It is illegal to land sea trout, salmon, berried or v-cut lobsters, bluefin tuna and others outlined in UK regulations. Check the local IFCA website for guidelines and restrictions.',
+].join('\n')
 
 interface Props {
   isAdmin: boolean
@@ -61,6 +82,11 @@ function errMsg(e: unknown): string {
 function fmtTime(iso: string | null): string {
   if (!iso) return '—'
   return new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+}
+
+/** OpenStreetMap link for a coordinate pair — printable and tappable. */
+function mapsLink(lat: number, lon: number): string {
+  return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=15/${lat}/${lon}`
 }
 
 /** Reusable status badge with a colour driven by the competitor's status. */
@@ -190,6 +216,7 @@ export function CompetitionAdmin({ isAdmin }: Props) {
 
 const EMPTY_COMP: CompetitionInput = {
   name: '', competition_date: '', backup_date: '', location_site: '',
+  location_lat: null, location_lon: null,
   boundaries_notes: '', start_time: '', finish_time: '', sign_in_deadline: '',
   weigh_in_start: '', status: 'draft', visibility: 'admin',
   overdue_grace_minutes: 30, alert_slack_enabled: true, alert_email_enabled: true,
@@ -197,7 +224,9 @@ const EMPTY_COMP: CompetitionInput = {
   organiser_name: '', organiser_phone: '', organiser_email: '',
   emergency_contact_name: '', emergency_contact_phone: '',
   additional_rules: '', entry_fee: '', prize_info: '',
-  target_species: [],
+  meeting_point_name: '', meeting_point_lat: null, meeting_point_lon: null,
+  meeting_point_notes: '', health_safety_notes: '',
+  target_species: [], schedule: [],
 }
 
 function CompetitionForm({
@@ -214,6 +243,8 @@ function CompetitionForm({
           competition_date: initial.competition_date,
           backup_date: initial.backup_date ?? '',
           location_site: initial.location_site ?? '',
+          location_lat: initial.location_lat,
+          location_lon: initial.location_lon,
           boundaries_notes: initial.boundaries_notes ?? '',
           start_time: initial.start_time ?? '',
           finish_time: initial.finish_time ?? '',
@@ -233,7 +264,13 @@ function CompetitionForm({
           additional_rules: initial.additional_rules ?? '',
           entry_fee: initial.entry_fee ?? '',
           prize_info: initial.prize_info ?? '',
+          meeting_point_name: initial.meeting_point_name ?? '',
+          meeting_point_lat: initial.meeting_point_lat,
+          meeting_point_lon: initial.meeting_point_lon,
+          meeting_point_notes: initial.meeting_point_notes ?? '',
+          health_safety_notes: initial.health_safety_notes ?? '',
           target_species: initial.target_species ?? [],
+          schedule: initial.schedule ?? [],
         }
       : EMPTY_COMP,
   )
@@ -271,7 +308,19 @@ function CompetitionForm({
       additional_rules: (draft.additional_rules ?? '').trim() || null,
       entry_fee: (draft.entry_fee ?? '').trim() || null,
       prize_info: (draft.prize_info ?? '').trim() || null,
+      meeting_point_name: (draft.meeting_point_name ?? '').trim() || null,
+      meeting_point_notes: (draft.meeting_point_notes ?? '').trim() || null,
+      health_safety_notes: (draft.health_safety_notes ?? '').trim() || null,
       target_species: draft.target_species ?? [],
+      // Normalise then drop blank rows so we never persist empty/whitespace-only
+      // timeline entries or stray padding that renders as odd spacing.
+      schedule: (draft.schedule ?? [])
+        .map(s => ({
+          time: (s.time ?? '').trim(),
+          title: (s.title ?? '').trim(),
+          detail: (s.detail ?? '').trim() || null,
+        }))
+        .filter(s => s.time || s.title),
     }
     try {
       const saved = initial
@@ -377,6 +426,76 @@ function CompetitionForm({
         <span>Boundaries / area notes</span>
         <textarea className={styles.textarea} rows={3} value={draft.boundaries_notes ?? ''}
                   onChange={e => set('boundaries_notes', e.target.value)} />
+      </label>
+
+      <h3 className={styles.sectionHeading}>Location &amp; meeting point</h3>
+      <p className={styles.muted}>
+        Pick from the same dive-spot pins used on the visibility map, or click the map to
+        drop a custom point. The dive area sets where the competition is held; the meeting
+        point is where competitors gather to sign in and get briefed.
+      </p>
+      <div className={`${styles.field} ${styles.fieldFull}`}>
+        <CompetitionLocationPicker
+          accent="cyan"
+          label="Competition dive area"
+          value={{ lat: draft.location_lat ?? null, lon: draft.location_lon ?? null, name: draft.location_site ?? null }}
+          onChange={(p: PickedPoint | null) => setDraft(d => ({
+            ...d,
+            location_lat: p?.lat ?? null,
+            location_lon: p?.lon ?? null,
+            // Adopt the pin's name when one is chosen; keep any typed site name otherwise.
+            location_site: p?.name ? p.name : d.location_site,
+          }))}
+        />
+      </div>
+      <label className={styles.field}>
+        <span>Meeting point name</span>
+        <input className={styles.input} value={draft.meeting_point_name ?? ''} maxLength={200}
+               placeholder="e.g. Kings Arms car park, Seaton Sluice"
+               onChange={e => set('meeting_point_name', e.target.value)} />
+      </label>
+      <div className={`${styles.field} ${styles.fieldFull}`}>
+        <CompetitionLocationPicker
+          accent="red"
+          label="Meeting point (where to meet)"
+          value={{ lat: draft.meeting_point_lat ?? null, lon: draft.meeting_point_lon ?? null, name: draft.meeting_point_name ?? null }}
+          onChange={(p: PickedPoint | null) => setDraft(d => ({
+            ...d,
+            meeting_point_lat: p?.lat ?? null,
+            meeting_point_lon: p?.lon ?? null,
+            meeting_point_name: p?.name ? p.name : d.meeting_point_name,
+          }))}
+        />
+      </div>
+      <label className={`${styles.field} ${styles.fieldFull}`}>
+        <span>Meeting point notes / directions</span>
+        <textarea className={styles.textarea} rows={2} value={draft.meeting_point_notes ?? ''}
+                  placeholder="e.g. Clifftop, down the left side of the pub, past the car park."
+                  onChange={e => set('meeting_point_notes', e.target.value)} />
+      </label>
+
+      <h3 className={styles.sectionHeading}>Schedule / itinerary</h3>
+      <div className={`${styles.field} ${styles.fieldFull}`}>
+        <ScheduleEditor
+          value={draft.schedule ?? []}
+          onChange={v => set('schedule', v)}
+        />
+      </div>
+
+      <h3 className={styles.sectionHeading}>Health &amp; safety</h3>
+      <label className={`${styles.field} ${styles.fieldFull}`}>
+        <span>
+          Safety briefing notes
+          {!(draft.health_safety_notes ?? '').trim() && (
+            <button type="button" className={styles.linkBtn} style={{ marginLeft: 8 }}
+                    onClick={() => set('health_safety_notes', STANDARD_HEALTH_SAFETY)}>
+              Load standard briefing
+            </button>
+          )}
+        </span>
+        <textarea className={styles.textarea} rows={6} value={draft.health_safety_notes ?? ''}
+                  placeholder="Buddy rules, floats, swim-only, sign-in/out accountability, legal restrictions, etc."
+                  onChange={e => set('health_safety_notes', e.target.value)} />
       </label>
 
       <h3 className={styles.sectionHeading}>Organiser contact</h3>
@@ -1569,6 +1688,104 @@ function TargetSpeciesEditor({
   )
 }
 
+// ── Schedule / itinerary editor ──────────────────────────────────────────────
+
+function ScheduleEditor({
+  value,
+  onChange,
+}: {
+  value: ScheduleItem[]
+  onChange: (v: ScheduleItem[]) => void
+}) {
+  // Stable per-row keys so React identity follows a row when it's reordered —
+  // index keys would make focus/caret jump and inputs appear to swap. The keys
+  // ref is kept in lockstep with `value` by every mutator below, and reconciled
+  // to length here for external changes (initial load, "load preset", clear).
+  const keysRef = useRef<number[]>([])
+  const nextId = useRef(0)
+  while (keysRef.current.length < value.length) keysRef.current.push(nextId.current++)
+  if (keysRef.current.length > value.length) keysRef.current.length = value.length
+
+  function update(i: number, patch: Partial<ScheduleItem>) {
+    onChange(value.map((row, idx) => idx === i ? { ...row, ...patch } : row))
+  }
+  function remove(i: number) {
+    keysRef.current.splice(i, 1)
+    onChange(value.filter((_, idx) => idx !== i))
+  }
+  function move(i: number, dir: -1 | 1) {
+    const j = i + dir
+    if (j < 0 || j >= value.length) return
+    const next = [...value]
+    ;[next[i], next[j]] = [next[j], next[i]]
+    const k = keysRef.current
+    ;[k[i], k[j]] = [k[j], k[i]]
+    onChange(next)
+  }
+  function add() {
+    keysRef.current.push(nextId.current++)
+    onChange([...value, { time: '', title: '', detail: '' }])
+  }
+
+  return (
+    <div>
+      <div className={styles.speciesAddRow}>
+        <button type="button" className={styles.btnGhost} onClick={add}>+ Add row</button>
+        {value.length === 0 && (
+          <button type="button" className={styles.btnGhost} onClick={() => onChange(STANDARD_SCHEDULE)}>
+            Load standard timeline
+          </button>
+        )}
+      </div>
+
+      {value.length === 0 ? (
+        <p className={styles.muted}>No schedule yet. Add rows or load the standard timeline.</p>
+      ) : (
+        <ul className={styles.scheduleEditList}>
+          {value.map((row, i) => (
+            <li key={keysRef.current[i]} className={styles.scheduleEditRow}>
+              <input
+                className={styles.scheduleTimeInput}
+                placeholder="07:15"
+                value={row.time}
+                maxLength={20}
+                onChange={e => update(i, { time: e.target.value })}
+                aria-label="Time"
+              />
+              <div className={styles.scheduleTextCol}>
+                <input
+                  className={styles.input}
+                  placeholder="Title (e.g. Health & safety briefing)"
+                  value={row.title}
+                  maxLength={120}
+                  onChange={e => update(i, { title: e.target.value })}
+                  aria-label="Title"
+                />
+                <textarea
+                  className={styles.textarea}
+                  rows={2}
+                  placeholder="Detail (optional)"
+                  value={row.detail ?? ''}
+                  onChange={e => update(i, { detail: e.target.value || null })}
+                  aria-label="Detail"
+                />
+              </div>
+              <div className={styles.scheduleRowActions}>
+                <button type="button" className={styles.iconBtn} disabled={i === 0}
+                        onClick={() => move(i, -1)} aria-label="Move up">↑</button>
+                <button type="button" className={styles.iconBtn} disabled={i === value.length - 1}
+                        onClick={() => move(i, 1)} aria-label="Move down">↓</button>
+                <button type="button" className={styles.linkBtnDanger}
+                        onClick={() => remove(i)} aria-label="Remove row">✕</button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
 // ── Template tab ─────────────────────────────────────────────────────────────
 
 function TemplateTab({ comp, onChanged }: { comp: Competition; onChanged: () => void }) {
@@ -1658,9 +1875,13 @@ function TemplateTab({ comp, onChanged }: { comp: Competition; onChanged: () => 
       {/* ── Printable template ── */}
       <div className={styles.templateDoc} id="competition-template">
         <div className={styles.templateHeader}>
+          <p className={styles.templateKicker}>Spearfishing Competition · Information Sheet</p>
           <h1 className={styles.templateTitle}>{comp.name}</h1>
           <p className={styles.templateSub}>
-            Competition Information Sheet
+            {new Date(comp.competition_date).toLocaleDateString(undefined, {
+              weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+            })}
+            {comp.location_site ? ` · ${comp.location_site}` : ''}
           </p>
         </div>
 
@@ -1705,10 +1926,59 @@ function TemplateTab({ comp, onChanged }: { comp: Competition; onChanged: () => 
           </div>
         )}
 
-        {comp.boundaries_notes && (
+        {(comp.meeting_point_name || comp.meeting_point_notes
+          || (comp.meeting_point_lat != null && comp.meeting_point_lon != null)) && (
+          <div className={`${styles.templateSection} ${styles.templateMeet}`}>
+            <h2>📍 Where to meet</h2>
+            {comp.meeting_point_name && <p className={styles.templateMeetName}>{comp.meeting_point_name}</p>}
+            {comp.meeting_point_notes && <p className={styles.templatePre}>{comp.meeting_point_notes}</p>}
+            {comp.meeting_point_lat != null && comp.meeting_point_lon != null && (
+              <p className={styles.templateMapLink}>
+                Map: <a href={mapsLink(comp.meeting_point_lat, comp.meeting_point_lon)}
+                       target="_blank" rel="noopener noreferrer">
+                  {comp.meeting_point_lat.toFixed(4)}, {comp.meeting_point_lon.toFixed(4)}
+                </a>
+              </p>
+            )}
+          </div>
+        )}
+
+        {comp.schedule && comp.schedule.length > 0 && (
+          <div className={styles.templateSection}>
+            <h2>Schedule for the day</h2>
+            <ul className={styles.timeline}>
+              {comp.schedule.map((s, i) => (
+                <li key={i} className={styles.timelineItem}>
+                  <span className={styles.timelineTime}>{s.time}</span>
+                  <span className={styles.timelineBody}>
+                    <strong>{s.title}</strong>
+                    {s.detail && <span className={styles.timelineDetail}>{s.detail}</span>}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {comp.health_safety_notes && (
+          <div className={`${styles.templateSection} ${styles.templateSafety}`}>
+            <h2>⚠ Health &amp; safety</h2>
+            <p className={styles.templatePre}>{comp.health_safety_notes}</p>
+          </div>
+        )}
+
+        {(comp.boundaries_notes || (comp.location_lat != null && comp.location_lon != null)) && (
           <div className={styles.templateSection}>
             <h2>Competition area &amp; boundaries</h2>
-            <p className={styles.templatePre}>{comp.boundaries_notes}</p>
+            {comp.boundaries_notes && <p className={styles.templatePre}>{comp.boundaries_notes}</p>}
+            {comp.location_lat != null && comp.location_lon != null && (
+              <p className={styles.templateMapLink}>
+                Dive area: <a href={mapsLink(comp.location_lat, comp.location_lon)}
+                             target="_blank" rel="noopener noreferrer">
+                  {comp.location_lat.toFixed(4)}, {comp.location_lon.toFixed(4)}
+                </a>
+              </p>
+            )}
           </div>
         )}
 

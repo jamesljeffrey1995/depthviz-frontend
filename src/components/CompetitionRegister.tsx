@@ -37,6 +37,8 @@ function toOpen(m: MyCompetition): OpenCompetition {
     name: m.name,
     competition_date: m.competition_date,
     location_site: m.location_site,
+    location_lat: m.location_lat,
+    location_lon: m.location_lon,
     boundaries_notes: m.boundaries_notes,
     start_time: m.start_time,
     finish_time: m.finish_time,
@@ -44,7 +46,90 @@ function toOpen(m: MyCompetition): OpenCompetition {
     status: m.status,
     registration_open: m.registration_open,
     already_registered: m.already_registered,
+    meeting_point_name: m.meeting_point_name,
+    meeting_point_lat: m.meeting_point_lat,
+    meeting_point_lon: m.meeting_point_lon,
+    meeting_point_notes: m.meeting_point_notes,
+    health_safety_notes: m.health_safety_notes,
+    target_species: m.target_species,
+    schedule: m.schedule,
   }
+}
+
+/** OpenStreetMap link for a coordinate pair. */
+function osmLink(lat: number, lon: number): string {
+  return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=15/${lat}/${lon}`
+}
+
+/**
+ * Day-of detail shown to a diver on a competition's page: where to meet, the
+ * schedule, target species and the safety briefing. Mirrors the organiser's
+ * printable brief so competitors see the same plan.
+ */
+function CompDayInfo({ comp }: { comp: OpenCompetition }) {
+  const hasMeet = comp.meeting_point_name || comp.meeting_point_notes
+    || (comp.meeting_point_lat != null && comp.meeting_point_lon != null)
+  const hasSchedule = comp.schedule && comp.schedule.length > 0
+  const hasSpecies = comp.target_species && comp.target_species.length > 0
+  const hasSafety = !!comp.health_safety_notes
+  if (!hasMeet && !hasSchedule && !hasSpecies && !hasSafety) return null
+
+  return (
+    <div className={styles.dayInfo}>
+      {hasMeet && (
+        <section className={styles.meetCard}>
+          <h2 className={styles.infoHeading}>📍 Where to meet</h2>
+          {comp.meeting_point_name && <div className={styles.meetName}>{comp.meeting_point_name}</div>}
+          {comp.meeting_point_notes && <p className={styles.notes}>{comp.meeting_point_notes}</p>}
+          {comp.meeting_point_lat != null && comp.meeting_point_lon != null && (
+            <a className={styles.mapLink} href={osmLink(comp.meeting_point_lat, comp.meeting_point_lon)}
+               target="_blank" rel="noopener noreferrer">
+              Open in map ↗
+            </a>
+          )}
+        </section>
+      )}
+
+      {hasSchedule && (
+        <section>
+          <h2 className={styles.infoHeading}>Schedule</h2>
+          <ul className={styles.timeline}>
+            {comp.schedule.map((s, i) => (
+              <li key={i} className={styles.timelineItem}>
+                <span className={styles.timelineTime}>{s.time}</span>
+                <span className={styles.timelineBody}>
+                  <strong>{s.title}</strong>
+                  {s.detail && <span className={styles.timelineDetail}>{s.detail}</span>}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {hasSpecies && (
+        <section>
+          <h2 className={styles.infoHeading}>Target species</h2>
+          <ul className={styles.speciesList}>
+            {comp.target_species.map(s => (
+              <li key={s.species}>
+                <strong>{s.species}</strong>
+                {s.min_weight_g != null ? ` · min ${s.min_weight_g} g` : ''}
+                {s.notes ? ` — ${s.notes}` : ''}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {hasSafety && (
+        <section className={styles.safetyCard}>
+          <h2 className={styles.infoHeading}>⚠ Health &amp; safety</h2>
+          <p className={styles.notes}>{comp.health_safety_notes}</p>
+        </section>
+      )}
+    </div>
+  )
 }
 
 // The diver's own live water status on competition day. Read-only — an admin
@@ -296,6 +381,8 @@ export function CompetitionRegister() {
       <div className={styles.muted}>{fmtDate(selected.competition_date)}</div>
       {selected.location_site && <div className={styles.muted}>{selected.location_site}</div>}
       {selected.boundaries_notes && <p className={styles.notes}>{selected.boundaries_notes}</p>}
+
+      <CompDayInfo comp={selected} />
 
       {error && <div className={styles.error}>{error}</div>}
       {notice && <div className={styles.notice}>{notice}</div>}
