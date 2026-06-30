@@ -17,6 +17,7 @@ import type {
   FishEntry, FishEntryInput, CompetitionIncident, IncidentType,
   ScoringRule, CompetitionResults,
   NotificationStatus, TestAlertResult,
+  TargetSpecies,
 } from '../types'
 import styles from './CompetitionAdmin.module.css'
 
@@ -24,7 +25,7 @@ interface Props {
   isAdmin: boolean
 }
 
-type Tab = 'overview' | 'competitors' | 'teams' | 'board' | 'weighin' | 'results' | 'incidents'
+type Tab = 'overview' | 'competitors' | 'teams' | 'board' | 'weighin' | 'results' | 'incidents' | 'template'
 
 const STATUS_LABELS: Record<CompetitorStatus, string> = {
   not_arrived: 'Not arrived',
@@ -158,6 +159,7 @@ export function CompetitionAdmin({ isAdmin }: Props) {
               ['results', 'Results'],
               ['incidents', 'Incidents'],
               ['overview', 'Setup'],
+              ['template', 'Template'],
             ] as [Tab, string][]).map(([t, label]) => (
               <button
                 key={t}
@@ -177,6 +179,7 @@ export function CompetitionAdmin({ isAdmin }: Props) {
           {tab === 'weighin' && <WeighInTab cid={selected.id} />}
           {tab === 'results' && <ResultsTab cid={selected.id} />}
           {tab === 'incidents' && <IncidentsTab cid={selected.id} />}
+          {tab === 'template' && <TemplateTab comp={selected} onChanged={load} />}
         </>
       ) : null}
     </div>
@@ -191,6 +194,10 @@ const EMPTY_COMP: CompetitionInput = {
   weigh_in_start: '', status: 'draft', visibility: 'admin',
   overdue_grace_minutes: 30, alert_slack_enabled: true, alert_email_enabled: true,
   alert_emails: '',
+  organiser_name: '', organiser_phone: '', organiser_email: '',
+  emergency_contact_name: '', emergency_contact_phone: '',
+  additional_rules: '', entry_fee: '', prize_info: '',
+  target_species: [],
 }
 
 function CompetitionForm({
@@ -218,6 +225,15 @@ function CompetitionForm({
           alert_slack_enabled: initial.alert_slack_enabled,
           alert_email_enabled: initial.alert_email_enabled,
           alert_emails: initial.alert_emails ?? '',
+          organiser_name: initial.organiser_name ?? '',
+          organiser_phone: initial.organiser_phone ?? '',
+          organiser_email: initial.organiser_email ?? '',
+          emergency_contact_name: initial.emergency_contact_name ?? '',
+          emergency_contact_phone: initial.emergency_contact_phone ?? '',
+          additional_rules: initial.additional_rules ?? '',
+          entry_fee: initial.entry_fee ?? '',
+          prize_info: initial.prize_info ?? '',
+          target_species: initial.target_species ?? [],
         }
       : EMPTY_COMP,
   )
@@ -247,6 +263,15 @@ function CompetitionForm({
       sign_in_deadline: draft.sign_in_deadline || null,
       weigh_in_start: draft.weigh_in_start || null,
       alert_emails: (draft.alert_emails ?? '').trim() || null,
+      organiser_name: (draft.organiser_name ?? '').trim() || null,
+      organiser_phone: (draft.organiser_phone ?? '').trim() || null,
+      organiser_email: (draft.organiser_email ?? '').trim() || null,
+      emergency_contact_name: (draft.emergency_contact_name ?? '').trim() || null,
+      emergency_contact_phone: (draft.emergency_contact_phone ?? '').trim() || null,
+      additional_rules: (draft.additional_rules ?? '').trim() || null,
+      entry_fee: (draft.entry_fee ?? '').trim() || null,
+      prize_info: (draft.prize_info ?? '').trim() || null,
+      target_species: draft.target_species ?? [],
     }
     try {
       const saved = initial
@@ -353,6 +378,58 @@ function CompetitionForm({
         <textarea className={styles.textarea} rows={3} value={draft.boundaries_notes ?? ''}
                   onChange={e => set('boundaries_notes', e.target.value)} />
       </label>
+
+      <h3 className={styles.sectionHeading}>Organiser contact</h3>
+      <label className={styles.field}>
+        <span>Organiser name</span>
+        <input className={styles.input} value={draft.organiser_name ?? ''} maxLength={200}
+               placeholder="e.g. Northumbria Spearo Club"
+               onChange={e => set('organiser_name', e.target.value)} />
+      </label>
+      <label className={styles.field}>
+        <span>Organiser phone</span>
+        <input className={styles.input} value={draft.organiser_phone ?? ''} maxLength={40}
+               placeholder="+44 7xxx xxxxxx"
+               onChange={e => set('organiser_phone', e.target.value)} />
+      </label>
+      <label className={styles.field}>
+        <span>Organiser email</span>
+        <input className={styles.input} type="email" value={draft.organiser_email ?? ''} maxLength={200}
+               onChange={e => set('organiser_email', e.target.value)} />
+      </label>
+      <label className={styles.field}>
+        <span>Emergency contact name</span>
+        <input className={styles.input} value={draft.emergency_contact_name ?? ''} maxLength={200}
+               onChange={e => set('emergency_contact_name', e.target.value)} />
+      </label>
+      <label className={styles.field}>
+        <span>Emergency contact phone</span>
+        <input className={styles.input} value={draft.emergency_contact_phone ?? ''} maxLength={40}
+               onChange={e => set('emergency_contact_phone', e.target.value)} />
+      </label>
+
+      <h3 className={styles.sectionHeading}>Entry &amp; prizes</h3>
+      <label className={styles.field}>
+        <span>Entry fee</span>
+        <input className={styles.input} value={draft.entry_fee ?? ''} maxLength={200}
+               placeholder="e.g. £20 per person"
+               onChange={e => set('entry_fee', e.target.value)} />
+      </label>
+      <label className={`${styles.field} ${styles.fieldFull}`}>
+        <span>Prize information</span>
+        <textarea className={styles.textarea} rows={3} value={draft.prize_info ?? ''}
+                  placeholder="e.g. 1st – £100 + trophy, 2nd – £50, Biggest fish – £25"
+                  onChange={e => set('prize_info', e.target.value)} />
+      </label>
+
+      <h3 className={styles.sectionHeading}>Additional rules</h3>
+      <label className={`${styles.field} ${styles.fieldFull}`}>
+        <span>Additional rules / notes</span>
+        <textarea className={styles.textarea} rows={4} value={draft.additional_rules ?? ''}
+                  placeholder="Any rules beyond the standard boundaries — minimum sizes, bag limits, prohibited areas, safety requirements, etc."
+                  onChange={e => set('additional_rules', e.target.value)} />
+      </label>
+
       <div className={styles.formActions}>
         <button className={styles.btnGhost} onClick={onCancel} disabled={saving}>Cancel</button>
         <button className={styles.btnPrimary} onClick={save} disabled={saving}>
@@ -1389,6 +1466,310 @@ function IncidentsTab({ cid }: { cid: number }) {
           ))}
         </ul>
       )}
+    </div>
+  )
+}
+
+// ── Target species inline editor ─────────────────────────────────────────────
+
+const DEFAULT_SPECIES = [
+  'Pollock', 'Bass', 'Cod', 'Coalfish', 'Ballan wrasse',
+  'Plaice', 'Flounder', 'Dab',
+]
+
+function TargetSpeciesEditor({
+  value,
+  onChange,
+}: {
+  value: TargetSpecies[]
+  onChange: (v: TargetSpecies[]) => void
+}) {
+  const [newSpecies, setNewSpecies] = useState('')
+  const [customSpecies, setCustomSpecies] = useState('')
+
+  function add(species: string) {
+    const s = species.trim()
+    if (!s || value.some(x => x.species === s)) return
+    onChange([...value, { species: s, min_weight_g: null, notes: null }])
+    setNewSpecies('')
+    setCustomSpecies('')
+  }
+
+  function remove(species: string) {
+    onChange(value.filter(x => x.species !== species))
+  }
+
+  function update(species: string, patch: Partial<TargetSpecies>) {
+    onChange(value.map(x => x.species === species ? { ...x, ...patch } : x))
+  }
+
+  const available = DEFAULT_SPECIES.filter(s => !value.some(x => x.species === s))
+
+  return (
+    <div>
+      <div className={styles.speciesAddRow}>
+        <select className={styles.input} value={newSpecies}
+                onChange={e => { if (e.target.value) { add(e.target.value); setNewSpecies('') } }}>
+          <option value="">+ Add species…</option>
+          {available.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <input className={styles.input} placeholder="Or type custom species"
+               value={customSpecies} onChange={e => setCustomSpecies(e.target.value)}
+               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add(customSpecies) } }} />
+        <button className={styles.btnGhost} onClick={() => add(customSpecies)} type="button">Add</button>
+      </div>
+
+      {value.length > 0 && (
+        <table className={styles.speciesTable}>
+          <thead>
+            <tr>
+              <th>Species</th>
+              <th>Min. weight (g)</th>
+              <th>Notes</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {value.map(row => (
+              <tr key={row.species}>
+                <td><strong>{row.species}</strong></td>
+                <td>
+                  <input className={styles.inputSm}
+                         type="number" min={0} step={1}
+                         value={row.min_weight_g ?? ''}
+                         placeholder="—"
+                         onChange={e => update(row.species, {
+                           min_weight_g: e.target.value ? Number(e.target.value) : null,
+                         })} />
+                </td>
+                <td>
+                  <input className={styles.inputSm}
+                         value={row.notes ?? ''}
+                         placeholder="e.g. must be released under 36 cm"
+                         onChange={e => update(row.species, {
+                           notes: e.target.value || null,
+                         })} />
+                </td>
+                <td>
+                  <button className={styles.linkBtn} onClick={() => remove(row.species)} type="button">
+                    Remove
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  )
+}
+
+// ── Template tab ─────────────────────────────────────────────────────────────
+
+function TemplateTab({ comp, onChanged }: { comp: Competition; onChanged: () => void }) {
+  const [rule, setRule] = useState<ScoringRule | null>(null)
+  const [editingSpecies, setEditingSpecies] = useState(false)
+  const [speciesDraft, setSpeciesDraft] = useState<TargetSpecies[]>(comp.target_species ?? [])
+  const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState('')
+
+  useEffect(() => {
+    getScoringRule(comp.id).then(setRule).catch(() => setRule(null))
+  }, [comp.id])
+
+  async function saveSpecies() {
+    setSaving(true); setErr('')
+    try {
+      await updateCompetition(comp.id, { target_species: speciesDraft })
+      setEditingSpecies(false)
+      onChanged()
+    } catch (e) {
+      setErr(errMsg(e))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function handlePrint() {
+    window.print()
+  }
+
+  const bonusEntries = rule ? Object.entries(rule.species_bonus) : []
+
+  return (
+    <div className={styles.templateWrap}>
+      <div className={styles.templateActions}>
+        <h2 className={styles.cardTitle}>Organiser template</h2>
+        <button className={styles.btnPrimary} onClick={handlePrint}>Print / Save PDF</button>
+      </div>
+      <p className={styles.muted}>
+        Fill in the competition details in the <strong>Setup</strong> tab, configure scoring in{' '}
+        <strong>Weigh-in</strong>, then use this tab to add target species and print the document.
+        Use your browser's <em>Print → Save as PDF</em> to generate a shareable PDF.
+      </p>
+
+      {err && <p className={styles.error} role="alert">{err}</p>}
+
+      {/* ── Target species editor ── */}
+      <div className={styles.card}>
+        <div className={styles.detailRow}>
+          <strong>Target species</strong>
+          {!editingSpecies && (
+            <button className={styles.linkBtn} onClick={() => { setSpeciesDraft(comp.target_species ?? []); setEditingSpecies(true) }}>
+              Edit
+            </button>
+          )}
+        </div>
+        {editingSpecies ? (
+          <>
+            <TargetSpeciesEditor value={speciesDraft} onChange={setSpeciesDraft} />
+            <div className={styles.formActions}>
+              <button className={styles.btnGhost} onClick={() => setEditingSpecies(false)} disabled={saving}>Cancel</button>
+              <button className={styles.btnPrimary} onClick={saveSpecies} disabled={saving}>
+                {saving ? 'Saving…' : 'Save species'}
+              </button>
+            </div>
+          </>
+        ) : (
+          comp.target_species && comp.target_species.length > 0 ? (
+            <table className={styles.speciesTable}>
+              <thead><tr><th>Species</th><th>Min. weight</th><th>Notes</th></tr></thead>
+              <tbody>
+                {comp.target_species.map(s => (
+                  <tr key={s.species}>
+                    <td>{s.species}</td>
+                    <td>{s.min_weight_g ? `${s.min_weight_g} g` : '—'}</td>
+                    <td>{s.notes ?? '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className={styles.muted}>No target species set. Click Edit to add species.</p>
+          )
+        )}
+      </div>
+
+      {/* ── Printable template ── */}
+      <div className={styles.templateDoc} id="competition-template">
+        <div className={styles.templateHeader}>
+          <h1 className={styles.templateTitle}>{comp.name}</h1>
+          <p className={styles.templateSub}>
+            Competition Information Sheet
+          </p>
+        </div>
+
+        <div className={styles.templateSection}>
+          <h2>Event details</h2>
+          <table className={styles.templateTable}>
+            <tbody>
+              <tr><td>Date</td><td><strong>{comp.competition_date}</strong>{comp.backup_date ? ` (backup: ${comp.backup_date})` : ''}</td></tr>
+              {comp.location_site && <tr><td>Location</td><td><strong>{comp.location_site}</strong></td></tr>}
+              {comp.start_time && <tr><td>Competition start</td><td><strong>{comp.start_time}</strong></td></tr>}
+              {comp.finish_time && <tr><td>All divers return by</td><td><strong>{comp.finish_time}</strong></td></tr>}
+              {comp.sign_in_deadline && <tr><td>Sign-in deadline</td><td><strong>{comp.sign_in_deadline}</strong></td></tr>}
+              {comp.weigh_in_start && <tr><td>Weigh-in opens</td><td><strong>{comp.weigh_in_start}</strong></td></tr>}
+              {comp.entry_fee && <tr><td>Entry fee</td><td><strong>{comp.entry_fee}</strong></td></tr>}
+            </tbody>
+          </table>
+        </div>
+
+        {(comp.organiser_name || comp.organiser_phone || comp.organiser_email) && (
+          <div className={styles.templateSection}>
+            <h2>Organiser contact</h2>
+            <table className={styles.templateTable}>
+              <tbody>
+                {comp.organiser_name && <tr><td>Name</td><td>{comp.organiser_name}</td></tr>}
+                {comp.organiser_phone && <tr><td>Phone</td><td>{comp.organiser_phone}</td></tr>}
+                {comp.organiser_email && <tr><td>Email</td><td>{comp.organiser_email}</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {(comp.emergency_contact_name || comp.emergency_contact_phone) && (
+          <div className={`${styles.templateSection} ${styles.templateEmergency}`}>
+            <h2>⚠ Emergency contact</h2>
+            <p>If a diver does not return by the deadline, call immediately:</p>
+            <table className={styles.templateTable}>
+              <tbody>
+                {comp.emergency_contact_name && <tr><td>Name</td><td><strong>{comp.emergency_contact_name}</strong></td></tr>}
+                {comp.emergency_contact_phone && <tr><td>Phone</td><td><strong>{comp.emergency_contact_phone}</strong></td></tr>}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {comp.boundaries_notes && (
+          <div className={styles.templateSection}>
+            <h2>Competition area &amp; boundaries</h2>
+            <p className={styles.templatePre}>{comp.boundaries_notes}</p>
+          </div>
+        )}
+
+        {comp.target_species && comp.target_species.length > 0 && (
+          <div className={styles.templateSection}>
+            <h2>Target species</h2>
+            <table className={styles.templateTable}>
+              <thead>
+                <tr><th>Species</th><th>Min. weight</th><th>Notes</th></tr>
+              </thead>
+              <tbody>
+                {comp.target_species.map(s => (
+                  <tr key={s.species}>
+                    <td>{s.species}</td>
+                    <td>{s.min_weight_g ? `${s.min_weight_g} g (${(s.min_weight_g / 1000).toFixed(2)} kg)` : 'No minimum'}</td>
+                    <td>{s.notes ?? ''}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {rule && (
+          <div className={styles.templateSection}>
+            <h2>Scoring</h2>
+            <table className={styles.templateTable}>
+              <tbody>
+                <tr><td>Points per gram</td><td>{rule.points_per_gram}</td></tr>
+                <tr><td>Team scoring</td><td>{rule.use_team_scoring ? 'Yes' : 'No'}</td></tr>
+              </tbody>
+            </table>
+            {bonusEntries.length > 0 && (
+              <>
+                <h3>Species bonuses (flat additional points)</h3>
+                <table className={styles.templateTable}>
+                  <thead><tr><th>Species</th><th>Bonus points</th></tr></thead>
+                  <tbody>
+                    {bonusEntries.map(([species, pts]) => (
+                      <tr key={species}><td>{species}</td><td>+{pts}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            )}
+          </div>
+        )}
+
+        {comp.prize_info && (
+          <div className={styles.templateSection}>
+            <h2>Prizes</h2>
+            <p className={styles.templatePre}>{comp.prize_info}</p>
+          </div>
+        )}
+
+        {comp.additional_rules && (
+          <div className={styles.templateSection}>
+            <h2>Additional rules</h2>
+            <p className={styles.templatePre}>{comp.additional_rules}</p>
+          </div>
+        )}
+
+        <div className={styles.templateFooter}>
+          <p>Generated by DepthViz · {new Date().toLocaleDateString()}</p>
+        </div>
+      </div>
     </div>
   )
 }

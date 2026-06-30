@@ -404,3 +404,142 @@
 
 /* Per-fish weight/length fields */
 .weighFields { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-sm); }
+
+/* ── Competition organiser template ── */
+.sectionHeading {
+  font-family: var(--font-display);
+  font-size: 18px;
+  letter-spacing: 0.04em;
+  color: var(--text-bright);
+  margin: var(--space-md) 0 var(--space-xs);
+}
+.fieldFull { grid-column: 1 / -1; }
+.speciesAddRow {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: var(--space-sm);
+}
+.speciesTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.speciesTable th, .speciesTable td {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(0, 201, 255, 0.1);
+  color: var(--text);
+}
+.speciesTable th {
+  color: var(--text-bright);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.inputSm {
+  background: var(--ocean-deep);
+  border: 1px solid rgba(0, 201, 255, 0.2);
+  border-radius: var(--radius-md);
+  color: var(--text-bright);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  padding: 6px 10px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 36px;
+}
+.templateWrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+.templateActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+.templateDoc {
+  background: #fff;
+  color: #111;
+  padding: 40px;
+  border-radius: var(--radius-md);
+  line-height: 1.6;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 14px;
+}
+@media print {
+  .templateDoc { padding: 0; box-shadow: none; }
+}
+.templateHeader {
+  border-bottom: 3px solid #111;
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+.templateTitle {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: #111;
+}
+.templateSub {
+  font-size: 14px;
+  color: #444;
+  margin: 0;
+}
+.templateSection { margin-bottom: 24px; }
+.templateSection h2 {
+  font-size: 16px;
+  font-weight: 700;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 4px;
+  margin: 0 0 10px;
+  color: #111;
+}
+.templateSection h3 {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 12px 0 6px;
+  color: #111;
+}
+.templateTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.templateTable th, .templateTable td {
+  text-align: left;
+  padding: 5px 8px;
+  border-bottom: 1px solid #ddd;
+  color: #222;
+}
+.templateTable th {
+  font-weight: 700;
+  background: #f5f5f5;
+}
+.templateEmergency {
+  background: #fff3cd;
+  border: 2px solid #f0ad4e;
+  border-radius: 6px;
+  padding: 12px 16px;
+}
+.templateEmergency h2 {
+  color: #8a5700;
+  border-color: #f0ad4e;
+}
+.templateFooter {
+  border-top: 1px solid #ccc;
+  padding-top: 12px;
+  margin-top: 24px;
+  font-size: 11px;
+  color: #888;
+}
+.templatePre {
+  white-space: pre-wrap;
+  font-family: inherit;
+  margin: 0;
+  color: #222;
+}
