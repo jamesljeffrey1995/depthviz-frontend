@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.8.1...v1.9.0) (2026-06-30)
+
+
+### Features
+
+* **weekly:** show wind direction arrow and gusts on week page ([9953784](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/99537840f8dde70199a288f20e130b5f780880fc))
+
 ## [1.8.1](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.8.0...v1.8.1) (2026-06-30)
 
 
