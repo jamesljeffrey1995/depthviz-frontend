@@ -61,6 +61,12 @@ function osmLink(lat: number, lon: number): string {
   return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=15/${lat}/${lon}`
 }
 
+/** Split free-text safety notes into bullet lines, one per non-blank line
+ *  (handles both LF and CRLF line endings). */
+function safetyLines(notes: string | null | undefined): string[] {
+  return (notes ?? '').split(/\r?\n/).map(l => l.trim()).filter(Boolean)
+}
+
 /**
  * Day-of detail shown to a diver on a competition's page: where to meet, the
  * schedule, target species and the safety briefing. Mirrors the organiser's
@@ -71,7 +77,8 @@ function CompDayInfo({ comp }: { comp: OpenCompetition }) {
     || (comp.meeting_point_lat != null && comp.meeting_point_lon != null)
   const hasSchedule = comp.schedule && comp.schedule.length > 0
   const hasSpecies = comp.target_species && comp.target_species.length > 0
-  const hasSafety = !!comp.health_safety_notes
+  const safety = safetyLines(comp.health_safety_notes)
+  const hasSafety = safety.length > 0
   if (!hasMeet && !hasSchedule && !hasSpecies && !hasSafety) return null
 
   return (
@@ -126,7 +133,7 @@ function CompDayInfo({ comp }: { comp: OpenCompetition }) {
         <section className={styles.safetyCard}>
           <h2 className={styles.infoHeading}>⚠ Health &amp; safety</h2>
           <ul className={styles.safetyList}>
-            {comp.health_safety_notes!.split('\n').map(l => l.trim()).filter(Boolean).map((line, i) => (
+            {safety.map((line, i) => (
               <li key={i}>{line}</li>
             ))}
           </ul>

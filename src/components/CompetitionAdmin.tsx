@@ -79,6 +79,12 @@ function errMsg(e: unknown): string {
   return e instanceof Error ? e.message : 'Something went wrong'
 }
 
+/** Split free-text safety notes into bullet lines, one per non-blank line
+ *  (handles both LF and CRLF line endings). */
+function safetyLines(notes: string | null | undefined): string[] {
+  return (notes ?? '').split(/\r?\n/).map(l => l.trim()).filter(Boolean)
+}
+
 function fmtTime(iso: string | null): string {
   if (!iso) return '—'
   return new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
@@ -496,7 +502,7 @@ function CompetitionForm({
         <textarea className={styles.textarea} rows={6} value={draft.health_safety_notes ?? ''}
                   placeholder={'One rule per line — each line shows as a bullet point.\nBuddy rules, floats, swim-only, sign-in/out accountability, legal restrictions, etc.'}
                   onChange={e => set('health_safety_notes', e.target.value)} />
-        <span className={styles.fieldHint}>Write one rule per line — each line becomes a bullet point on the brief.</span>
+        <span className={styles.fieldHint}>Write one rule per line — each line becomes a bullet point on the brief and the public competition page.</span>
       </label>
 
       <h3 className={styles.sectionHeading}>Organiser contact</h3>
@@ -1961,11 +1967,11 @@ function TemplateTab({ comp, onChanged }: { comp: Competition; onChanged: () => 
           </div>
         )}
 
-        {comp.health_safety_notes && (
+        {safetyLines(comp.health_safety_notes).length > 0 && (
           <div className={`${styles.templateSection} ${styles.templateSafety}`}>
             <h2>⚠ Health &amp; safety</h2>
             <ul className={styles.safetyList}>
-              {comp.health_safety_notes.split('\n').map(l => l.trim()).filter(Boolean).map((line, i) => (
+              {safetyLines(comp.health_safety_notes).map((line, i) => (
                 <li key={i}>{line}</li>
               ))}
             </ul>
