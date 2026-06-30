@@ -1535,12 +1535,17 @@ function TargetSpeciesEditor({
                 <td><strong>{row.species}</strong></td>
                 <td>
                   <input className={styles.inputSm}
-                         type="number" min={0} step={1}
+                         type="number" min={1} step={1}
                          value={row.min_weight_g ?? ''}
                          placeholder="—"
-                         onChange={e => update(row.species, {
-                           min_weight_g: e.target.value ? Number(e.target.value) : null,
-                         })} />
+                         onChange={e => {
+                           // A 0/blank/negative minimum means "no minimum"; store null
+                           // so the saved value matches what the views render.
+                           const n = Number(e.target.value)
+                           update(row.species, {
+                             min_weight_g: e.target.value && n > 0 ? n : null,
+                           })
+                         }} />
                 </td>
                 <td>
                   <input className={styles.inputSm}
@@ -1638,7 +1643,7 @@ function TemplateTab({ comp, onChanged }: { comp: Competition; onChanged: () => 
                 {comp.target_species.map(s => (
                   <tr key={s.species}>
                     <td>{s.species}</td>
-                    <td>{s.min_weight_g ? `${s.min_weight_g} g` : '—'}</td>
+                    <td>{s.min_weight_g != null ? `${s.min_weight_g} g` : '—'}</td>
                     <td>{s.notes ?? '—'}</td>
                   </tr>
                 ))}
@@ -1718,7 +1723,7 @@ function TemplateTab({ comp, onChanged }: { comp: Competition; onChanged: () => 
                 {comp.target_species.map(s => (
                   <tr key={s.species}>
                     <td>{s.species}</td>
-                    <td>{s.min_weight_g ? `${s.min_weight_g} g (${(s.min_weight_g / 1000).toFixed(2)} kg)` : 'No minimum'}</td>
+                    <td>{s.min_weight_g != null ? `${s.min_weight_g} g (${(s.min_weight_g / 1000).toFixed(2)} kg)` : 'No minimum'}</td>
                     <td>{s.notes ?? ''}</td>
                   </tr>
                 ))}

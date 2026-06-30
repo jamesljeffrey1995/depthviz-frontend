@@ -472,7 +472,19 @@
   font-size: 14px;
 }
 @media print {
-  .templateDoc { padding: 0; box-shadow: none; }
+  /* Print only the competition brief. window.print() would otherwise paper the
+     printout with the app chrome, the tab's instructions and the admin species
+     editor, so hide everything and surface just .templateDoc. */
+  body * { visibility: hidden; }
+  .templateDoc, .templateDoc * { visibility: visible; }
+  .templateDoc {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0;
+    box-shadow: none;
+  }
 }
 .templateHeader {
   border-bottom: 3px solid #111;
