@@ -89,7 +89,7 @@ export const WeeklyOverview = memo(function WeeklyOverview({ days, locationName,
                   <span className={styles.metricLabel}>Wave</span>
                   <span className={styles.metricVal}>{day.wave_height.toFixed(1)}{units}</span>
                 </div>
-                <div className={styles.windRow} title={windDesc} aria-label={`Wind ${windDesc}`}>
+                <div className={styles.windRow} title={windDesc}>
                   <span className={styles.metricLabel}>Wind</span>
                   <span className={styles.windVal}>
                     <WindArrow dir={day.wind_dir} size={12} title={`Wind from ${day.wind_dir_label}`} />
