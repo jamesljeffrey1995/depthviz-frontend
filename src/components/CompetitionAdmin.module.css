@@ -138,6 +138,7 @@
 }
 .field { display: flex; flex-direction: column; gap: 4px; }
 .field > span { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text); opacity: 0.7; }
+.field > span.fieldHint { text-transform: none; letter-spacing: 0; font-size: 11px; opacity: 0.6; }
 .formActions { display: flex; justify-content: flex-end; gap: var(--space-sm); flex-wrap: wrap; }
 .checkRow { display: flex; gap: var(--space-md); flex-wrap: wrap; }
 .checkInline { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text); }
@@ -619,6 +620,15 @@
   color: #a52f22;
   border-color: #e0a3a3;
 }
+.safetyList {
+  margin: 0;
+  padding-left: 20px;
+  color: #222;
+}
+.safetyList li {
+  margin: 4px 0;
+  line-height: 1.5;
+}
 
 /* Day-of schedule timeline (printable) */
 .timeline {
@@ -664,40 +674,48 @@
   flex-direction: column;
   gap: var(--space-sm);
 }
+/* Each row stacks vertically so the title and detail always get the full
+   width of the card — no more cramped columns that wrap text one letter at a
+   time on narrow phones. Time + reorder/remove controls share a compact top
+   row; the title input and detail textarea sit full-width beneath them. */
 .scheduleEditRow {
   display: flex;
-  gap: var(--space-sm);
-  align-items: flex-start;
+  flex-direction: column;
+  gap: var(--space-xs);
   background: var(--ocean-deep, rgba(4, 30, 46, 0.4));
   border: 1px solid rgba(0, 201, 255, 0.12);
   border-radius: var(--radius-md);
   padding: var(--space-sm);
 }
+.scheduleRowTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
 .scheduleTimeInput {
-  flex: 0 0 84px;
+  flex: 0 0 110px;
   background: var(--ocean-deep);
   border: 1px solid rgba(0, 201, 255, 0.2);
   border-radius: var(--radius-md);
   color: var(--text-bright);
   font-family: var(--font-mono, monospace);
-  font-size: 14px;
+  font-size: 16px;
   padding: 8px 10px;
   box-sizing: border-box;
-  min-height: 38px;
-}
-.scheduleTextCol {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-  min-width: 0;
+  min-height: 40px;
 }
 .scheduleRowActions {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-direction: row;
+  gap: 6px;
   align-items: center;
 }
+.iconBtn[data-danger] {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.iconBtn[data-danger]:not(:disabled):hover { background: rgba(192, 57, 43, 0.14); }
 .iconBtn {
   background: transparent;
   border: 1px solid rgba(0, 201, 255, 0.25);
