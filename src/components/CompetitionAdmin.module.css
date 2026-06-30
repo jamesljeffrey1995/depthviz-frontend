@@ -465,11 +465,14 @@
 .templateDoc {
   background: #fff;
   color: #111;
-  padding: 40px;
+  padding: 44px 48px;
   border-radius: var(--radius-md);
   line-height: 1.6;
   font-family: Georgia, 'Times New Roman', serif;
   font-size: 14px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  max-width: 820px;
+  margin: 0 auto;
 }
 @media print {
   /* Print only the competition brief. window.print() would otherwise paper the
@@ -482,34 +485,56 @@
     left: 0;
     top: 0;
     width: 100%;
+    max-width: none;
+    margin: 0;
     padding: 0;
     box-shadow: none;
   }
+  /* Keep the header band, safety boxes and timeline rules in the printout. */
+  .templateDoc, .templateHeader, .templateMeet, .templateSafety,
+  .templateEmergency, .timelineTime {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .templateSection { page-break-inside: avoid; }
 }
 .templateHeader {
-  border-bottom: 3px solid #111;
-  padding-bottom: 16px;
-  margin-bottom: 24px;
+  border-bottom: 4px solid #0a3d62;
+  padding: 18px 20px;
+  margin: -8px -8px 28px;
+  background: linear-gradient(135deg, #0a3d62 0%, #0c6f9e 100%);
+  border-radius: 8px 8px 0 0;
+  color: #fff;
+}
+.templateKicker {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin: 0 0 6px;
+  opacity: 0.85;
 }
 .templateTitle {
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 700;
   margin: 0 0 4px;
-  color: #111;
+  color: #fff;
+  line-height: 1.15;
 }
 .templateSub {
   font-size: 14px;
-  color: #444;
+  color: rgba(255, 255, 255, 0.92);
   margin: 0;
 }
-.templateSection { margin-bottom: 24px; }
+.templateSection { margin-bottom: 26px; }
 .templateSection h2 {
   font-size: 16px;
   font-weight: 700;
-  border-bottom: 1px solid #ccc;
-  padding-bottom: 4px;
-  margin: 0 0 10px;
-  color: #111;
+  border-bottom: 2px solid #0c6f9e;
+  padding-bottom: 5px;
+  margin: 0 0 12px;
+  color: #0a3d62;
+  letter-spacing: 0.01em;
 }
 .templateSection h3 {
   font-size: 14px;
@@ -555,3 +580,134 @@
   margin: 0;
   color: #222;
 }
+
+/* Where-to-meet callout */
+.templateMeet {
+  background: #eaf6fb;
+  border: 1px solid #b9def0;
+  border-left: 5px solid #0c6f9e;
+  border-radius: 6px;
+  padding: 14px 18px;
+}
+.templateMeet h2 {
+  border: none;
+  margin-bottom: 6px;
+  padding-bottom: 0;
+}
+.templateMeetName {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: #0a3d62;
+}
+.templateMapLink {
+  margin: 8px 0 0;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12px;
+}
+.templateMapLink a { color: #0c6f9e; }
+
+/* Health & safety callout */
+.templateSafety {
+  background: #fff6f6;
+  border: 1px solid #f3c2c2;
+  border-left: 5px solid #c0392b;
+  border-radius: 6px;
+  padding: 14px 18px;
+}
+.templateSafety h2 {
+  color: #a52f22;
+  border-color: #e0a3a3;
+}
+
+/* Day-of schedule timeline (printable) */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.timelineItem {
+  display: flex;
+  gap: 14px;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+  align-items: baseline;
+}
+.timelineItem:last-child { border-bottom: none; }
+.timelineTime {
+  flex: 0 0 64px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: #0a3d62;
+  background: #eaf6fb;
+  border-radius: 4px;
+  padding: 3px 8px;
+  text-align: center;
+}
+.timelineBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.timelineDetail {
+  font-size: 13px;
+  color: #444;
+}
+
+/* ── Schedule editor (admin form) ── */
+.scheduleEditList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+.scheduleEditRow {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: flex-start;
+  background: var(--ocean-deep, rgba(4, 30, 46, 0.4));
+  border: 1px solid rgba(0, 201, 255, 0.12);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm);
+}
+.scheduleTimeInput {
+  flex: 0 0 84px;
+  background: var(--ocean-deep);
+  border: 1px solid rgba(0, 201, 255, 0.2);
+  border-radius: var(--radius-md);
+  color: var(--text-bright);
+  font-family: var(--font-mono, monospace);
+  font-size: 14px;
+  padding: 8px 10px;
+  box-sizing: border-box;
+  min-height: 38px;
+}
+.scheduleTextCol {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+.scheduleRowActions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+.iconBtn {
+  background: transparent;
+  border: 1px solid rgba(0, 201, 255, 0.25);
+  color: var(--text-bright);
+  border-radius: var(--radius-md);
+  width: 30px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+}
+.iconBtn:disabled { opacity: 0.35; cursor: default; }
+.iconBtn:not(:disabled):hover { background: rgba(0, 201, 255, 0.12); }

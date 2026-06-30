@@ -830,12 +830,21 @@ export interface TargetSpecies {
   notes?: string | null
 }
 
+/** A single row in a competition's day-of schedule / itinerary. */
+export interface ScheduleItem {
+  time: string        // e.g. "07:15" or "07:15 AM"
+  title: string       // e.g. "Competitors arrive"
+  detail?: string | null
+}
+
 export interface Competition {
   id: number
   name: string
   competition_date: string
   backup_date: string | null
   location_site: string | null
+  location_lat: number | null
+  location_lon: number | null
   boundaries_notes: string | null
   start_time: string | null
   finish_time: string | null
@@ -855,7 +864,13 @@ export interface Competition {
   additional_rules: string | null
   entry_fee: string | null
   prize_info: string | null
+  meeting_point_name: string | null
+  meeting_point_lat: number | null
+  meeting_point_lon: number | null
+  meeting_point_notes: string | null
+  health_safety_notes: string | null
   target_species: TargetSpecies[]
+  schedule: ScheduleItem[]
   created_at: string
   updated_at: string
 }
@@ -865,6 +880,8 @@ export interface CompetitionInput {
   competition_date: string
   backup_date?: string | null
   location_site?: string | null
+  location_lat?: number | null
+  location_lon?: number | null
   boundaries_notes?: string | null
   start_time?: string | null
   finish_time?: string | null
@@ -884,7 +901,13 @@ export interface CompetitionInput {
   additional_rules?: string | null
   entry_fee?: string | null
   prize_info?: string | null
+  meeting_point_name?: string | null
+  meeting_point_lat?: number | null
+  meeting_point_lon?: number | null
+  meeting_point_notes?: string | null
+  health_safety_notes?: string | null
   target_species?: TargetSpecies[]
+  schedule?: ScheduleItem[]
 }
 
 // Deployment-level channel state + escalation cadence for overdue alerts.
@@ -958,6 +981,8 @@ export interface OpenCompetition {
   name: string
   competition_date: string
   location_site: string | null
+  location_lat: number | null
+  location_lon: number | null
   boundaries_notes: string | null
   start_time: string | null
   finish_time: string | null
@@ -965,6 +990,13 @@ export interface OpenCompetition {
   status: CompetitionStatus
   registration_open: boolean
   already_registered: boolean
+  meeting_point_name: string | null
+  meeting_point_lat: number | null
+  meeting_point_lon: number | null
+  meeting_point_notes: string | null
+  health_safety_notes: string | null
+  target_species: TargetSpecies[]
+  schedule: ScheduleItem[]
 }
 
 // A registrant's day-view of a competition they're in: public info + their own
@@ -975,6 +1007,8 @@ export interface MyCompetition {
   name: string
   competition_date: string
   location_site: string | null
+  location_lat: number | null
+  location_lon: number | null
   boundaries_notes: string | null
   start_time: string | null
   finish_time: string | null
@@ -982,6 +1016,13 @@ export interface MyCompetition {
   status: CompetitionStatus
   registration_open: boolean
   already_registered: boolean
+  meeting_point_name: string | null
+  meeting_point_lat: number | null
+  meeting_point_lon: number | null
+  meeting_point_notes: string | null
+  health_safety_notes: string | null
+  target_species: TargetSpecies[]
+  schedule: ScheduleItem[]
   my_status: CompetitorStatus
   my_registration_id: number
   signed_out_at: string | null
