@@ -1,3 +1,15 @@
+# [1.12.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.11.0...v1.12.0) (2026-07-01)
+
+
+### Bug Fixes
+
+* **competition:** address Copilot review ([d815ade](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/d815ade73f25a323c1d61ed138983b311892b73f))
+
+
+### Features
+
+* **competition:** admin redesign — command centre, wizard, safer board ([133faf7](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/133faf70ccbfdba94c2547e760b33f19a8173b6a))
+
 # [1.11.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.10.0...v1.11.0) (2026-07-01)
 
 
