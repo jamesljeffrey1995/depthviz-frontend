@@ -1,0 +1,504 @@
+/* ── Admin operational console ─────────────────────────────────────────────
+   Dark navy/cyan DepthViz identity, dashboard grid at desktop widths,
+   collapsing to a single column on mobile. Every panel is self-contained so
+   the AdminPanel host can rearrange them without touching internals.
+*/
+
+.wrap {
+  --panel-bg: rgba(4, 30, 46, 0.6);
+  --panel-border: rgba(0, 201, 255, 0.1);
+  --panel-border-strong: rgba(0, 201, 255, 0.28);
+  --card-bg: rgba(2, 13, 20, 0.5);
+  --card-border: rgba(0, 201, 255, 0.08);
+  --danger: var(--danger, #c0392b);
+  --warning: #f1a325;
+  --ok: var(--excellent, #0fb37a);
+  --muted: rgba(139, 184, 204, 0.55);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  width: 100%;
+}
+
+.rowFull {
+  grid-column: 1 / -1;
+}
+
+/* Desktop dashboard grid — wider viewports get a proper 12-col layout. */
+@media (min-width: 1100px) {
+  .wrap {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .colHealth   { grid-column: span 8; }
+  .colModel    { grid-column: span 4; }
+  .colAlerts   { grid-column: span 12; }
+  .colSites    { grid-column: span 7; }
+  .colBreakdown{ grid-column: span 5; }
+  .colDiag     { grid-column: span 12; }
+  .colReports  { grid-column: span 7; }
+  .colSensors  { grid-column: span 5; }
+  .colActions  { grid-column: span 12; }
+}
+
+/* ── Panel primitives ───────────────────────────────────────────────────── */
+
+.panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+.panelTitle {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0;
+}
+.panelSub {
+  font-size: 10px;
+  opacity: 0.5;
+  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+}
+.panelSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── Status chips ───────────────────────────────────────────────────────── */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  border: 1px solid;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+.chipHealthy  { color: var(--ok);       border-color: rgba(15,179,122,0.35); background: rgba(15,179,122,0.08); }
+.chipTrusted  { color: var(--ok);       border-color: rgba(15,179,122,0.35); background: rgba(15,179,122,0.08); }
+.chipOk       { color: var(--accent);   border-color: rgba(0,201,255,0.25);  background: rgba(0,201,255,0.06); }
+.chipStale    { color: var(--warning);  border-color: rgba(241,163,37,0.4);  background: rgba(241,163,37,0.08); }
+.chipDegraded { color: var(--warning);  border-color: rgba(241,163,37,0.4);  background: rgba(241,163,37,0.08); }
+.chipLow      { color: var(--warning);  border-color: rgba(241,163,37,0.4);  background: rgba(241,163,37,0.08); }
+.chipFailed   { color: var(--danger);   border-color: rgba(192,57,43,0.4);   background: rgba(192,57,43,0.1); }
+.chipUnknown  { color: var(--muted);    border-color: rgba(139,184,204,0.2); background: rgba(2,13,20,0.4); }
+
+.chipDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
+}
+
+/* ── Health summary grid ────────────────────────────────────────────────── */
+
+.healthGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+}
+.healthCard {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.healthCardLbl {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+.healthCardVal {
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: var(--text-bright);
+  line-height: 1.2;
+}
+.healthCardMeta {
+  font-size: 10px;
+  opacity: 0.55;
+  font-family: var(--font-mono);
+}
+
+/* ── Alerts panel ───────────────────────────────────────────────────────── */
+
+.alertList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  border-left: 3px solid transparent;
+  background: rgba(2,13,20,0.35);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.alertCritical { border-left-color: var(--danger);  color: var(--danger); background: rgba(192,57,43,0.08); }
+.alertWarning  { border-left-color: var(--warning); color: var(--warning); background: rgba(241,163,37,0.07); }
+.alertInfo     { border-left-color: var(--accent);  color: var(--accent);  background: rgba(0,201,255,0.06); }
+.alertHint     { display: block; opacity: 0.6; font-size: 10px; margin-top: 3px; color: var(--text); }
+.alertEmpty {
+  padding: 12px;
+  text-align: center;
+  font-size: 11px;
+  opacity: 0.55;
+  border: 1px dashed var(--card-border);
+}
+
+/* ── Site grid ──────────────────────────────────────────────────────────── */
+
+.siteGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+.siteCard {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+.siteCard:hover { border-color: var(--panel-border-strong); }
+.siteCardSelected {
+  border-color: var(--accent);
+  background: rgba(0,201,255,0.06);
+}
+.siteCardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.siteCardName {
+  font-family: var(--font-display);
+  font-size: 13px;
+  color: var(--text-bright);
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.siteMeta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  opacity: 0.55;
+  font-family: var(--font-mono);
+}
+.siteDriver {
+  font-size: 11px;
+  color: var(--accent);
+  opacity: 0.85;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.siteChipRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* ── Forecast breakdown ─────────────────────────────────────────────────── */
+
+.breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.breakdownStep {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  padding: 4px 0;
+  font-size: 12px;
+  border-bottom: 1px dashed rgba(0,201,255,0.06);
+}
+.breakdownStep:last-child { border-bottom: none; }
+.breakdownLbl { opacity: 0.85; }
+.breakdownVal {
+  font-family: var(--font-mono);
+  color: var(--text-bright);
+}
+.stepBase   .breakdownVal { color: var(--text-bright); }
+.stepPenalty .breakdownVal { color: var(--danger); }
+.stepCorrection .breakdownVal { color: var(--accent); }
+.stepFinal {
+  border-top: 1px solid rgba(0,201,255,0.25);
+  margin-top: 4px;
+  padding-top: 8px;
+  font-family: var(--font-display);
+  font-size: 15px;
+}
+.stepFinal .breakdownVal { color: var(--accent); }
+.driverGroup {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 6px;
+}
+@media (max-width: 560px) {
+  .driverGroup { grid-template-columns: 1fr; }
+}
+.driverGroupTitle {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  margin-bottom: 4px;
+}
+.driverItem {
+  font-size: 11px;
+  opacity: 0.85;
+}
+.summary {
+  padding: 8px 10px;
+  background: rgba(0,201,255,0.05);
+  border: 1px solid rgba(0,201,255,0.15);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* ── Reports table ──────────────────────────────────────────────────────── */
+
+.reportsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  font-family: var(--font-mono);
+}
+.reportsTable th, .reportsTable td {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--card-border);
+}
+.reportsTable th {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  font-weight: normal;
+}
+.reportsTable td.num {
+  text-align: right;
+  color: var(--text-bright);
+}
+/* Match numeric headers to their column so the digits scan cleanly — the
+   header was left-aligned by default, breaking the column's visual axis. */
+.reportsTable th.num {
+  text-align: right;
+}
+.reportRowDisagree td { background: rgba(192,57,43,0.05); }
+.rowActions {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+.rowActionBtn {
+  background: rgba(2,13,20,0.5);
+  border: 1px solid var(--card-border);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 6px;
+  cursor: pointer;
+}
+.rowActionBtn:hover { border-color: var(--panel-border-strong); color: var(--accent); }
+
+/* ── Sensors ────────────────────────────────────────────────────────────── */
+
+.sensorCallout {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border: 1px dashed rgba(0,201,255,0.2);
+  background: rgba(2,13,20,0.35);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.sensorTodo {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--warning);
+}
+
+/* ── Admin actions ──────────────────────────────────────────────────────── */
+
+.actionGroup {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+.actionCard {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.actionCardDanger { border-color: rgba(192,57,43,0.25); background: rgba(192,57,43,0.05); }
+.actionCardTitle {
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--text-bright);
+}
+.actionCardBody {
+  font-size: 11px;
+  opacity: 0.7;
+  line-height: 1.4;
+  flex: 1;
+}
+.actionBtn {
+  align-self: flex-start;
+  background: rgba(0,201,255,0.08);
+  border: 1px solid rgba(0,201,255,0.3);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.actionBtn:hover { background: rgba(0,201,255,0.15); }
+.actionBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+.actionBtnDanger {
+  background: rgba(192,57,43,0.1);
+  border-color: rgba(192,57,43,0.4);
+  color: var(--danger);
+}
+.actionBtnDanger:hover { background: rgba(192,57,43,0.2); }
+.actionConfirm {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  background: rgba(2,13,20,0.5);
+  border: 1px solid rgba(192,57,43,0.3);
+  font-size: 11px;
+}
+.actionConfirmRow { display: flex; gap: 6px; }
+.actionCancelBtn {
+  background: none;
+  border: 1px solid rgba(0,201,255,0.15);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  cursor: pointer;
+  opacity: 0.65;
+}
+.actionCancelBtn:hover { opacity: 1; }
+
+.actionStub {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+/* ── Collapsible section ────────────────────────────────────────────────── */
+
+.collapse {
+  border: 1px solid var(--panel-border);
+  background: rgba(2,13,20,0.4);
+}
+.collapseToggle {
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 10px 14px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.collapseToggle:hover { background: rgba(0,201,255,0.06); }
+.collapseBody { padding: 12px 14px; border-top: 1px solid var(--panel-border); }
+
+/* ── Compact rows / muted text ──────────────────────────────────────────── */
+
+.kv {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  padding: 4px 0;
+  font-size: 11px;
+  border-bottom: 1px dashed rgba(0,201,255,0.05);
+}
+.kv:last-child { border-bottom: none; }
+.kvKey { opacity: 0.75; }
+.kvVal { font-family: var(--font-mono); color: var(--text-bright); }
+
+.emptyMsg {
+  padding: 12px;
+  text-align: center;
+  font-size: 11px;
+  opacity: 0.55;
+}
+
+.loading {
+  padding: 20px;
+  text-align: center;
+  font-size: 11px;
+  opacity: 0.45;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  opacity: 0.7;
+}

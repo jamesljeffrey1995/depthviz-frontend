@@ -571,6 +571,131 @@ export interface MLRetrainResult {
   }
 }
 
+// ── Admin operational console (/admin/health, /admin/sites, /admin/forecast-debug)
+export type AdminStatusChip =
+  | 'HEALTHY'
+  | 'DEGRADED'
+  | 'STALE'
+  | 'FAILED'
+  | 'TRUSTED'
+  | 'LOW CONFIDENCE'
+  | 'OK'
+  | 'UNKNOWN'
+
+export interface AdminServiceProbe {
+  status: string
+  checked_at: string | null
+  chip: AdminStatusChip
+}
+
+export interface AdminDataStream {
+  last_fetched?: string | null
+  last_received?: string | null
+  minutes_ago?: number | null
+  chip: AdminStatusChip
+  note?: string
+  active?: number
+}
+
+export interface AdminHealth {
+  pipeline: { status: AdminStatusChip; checked_at: string | null }
+  services: Record<string, AdminServiceProbe>
+  data_streams: {
+    weather: AdminDataStream
+    cmems: AdminDataStream
+    tides: AdminDataStream
+    reports: AdminDataStream
+  }
+  sensors: {
+    configured: boolean
+    chip: AdminStatusChip
+    note: string
+    sites: { name: string; chip: AdminStatusChip; last_seen: string | null }[]
+  }
+  model: {
+    version: string
+    last_retrain: string | null
+    last_training_run: {
+      trigger: string
+      created_at: string
+      duration_ms: number
+      mae: number | null
+      rmse: number | null
+    } | null
+    confidence_chip: AdminStatusChip
+    mae: number | null
+    rmse: number | null
+    r2: number | null
+  }
+  coverage: {
+    active_sites: number
+    active_reports: number
+  }
+}
+
+export interface AdminSiteRow {
+  id: number
+  name: string
+  lat: number
+  lon: number
+  is_predefined: boolean
+  is_public: boolean
+  active_reports: number
+  latest_report: string | null
+  days_since_report: number | null
+  avg_trust: number | null
+  bias_offset: number | null
+  r2_score: number | null
+  sample_count: number
+  trust_chip: AdminStatusChip
+  report_chip: AdminStatusChip
+}
+
+export interface AdminSitesResponse {
+  count: number
+  sites: AdminSiteRow[]
+}
+
+export interface AdminForecastStep {
+  label: string
+  value: number
+  kind: 'base' | 'penalty' | 'correction' | 'final' | 'info'
+}
+
+export interface AdminForecastDebug {
+  location_id: number
+  location_name: string
+  obs_date: string | null
+  steps: AdminForecastStep[]
+  final_prediction: number
+  base_vis?: number
+  confidence: AdminStatusChip
+  site_bias?: number
+  site_r2?: number | null
+  site_sample_count?: number
+  main_negative_drivers?: AdminForecastStep[]
+  main_positive_drivers?: AdminForecastStep[]
+  reports_note?: string | null
+  summary?: string
+  conditions?: {
+    wave_height: number | null
+    swell_height: number | null
+    wind_speed: number | null
+    precipitation: number | null
+    sea_temp: number | null
+    air_temp: number | null
+    chlorophyll: number | null
+    kd490: number | null
+  }
+}
+
+export interface AdminAlert {
+  id: string
+  severity: 'critical' | 'warning' | 'info'
+  message: string
+  hint?: string
+}
+
 // Social / Friends
 export interface Friend {
   friendship_id: number
