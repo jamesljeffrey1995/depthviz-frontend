@@ -1,3 +1,15 @@
+# [1.11.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.10.0...v1.11.0) (2026-07-01)
+
+
+### Bug Fixes
+
+* **forecast:** address Copilot review — stale logs, dedupe, sidebar dupe, today index ([24c697d](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/24c697d1b21ba71d5d1bd56449e4df499a519af2))
+
+
+### Features
+
+* **forecast:** redesign public forecast as a decision tool ([2087f76](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/2087f7652eac5ac3cd7f4780d96a93782ee472bd))
+
 # [1.10.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.9.0...v1.10.0) (2026-07-01)
 
 
