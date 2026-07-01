@@ -123,10 +123,10 @@ function longDay(dateStr: string): string {
 export function findBestWindow(days: DayForecast[]): BestWindow | null {
   if (!days || days.length === 0) return null
 
-  const rated = days.map((d) => ({
-    vis: visForDay(d),
-    rating: getDiveRating(visForDay(d)),
-  }))
+  const rated = days.map((d) => {
+    const vis = visForDay(d)
+    return { vis, rating: getDiveRating(vis) }
+  })
 
   const goodOrBetter = (i: number) =>
     rated[i].rating.key === 'good' || rated[i].rating.key === 'excellent'

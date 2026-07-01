@@ -510,10 +510,10 @@ export default function App() {
         {splitView && (
           <aside className={styles.mapPane} aria-label="Dive spot map and community context">
             {mapView}
-            {/* Latest community reports for the selected spot — sits under the map
-                so desktop users can see the "who else has dived here recently"
-                context beside the forecast. */}
-            {currentLat !== null && currentLon !== null && (
+            {/* Latest community reports for the selected spot — sits under the
+                map on desktop. Hidden on the /reports route so the panel isn't
+                rendered twice (once in the sidebar, once as the main content). */}
+            {currentLat !== null && currentLon !== null && currentPath !== '/reports' && (
               <div className={styles.sidebarBlock}>
                 <CommunityReportsPanel
                   locationId={selectedLocationId}

@@ -36,8 +36,11 @@ export function CommunityReportsPanel({ locationId, locationName }: Props) {
   const [error, setError] = useState(false)
 
   useEffect(() => {
-    if (locationId == null) return
+    if (locationId == null) { setLogs([]); return }
     let cancelled = false
+    // Drop the previous location's logs before the new fetch resolves so the
+    // summary line never briefly shows another spot's numbers.
+    setLogs([])
     setLoading(true)
     setError(false)
     getLocationHistory(locationId)

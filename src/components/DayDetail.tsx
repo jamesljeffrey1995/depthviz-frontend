@@ -163,6 +163,16 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, modelConfi
   const vis = day.vis_corrected ?? day.vis_estimate
   const pct = (vis / 15) * 100
 
+  // Real "today" index in the forecast series — used by the hero so the best-
+  // window "improving toward X" / "today is in the best window" copy stays
+  // correct regardless of which day the user has clicked into.
+  const heroDays = trendDays ?? [day]
+  const todayISO = new Date().toISOString().split('T')[0]
+  const todayIdx = (() => {
+    const i = heroDays.findIndex((d) => d.date === todayISO)
+    return i >= 0 ? i : Math.max(0, heroDays.findIndex((d) => d.date >= todayISO))
+  })()
+
   const waterQuality = day.nutrient_factor != null ? getWaterQuality(day.nutrient_factor) : null
   const turbidity = day.turbidity_penalty != null && day.turbidity_penalty > 0
     ? getTurbidity(day.turbidity_penalty)
@@ -203,8 +213,8 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, modelConfi
       {/* Decision hero — the answer to "should I dive this spot?" */}
       <ForecastHeroCard
         day={day}
-        days={trendDays ?? [day]}
-        todayIndex={selectedIndex}
+        days={heroDays}
+        todayIndex={todayIdx}
         locationName={locationName}
         forecast={{ report_count: reportCount, model_confidence: modelConfidence }}
         onJumpToBestWindow={onSelectDay}
@@ -213,7 +223,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, modelConfi
       {/* Plain-English "why" panel */}
       <ForecastExplanation
         day={day}
-        days={trendDays ?? [day]}
+        days={heroDays}
         forecast={{ report_count: reportCount, model_confidence: modelConfidence }}
       />
 
