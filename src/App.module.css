@@ -79,6 +79,16 @@
   /* Provide positioning context for absolute authBtn */
   position: relative;
 }
+/* Admin screens: shrink the header so the operational UI gets the space. */
+.headerCompact {
+  margin-bottom: var(--space-sm);
+}
+.headerCompact .logo {
+  font-size: clamp(28px, 5vw, 40px);
+  letter-spacing: 0.06em;
+  text-shadow: none;
+}
+.headerCompact .logo span { text-shadow: none; }
 
 .logo {
   font-family: var(--font-display);

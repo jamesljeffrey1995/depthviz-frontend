@@ -726,6 +726,7 @@ import type {
   CompetitorStatus,
   FishEntry,
   FishEntryInput,
+  FishEntryPatch,
   CompetitionIncident,
   IncidentInput,
   ScoringRule,
@@ -738,6 +739,8 @@ import type {
   NotificationStatus,
   TestAlertResult,
   AutoPairResult,
+  CompetitionOverview,
+  PublicResults,
 } from '../types'
 
 const COMP_BASE = '/admin/competition'
@@ -856,7 +859,7 @@ export async function createFish(cid: number, input: FishEntryInput): Promise<Fi
   return apiFetch<FishEntry>(`${COMP_BASE}/${cid}/fish`, { method: 'POST', body: JSON.stringify(input) })
 }
 
-export async function updateFish(cid: number, fishId: number, input: Partial<FishEntryInput>): Promise<FishEntry> {
+export async function updateFish(cid: number, fishId: number, input: FishEntryPatch): Promise<FishEntry> {
   return apiFetch<FishEntry>(`${COMP_BASE}/${cid}/fish/${fishId}`, { method: 'PUT', body: JSON.stringify(input) })
 }
 
@@ -892,10 +895,92 @@ export async function getResults(cid: number): Promise<CompetitionResults> {
   return apiFetch<CompetitionResults>(`${COMP_BASE}/${cid}/results`)
 }
 
+export async function getOverview(cid: number): Promise<CompetitionOverview> {
+  return apiFetch<CompetitionOverview>(`${COMP_BASE}/${cid}/overview`)
+}
+
+export async function lockResults(cid: number): Promise<Competition> {
+  return apiFetch<Competition>(`${COMP_BASE}/${cid}/results/lock`, { method: 'POST' })
+}
+
+export async function unlockResults(cid: number): Promise<Competition> {
+  return apiFetch<Competition>(`${COMP_BASE}/${cid}/results/unlock`, { method: 'POST' })
+}
+
+// Public shareable results (any logged-in diver, when visibility === 'released').
+// The public register router owns this path — auth is still required, but the
+// caller doesn't need to be an admin.
+export async function getPublicResults(cid: number): Promise<PublicResults> {
+  return apiFetch<PublicResults>(`/competition/${cid}/public-results`)
+}
+
 // CSV export. apiFetch always parses JSON, so CSV downloads use a dedicated
 // authenticated fetch that streams the response into a browser download. `kind`
 // maps to the export endpoints: competitors | teams | water-log | fish | results.
 export type CsvExportKind = 'competitors' | 'teams' | 'water-log' | 'fish' | 'results'
+
+// Parses a plain competitor-list CSV client-side (header row + one row per
+// competitor) into a list of ``CompetitorInput`` values the admin UI can POST
+// individually. Kept small — the day-of use case is a club sheet with a
+// couple of dozen names, not a bulk import — so the parsing is deliberately
+// forgiving: unknown columns are ignored, and only ``full_name`` is required.
+export function parseCompetitorsCsv(text: string): CompetitorInput[] {
+  const rows = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean)
+  if (rows.length < 2) return []
+  const header = splitCsvRow(rows[0]).map(h => h.trim().toLowerCase())
+  const idx = (name: string) => header.indexOf(name)
+  const out: CompetitorInput[] = []
+  const NAME = idx('full_name') !== -1 ? idx('full_name') : idx('name')
+  if (NAME === -1) return []
+  for (let i = 1; i < rows.length; i++) {
+    const cells = splitCsvRow(rows[i])
+    const name = (cells[NAME] ?? '').trim()
+    if (!name) continue
+    const yes = (v?: string) => /^(y|yes|true|1)$/i.test((v ?? '').trim())
+    const val = (col: string) => {
+      const j = idx(col)
+      return j === -1 ? undefined : (cells[j] ?? '').trim() || null
+    }
+    out.push({
+      full_name: name,
+      phone: val('phone') ?? null,
+      email: val('email') ?? null,
+      emergency_contact_name: val('emergency_contact_name') ?? val('emergency_contact') ?? null,
+      emergency_contact_phone: val('emergency_contact_phone') ?? val('emergency_phone') ?? null,
+      vehicle_reg: val('vehicle_reg') ?? val('reg') ?? null,
+      float_colour: val('float_colour') ?? val('float') ?? null,
+      experience_level: (val('experience_level') as CompetitorInput['experience_level']) ?? null,
+      paid: yes(val('paid') ?? ''),
+      waiver_accepted: yes(val('waiver_accepted') ?? val('waiver') ?? ''),
+      notes: val('notes') ?? null,
+    })
+  }
+  return out
+}
+
+// Minimal CSV row splitter with support for double-quoted fields. Doesn't need
+// to be RFC-4180-perfect — the club sheets we import are simple.
+function splitCsvRow(row: string): string[] {
+  const out: string[] = []
+  let cur = ''
+  let inQuotes = false
+  for (let i = 0; i < row.length; i++) {
+    const ch = row[i]
+    if (inQuotes) {
+      if (ch === '"' && row[i + 1] === '"') { cur += '"'; i++ }
+      else if (ch === '"') inQuotes = false
+      else cur += ch
+    } else if (ch === '"') {
+      inQuotes = true
+    } else if (ch === ',') {
+      out.push(cur); cur = ''
+    } else {
+      cur += ch
+    }
+  }
+  out.push(cur)
+  return out
+}
 
 export async function downloadCompetitionCsv(cid: number, kind: CsvExportKind): Promise<void> {
   const { data: { session } } = await supabase.auth.getSession()

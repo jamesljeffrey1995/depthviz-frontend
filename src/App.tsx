@@ -363,7 +363,9 @@ export default function App() {
         {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       </Suspense>
 
-      <header className={styles.header}>
+      {/* Admin screens use a compact header so more of the vertical space is
+          available for the operational UI (water board, weigh-in, results). */}
+      <header className={`${styles.header} ${currentPath.startsWith('/admin') ? styles.headerCompact : ''}`}>
         <div
           className={styles.logo}
           aria-label="DepthViz — go to home"
@@ -373,10 +375,14 @@ export default function App() {
           onClick={() => navigate('/')}
           onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') navigate('/') }}
         >DEPTH<span>VIZ</span></div>
-        <div className={styles.tagline}>Underwater visibility forecast</div>
-        <p className={styles.valueProp}>
-          AI-calibrated 7-day forecasts · swell, current &amp; ocean data · community-verified
-        </p>
+        {!currentPath.startsWith('/admin') && (
+          <>
+            <div className={styles.tagline}>Underwater visibility forecast</div>
+            <p className={styles.valueProp}>
+              AI-calibrated 7-day forecasts · swell, current &amp; ocean data · community-verified
+            </p>
+          </>
+        )}
         <button
           type="button"
           className={user ? styles.authBtnAvatar : styles.authBtn}

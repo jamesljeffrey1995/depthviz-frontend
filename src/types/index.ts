@@ -950,10 +950,21 @@ export type IncidentType =
 export type BuddyStatus = 'none' | 'invited' | 'paired' | 'auto_assigned' | 'expired'
 export type TeamFormation = 'manual' | 'buddy_invite' | 'random'
 
+// Length unit for a target-species minimum. Spearfishing legal-size rules are
+// almost always length-based (cm total length; mm carapace for lobsters/crabs).
+export type TargetSpeciesUnit = 'cm' | 'mm_carapace'
+
 export interface TargetSpecies {
   species: string
-  min_weight_g?: number | null
+  min_length?: number | null
+  unit?: TargetSpeciesUnit | null
   notes?: string | null
+  points_bonus?: number | null
+  max_count?: number | null
+  auto_disqualify_undersize?: boolean | null
+  // Legacy: kept read-only for existing rows that still store the old weight
+  // minimum. New entries use ``min_length`` + ``unit`` instead.
+  min_weight_g?: number | null
 }
 
 /** A single row in a competition's day-of schedule / itinerary. */
@@ -997,6 +1008,7 @@ export interface Competition {
   health_safety_notes: string | null
   target_species: TargetSpecies[]
   schedule: ScheduleItem[]
+  results_locked: boolean
   created_at: string
   updated_at: string
 }
@@ -1034,6 +1046,7 @@ export interface CompetitionInput {
   health_safety_notes?: string | null
   target_species?: TargetSpecies[]
   schedule?: ScheduleItem[]
+  results_locked?: boolean
 }
 
 // Deployment-level channel state + escalation cadence for overdue alerts.
@@ -1050,6 +1063,14 @@ export interface TestAlertResult {
   email: { enabled: boolean; configured: boolean; recipients: string[]; sent: boolean }
 }
 
+export interface CompetitionTeamMember {
+  id: number
+  full_name: string
+  status: CompetitorStatus
+  experience_level: ExperienceLevel | null
+  float_colour: string | null
+}
+
 export interface CompetitionTeam {
   id: number
   competition_id: number
@@ -1057,7 +1078,9 @@ export interface CompetitionTeam {
   intended_dive_area: string | null
   notes: string | null
   formation: TeamFormation
+  is_locked: boolean
   member_count: number
+  members: CompetitionTeamMember[]
   created_at: string
   updated_at: string
 }
@@ -1066,6 +1089,7 @@ export interface CompetitionTeamInput {
   name: string
   intended_dive_area?: string | null
   notes?: string | null
+  is_locked?: boolean
 }
 
 export interface Competitor {
@@ -1251,6 +1275,7 @@ export interface FishEntry {
   disqualified: boolean
   disqualification_reason: string | null
   points_override: number | null
+  lock_result: boolean
   created_at: string
   updated_at: string
 }
@@ -1266,14 +1291,37 @@ export interface FishEntryInput {
   disqualified?: boolean
   disqualification_reason?: string | null
   points_override?: number | null
+  lock_result?: boolean
 }
+
+// Fields the weigh-in UI is allowed to patch on an existing fish row. Split
+// from ``FishEntryInput`` because a create must supply ``competitor_id`` +
+// ``species`` but an update never re-sends them.
+export interface FishEntryPatch {
+  species?: string
+  weight_grams?: number | null
+  length_cm?: number | null
+  judge_initials?: string | null
+  notes?: string | null
+  disqualified?: boolean
+  disqualification_reason?: string | null
+  points_override?: number | null
+  lock_result?: boolean
+}
+
+export type IncidentSeverity = 'info' | 'warning' | 'urgent' | 'critical'
 
 export interface CompetitionIncident {
   id: number
   competition_id: number
   competitor_id: number | null
+  competitor_name: string | null
   team_id: number | null
+  team_name: string | null
   incident_type: IncidentType
+  severity: IncidentSeverity | null
+  location: string | null
+  action_taken: string | null
   occurred_at: string
   notes: string | null
   resolved: boolean
@@ -1288,6 +1336,9 @@ export interface IncidentInput {
   team_id?: number | null
   occurred_at?: string | null
   notes?: string | null
+  severity?: IncidentSeverity | null
+  location?: string | null
+  action_taken?: string | null
   resolved?: boolean
   resolution_notes?: string | null
 }
@@ -1339,6 +1390,69 @@ export interface BiggestFish {
   weight_grams: number
   weight_kg: number
   length_cm: number | null
+}
+
+// Command-centre / Overview endpoint payload. Aggregates the "single-glance"
+// operational state the redesigned Overview tab renders — live water counts,
+// paperwork gaps, unresolved incidents, plus the next recommended action.
+export interface OverviewSample {
+  id: number
+  full_name: string
+}
+
+export type RecommendedActionKey =
+  | 'check_overdue' | 'monitor_board' | 'start_weigh_in'
+  | 'finish_setup' | 'collect_payment' | 'collect_waivers'
+  | 'assign_buddies' | 'publish_results' | 'ready'
+
+export interface RecommendedAction {
+  action: RecommendedActionKey
+  message: string
+  target_tab: string
+  severity: 'critical' | 'warning' | 'info'
+}
+
+export interface CompetitionOverview {
+  competition: Competition
+  counts: BoardCounts
+  unpaid: number
+  missing_waiver: number
+  unassigned_buddy: number
+  open_incidents: number
+  samples: {
+    overdue: OverviewSample[]
+    in_water: OverviewSample[]
+    not_arrived: OverviewSample[]
+    unpaid: OverviewSample[]
+    missing_waiver: OverviewSample[]
+    no_buddy: OverviewSample[]
+  }
+  recommended_action: RecommendedAction
+}
+
+// Public-share results (visibility === 'released'). Summary only — no PII.
+export interface PublicResults {
+  competition: {
+    id: number
+    name: string
+    competition_date: string
+    location_site: string | null
+    results_locked: boolean
+    provisional: boolean
+  }
+  individual: {
+    rank: number
+    competitor_name: string
+    team_name: string | null
+    points: number
+    fish_count: number
+    total_weight_kg: number
+    species_count: number
+  }[]
+  teams: TeamResult[]
+  biggest_fish: BiggestFish | null
+  biggest_by_species: (BiggestFish & { species: string })[]
+  totals: CompetitionResults['totals']
 }
 
 export interface CompetitionResults {
