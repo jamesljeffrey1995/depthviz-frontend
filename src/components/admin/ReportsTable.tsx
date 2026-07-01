@@ -99,7 +99,10 @@ export function ReportsTable({ residuals, quarantined, onQuarantine, onRestore }
                     <td className={styles.num}>{r.actual_vis.toFixed(1)}m</td>
                     <td className={styles.num}>{r.predicted_vis.toFixed(1)}m</td>
                     <td>
-                      <StatusChip status="STALE" dot={false} />
+                      {/* FAILED = hard-rejection chip; the actual cause (outlier,
+                          manual triage, etc.) is shown next to it so operators
+                          don't misread "STALE" as merely old data. */}
+                      <StatusChip status="FAILED" dot={false} />
                       <span style={{ marginLeft: 6, opacity: 0.7 }}>
                         {r.quarantine_reason ?? 'outlier'}
                       </span>

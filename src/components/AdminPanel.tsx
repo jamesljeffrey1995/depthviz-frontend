@@ -195,10 +195,8 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
   const handleQuarantine = async (id: number) => {
     try {
       await quarantineReport(id)
-      setQuarantined(prev => [
-        ...prev,
-        // Optimistic marker — refreshed by the next model load.
-      ])
+      // ``loadModel`` refetches both residuals and the quarantined list, so
+      // any local optimistic append would just be duplicated — skip it.
       await loadModel()
     } catch (e) {
       setError(describe(e, 'Failed to quarantine report'))

@@ -457,7 +457,10 @@ export async function getAdminForecastDebug(locationId: number): Promise<import(
 }
 
 export async function refreshAdminForecast(locationId?: number): Promise<{ invalidated: number; location_id: number | null }> {
-  const qs = locationId ? `?location_id=${locationId}` : ''
+  // Guard on `!= null` (not truthy) so ``locationId === 0`` still routes to
+  // the scoped invalidation path — the signature allows it and future site
+  // IDs could conceivably start at zero.
+  const qs = locationId != null ? `?location_id=${locationId}` : ''
   const result = await apiFetch<{ invalidated: number; location_id: number | null }>(`/admin/forecast/refresh${qs}`, {
     method: 'POST',
   })

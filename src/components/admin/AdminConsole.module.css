@@ -315,6 +315,11 @@
   text-align: right;
   color: var(--text-bright);
 }
+/* Match numeric headers to their column so the digits scan cleanly — the
+   header was left-aligned by default, breaking the column's visual axis. */
+.reportsTable th.num {
+  text-align: right;
+}
 .reportRowDisagree td { background: rgba(192,57,43,0.05); }
 .rowActions {
   display: flex;
