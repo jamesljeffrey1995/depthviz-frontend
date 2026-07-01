@@ -443,6 +443,29 @@ export async function getFeatureImportance(): Promise<import('../types').Feature
   return apiFetch('/admin/ml/feature-importance')
 }
 
+// ── Admin operational console ────────────────────────────────────────────
+export async function getAdminHealth(): Promise<import('../types').AdminHealth> {
+  return apiFetch('/admin/health')
+}
+
+export async function getAdminSites(): Promise<import('../types').AdminSitesResponse> {
+  return apiFetch('/admin/sites')
+}
+
+export async function getAdminForecastDebug(locationId: number): Promise<import('../types').AdminForecastDebug> {
+  return apiFetch(`/admin/forecast-debug/${locationId}`)
+}
+
+export async function refreshAdminForecast(locationId?: number): Promise<{ invalidated: number; location_id: number | null }> {
+  const qs = locationId ? `?location_id=${locationId}` : ''
+  const result = await apiFetch<{ invalidated: number; location_id: number | null }>(`/admin/forecast/refresh${qs}`, {
+    method: 'POST',
+  })
+  // Cached forecasts on the client are now stale too.
+  cacheDeleteByPrefix('forecast:')
+  return result
+}
+
 // ML Weights (public, cached)
 export interface ModelWeights {
   swell_multiplier: number
