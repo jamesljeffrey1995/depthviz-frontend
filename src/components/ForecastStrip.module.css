@@ -53,6 +53,44 @@
   opacity: 0.35;
 }
 
+/* Highlight the days sitting in the best-window run. */
+.day.best {
+  border-color: rgba(78, 203, 141, 0.55);
+  box-shadow: 0 0 0 1px rgba(78, 203, 141, 0.18), 0 4px 14px rgba(78, 203, 141, 0.08);
+}
+
+.day.best.active {
+  box-shadow:
+    inset 0 0 0 1px rgba(78, 203, 141, 0.35),
+    0 4px 18px rgba(0, 0, 0, 0.4),
+    0 0 22px rgba(78, 203, 141, 0.18);
+}
+
+.bestPip {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  font-family: var(--font-mono);
+  font-size: 7px;
+  letter-spacing: 0.18em;
+  color: var(--good);
+  background: rgba(78, 203, 141, 0.14);
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+
+/* Ring around today so the "current" day always stands out. */
+.day.today {
+  outline: 1px solid rgba(0, 201, 255, 0.35);
+  outline-offset: -1px;
+}
+
+.trend {
+  font-size: 12px;
+  margin-left: 4px;
+  opacity: 0.75;
+}
+
 .dateLabel {
   font-size: 9px;
   letter-spacing: 0.15em;
