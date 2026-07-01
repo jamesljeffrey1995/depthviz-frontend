@@ -63,10 +63,13 @@
 }
 
 .correctedNote {
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  opacity: 0.5;
-  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  opacity: 0.75;
+  margin: -6px 0 16px;
 }
 
 .correctedOffset {

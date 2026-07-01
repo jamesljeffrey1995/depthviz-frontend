@@ -1,13 +1,14 @@
 import { useState } from 'react'
-import type { DayForecast } from '../types'
+import type { DayForecast, ForecastResponse } from '../types'
 import { getImpact, getShallowWaterConfidence } from '../lib/visibility'
-import { buildVisSummary } from '../lib/visTrend'
 import { getWaterQuality } from '../lib/units'
 import { SwellCompass } from './SwellCompass'
 import { VisTrendChart } from './VisTrendChart'
 import { SwellChart } from './SwellChart'
 import { KelpVisibilityNote } from './KelpVisibilityNote'
 import { SatelliteImageryCard } from './SatelliteImageryCard'
+import { ForecastHeroCard } from './ForecastHeroCard'
+import { ForecastExplanation } from './ForecastExplanation'
 import styles from './DayDetail.module.css'
 
 interface Props {
@@ -17,6 +18,9 @@ interface Props {
   lat?: number
   lon?: number
   reportCount: number
+  /** Confidence signal from the API — the hero softens it based on report age
+   *  and conditions volatility. */
+  modelConfidence?: ForecastResponse['model_confidence']
   /** Wave-height display unit — must match the units the API was asked to
    *  return so wave_height/swell_height numbers are labelled correctly. */
   units?: 'ft' | 'm'
@@ -152,14 +156,22 @@ function buildTrace(day: DayForecast): TraceRow[] {
   return rows
 }
 
-export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm', isAdmin = false, biasOffset = null, globalBiasOffset = null, maxDiveDepth, days, selectedIndex = 0, onSelectDay }: Props) {
+export function DayDetail({ day, locationName, lat, lon, reportCount, modelConfidence = 'none', units = 'm', isAdmin = false, biasOffset = null, globalBiasOffset = null, maxDiveDepth, days, selectedIndex = 0, onSelectDay }: Props) {
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [showConditions, setShowConditions] = useState(defaultConditionsOpen)
   const trendDays = days && days.length > 1 ? days : null
-  const summary = trendDays ? buildVisSummary(trendDays) : ''
   const vis = day.vis_corrected ?? day.vis_estimate
   const pct = (vis / 15) * 100
-  const dateLabel = new Date(day.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
+
+  // Real "today" index in the forecast series — used by the hero so the best-
+  // window "improving toward X" / "today is in the best window" copy stays
+  // correct regardless of which day the user has clicked into.
+  const heroDays = trendDays ?? [day]
+  const todayISO = new Date().toISOString().split('T')[0]
+  const todayIdx = (() => {
+    const i = heroDays.findIndex((d) => d.date === todayISO)
+    return i >= 0 ? i : Math.max(0, heroDays.findIndex((d) => d.date >= todayISO))
+  })()
 
   const waterQuality = day.nutrient_factor != null ? getWaterQuality(day.nutrient_factor) : null
   const turbidity = day.turbidity_penalty != null && day.turbidity_penalty > 0
@@ -198,41 +210,22 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
 
   return (
     <div className={styles.card}>
-      <div className={styles.header}>
-        <div className={styles.dateBlock}>
-          <div className={styles.dateLine}>{locationName}</div>
-          <div className={styles.dateLine}>{dateLabel}</div>
-          {day.is_forecast && <div className={styles.forecastBadge}>Forecast</div>}
-        </div>
-        <div className={styles.visBlock}>
-          <div className={`${styles.visNumber} ${styles[day.color_class]}`}>{vis.toFixed(1)}</div>
-          <div className={styles.visUnit}>metres</div>
-          {day.vis_corrected !== null && (
-            <div className={styles.correctedNote}>
-              AI-corrected
-              {day.vis_corrected_offset != null && Math.round(day.vis_corrected_offset * 10) !== 0 && (
-                <span className={styles.correctedOffset}>
-                  {' '}{day.vis_corrected_offset >= 0 ? '+' : ''}{(Math.round(day.vis_corrected_offset * 10) / 10).toFixed(1)}m
-                </span>
-              )}
-              {' '}({reportCount} reports)
-              {day.bias_attribution && day.bias_attribution.knn && day.bias_attribution.knn.confidence !== 'insufficient_data' && (
-                <span className={styles.correctedOffset} style={{
-                  color: day.bias_attribution.knn.confidence === 'high' ? '#4ecb8d'
-                    : day.bias_attribution.knn.confidence === 'medium' ? '#d4850a'
-                    : '#e05555',
-                  marginLeft: 4,
-                }}>
-                  {day.bias_attribution.knn.confidence} conf.
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
+      {/* Decision hero — the answer to "should I dive this spot?" */}
+      <ForecastHeroCard
+        day={day}
+        days={heroDays}
+        todayIndex={todayIdx}
+        locationName={locationName}
+        forecast={{ report_count: reportCount, model_confidence: modelConfidence }}
+        onJumpToBestWindow={onSelectDay}
+      />
 
-      {/* Plain-language summary of the visibility trend */}
-      {summary && <div className={styles.summaryLine}>{summary}</div>}
+      {/* Plain-English "why" panel */}
+      <ForecastExplanation
+        day={day}
+        days={heroDays}
+        forecast={{ report_count: reportCount, model_confidence: modelConfidence }}
+      />
 
       {/* Visibility trend sparkline */}
       {trendDays && (
@@ -244,8 +237,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
         <SwellChart days={trendDays} selectedIndex={selectedIndex} onSelect={onSelectDay} units={units} />
       )}
 
-      <div className={`${styles.verdict} ${styles[day.color_class]}`}>{day.verdict}</div>
-
+      {/* Compact viz bar — 0–15m context alongside the hero number */}
       <div className={styles.barContainer}>
         <div className={styles.barLabels}>
           <span>0m</span><span>5m</span><span>10m</span><span>15m</span>
@@ -254,6 +246,19 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
           <div className={`${styles.barFill} ${styles[`bg_${day.color_class}`]}`} style={{ width: `${pct}%` }} />
         </div>
       </div>
+
+      {/* AI-correction note (moved out of hero to keep hero decision-focused) */}
+      {day.vis_corrected !== null && (
+        <div className={styles.correctedNote}>
+          AI-corrected from {day.vis_estimate.toFixed(1)}m
+          {day.vis_corrected_offset != null && Math.round(day.vis_corrected_offset * 10) !== 0 && (
+            <span className={styles.correctedOffset}>
+              {' '}({day.vis_corrected_offset >= 0 ? '+' : ''}{(Math.round(day.vis_corrected_offset * 10) / 10).toFixed(1)}m)
+            </span>
+          )}
+          {' '}· {reportCount} community report{reportCount === 1 ? '' : 's'}
+        </div>
+      )}
 
       {/* Conditions — secondary metrics, collapsed on mobile */}
       <button
@@ -386,7 +391,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
           aria-expanded={showAdvanced}
           aria-label={showAdvanced ? 'Hide detailed breakdown' : 'Show detailed breakdown'}
         >
-          {showAdvanced ? 'Hide details' : 'Show detailed breakdown'}
+          {showAdvanced ? 'Hide detailed forecast breakdown' : 'Show detailed forecast breakdown'}
           <span className={styles.toggleArrow} aria-hidden="true">{showAdvanced ? ' ▲' : ' ▼'}</span>
         </button>
       )}
