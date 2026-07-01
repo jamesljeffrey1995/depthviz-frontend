@@ -83,26 +83,33 @@
 .textarea { resize: vertical; line-height: 1.5; min-height: auto; }
 .select { max-width: 60vw; }
 
-/* ── Tabs ── */
+/* ── Tabs (sticky on mobile, wrap on wider screens) ── */
 .tabs {
   display: flex;
   gap: var(--space-xs);
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 4px;
+  flex-wrap: wrap;
+  padding: 6px 4px;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: linear-gradient(to bottom, rgba(2, 20, 30, 0.98) 60%, rgba(2, 20, 30, 0));
+  backdrop-filter: blur(4px);
+  border-bottom: 1px solid rgba(0, 201, 255, 0.12);
+  margin-bottom: var(--space-md);
 }
 .tab, .tabActive {
   flex: 0 0 auto;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 13px;
   letter-spacing: 0.04em;
-  padding: 9px 14px;
+  padding: 10px 14px;
   border-radius: var(--radius-md);
   cursor: pointer;
   border: 1px solid rgba(0, 201, 255, 0.2);
   background: transparent;
   color: var(--text);
   white-space: nowrap;
+  min-height: 40px;
 }
 .tabActive { background: var(--accent); color: var(--ocean-deep); border-color: var(--accent); font-weight: 700; }
 
@@ -729,3 +736,278 @@
 }
 .iconBtn:disabled { opacity: 0.35; cursor: default; }
 .iconBtn:not(:disabled):hover { background: rgba(0, 201, 255, 0.12); }
+
+/* ── Command Centre / Overview ── */
+.overviewWrap { display: flex; flex-direction: column; gap: var(--space-md); }
+.overviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-sm);
+}
+.overviewCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0, 201, 255, 0.15);
+  background: rgba(4, 30, 46, 0.55);
+  color: var(--text-bright);
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-mono);
+  min-height: 96px;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.overviewCard:hover { border-color: var(--accent); }
+.overviewValue { font-family: var(--font-display); font-size: 34px; line-height: 1; color: var(--text-bright); }
+.overviewLabel { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text); opacity: 0.85; }
+.overviewDetail { font-size: 11px; color: var(--text); opacity: 0.7; }
+.overviewCard_neutral {}
+.overviewCard_water { border-color: var(--accent); background: rgba(0, 201, 255, 0.08); }
+.overviewCard_water .overviewValue { color: var(--accent); }
+.overviewCard_returned { border-color: var(--good); background: rgba(46, 204, 113, 0.08); }
+.overviewCard_returned .overviewValue { color: var(--excellent); }
+.overviewCard_warning { border-color: var(--warn); background: rgba(212, 133, 10, 0.10); }
+.overviewCard_warning .overviewValue { color: var(--warn); }
+.overviewCard_critical { border-color: var(--danger); background: rgba(192, 57, 43, 0.15); }
+.overviewCard_critical .overviewValue { color: var(--danger); }
+
+/* Next-action banner */
+.recAction {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0, 201, 255, 0.25);
+  background: rgba(4, 30, 46, 0.7);
+}
+.recActionInfo { border-color: var(--accent); background: rgba(0, 201, 255, 0.08); }
+.recActionWarning { border-color: var(--warn); background: rgba(212, 133, 10, 0.12); }
+.recActionCritical { border-color: var(--danger); background: rgba(192, 57, 43, 0.18); }
+.recActionKicker {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.75;
+  color: var(--text);
+}
+.recActionMessage { font-size: 17px; line-height: 1.35; color: var(--text-bright); font-weight: 700; }
+
+/* Sampled drill-down lists under the Overview grid */
+.overviewSample {
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0, 201, 255, 0.15);
+  background: rgba(4, 30, 46, 0.5);
+}
+.sampleCritical { border-color: var(--danger); background: rgba(192, 57, 43, 0.08); }
+.sampleWarning { border-color: var(--warn); background: rgba(212, 133, 10, 0.08); }
+.overviewSampleHead {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.overviewSampleList {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-bright);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.overviewFoot {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: 1px dashed rgba(0, 201, 255, 0.2);
+  background: rgba(4, 30, 46, 0.35);
+}
+
+/* ── Wizard ── */
+.wizardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.wizardStepIndicator {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  opacity: 0.7;
+}
+.wizardNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 0 var(--space-sm);
+  border-bottom: 1px solid rgba(0, 201, 255, 0.12);
+  margin-bottom: var(--space-md);
+}
+.wizardTab, .wizardTabActive {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0, 201, 255, 0.2);
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  min-height: 38px;
+}
+.wizardTabActive { background: var(--accent); color: var(--ocean-deep); border-color: var(--accent); font-weight: 700; }
+.wizardTabIndex {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0, 201, 255, 0.15);
+  color: var(--text-bright);
+  font-family: var(--font-display);
+  font-size: 12px;
+}
+.wizardTabActive .wizardTabIndex { background: var(--ocean-deep); color: var(--accent); }
+
+.warningBanner {
+  border: 1px solid var(--warn);
+  background: rgba(212, 133, 10, 0.12);
+  color: var(--text-bright);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: var(--space-sm);
+}
+.warningBanner ul { margin: 4px 0 0; padding-left: 20px; }
+
+/* ── Board additions ── */
+.dueBackChip {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  border: 1px dashed rgba(0, 201, 255, 0.25);
+  margin-left: auto;
+  margin-right: var(--space-xs);
+}
+.actCall {
+  background: rgba(0, 201, 255, 0.14);
+  color: var(--text-bright);
+  border-color: var(--accent);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Teams tab additions ── */
+.teamLocked {
+  border-color: rgba(0, 201, 255, 0.35);
+  background: rgba(0, 201, 255, 0.06);
+}
+.teamLockIcon { margin-right: 4px; }
+.teamRoster {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 8px 12px;
+  background: rgba(4, 30, 46, 0.4);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0, 201, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.teamRoster li {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text);
+}
+.rosterName { color: var(--text-bright); font-weight: 700; }
+.rosterMeta { font-size: 11px; color: var(--text); opacity: 0.8; }
+
+/* ── Weigh-in additions ── */
+.tallyMeta {
+  display: block;
+  font-size: 11px;
+  color: var(--text);
+  opacity: 0.7;
+  margin-top: 2px;
+}
+.warnCard {
+  border-color: var(--warn);
+  background: rgba(212, 133, 10, 0.1);
+}
+.lockedCard {
+  border-color: rgba(0, 201, 255, 0.35);
+  background: rgba(0, 201, 255, 0.05);
+}
+.badgeLocked {
+  color: #fff;
+  background: rgba(0, 122, 156, 0.9);
+  border-color: rgba(0, 201, 255, 0.6);
+  margin-left: 4px;
+}
+
+/* ── Species editor cards ── */
+.speciesCard {
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid rgba(0, 201, 255, 0.15);
+  border-radius: var(--radius-md);
+  background: rgba(4, 30, 46, 0.5);
+  margin-bottom: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+.speciesCardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.speciesCardHead strong {
+  font-size: 15px;
+  color: var(--text-bright);
+}
+
+/* ── Results head bar ── */
+.resultsHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-md);
+}
+
+/* ── Incident severity ── */
+.severityDot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+.severityInfo { background: var(--accent); }
+.severityWarning { background: var(--warn); }
+.severityUrgent { background: #e67e22; }
+.severityCritical { background: var(--danger); box-shadow: 0 0 0 2px rgba(192, 57, 43, 0.25); }

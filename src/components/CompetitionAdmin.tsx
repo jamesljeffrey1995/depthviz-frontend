@@ -9,18 +9,23 @@ import {
   getScoringRule, updateScoringRule, getResults,
   downloadCompetitionCsv, autoPairBuddies,
   getNotificationStatus, sendTestAlert,
+  getOverview, lockResults, unlockResults,
+  parseCompetitorsCsv,
 } from '../lib/api'
 import type {
   Competition, CompetitionInput, CompetitionStatus,
   Competitor, CompetitorInput, CompetitorStatus,
   CompetitionTeam, WaterStatusBoard,
-  FishEntry, FishEntryInput, CompetitionIncident, IncidentType,
+  FishEntry, FishEntryPatch, CompetitionIncident, IncidentType, IncidentSeverity,
   ScoringRule, CompetitionResults,
   NotificationStatus, TestAlertResult,
-  TargetSpecies, ScheduleItem,
+  TargetSpecies, TargetSpeciesUnit, ScheduleItem,
+  CompetitionOverview, RecommendedAction,
 } from '../types'
 import { CompetitionLocationPicker, type PickedPoint } from './CompetitionLocationPicker'
 import styles from './CompetitionAdmin.module.css'
+
+// ── Constants ────────────────────────────────────────────────────────────────
 
 // Sensible day-of defaults drawn from past club competition sheets — organisers
 // can load these as a starting point and tweak per event.
@@ -46,7 +51,11 @@ interface Props {
   isAdmin: boolean
 }
 
-type Tab = 'overview' | 'competitors' | 'teams' | 'board' | 'weighin' | 'results' | 'incidents' | 'template'
+// Tab keys drive the sticky top nav. "setup" is deliberately named so a
+// recommended-action shortcut can route to it.
+type Tab =
+  | 'overview' | 'board' | 'competitors' | 'teams' | 'weighin'
+  | 'results' | 'incidents' | 'setup' | 'template'
 
 const STATUS_LABELS: Record<CompetitorStatus, string> = {
   not_arrived: 'Not arrived',
@@ -75,12 +84,25 @@ const INCIDENT_LABELS: Record<IncidentType, string> = {
   other: 'Other',
 }
 
+const SEVERITY_LABELS: Record<IncidentSeverity, string> = {
+  info: 'Info',
+  warning: 'Warning',
+  urgent: 'Urgent',
+  critical: 'Critical',
+}
+
+const UNIT_LABELS: Record<TargetSpeciesUnit, string> = {
+  cm: 'cm (total length)',
+  mm_carapace: 'mm carapace',
+}
+
+// ── Utilities ────────────────────────────────────────────────────────────────
+
 function errMsg(e: unknown): string {
   return e instanceof Error ? e.message : 'Something went wrong'
 }
 
-/** Split free-text safety notes into bullet lines, one per non-blank line
- *  (handles both LF and CRLF line endings). */
+/** Split free-text safety notes into bullet lines, one per non-blank line. */
 function safetyLines(notes: string | null | undefined): string[] {
   return (notes ?? '').split(/\r?\n/).map(l => l.trim()).filter(Boolean)
 }
@@ -90,9 +112,27 @@ function fmtTime(iso: string | null): string {
   return new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
 }
 
+/** Adds sign_in_deadline (falling back to finish_time) to the event date and
+ *  returns an HH:MM label for the "due back" column on the water board. */
+function dueBackLabel(comp: Competition): string {
+  return comp.sign_in_deadline ?? comp.finish_time ?? '—'
+}
+
 /** OpenStreetMap link for a coordinate pair — printable and tappable. */
 function mapsLink(lat: number, lon: number): string {
   return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=15/${lat}/${lon}`
+}
+
+/** Species minimum size, formatted for tables and warnings. Handles both the
+ *  new length-based fields and the legacy weight column so older rows read
+ *  cleanly until they've been re-saved. */
+function formatSpeciesMin(s: TargetSpecies): string {
+  if (s.min_length != null) {
+    const unit = s.unit === 'mm_carapace' ? 'mm carapace' : 'cm'
+    return `${s.min_length} ${unit}`
+  }
+  if (s.min_weight_g != null) return `${s.min_weight_g} g (legacy)`
+  return 'No minimum'
 }
 
 /** Reusable status badge with a colour driven by the competitor's status. */
@@ -108,7 +148,7 @@ function StatusBadge({ status, overdue }: { status: CompetitorStatus; overdue?: 
 export function CompetitionAdmin({ isAdmin }: Props) {
   const [competitions, setCompetitions] = useState<Competition[]>([])
   const [selectedId, setSelectedId] = useState<number | null>(null)
-  const [tab, setTab] = useState<Tab>('board')
+  const [tab, setTab] = useState<Tab>('overview')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showCreate, setShowCreate] = useState(false)
@@ -119,12 +159,10 @@ export function CompetitionAdmin({ isAdmin }: Props) {
     listCompetitions()
       .then(items => {
         setCompetitions(items)
-        // Auto-select a single competition so the operator lands on the board.
         if (items.length > 0 && selectedId === null) setSelectedId(items[0].id)
       })
       .catch(e => setError(errMsg(e)))
       .finally(() => setLoading(false))
-  // selectedId intentionally excluded: we only auto-select on first load.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -132,8 +170,6 @@ export function CompetitionAdmin({ isAdmin }: Props) {
 
   const selected = competitions.find(c => c.id === selectedId) ?? null
 
-  // Defence in depth: the route is already admin-gated, but never render the
-  // operational UI for a non-admin even if this component were mounted directly.
   if (!isAdmin) {
     return (
       <div className={styles.container}>
@@ -141,6 +177,21 @@ export function CompetitionAdmin({ isAdmin }: Props) {
       </div>
     )
   }
+
+  // Tabs used on the redesigned admin. Order is deliberate: safety-first
+  // (Overview → Board), then people (Competitors, Teams), then the event
+  // (Weigh-in, Results, Incidents), then set-up and print at the end.
+  const TABS: [Tab, string][] = [
+    ['overview', 'Overview'],
+    ['board', 'Water board'],
+    ['competitors', 'Competitors'],
+    ['teams', 'Teams'],
+    ['weighin', 'Weigh-in'],
+    ['results', 'Results'],
+    ['incidents', 'Incidents'],
+    ['setup', 'Setup'],
+    ['template', 'PDF & sheets'],
+  ]
 
   return (
     <div className={styles.container}>
@@ -151,7 +202,7 @@ export function CompetitionAdmin({ isAdmin }: Props) {
             <select
               className={styles.select}
               value={selectedId ?? ''}
-              onChange={e => { setSelectedId(Number(e.target.value)); setTab('board') }}
+              onChange={e => { setSelectedId(Number(e.target.value)); setTab('overview') }}
               aria-label="Select competition"
             >
               {competitions.map(c => (
@@ -170,7 +221,7 @@ export function CompetitionAdmin({ isAdmin }: Props) {
       {error && <p className={styles.error} role="alert">{error}</p>}
 
       {showCreate && (
-        <CompetitionForm
+        <CompetitionWizard
           onCancel={() => setShowCreate(false)}
           onSaved={c => { setShowCreate(false); setSelectedId(c.id); load() }}
         />
@@ -183,16 +234,7 @@ export function CompetitionAdmin({ isAdmin }: Props) {
       ) : selected ? (
         <>
           <nav className={styles.tabs} aria-label="Competition sections">
-            {([
-              ['board', 'Water board'],
-              ['competitors', 'Competitors'],
-              ['teams', 'Teams'],
-              ['weighin', 'Weigh-in'],
-              ['results', 'Results'],
-              ['incidents', 'Incidents'],
-              ['overview', 'Setup'],
-              ['template', 'Template'],
-            ] as [Tab, string][]).map(([t, label]) => (
+            {TABS.map(([t, label]) => (
               <button
                 key={t}
                 className={tab === t ? styles.tabActive : styles.tab}
@@ -204,13 +246,14 @@ export function CompetitionAdmin({ isAdmin }: Props) {
             ))}
           </nav>
 
-          {tab === 'overview' && <OverviewTab comp={selected} onChanged={load} />}
+          {tab === 'overview' && <OverviewTab comp={selected} onNavigate={setTab} onChanged={load} />}
+          {tab === 'board' && <BoardTab cid={selected.id} onOpenIncident={() => setTab('incidents')} />}
           {tab === 'competitors' && <CompetitorsTab cid={selected.id} />}
           {tab === 'teams' && <TeamsTab cid={selected.id} />}
-          {tab === 'board' && <BoardTab cid={selected.id} />}
-          {tab === 'weighin' && <WeighInTab cid={selected.id} />}
-          {tab === 'results' && <ResultsTab cid={selected.id} />}
+          {tab === 'weighin' && <WeighInTab comp={selected} />}
+          {tab === 'results' && <ResultsTab comp={selected} onChanged={load} />}
           {tab === 'incidents' && <IncidentsTab cid={selected.id} />}
+          {tab === 'setup' && <SetupTab comp={selected} onChanged={load} />}
           {tab === 'template' && <TemplateTab comp={selected} onChanged={load} />}
         </>
       ) : null}
@@ -218,7 +261,228 @@ export function CompetitionAdmin({ isAdmin }: Props) {
   )
 }
 
-// ── Competition create/edit form ─────────────────────────────────────────────
+// ── Command Centre (Overview) ────────────────────────────────────────────────
+
+function OverviewTab({
+  comp, onNavigate,
+}: { comp: Competition; onNavigate: (t: Tab) => void; onChanged: () => void }) {
+  const [data, setData] = useState<CompetitionOverview | null>(null)
+  const [error, setError] = useState('')
+
+  const load = useCallback(() => {
+    getOverview(comp.id).then(setData).catch(e => setError(errMsg(e)))
+  }, [comp.id])
+
+  // Refresh every 15s so the safety-critical counters stay live.
+  useEffect(() => {
+    load()
+    const id = setInterval(load, 15000)
+    return () => clearInterval(id)
+  }, [load])
+
+  if (error && !data) return <p className={styles.error} role="alert">{error}</p>
+  if (!data) return <p className={styles.muted}>Loading overview…</p>
+
+  const c = data.counts
+  const rec = data.recommended_action
+
+  return (
+    <div className={styles.overviewWrap}>
+      <RecommendedActionCard action={rec} onGo={onNavigate} />
+
+      <div className={styles.overviewGrid}>
+        <OverviewCard
+          tone={c.overdue > 0 ? 'critical' : 'neutral'}
+          label="Overdue"
+          value={c.overdue}
+          detail={c.overdue > 0 ? 'Divers past their sign-in deadline' : 'No overdue divers'}
+          onOpen={() => onNavigate('board')}
+        />
+        <OverviewCard
+          tone={c.in_water > 0 ? 'water' : 'neutral'}
+          label="In water"
+          value={c.in_water}
+          detail="Signed out and still diving"
+          onOpen={() => onNavigate('board')}
+        />
+        <OverviewCard
+          tone="returned"
+          label="Returned"
+          value={c.returned}
+          detail="Signed back in safely"
+          onOpen={() => onNavigate('board')}
+        />
+        <OverviewCard
+          tone={c.not_arrived > 0 ? 'warning' : 'neutral'}
+          label="Not arrived"
+          value={c.not_arrived}
+          detail="Registered but not on site"
+          onOpen={() => onNavigate('board')}
+        />
+        <OverviewCard
+          tone={data.unpaid > 0 ? 'warning' : 'neutral'}
+          label="Unpaid"
+          value={data.unpaid}
+          detail="Payment still outstanding"
+          onOpen={() => onNavigate('competitors')}
+        />
+        <OverviewCard
+          tone={data.missing_waiver > 0 ? 'warning' : 'neutral'}
+          label="Missing waivers"
+          value={data.missing_waiver}
+          detail="Waiver not signed"
+          onOpen={() => onNavigate('competitors')}
+        />
+        <OverviewCard
+          tone={data.unassigned_buddy > 0 ? 'warning' : 'neutral'}
+          label="No buddy"
+          value={data.unassigned_buddy}
+          detail="Solo divers waiting to pair"
+          onOpen={() => onNavigate('teams')}
+        />
+        <OverviewCard
+          tone={data.open_incidents > 0 ? 'critical' : 'neutral'}
+          label="Open incidents"
+          value={data.open_incidents}
+          detail="Unresolved incidents on the log"
+          onOpen={() => onNavigate('incidents')}
+        />
+      </div>
+
+      <OverviewSampleList title="Overdue divers" items={data.samples.overdue} tone="critical" />
+      <OverviewSampleList title="Solo divers without a buddy" items={data.samples.no_buddy} tone="warning" />
+      <OverviewSampleList title="Unpaid" items={data.samples.unpaid} tone="warning" />
+      <OverviewSampleList title="Missing waivers" items={data.samples.missing_waiver} tone="warning" />
+
+      <div className={styles.overviewFoot}>
+        <div className={styles.detailRow}>
+          <span>Event status</span>
+          <strong>{COMPETITION_STATUS_LABELS[data.competition.status]}</strong>
+        </div>
+        <div className={styles.detailRow}>
+          <span>Visibility</span>
+          <strong>{data.competition.visibility === 'admin' ? 'Admin only' : 'Released / public'}</strong>
+        </div>
+        <div className={styles.detailRow}>
+          <span>Results</span>
+          <strong>{data.competition.results_locked ? 'Locked / final' : 'Provisional / live'}</strong>
+        </div>
+      </div>
+
+    </div>
+  )
+}
+
+function RecommendedActionCard({
+  action, onGo,
+}: { action: RecommendedAction; onGo: (t: Tab) => void }) {
+  const cls = action.severity === 'critical'
+    ? styles.recActionCritical
+    : action.severity === 'warning' ? styles.recActionWarning : styles.recActionInfo
+  const target = action.target_tab as Tab
+  return (
+    <div className={`${styles.recAction} ${cls}`} role="status">
+      <div className={styles.recActionKicker}>Next recommended action</div>
+      <div className={styles.recActionMessage}>{action.message}</div>
+      {action.action !== 'ready' && (
+        <button className={styles.btnPrimary} onClick={() => onGo(target)}>
+          Go to {target === 'setup' ? 'Setup' : target}
+        </button>
+      )}
+    </div>
+  )
+}
+
+function OverviewCard({
+  tone, label, value, detail, onOpen,
+}: {
+  tone: 'critical' | 'warning' | 'water' | 'returned' | 'neutral'
+  label: string
+  value: number
+  detail: string
+  onOpen?: () => void
+}) {
+  return (
+    <button className={`${styles.overviewCard} ${styles[`overviewCard_${tone}`]}`}
+            onClick={onOpen} type="button">
+      <span className={styles.overviewValue}>{value}</span>
+      <span className={styles.overviewLabel}>{label}</span>
+      <span className={styles.overviewDetail}>{detail}</span>
+    </button>
+  )
+}
+
+function OverviewSampleList({
+  title, items, tone,
+}: {
+  title: string
+  items: { id: number; full_name: string }[]
+  tone: 'critical' | 'warning'
+}) {
+  // No card when there is nothing to show — the Overview grid already
+  // communicates the zero-count case via the neutral card tone.
+  if (items.length === 0) return null
+  const cls = tone === 'critical' ? styles.sampleCritical : styles.sampleWarning
+  return (
+    <div className={`${styles.overviewSample} ${cls}`}>
+      <div className={styles.overviewSampleHead}>{title}</div>
+      <ul className={styles.overviewSampleList}>
+        {items.map(i => (<li key={i.id}>{i.full_name}</li>))}
+      </ul>
+    </div>
+  )
+}
+
+// ── Setup (wizard-based edit + delete controls) ──────────────────────────────
+
+function SetupTab({ comp, onChanged }: { comp: Competition; onChanged: () => void }) {
+  const [editing, setEditing] = useState(false)
+
+  async function remove() {
+    if (!confirm(`Delete “${comp.name}” and all its data? This cannot be undone.`)) return
+    await deleteCompetition(comp.id)
+    onChanged()
+  }
+
+  if (editing) {
+    return <CompetitionWizard
+      initial={comp}
+      onCancel={() => setEditing(false)}
+      onSaved={() => { setEditing(false); onChanged() }}
+    />
+  }
+
+  return (
+    <div>
+      <div className={styles.card}>
+        <h2 className={styles.cardTitle}>Setup summary</h2>
+        <div className={styles.detailRow}><span>Status</span><strong>{COMPETITION_STATUS_LABELS[comp.status]}</strong></div>
+        <div className={styles.detailRow}><span>Visibility</span><strong>{comp.visibility === 'admin' ? 'Admin only' : 'Released'}</strong></div>
+        <div className={styles.detailRow}><span>Site</span><strong>{comp.location_site ?? '—'}</strong></div>
+        <div className={styles.detailRow}><span>Date</span><strong>{comp.competition_date}</strong></div>
+        <div className={styles.detailRow}><span>Backup date</span><strong>{comp.backup_date ?? '—'}</strong></div>
+        <div className={styles.detailRow}><span>Start → Finish</span><strong>{comp.start_time ?? '—'} → {comp.finish_time ?? '—'}</strong></div>
+        <div className={styles.detailRow}><span>Sign-in deadline</span><strong>{comp.sign_in_deadline ?? '—'}</strong></div>
+        <div className={styles.detailRow}><span>Weigh-in start</span><strong>{comp.weigh_in_start ?? '—'}</strong></div>
+        <div className={styles.detailRow}><span>Overdue grace</span><strong>{comp.overdue_grace_minutes} min</strong></div>
+        <div className={styles.detailRow}><span>Target species</span><strong>{(comp.target_species ?? []).length}</strong></div>
+        {comp.boundaries_notes && <p className={styles.notes}>{comp.boundaries_notes}</p>}
+        <div className={styles.formActions}>
+          <button className={styles.btnDanger} onClick={remove}>Delete</button>
+          <button className={styles.btnPrimary} onClick={() => setEditing(true)}>Edit in wizard</button>
+        </div>
+      </div>
+
+      <NotificationPanel comp={comp} />
+    </div>
+  )
+}
+
+// ── Competition wizard ───────────────────────────────────────────────────────
+//
+// A 7-step guided flow for creating or editing a competition. Each step covers
+// one logical group of fields and can be reached directly via the step nav so
+// an organiser can jump straight to what they need to change.
 
 const EMPTY_COMP: CompetitionInput = {
   name: '', competition_date: '', backup_date: '', location_site: '',
@@ -232,54 +496,70 @@ const EMPTY_COMP: CompetitionInput = {
   additional_rules: '', entry_fee: '', prize_info: '',
   meeting_point_name: '', meeting_point_lat: null, meeting_point_lon: null,
   meeting_point_notes: '', health_safety_notes: '',
-  target_species: [], schedule: [],
+  target_species: [], schedule: [], results_locked: false,
 }
 
-function CompetitionForm({
+type WizardStep =
+  | 'basics' | 'timings' | 'rules' | 'species' | 'safety' | 'registration' | 'review'
+
+const WIZARD_STEPS: [WizardStep, string, string][] = [
+  ['basics', 'Basics', 'Name, site and location'],
+  ['timings', 'Timings', 'Start, finish, sign-in, weigh-in'],
+  ['rules', 'Rules', 'Prizes, fees and additional rules'],
+  ['species', 'Target species', 'Minimum length rules'],
+  ['safety', 'Safety alerts', 'Overdue thresholds & channels'],
+  ['registration', 'Registration form', 'Meeting point & briefing'],
+  ['review', 'Public info / PDF', 'Preview and save'],
+]
+
+function draftFromCompetition(initial?: Competition): CompetitionInput {
+  if (!initial) return { ...EMPTY_COMP }
+  return {
+    name: initial.name,
+    competition_date: initial.competition_date,
+    backup_date: initial.backup_date ?? '',
+    location_site: initial.location_site ?? '',
+    location_lat: initial.location_lat,
+    location_lon: initial.location_lon,
+    boundaries_notes: initial.boundaries_notes ?? '',
+    start_time: initial.start_time ?? '',
+    finish_time: initial.finish_time ?? '',
+    sign_in_deadline: initial.sign_in_deadline ?? '',
+    weigh_in_start: initial.weigh_in_start ?? '',
+    status: initial.status,
+    visibility: initial.visibility,
+    overdue_grace_minutes: initial.overdue_grace_minutes,
+    alert_slack_enabled: initial.alert_slack_enabled,
+    alert_email_enabled: initial.alert_email_enabled,
+    alert_emails: initial.alert_emails ?? '',
+    organiser_name: initial.organiser_name ?? '',
+    organiser_phone: initial.organiser_phone ?? '',
+    organiser_email: initial.organiser_email ?? '',
+    emergency_contact_name: initial.emergency_contact_name ?? '',
+    emergency_contact_phone: initial.emergency_contact_phone ?? '',
+    additional_rules: initial.additional_rules ?? '',
+    entry_fee: initial.entry_fee ?? '',
+    prize_info: initial.prize_info ?? '',
+    meeting_point_name: initial.meeting_point_name ?? '',
+    meeting_point_lat: initial.meeting_point_lat,
+    meeting_point_lon: initial.meeting_point_lon,
+    meeting_point_notes: initial.meeting_point_notes ?? '',
+    health_safety_notes: initial.health_safety_notes ?? '',
+    target_species: initial.target_species ?? [],
+    schedule: initial.schedule ?? [],
+    results_locked: initial.results_locked,
+  }
+}
+
+function CompetitionWizard({
   initial, onCancel, onSaved,
 }: {
   initial?: Competition
   onCancel: () => void
   onSaved: (c: Competition) => void
 }) {
-  const [draft, setDraft] = useState<CompetitionInput>(
-    initial
-      ? {
-          name: initial.name,
-          competition_date: initial.competition_date,
-          backup_date: initial.backup_date ?? '',
-          location_site: initial.location_site ?? '',
-          location_lat: initial.location_lat,
-          location_lon: initial.location_lon,
-          boundaries_notes: initial.boundaries_notes ?? '',
-          start_time: initial.start_time ?? '',
-          finish_time: initial.finish_time ?? '',
-          sign_in_deadline: initial.sign_in_deadline ?? '',
-          weigh_in_start: initial.weigh_in_start ?? '',
-          status: initial.status,
-          visibility: initial.visibility,
-          overdue_grace_minutes: initial.overdue_grace_minutes,
-          alert_slack_enabled: initial.alert_slack_enabled,
-          alert_email_enabled: initial.alert_email_enabled,
-          alert_emails: initial.alert_emails ?? '',
-          organiser_name: initial.organiser_name ?? '',
-          organiser_phone: initial.organiser_phone ?? '',
-          organiser_email: initial.organiser_email ?? '',
-          emergency_contact_name: initial.emergency_contact_name ?? '',
-          emergency_contact_phone: initial.emergency_contact_phone ?? '',
-          additional_rules: initial.additional_rules ?? '',
-          entry_fee: initial.entry_fee ?? '',
-          prize_info: initial.prize_info ?? '',
-          meeting_point_name: initial.meeting_point_name ?? '',
-          meeting_point_lat: initial.meeting_point_lat,
-          meeting_point_lon: initial.meeting_point_lon,
-          meeting_point_notes: initial.meeting_point_notes ?? '',
-          health_safety_notes: initial.health_safety_notes ?? '',
-          target_species: initial.target_species ?? [],
-          schedule: initial.schedule ?? [],
-        }
-      : EMPTY_COMP,
-  )
+  const [draft, setDraft] = useState<CompetitionInput>(draftFromCompetition(initial))
+  const [step, setStep] = useState<WizardStep>('basics')
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState('')
 
@@ -290,11 +570,11 @@ function CompetitionForm({
   async function save() {
     if (!draft.name.trim() || !draft.competition_date) {
       setErr('Name and date are required.')
+      setStep('basics')
       return
     }
     setSaving(true)
     setErr('')
-    // Blank optional strings → null so we don't store empty strings for times/dates.
     const payload: CompetitionInput = {
       ...draft,
       name: draft.name.trim(),
@@ -318,8 +598,6 @@ function CompetitionForm({
       meeting_point_notes: (draft.meeting_point_notes ?? '').trim() || null,
       health_safety_notes: (draft.health_safety_notes ?? '').trim() || null,
       target_species: draft.target_species ?? [],
-      // Normalise then drop blank rows so we never persist empty/whitespace-only
-      // timeline entries or stray padding that renders as odd spacing.
       schedule: (draft.schedule ?? [])
         .map(s => ({
           time: (s.time ?? '').trim(),
@@ -340,81 +618,209 @@ function CompetitionForm({
     }
   }
 
+  const stepIndex = WIZARD_STEPS.findIndex(([k]) => k === step)
+  const isFirst = stepIndex === 0
+  const isLast = stepIndex === WIZARD_STEPS.length - 1
+
   return (
     <div className={styles.card}>
-      <h2 className={styles.cardTitle}>{initial ? 'Edit competition' : 'New competition'}</h2>
+      <div className={styles.wizardHead}>
+        <h2 className={styles.cardTitle}>{initial ? 'Edit competition' : 'New competition'}</h2>
+        <span className={styles.wizardStepIndicator}>Step {stepIndex + 1} of {WIZARD_STEPS.length}</span>
+      </div>
+
+      <nav className={styles.wizardNav} aria-label="Wizard sections">
+        {WIZARD_STEPS.map(([k, label], i) => (
+          <button
+            key={k}
+            className={step === k ? styles.wizardTabActive : styles.wizardTab}
+            aria-pressed={step === k}
+            onClick={() => setStep(k)}
+          >
+            <span className={styles.wizardTabIndex}>{i + 1}</span>
+            <span>{label}</span>
+          </button>
+        ))}
+      </nav>
+
       {err && <p className={styles.error} role="alert">{err}</p>}
+
+      {step === 'basics' && <WizardStepBasics draft={draft} set={set} />}
+      {step === 'timings' && <WizardStepTimings draft={draft} set={set} />}
+      {step === 'rules' && <WizardStepRules draft={draft} set={set} />}
+      {step === 'species' && <WizardStepSpecies draft={draft} set={set} />}
+      {step === 'safety' && <WizardStepSafety draft={draft} set={set} />}
+      {step === 'registration' && <WizardStepRegistration draft={draft} set={set} setDraft={setDraft} />}
+      {step === 'review' && <WizardStepReview draft={draft} />}
+
+      <div className={styles.formActions}>
+        <button className={styles.btnGhost} onClick={onCancel} disabled={saving}>Cancel</button>
+        {!isFirst && (
+          <button className={styles.btnGhost} onClick={() => setStep(WIZARD_STEPS[stepIndex - 1][0])}
+                  disabled={saving}>‹ Back</button>
+        )}
+        {!isLast ? (
+          <button className={styles.btnPrimary}
+                  onClick={() => setStep(WIZARD_STEPS[stepIndex + 1][0])}
+                  disabled={saving}>Next ›</button>
+        ) : (
+          <button className={styles.btnPrimary} onClick={save} disabled={saving}>
+            {saving ? 'Saving…' : initial ? 'Save changes' : 'Create competition'}
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+type WizardStepProps = {
+  draft: CompetitionInput
+  set: <K extends keyof CompetitionInput>(key: K, value: CompetitionInput[K]) => void
+}
+
+function WizardStepBasics({ draft, set }: WizardStepProps) {
+  return (
+    <div>
+      <p className={styles.muted}>Give the competition a name and pin its dive area.</p>
       <div className={styles.formGrid}>
-        <label className={styles.field}>
-          <span>Name</span>
+        <label className={styles.field}><span>Name</span>
           <input className={styles.input} value={draft.name} maxLength={200}
-                 onChange={e => set('name', e.target.value)} />
-        </label>
-        <label className={styles.field}>
-          <span>Location / site</span>
+                 placeholder="e.g. North East Spearos – Seaton Sluice Competition 2026"
+                 onChange={e => set('name', e.target.value)} /></label>
+        <label className={styles.field}><span>Location / site</span>
           <input className={styles.input} value={draft.location_site ?? ''} maxLength={200}
                  placeholder="e.g. Seaton Sluice"
-                 onChange={e => set('location_site', e.target.value)} />
-        </label>
-        <label className={styles.field}>
-          <span>Date</span>
+                 onChange={e => set('location_site', e.target.value)} /></label>
+        <label className={styles.field}><span>Date</span>
           <input className={styles.input} type="date" value={draft.competition_date}
-                 onChange={e => set('competition_date', e.target.value)} />
-        </label>
-        <label className={styles.field}>
-          <span>Backup date</span>
+                 onChange={e => set('competition_date', e.target.value)} /></label>
+        <label className={styles.field}><span>Backup date</span>
           <input className={styles.input} type="date" value={draft.backup_date ?? ''}
-                 onChange={e => set('backup_date', e.target.value)} />
-        </label>
-        <label className={styles.field}>
-          <span>Start time</span>
-          <input className={styles.input} type="time" value={draft.start_time ?? ''}
-                 onChange={e => set('start_time', e.target.value)} />
-        </label>
-        <label className={styles.field}>
-          <span>Finish time</span>
-          <input className={styles.input} type="time" value={draft.finish_time ?? ''}
-                 onChange={e => set('finish_time', e.target.value)} />
-        </label>
-        <label className={styles.field}>
-          <span>Sign-in deadline</span>
-          <input className={styles.input} type="time" value={draft.sign_in_deadline ?? ''}
-                 onChange={e => set('sign_in_deadline', e.target.value)} />
-        </label>
-        <label className={styles.field}>
-          <span>Weigh-in start</span>
-          <input className={styles.input} type="time" value={draft.weigh_in_start ?? ''}
-                 onChange={e => set('weigh_in_start', e.target.value)} />
-        </label>
-        <label className={styles.field}>
-          <span>Status</span>
+                 onChange={e => set('backup_date', e.target.value)} /></label>
+        <label className={styles.field}><span>Status</span>
           <select className={styles.input} value={draft.status}
                   onChange={e => set('status', e.target.value as CompetitionStatus)}>
             {Object.entries(COMPETITION_STATUS_LABELS).map(([v, l]) => (
               <option key={v} value={v}>{l}</option>
             ))}
-          </select>
-        </label>
-        <label className={styles.field}>
-          <span>Visibility</span>
+          </select></label>
+        <label className={styles.field}><span>Visibility</span>
           <select className={styles.input} value={draft.visibility}
                   onChange={e => set('visibility', e.target.value as 'admin' | 'released')}>
             <option value="admin">Admin only (default)</option>
             <option value="released">Released / public</option>
-          </select>
-        </label>
-        <label className={styles.field}>
-          <span>Overdue alert after (min past deadline)</span>
+          </select></label>
+      </div>
+      <div className={`${styles.field} ${styles.fieldFull}`}>
+        <span>Competition dive area (pin)</span>
+        <CompetitionLocationPicker
+          accent="cyan"
+          label="Competition dive area"
+          value={{ lat: draft.location_lat ?? null, lon: draft.location_lon ?? null, name: draft.location_site ?? null }}
+          onChange={(p: PickedPoint | null) => {
+            set('location_lat', p?.lat ?? null)
+            set('location_lon', p?.lon ?? null)
+            if (p?.name) set('location_site', p.name)
+          }}
+        />
+      </div>
+      <label className={`${styles.field} ${styles.fieldFull}`}>
+        <span>Boundaries / area notes</span>
+        <textarea className={styles.textarea} rows={3} value={draft.boundaries_notes ?? ''}
+                  placeholder="Any out-of-bounds zones, hazards, boat lanes…"
+                  onChange={e => set('boundaries_notes', e.target.value)} />
+      </label>
+    </div>
+  )
+}
+
+function WizardStepTimings({ draft, set }: WizardStepProps) {
+  return (
+    <div>
+      <p className={styles.muted}>Set start, finish, sign-in deadline, and weigh-in start times.</p>
+      <div className={styles.formGrid}>
+        <label className={styles.field}><span>Start time</span>
+          <input className={styles.input} type="time" value={draft.start_time ?? ''}
+                 onChange={e => set('start_time', e.target.value)} /></label>
+        <label className={styles.field}><span>Finish time</span>
+          <input className={styles.input} type="time" value={draft.finish_time ?? ''}
+                 onChange={e => set('finish_time', e.target.value)} /></label>
+        <label className={styles.field}><span>Sign-in deadline</span>
+          <input className={styles.input} type="time" value={draft.sign_in_deadline ?? ''}
+                 onChange={e => set('sign_in_deadline', e.target.value)} /></label>
+        <label className={styles.field}><span>Weigh-in start</span>
+          <input className={styles.input} type="time" value={draft.weigh_in_start ?? ''}
+                 onChange={e => set('weigh_in_start', e.target.value)} /></label>
+      </div>
+      <h3 className={styles.sectionHeading}>Schedule / itinerary</h3>
+      <div className={`${styles.field} ${styles.fieldFull}`}>
+        <ScheduleEditor
+          value={draft.schedule ?? []}
+          onChange={v => set('schedule', v)}
+        />
+      </div>
+    </div>
+  )
+}
+
+function WizardStepRules({ draft, set }: WizardStepProps) {
+  return (
+    <div>
+      <p className={styles.muted}>Entry fee, prizes and any rules beyond the standard boundaries.</p>
+      <div className={styles.formGrid}>
+        <label className={styles.field}><span>Entry fee</span>
+          <input className={styles.input} value={draft.entry_fee ?? ''} maxLength={200}
+                 placeholder="e.g. £20 per person"
+                 onChange={e => set('entry_fee', e.target.value)} /></label>
+      </div>
+      <label className={`${styles.field} ${styles.fieldFull}`}>
+        <span>Prize information</span>
+        <textarea className={styles.textarea} rows={3} value={draft.prize_info ?? ''}
+                  placeholder="e.g. 1st – £100 + trophy, 2nd – £50, Biggest fish – £25"
+                  onChange={e => set('prize_info', e.target.value)} />
+      </label>
+      <label className={`${styles.field} ${styles.fieldFull}`}>
+        <span>Additional rules / notes</span>
+        <textarea className={styles.textarea} rows={4} value={draft.additional_rules ?? ''}
+                  placeholder="Bag limits, prohibited species, minimum sizes not covered by target species…"
+                  onChange={e => set('additional_rules', e.target.value)} />
+      </label>
+    </div>
+  )
+}
+
+function WizardStepSpecies({ draft, set }: WizardStepProps) {
+  return (
+    <div>
+      <p className={styles.muted}>
+        Set a legal minimum <strong>length</strong> for each target species (spearfishing
+        rules are almost always length-based). Undersize catches can be
+        automatically disqualified at weigh-in.
+      </p>
+      <TargetSpeciesEditor
+        value={draft.target_species ?? []}
+        onChange={v => set('target_species', v)}
+      />
+    </div>
+  )
+}
+
+function WizardStepSafety({ draft, set }: WizardStepProps) {
+  return (
+    <div>
+      <p className={styles.muted}>
+        Overdue safety alerting: how long after the sign-in deadline before a
+        still-in-water diver escalates, and which channels get paged.
+      </p>
+      <div className={styles.formGrid}>
+        <label className={styles.field}><span>Overdue alert after (min past deadline)</span>
           <input className={styles.input} type="number" min={0} max={600}
                  value={draft.overdue_grace_minutes ?? 30}
-                 onChange={e => set('overdue_grace_minutes', Number(e.target.value))} />
-        </label>
-        <label className={styles.field}>
-          <span>Extra alert emails (comma-separated)</span>
+                 onChange={e => set('overdue_grace_minutes', Number(e.target.value))} /></label>
+        <label className={styles.field}><span>Extra alert emails (comma-separated)</span>
           <input className={styles.input} value={draft.alert_emails ?? ''} maxLength={2000}
                  placeholder="safety@club.org, organiser@club.org"
-                 onChange={e => set('alert_emails', e.target.value)} />
-        </label>
+                 onChange={e => set('alert_emails', e.target.value)} /></label>
       </div>
       <div className={styles.checkRow}>
         <label className={styles.checkInline}>
@@ -428,32 +834,23 @@ function CompetitionForm({
           <span>Send overdue alerts by email</span>
         </label>
       </div>
-      <label className={styles.field}>
-        <span>Boundaries / area notes</span>
-        <textarea className={styles.textarea} rows={3} value={draft.boundaries_notes ?? ''}
-                  onChange={e => set('boundaries_notes', e.target.value)} />
-      </label>
-
-      <h3 className={styles.sectionHeading}>Location &amp; meeting point</h3>
       <p className={styles.muted}>
-        Pick from the same dive-spot pins used on the visibility map, or click the map to
-        drop a custom point. The dive area sets where the competition is held; the meeting
-        point is where competitors gather to sign in and get briefed.
+        Safety-critical thresholds must be signed off before every event — you can
+        test channels once the competition is saved from the Setup tab.
       </p>
-      <div className={`${styles.field} ${styles.fieldFull}`}>
-        <CompetitionLocationPicker
-          accent="cyan"
-          label="Competition dive area"
-          value={{ lat: draft.location_lat ?? null, lon: draft.location_lon ?? null, name: draft.location_site ?? null }}
-          onChange={(p: PickedPoint | null) => setDraft(d => ({
-            ...d,
-            location_lat: p?.lat ?? null,
-            location_lon: p?.lon ?? null,
-            // Adopt the pin's name when one is chosen; keep any typed site name otherwise.
-            location_site: p?.name ? p.name : d.location_site,
-          }))}
-        />
-      </div>
+    </div>
+  )
+}
+
+function WizardStepRegistration({
+  draft, set, setDraft,
+}: WizardStepProps & { setDraft: React.Dispatch<React.SetStateAction<CompetitionInput>> }) {
+  return (
+    <div>
+      <p className={styles.muted}>
+        Registration-form details: where to meet, emergency contact, organiser
+        contact, and the health &amp; safety briefing shown to every diver.
+      </p>
       <label className={styles.field}>
         <span>Meeting point name</span>
         <input className={styles.input} value={draft.meeting_point_name ?? ''} maxLength={200}
@@ -480,15 +877,26 @@ function CompetitionForm({
                   onChange={e => set('meeting_point_notes', e.target.value)} />
       </label>
 
-      <h3 className={styles.sectionHeading}>Schedule / itinerary</h3>
-      <div className={`${styles.field} ${styles.fieldFull}`}>
-        <ScheduleEditor
-          value={draft.schedule ?? []}
-          onChange={v => set('schedule', v)}
-        />
+      <h3 className={styles.sectionHeading}>Organiser &amp; emergency contact</h3>
+      <div className={styles.formGrid}>
+        <label className={styles.field}><span>Organiser name</span>
+          <input className={styles.input} value={draft.organiser_name ?? ''} maxLength={200}
+                 onChange={e => set('organiser_name', e.target.value)} /></label>
+        <label className={styles.field}><span>Organiser phone</span>
+          <input className={styles.input} value={draft.organiser_phone ?? ''} maxLength={40}
+                 onChange={e => set('organiser_phone', e.target.value)} /></label>
+        <label className={styles.field}><span>Organiser email</span>
+          <input className={styles.input} type="email" value={draft.organiser_email ?? ''} maxLength={200}
+                 onChange={e => set('organiser_email', e.target.value)} /></label>
+        <label className={styles.field}><span>Emergency contact name</span>
+          <input className={styles.input} value={draft.emergency_contact_name ?? ''} maxLength={200}
+                 onChange={e => set('emergency_contact_name', e.target.value)} /></label>
+        <label className={styles.field}><span>Emergency contact phone</span>
+          <input className={styles.input} value={draft.emergency_contact_phone ?? ''} maxLength={40}
+                 onChange={e => set('emergency_contact_phone', e.target.value)} /></label>
       </div>
 
-      <h3 className={styles.sectionHeading}>Health &amp; safety</h3>
+      <h3 className={styles.sectionHeading}>Health &amp; safety briefing</h3>
       <label className={`${styles.field} ${styles.fieldFull}`}>
         <span>
           Safety briefing notes
@@ -500,112 +908,54 @@ function CompetitionForm({
           )}
         </span>
         <textarea className={styles.textarea} rows={6} value={draft.health_safety_notes ?? ''}
-                  placeholder={'One rule per line — each line shows as a bullet point.\nBuddy rules, floats, swim-only, sign-in/out accountability, legal restrictions, etc.'}
+                  placeholder={'One rule per line — each line shows as a bullet point.'}
                   onChange={e => set('health_safety_notes', e.target.value)} />
-        <span className={styles.fieldHint}>Write one rule per line — each line becomes a bullet point on the brief and the public competition page.</span>
+        <span className={styles.fieldHint}>One rule per line — each line becomes a bullet on the brief and the public page.</span>
       </label>
-
-      <h3 className={styles.sectionHeading}>Organiser contact</h3>
-      <label className={styles.field}>
-        <span>Organiser name</span>
-        <input className={styles.input} value={draft.organiser_name ?? ''} maxLength={200}
-               placeholder="e.g. Northumbria Spearo Club"
-               onChange={e => set('organiser_name', e.target.value)} />
-      </label>
-      <label className={styles.field}>
-        <span>Organiser phone</span>
-        <input className={styles.input} value={draft.organiser_phone ?? ''} maxLength={40}
-               placeholder="+44 7xxx xxxxxx"
-               onChange={e => set('organiser_phone', e.target.value)} />
-      </label>
-      <label className={styles.field}>
-        <span>Organiser email</span>
-        <input className={styles.input} type="email" value={draft.organiser_email ?? ''} maxLength={200}
-               onChange={e => set('organiser_email', e.target.value)} />
-      </label>
-      <label className={styles.field}>
-        <span>Emergency contact name</span>
-        <input className={styles.input} value={draft.emergency_contact_name ?? ''} maxLength={200}
-               onChange={e => set('emergency_contact_name', e.target.value)} />
-      </label>
-      <label className={styles.field}>
-        <span>Emergency contact phone</span>
-        <input className={styles.input} value={draft.emergency_contact_phone ?? ''} maxLength={40}
-               onChange={e => set('emergency_contact_phone', e.target.value)} />
-      </label>
-
-      <h3 className={styles.sectionHeading}>Entry &amp; prizes</h3>
-      <label className={styles.field}>
-        <span>Entry fee</span>
-        <input className={styles.input} value={draft.entry_fee ?? ''} maxLength={200}
-               placeholder="e.g. £20 per person"
-               onChange={e => set('entry_fee', e.target.value)} />
-      </label>
-      <label className={`${styles.field} ${styles.fieldFull}`}>
-        <span>Prize information</span>
-        <textarea className={styles.textarea} rows={3} value={draft.prize_info ?? ''}
-                  placeholder="e.g. 1st – £100 + trophy, 2nd – £50, Biggest fish – £25"
-                  onChange={e => set('prize_info', e.target.value)} />
-      </label>
-
-      <h3 className={styles.sectionHeading}>Additional rules</h3>
-      <label className={`${styles.field} ${styles.fieldFull}`}>
-        <span>Additional rules / notes</span>
-        <textarea className={styles.textarea} rows={4} value={draft.additional_rules ?? ''}
-                  placeholder="Any rules beyond the standard boundaries — minimum sizes, bag limits, prohibited areas, safety requirements, etc."
-                  onChange={e => set('additional_rules', e.target.value)} />
-      </label>
-
-      <div className={styles.formActions}>
-        <button className={styles.btnGhost} onClick={onCancel} disabled={saving}>Cancel</button>
-        <button className={styles.btnPrimary} onClick={save} disabled={saving}>
-          {saving ? 'Saving…' : initial ? 'Save' : 'Create'}
-        </button>
-      </div>
     </div>
   )
 }
 
-// ── Setup / overview tab ─────────────────────────────────────────────────────
-
-function OverviewTab({ comp, onChanged }: { comp: Competition; onChanged: () => void }) {
-  const [editing, setEditing] = useState(false)
-
-  async function remove() {
-    if (!confirm(`Delete “${comp.name}” and all its data? This cannot be undone.`)) return
-    await deleteCompetition(comp.id)
-    onChanged()
-  }
-
-  if (editing) {
-    return <CompetitionForm initial={comp} onCancel={() => setEditing(false)}
-                            onSaved={() => { setEditing(false); onChanged() }} />
-  }
+function WizardStepReview({ draft }: { draft: CompetitionInput }) {
+  const missing: string[] = []
+  if (!draft.name.trim()) missing.push('Name')
+  if (!draft.competition_date) missing.push('Date')
+  if (!draft.start_time) missing.push('Start time')
+  if (!draft.finish_time) missing.push('Finish time')
+  if (!draft.sign_in_deadline) missing.push('Sign-in deadline')
+  if (!draft.meeting_point_name) missing.push('Meeting point')
+  if (!draft.emergency_contact_phone) missing.push('Emergency contact phone')
+  if ((draft.target_species ?? []).length === 0) missing.push('Target species')
 
   return (
-    <div className={styles.card}>
-      <div className={styles.detailRow}><span>Status</span><strong>{COMPETITION_STATUS_LABELS[comp.status]}</strong></div>
-      <div className={styles.detailRow}><span>Visibility</span><strong>{comp.visibility === 'admin' ? 'Admin only' : 'Released'}</strong></div>
-      <div className={styles.detailRow}><span>Site</span><strong>{comp.location_site ?? '—'}</strong></div>
-      <div className={styles.detailRow}><span>Date</span><strong>{comp.competition_date}</strong></div>
-      <div className={styles.detailRow}><span>Backup date</span><strong>{comp.backup_date ?? '—'}</strong></div>
-      <div className={styles.detailRow}><span>Start → Finish</span><strong>{comp.start_time ?? '—'} → {comp.finish_time ?? '—'}</strong></div>
-      <div className={styles.detailRow}><span>Sign-in deadline</span><strong>{comp.sign_in_deadline ?? '—'}</strong></div>
-      <div className={styles.detailRow}><span>Weigh-in start</span><strong>{comp.weigh_in_start ?? '—'}</strong></div>
-      {comp.boundaries_notes && <p className={styles.notes}>{comp.boundaries_notes}</p>}
-      <div className={styles.formActions}>
-        <button className={styles.btnDanger} onClick={remove}>Delete</button>
-        <button className={styles.btnPrimary} onClick={() => setEditing(true)}>Edit setup</button>
+    <div>
+      <p className={styles.muted}>
+        Review the public information sheet that competitors will see. Save when
+        the summary looks right — you can keep editing after.
+      </p>
+      {missing.length > 0 && (
+        <div className={styles.warningBanner}>
+          Missing information: {missing.join(', ')}. The PDF will still generate but
+          items above are recommended for a shore-diving event.
+        </div>
+      )}
+      <div className={styles.card}>
+        <div className={styles.detailRow}><span>Name</span><strong>{draft.name || '—'}</strong></div>
+        <div className={styles.detailRow}><span>Date</span><strong>{draft.competition_date || '—'}</strong></div>
+        <div className={styles.detailRow}><span>Site</span><strong>{draft.location_site || '—'}</strong></div>
+        <div className={styles.detailRow}><span>Start → Finish</span><strong>{(draft.start_time || '—')} → {(draft.finish_time || '—')}</strong></div>
+        <div className={styles.detailRow}><span>Sign-in deadline</span><strong>{draft.sign_in_deadline || '—'}</strong></div>
+        <div className={styles.detailRow}><span>Weigh-in start</span><strong>{draft.weigh_in_start || '—'}</strong></div>
+        <div className={styles.detailRow}><span>Meeting point</span><strong>{draft.meeting_point_name || '—'}</strong></div>
+        <div className={styles.detailRow}><span>Emergency phone</span><strong>{draft.emergency_contact_phone || '—'}</strong></div>
+        <div className={styles.detailRow}><span>Target species</span><strong>{(draft.target_species ?? []).length}</strong></div>
+        <div className={styles.detailRow}><span>Schedule entries</span><strong>{(draft.schedule ?? []).length}</strong></div>
       </div>
-      <NotificationPanel comp={comp} />
     </div>
   )
 }
 
 // ── Overdue safety notifications ─────────────────────────────────────────────
-// Shows the per-event alert config and whether the deployment can actually
-// deliver on each channel, with a "send test" so an organiser can confirm
-// Slack/email reach them before relying on it on the day.
 
 function NotificationPanel({ comp }: { comp: Competition }) {
   const [status, setStatus] = useState<NotificationStatus | null>(null)
@@ -666,27 +1016,19 @@ function NotificationPanel({ comp }: { comp: Competition }) {
         </p>
       )}
       <div className={styles.formActions}>
-        <button
-          className={styles.btnGhost}
-          onClick={() => test('slack')}
-          disabled={busy !== null || !slackReady}
-          title={!slackOn ? 'Slack is off for this event' : !status?.slack_configured ? 'SLACK_WEBHOOK_URL not set on server' : undefined}
-        >
+        <button className={styles.btnGhost}
+                onClick={() => test('slack')}
+                disabled={busy !== null || !slackReady}>
           {busy === 'slack' ? 'Sending…' : 'Test Slack'}
         </button>
-        <button
-          className={styles.btnGhost}
-          onClick={() => test('email')}
-          disabled={busy !== null || !emailReady}
-          title={!emailOn ? 'Email is off for this event' : !status?.email_configured ? 'SMTP not configured on server' : undefined}
-        >
+        <button className={styles.btnGhost}
+                onClick={() => test('email')}
+                disabled={busy !== null || !emailReady}>
           {busy === 'email' ? 'Sending…' : 'Test email'}
         </button>
-        <button
-          className={styles.btnGhost}
-          onClick={() => test('both')}
-          disabled={busy !== null || (!slackReady && !emailReady)}
-        >
+        <button className={styles.btnGhost}
+                onClick={() => test('both')}
+                disabled={busy !== null || (!slackReady && !emailReady)}>
           {busy === 'both' ? 'Sending…' : 'Test both'}
         </button>
       </div>
@@ -701,7 +1043,7 @@ function channelWord(c: { enabled: boolean; configured: boolean; sent: boolean }
   return 'failed'
 }
 
-// ── Water status board tab (priority screen) ─────────────────────────────────
+// ── Water status board ───────────────────────────────────────────────────────
 
 const BOARD_FILTERS: { key: CompetitorStatus | 'all' | 'overdue'; label: string }[] = [
   { key: 'all', label: 'All' },
@@ -712,7 +1054,7 @@ const BOARD_FILTERS: { key: CompetitorStatus | 'all' | 'overdue'; label: string 
   { key: 'registered', label: 'Registered' },
 ]
 
-function BoardTab({ cid }: { cid: number }) {
+function BoardTab({ cid, onOpenIncident }: { cid: number; onOpenIncident: () => void }) {
   const [board, setBoard] = useState<WaterStatusBoard | null>(null)
   const [error, setError] = useState('')
   const [filter, setFilter] = useState<CompetitorStatus | 'all' | 'overdue'>('all')
@@ -722,7 +1064,6 @@ function BoardTab({ cid }: { cid: number }) {
     getBoard(cid).then(setBoard).catch(e => setError(errMsg(e)))
   }, [cid])
 
-  // Auto-refresh every 20s so overdue/in-water counts stay live during the event.
   useEffect(() => {
     load()
     const id = setInterval(load, 20000)
@@ -742,17 +1083,50 @@ function BoardTab({ cid }: { cid: number }) {
     }
   }
 
+  async function logIncidentFor(c: Competitor) {
+    // Prefill an incident for this competitor via a tiny prompt flow; the full
+    // form lives on the Incidents tab and the caller can jump straight there.
+    const notes = prompt(`Log an incident for ${c.full_name}?\n\nType a short note:`)?.trim()
+    if (!notes) return
+    try {
+      await createIncident(cid, {
+        incident_type: 'other',
+        competitor_id: c.id,
+        notes,
+        severity: 'warning',
+      })
+      onOpenIncident()
+    } catch (e) {
+      setError(errMsg(e))
+    }
+  }
+
+  // Filter, then pin overdue to the top for the "all" view so a still-missing
+  // diver is always the first thing an organiser sees.
   const items = useMemo(() => {
     if (!board) return []
-    if (filter === 'all') return board.items
-    if (filter === 'overdue') return board.items.filter(i => i.is_overdue)
-    return board.items.filter(i => i.status === filter)
+    const arr = filter === 'all'
+      ? board.items
+      : filter === 'overdue'
+      ? board.items.filter(i => i.is_overdue)
+      : board.items.filter(i => i.status === filter)
+    return [...arr].sort((a, b) => {
+      if (a.is_overdue && !b.is_overdue) return -1
+      if (!a.is_overdue && b.is_overdue) return 1
+      // Overdue rows: worst first
+      if (a.is_overdue && b.is_overdue) return b.minutes_overdue - a.minutes_overdue
+      // In-water next
+      if (a.status === 'in_water' && b.status !== 'in_water') return -1
+      if (b.status === 'in_water' && a.status !== 'in_water') return 1
+      return a.full_name.localeCompare(b.full_name)
+    })
   }, [board, filter])
 
   if (error && !board) return <p className={styles.error} role="alert">{error}</p>
   if (!board) return <p className={styles.muted}>Loading board…</p>
 
   const c = board.counts
+  const due = dueBackLabel(board.competition)
   return (
     <div>
       <div className={styles.countBar}>
@@ -775,6 +1149,7 @@ function BoardTab({ cid }: { cid: number }) {
             {f.label}
           </button>
         ))}
+        <span className={styles.dueBackChip}>Everyone back by <strong>{due}</strong></span>
         <button className={styles.refreshBtn} onClick={load} aria-label="Refresh board">↻</button>
       </div>
 
@@ -788,7 +1163,7 @@ function BoardTab({ cid }: { cid: number }) {
                 <div>
                   <div className={styles.boardName}>{c2.full_name}</div>
                   <div className={styles.boardMeta}>
-                    {c2.team_name ? `${c2.team_name}` : <span className={styles.warnText}>No buddy/team</span>}
+                    {c2.team_name ? c2.team_name : <span className={styles.warnText}>No buddy/team</span>}
                     {c2.float_colour ? ` · float: ${c2.float_colour}` : ''}
                     {c2.intended_dive_area ? ` · ${c2.intended_dive_area}` : ''}
                   </div>
@@ -798,33 +1173,50 @@ function BoardTab({ cid }: { cid: number }) {
 
               <div className={styles.boardTimes}>
                 <span>Out: {fmtTime(c2.signed_out_at)}</span>
+                <span>Due back: {due}</span>
                 <span>Back: {fmtTime(c2.returned_at)}</span>
                 {c2.is_overdue && <span className={styles.warnText}>+{c2.minutes_overdue} min overdue</span>}
                 {c2.overdue_alerted_at && <span className={styles.badgeOverdue}>Organisers paged</span>}
-                {c2.phone && <a className={styles.callLink} href={`tel:${c2.phone}`}>Call {c2.phone}</a>}
               </div>
 
-              {(c2.emergency_contact_name || c2.emergency_contact_phone) && (
+              {(c2.phone || c2.emergency_contact_name || c2.emergency_contact_phone) && (
                 <div className={styles.boardEmergency}>
+                  {c2.phone && (
+                    <>Phone: <a className={styles.callLink} href={`tel:${c2.phone}`}>{c2.phone}</a>{' · '}</>
+                  )}
                   ICE: {c2.emergency_contact_name ?? '—'}
                   {c2.emergency_contact_phone && (
-                    <a className={styles.callLink} href={`tel:${c2.emergency_contact_phone}`}> {c2.emergency_contact_phone}</a>
+                    <> <a className={styles.callLink} href={`tel:${c2.emergency_contact_phone}`}>{c2.emergency_contact_phone}</a></>
                   )}
                 </div>
               )}
 
               <div className={styles.actionRow}>
                 {c2.status === 'not_arrived' && (
-                  <button className={styles.actBtn} disabled={busy === c2.id} onClick={() => act(c2, 'registered')}>Mark arrived</button>
+                  <button className={styles.actBtn} disabled={busy === c2.id} onClick={() => act(c2, 'registered')}>
+                    Mark arrived
+                  </button>
                 )}
                 {c2.status !== 'in_water' && c2.status !== 'withdrawn' && (
-                  <button className={`${styles.actBtn} ${styles.actWater}`} disabled={busy === c2.id} onClick={() => act(c2, 'in_water')}>Sign out → water</button>
+                  <button className={`${styles.actBtn} ${styles.actWater}`} disabled={busy === c2.id} onClick={() => act(c2, 'in_water')}>
+                    Sign out → water
+                  </button>
                 )}
                 {c2.status === 'in_water' && (
-                  <button className={`${styles.actBtn} ${styles.actReturn}`} disabled={busy === c2.id} onClick={() => act(c2, 'returned')}>Mark returned</button>
+                  <button className={`${styles.actBtn} ${styles.actReturn}`} disabled={busy === c2.id} onClick={() => act(c2, 'returned')}>
+                    Mark returned
+                  </button>
                 )}
+                {c2.phone && (
+                  <a className={`${styles.actBtn} ${styles.actCall}`} href={`tel:${c2.phone}`}>Call</a>
+                )}
+                <button className={styles.actBtnGhost} disabled={busy === c2.id} onClick={() => logIncidentFor(c2)}>
+                  Log incident
+                </button>
                 {c2.status !== 'withdrawn' && (
-                  <button className={styles.actBtnGhost} disabled={busy === c2.id} onClick={() => act(c2, 'withdrawn')}>Withdraw</button>
+                  <button className={styles.actBtnGhost} disabled={busy === c2.id} onClick={() => act(c2, 'withdrawn')}>
+                    Withdraw
+                  </button>
                 )}
               </div>
             </li>
@@ -844,24 +1236,58 @@ const EMPTY_COMPETITOR: CompetitorInput = {
   notes: '', team_id: null, status: 'registered',
 }
 
+// Multi-select filter chips — an organiser can layer "unpaid" + "no buddy" to
+// find the exact set they need to chase before the briefing.
+type CompetitorFilterKey =
+  | 'unpaid' | 'waiver_missing' | 'no_buddy'
+  | 'in_water' | 'returned' | 'withdrawn'
+const COMPETITOR_FILTERS: { key: CompetitorFilterKey; label: string }[] = [
+  { key: 'unpaid', label: 'Unpaid' },
+  { key: 'waiver_missing', label: 'Waiver missing' },
+  { key: 'no_buddy', label: 'No buddy' },
+  { key: 'in_water', label: 'In water' },
+  { key: 'returned', label: 'Returned' },
+  { key: 'withdrawn', label: 'Withdrawn' },
+]
+
 function CompetitorsTab({ cid }: { cid: number }) {
   const [items, setItems] = useState<Competitor[]>([])
   const [teams, setTeams] = useState<CompetitionTeam[]>([])
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
-  const [unpaidOnly, setUnpaidOnly] = useState(false)
+  const [filters, setFilters] = useState<Set<CompetitorFilterKey>>(new Set())
   const [editing, setEditing] = useState<Competitor | 'new' | null>(null)
+  const [importing, setImporting] = useState(false)
 
   const load = useCallback(() => {
     Promise.all([
-      listCompetitors(cid, { q: search || undefined, unpaid: unpaidOnly || undefined }),
+      listCompetitors(cid, { q: search || undefined }),
       listTeams(cid),
     ])
       .then(([c, t]) => { setItems(c); setTeams(t) })
       .catch(e => setError(errMsg(e)))
-  }, [cid, search, unpaidOnly])
+  }, [cid, search])
 
   useEffect(() => { load() }, [load])
+
+  function toggleFilter(k: CompetitorFilterKey) {
+    setFilters(s => {
+      const n = new Set(s)
+      if (n.has(k)) n.delete(k)
+      else n.add(k)
+      return n
+    })
+  }
+
+  const filtered = useMemo(() => items.filter(c => {
+    if (filters.has('unpaid') && c.paid) return false
+    if (filters.has('waiver_missing') && c.waiver_accepted) return false
+    if (filters.has('no_buddy') && c.has_team) return false
+    if (filters.has('in_water') && c.status !== 'in_water') return false
+    if (filters.has('returned') && c.status !== 'returned') return false
+    if (filters.has('withdrawn') && c.status !== 'withdrawn') return false
+    return true
+  }), [items, filters])
 
   async function remove(c: Competitor) {
     if (!confirm(`Remove ${c.full_name}?`)) return
@@ -891,25 +1317,42 @@ function CompetitorsTab({ cid }: { cid: number }) {
     )
   }
 
+  if (importing) {
+    return <CompetitorImport cid={cid}
+                             onCancel={() => setImporting(false)}
+                             onDone={() => { setImporting(false); load() }} />
+  }
+
   return (
     <div>
       <div className={styles.toolbar}>
         <input className={styles.input} placeholder="Search name / phone / float / reg"
                value={search} onChange={e => setSearch(e.target.value)} />
-        <label className={styles.checkInline}>
-          <input type="checkbox" checked={unpaidOnly} onChange={e => setUnpaidOnly(e.target.checked)} /> Unpaid only
-        </label>
         <button className={styles.btnPrimary} onClick={() => setEditing('new')}>+ Add</button>
+        <button className={styles.btnGhost} onClick={() => setImporting(true)}>Import CSV</button>
         <button className={styles.btnGhost} onClick={() => downloadCompetitionCsv(cid, 'competitors')}>Export CSV</button>
+      </div>
+
+      <div className={styles.filterRow} role="group" aria-label="Filter competitors">
+        {COMPETITOR_FILTERS.map(f => (
+          <button key={f.key} aria-pressed={filters.has(f.key)}
+                  className={filters.has(f.key) ? styles.chipActive : styles.chip}
+                  onClick={() => toggleFilter(f.key)}>
+            {f.label}
+          </button>
+        ))}
+        {filters.size > 0 && (
+          <button className={styles.chip} onClick={() => setFilters(new Set())}>Clear</button>
+        )}
       </div>
 
       {error && <p className={styles.error} role="alert">{error}</p>}
 
-      {items.length === 0 ? (
-        <p className={styles.muted}>No competitors yet.</p>
+      {filtered.length === 0 ? (
+        <p className={styles.muted}>{items.length === 0 ? 'No competitors yet.' : 'No competitors match this filter.'}</p>
       ) : (
         <ul className={styles.cardList}>
-          {items.map(c => (
+          {filtered.map(c => (
             <li key={c.id} className={styles.compCard}>
               <div className={styles.compCardHead}>
                 <span className={styles.compName}>{c.full_name}</span>
@@ -919,6 +1362,11 @@ function CompetitorsTab({ cid }: { cid: number }) {
                 {c.team_name ?? <span className={styles.warnText}>No buddy/team</span>}
                 {c.experience_level ? ` · ${c.experience_level}` : ''}
                 {c.float_colour ? ` · float: ${c.float_colour}` : ''}
+              </div>
+              <div className={styles.boardMeta}>
+                {c.phone ? `Phone ${c.phone} · ` : ''}
+                {c.emergency_contact_name ? `ICE ${c.emergency_contact_name}` : ''}
+                {c.emergency_contact_phone ? ` ${c.emergency_contact_phone}` : ''}
               </div>
               <div className={styles.tagRow}>
                 <button className={c.paid ? styles.tagOn : styles.tagOff} onClick={() => togglePaid(c)}>
@@ -936,6 +1384,75 @@ function CompetitorsTab({ cid }: { cid: number }) {
           ))}
         </ul>
       )}
+    </div>
+  )
+}
+
+function CompetitorImport({
+  cid, onCancel, onDone,
+}: { cid: number; onCancel: () => void; onDone: () => void }) {
+  const [text, setText] = useState('')
+  const [preview, setPreview] = useState<CompetitorInput[]>([])
+  const [importing, setImporting] = useState(false)
+  const [err, setErr] = useState('')
+  const [status, setStatus] = useState<string>('')
+
+  function refreshPreview(csv: string) {
+    setText(csv)
+    setPreview(parseCompetitorsCsv(csv))
+  }
+
+  async function runImport() {
+    if (preview.length === 0) {
+      setErr('Paste a CSV with at least a header row and one row of competitor data.')
+      return
+    }
+    setImporting(true); setErr(''); setStatus('')
+    let ok = 0
+    let failed = 0
+    for (const row of preview) {
+      try {
+        await createCompetitor(cid, row)
+        ok++
+      } catch {
+        failed++
+      }
+    }
+    setImporting(false)
+    setStatus(`Imported ${ok} competitor${ok === 1 ? '' : 's'}${failed ? ` · ${failed} failed` : ''}.`)
+    if (failed === 0) {
+      setTimeout(onDone, 400)
+    }
+  }
+
+  return (
+    <div className={styles.card}>
+      <h2 className={styles.cardTitle}>Import competitors from CSV</h2>
+      <p className={styles.muted}>
+        Paste a CSV with a header row. Recognised columns: <code>full_name</code>,
+        <code>phone</code>, <code>email</code>, <code>emergency_contact_name</code>,
+        <code>emergency_contact_phone</code>, <code>vehicle_reg</code>,
+        <code>float_colour</code>, <code>experience_level</code>, <code>paid</code>,
+        <code>waiver_accepted</code>, <code>notes</code>. Only <code>full_name</code> is required.
+      </p>
+      <textarea
+        className={styles.textarea}
+        rows={8}
+        placeholder="full_name,phone,paid,waiver_accepted&#10;Jamie Diver,07000000000,yes,yes"
+        value={text}
+        onChange={e => refreshPreview(e.target.value)}
+      />
+      {err && <p className={styles.error} role="alert">{err}</p>}
+      {status && <p className={styles.notes}>{status}</p>}
+      {preview.length > 0 && (
+        <p className={styles.muted}>Preview: {preview.length} competitor{preview.length === 1 ? '' : 's'} ready to import.</p>
+      )}
+      <div className={styles.formActions}>
+        <button className={styles.btnGhost} onClick={onCancel} disabled={importing}>Cancel</button>
+        <button className={styles.btnPrimary} onClick={runImport} disabled={importing || preview.length === 0}>
+          {importing ? 'Importing…' : `Import ${preview.length || ''} row${preview.length === 1 ? '' : 's'}`}
+        </button>
+      </div>
     </div>
   )
 }
@@ -976,7 +1493,7 @@ function CompetitorForm({
   }
 
   async function save() {
-    if (!draft.full_name.trim()) { setErr('Name is required.'); return }
+    if (!draft.full_name?.trim()) { setErr('Name is required.'); return }
     setSaving(true)
     setErr('')
     const payload: CompetitorInput = {
@@ -1033,7 +1550,7 @@ function CompetitorForm({
           <select className={styles.input} value={draft.team_id ?? ''}
                   onChange={e => set('team_id', e.target.value ? Number(e.target.value) : null)}>
             <option value="">— No team —</option>
-            {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+            {teams.map(t => <option key={t.id} value={t.id}>{t.name}{t.is_locked ? ' 🔒' : ''}</option>)}
           </select></label>
       </div>
       <label className={styles.field}><span>Medical notes</span>
@@ -1063,9 +1580,11 @@ function TeamsTab({ cid }: { cid: number }) {
   const [error, setError] = useState('')
   const [name, setName] = useState('')
   const [area, setArea] = useState('')
+  const [locked, setLocked] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editName, setEditName] = useState('')
   const [editArea, setEditArea] = useState('')
+  const [editLocked, setEditLocked] = useState(false)
 
   const load = useCallback(() => {
     listTeams(cid).then(setTeams).catch(e => setError(errMsg(e)))
@@ -1075,23 +1594,33 @@ function TeamsTab({ cid }: { cid: number }) {
   async function add() {
     if (!name.trim()) return
     try {
-      await createTeam(cid, { name: name.trim(), intended_dive_area: area.trim() || null })
-      setName(''); setArea(''); load()
+      await createTeam(cid, { name: name.trim(), intended_dive_area: area.trim() || null, is_locked: locked })
+      setName(''); setArea(''); setLocked(false); load()
     } catch (e) { setError(errMsg(e)) }
   }
 
   async function saveEdit(id: number) {
-    await updateTeam(cid, id, { name: editName.trim(), intended_dive_area: editArea.trim() || null })
+    await updateTeam(cid, id, {
+      name: editName.trim(),
+      intended_dive_area: editArea.trim() || null,
+      is_locked: editLocked,
+    })
     setEditingId(null); load()
   }
 
+  async function toggleLock(t: CompetitionTeam) {
+    await updateTeam(cid, t.id, { is_locked: !t.is_locked })
+    load()
+  }
+
   async function remove(t: CompetitionTeam) {
-    if (!confirm(`Delete team “${t.name}”? Members will be unassigned.`)) return
+    if (t.is_locked && !confirm(`Team “${t.name}” is locked. Delete anyway?`)) return
+    if (!t.is_locked && !confirm(`Delete team “${t.name}”? Members will be unassigned.`)) return
     await deleteTeam(cid, t.id); load()
   }
 
   async function autoPair() {
-    if (!confirm('Randomly pair every competitor who still has no buddy? An odd one out joins a pair to make a trio.')) return
+    if (!confirm('Randomly pair every competitor who still has no buddy?\n\nLocked teams stay untouched, and the pairer tries to avoid two-beginner buddies where possible.')) return
     try {
       const r = await autoPairBuddies(cid)
       setError('')
@@ -1107,6 +1636,9 @@ function TeamsTab({ cid }: { cid: number }) {
         <div className={styles.toolbar}>
           <input className={styles.input} placeholder="Team name" value={name} onChange={e => setName(e.target.value)} />
           <input className={styles.input} placeholder="Intended dive area" value={area} onChange={e => setArea(e.target.value)} />
+          <label className={styles.checkInline}>
+            <input type="checkbox" checked={locked} onChange={e => setLocked(e.target.checked)} /> Locked
+          </label>
           <button className={styles.btnPrimary} onClick={add}>Add</button>
           <button className={styles.btnGhost} onClick={() => downloadCompetitionCsv(cid, 'teams')}>Export CSV</button>
         </div>
@@ -1116,8 +1648,9 @@ function TeamsTab({ cid }: { cid: number }) {
         <h2 className={styles.cardTitle}>Dive-day buddy assignment</h2>
         <p className={styles.muted}>
           Randomly pairs everyone still without a buddy (solo divers and those whose
-          invited buddy never registered) into buddy teams of two. An odd one out joins
-          a pair to make a trio.
+          invited buddy never registered). Locked teams stay as-is; the pairer
+          interleaves beginners with more experienced divers so no pair is left
+          with the least-safe combination.
         </p>
         <button className={styles.btnPrimary} onClick={autoPair}>Randomly assign buddies</button>
       </div>
@@ -1129,27 +1662,49 @@ function TeamsTab({ cid }: { cid: number }) {
       ) : (
         <ul className={styles.cardList}>
           {teams.map(t => (
-            <li key={t.id} className={styles.compCard}>
+            <li key={t.id} className={t.is_locked ? `${styles.compCard} ${styles.teamLocked}` : styles.compCard}>
               {editingId === t.id ? (
-                <div className={styles.toolbar}>
-                  <input className={styles.input} value={editName} onChange={e => setEditName(e.target.value)} />
-                  <input className={styles.input} value={editArea} onChange={e => setEditArea(e.target.value)} />
-                  <button className={styles.btnPrimary} onClick={() => saveEdit(t.id)}>Save</button>
-                  <button className={styles.btnGhost} onClick={() => setEditingId(null)}>Cancel</button>
+                <div>
+                  <div className={styles.toolbar}>
+                    <input className={styles.input} value={editName} onChange={e => setEditName(e.target.value)} />
+                    <input className={styles.input} value={editArea} onChange={e => setEditArea(e.target.value)} />
+                    <label className={styles.checkInline}>
+                      <input type="checkbox" checked={editLocked} onChange={e => setEditLocked(e.target.checked)} /> Locked
+                    </label>
+                    <button className={styles.btnPrimary} onClick={() => saveEdit(t.id)}>Save</button>
+                    <button className={styles.btnGhost} onClick={() => setEditingId(null)}>Cancel</button>
+                  </div>
                 </div>
               ) : (
                 <>
                   <div className={styles.compCardHead}>
-                    <span className={styles.compName}>{t.name}</span>
+                    <span className={styles.compName}>
+                      {t.is_locked && <span className={styles.teamLockIcon} aria-label="Locked team">🔒 </span>}
+                      {t.name}
+                    </span>
                     <span className={`${styles.badge} ${t.member_count < 2 ? styles.badgeWarn : styles.badge_returned}`}>
                       {t.member_count} {t.member_count === 1 ? 'member' : 'members'}
                     </span>
                   </div>
                   <div className={styles.boardMeta}>{t.intended_dive_area ?? 'No dive area set'}</div>
+                  {t.members.length > 0 && (
+                    <ul className={styles.teamRoster}>
+                      {t.members.map(m => (
+                        <li key={m.id}>
+                          <span className={styles.rosterName}>{m.full_name}</span>
+                          {m.experience_level && <span className={styles.rosterMeta}>{m.experience_level}</span>}
+                          <StatusBadge status={m.status} />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                   {t.member_count < 2 && <div className={styles.warnText}>Needs a buddy — fewer than 2 members</div>}
                   <div className={styles.actionRow}>
+                    <button className={styles.linkBtn} onClick={() => toggleLock(t)}>
+                      {t.is_locked ? 'Unlock' : 'Lock'}
+                    </button>
                     <button className={styles.linkBtn}
-                            onClick={() => { setEditingId(t.id); setEditName(t.name); setEditArea(t.intended_dive_area ?? '') }}>Edit</button>
+                            onClick={() => { setEditingId(t.id); setEditName(t.name); setEditArea(t.intended_dive_area ?? ''); setEditLocked(t.is_locked) }}>Edit</button>
                     <button className={styles.linkBtnDanger} onClick={() => remove(t)}>Delete</button>
                   </div>
                 </>
@@ -1163,14 +1718,9 @@ function TeamsTab({ cid }: { cid: number }) {
 }
 
 // ── Weigh-in tab ─────────────────────────────────────────────────────────────
-//
-// Two-step, table-driven flow built for the day:
-//   1. A table of every competitor — tap one to open their card.
-//   2. On the card, a +/- stepper per species tallies fish as they're caught
-//      (each "+" records a fish with no weight yet). Weights, lengths and DQs
-//      are filled in afterwards on the per-fish list.
 
-function WeighInTab({ cid }: { cid: number }) {
+function WeighInTab({ comp }: { comp: Competition }) {
+  const cid = comp.id
   const [entries, setEntries] = useState<FishEntry[]>([])
   const [competitors, setCompetitors] = useState<Competitor[]>([])
   const [species, setSpecies] = useState<string[]>([])
@@ -1200,7 +1750,7 @@ function WeighInTab({ cid }: { cid: number }) {
   if (selected) {
     return (
       <CompetitorWeighIn
-        cid={cid}
+        comp={comp}
         competitor={selected}
         species={species}
         entries={byCompetitor.get(selected.id) ?? []}
@@ -1220,7 +1770,7 @@ function WeighInTab({ cid }: { cid: number }) {
     <div>
       <div className={styles.toolbar}>
         <input className={styles.input} placeholder="Search competitor"
-               value={search} onChange={e => setSearch(e.target.value)} />
+               value={search} onChange={e => setSearch(e.target.value)} autoFocus />
         <button className={styles.btnGhost} onClick={() => downloadCompetitionCsv(cid, 'fish')}>Export CSV</button>
       </div>
 
@@ -1256,9 +1806,9 @@ function WeighInTab({ cid }: { cid: number }) {
 }
 
 function CompetitorWeighIn({
-  cid, competitor, species, entries, onBack, onChanged, onError, error,
+  comp, competitor, species, entries, onBack, onChanged, onError, error,
 }: {
-  cid: number
+  comp: Competition
   competitor: Competitor
   species: string[]
   entries: FishEntry[]
@@ -1268,48 +1818,60 @@ function CompetitorWeighIn({
   error: string
 }) {
   const [busy, setBusy] = useState(false)
+  const speciesBySlug = useMemo(() => {
+    const m = new Map<string, TargetSpecies>()
+    for (const s of comp.target_species ?? []) m.set(s.species.toLowerCase(), s)
+    return m
+  }, [comp.target_species])
 
-  // Count per species (excludes disqualified so the tally reflects live catches).
   const countFor = (sp: string) => entries.filter(f => f.species === sp && !f.disqualified).length
 
   async function addOne(sp: string) {
     setBusy(true); onError('')
     try {
-      await createFish(cid, { competitor_id: competitor.id, species: sp })
+      await createFish(comp.id, { competitor_id: competitor.id, species: sp })
       await onChanged()
     } catch (e) { onError(errMsg(e)) } finally { setBusy(false) }
   }
 
   async function removeOne(sp: string) {
-    // Remove the most recently added of this species, preferring an unweighed
-    // (pending) one so a recorded weight isn't lost to an accidental tap.
     const candidates = entries
       .filter(f => f.species === sp && !f.disqualified)
       .sort((a, b) => a.created_at.localeCompare(b.created_at))
     if (candidates.length === 0) return
     const target = candidates.filter(f => f.pending).pop() ?? candidates[candidates.length - 1]
+    if (target.lock_result) {
+      onError('Cannot remove a locked fish — unlock it first.')
+      return
+    }
     setBusy(true); onError('')
     try {
-      await deleteFish(cid, target.id)
+      await deleteFish(comp.id, target.id)
       await onChanged()
     } catch (e) { onError(errMsg(e)) } finally { setBusy(false) }
   }
 
-  async function setField(f: FishEntry, patch: Partial<FishEntryInput>) {
+  async function setField(f: FishEntry, patch: FishEntryPatch) {
     onError('')
-    try { await updateFish(cid, f.id, patch); await onChanged() }
+    try { await updateFish(comp.id, f.id, patch); await onChanged() }
     catch (e) { onError(errMsg(e)) }
   }
 
   async function toggleDq(f: FishEntry) {
+    if (f.lock_result) { onError('Cannot change DQ on a locked fish — unlock it first.'); return }
     const reason = f.disqualified ? null : (prompt('Disqualification reason?') ?? 'Disqualified')
     await setField(f, { disqualified: !f.disqualified, disqualification_reason: reason })
   }
 
+  async function toggleLock(f: FishEntry) {
+    await setField(f, { lock_result: !f.lock_result })
+  }
+
   async function remove(f: FishEntry) {
+    if (f.lock_result) { onError('Cannot delete a locked fish — unlock it first.'); return }
     if (!confirm('Delete this entry?')) return
     onError('')
-    try { await deleteFish(cid, f.id); await onChanged() }
+    try { await deleteFish(comp.id, f.id); await onChanged() }
     catch (e) { onError(errMsg(e)) }
   }
 
@@ -1329,9 +1891,15 @@ function CompetitorWeighIn({
         <ul className={styles.tallyList}>
           {species.map(sp => {
             const n = countFor(sp)
+            const meta = speciesBySlug.get(sp.toLowerCase())
             return (
               <li key={sp} className={styles.tallyRow}>
-                <span className={styles.tallySpecies}>{sp}</span>
+                <div>
+                  <span className={styles.tallySpecies}>{sp}</span>
+                  {meta && meta.min_length != null && (
+                    <span className={styles.tallyMeta}>min {formatSpeciesMin(meta)}</span>
+                  )}
+                </div>
                 <div className={styles.stepper}>
                   <button className={styles.stepBtn} disabled={busy || n === 0}
                           aria-label={`Remove one ${sp}`} onClick={() => removeOne(sp)}>−</button>
@@ -1346,48 +1914,21 @@ function CompetitorWeighIn({
       </div>
 
       <div className={styles.card}>
-        <h2 className={styles.cardTitle}>Weights &amp; details</h2>
+        <h2 className={styles.cardTitle}>Catch details</h2>
         {sortedEntries.length === 0 ? (
           <p className={styles.muted}>No fish tallied yet. Use the steppers above.</p>
         ) : (
           <ul className={styles.cardList}>
             {sortedEntries.map(f => (
-              <li key={f.id} className={f.disqualified ? `${styles.compCard} ${styles.dqCard}` : styles.compCard}>
-                <div className={styles.compCardHead}>
-                  <span className={styles.compName}>{f.species}</span>
-                  {f.disqualified
-                    ? <span className={`${styles.badge} ${styles.badgeOverdue}`}>DQ</span>
-                    : f.pending && <span className={`${styles.badge} ${styles.badgeWarn}`}>To weigh</span>}
-                </div>
-                <div className={styles.weighFields}>
-                  <label className={styles.field}><span>Weight (g)</span>
-                    <input className={styles.input} type="number" inputMode="decimal"
-                           defaultValue={f.weight_grams ?? ''}
-                           key={`w-${f.id}-${f.weight_grams ?? ''}`}
-                           onBlur={e => {
-                             const v = e.target.value.trim()
-                             const num = v === '' ? null : parseFloat(v)
-                             if (num !== null && !(num > 0)) return
-                             if (num !== (f.weight_grams ?? null)) setField(f, { weight_grams: num })
-                           }} /></label>
-                  <label className={styles.field}><span>Length (cm)</span>
-                    <input className={styles.input} type="number" inputMode="decimal"
-                           defaultValue={f.length_cm ?? ''}
-                           key={`l-${f.id}-${f.length_cm ?? ''}`}
-                           onBlur={e => {
-                             const v = e.target.value.trim()
-                             const num = v === '' ? null : parseFloat(v)
-                             if (num !== (f.length_cm ?? null)) setField(f, { length_cm: num })
-                           }} /></label>
-                </div>
-                {f.disqualified && f.disqualification_reason && (
-                  <div className={styles.warnText}>DQ: {f.disqualification_reason}</div>
-                )}
-                <div className={styles.actionRow}>
-                  <button className={styles.linkBtn} onClick={() => toggleDq(f)}>{f.disqualified ? 'Reinstate' : 'Disqualify'}</button>
-                  <button className={styles.linkBtnDanger} onClick={() => remove(f)}>Delete</button>
-                </div>
-              </li>
+              <FishRow
+                key={f.id}
+                fish={f}
+                speciesMeta={speciesBySlug.get(f.species.toLowerCase())}
+                onField={setField}
+                onToggleDq={() => toggleDq(f)}
+                onToggleLock={() => toggleLock(f)}
+                onDelete={() => remove(f)}
+              />
             ))}
           </ul>
         )}
@@ -1396,12 +1937,111 @@ function CompetitorWeighIn({
   )
 }
 
+// A single fish row inside a competitor's weigh-in card. Warns when the length
+// is below the target species' minimum; auto-DQs when the species has
+// ``auto_disqualify_undersize`` set and a length below the minimum is entered.
+function FishRow({
+  fish, speciesMeta, onField, onToggleDq, onToggleLock, onDelete,
+}: {
+  fish: FishEntry
+  speciesMeta?: TargetSpecies
+  onField: (f: FishEntry, patch: FishEntryPatch) => Promise<void>
+  onToggleDq: () => void
+  onToggleLock: () => void
+  onDelete: () => void
+}) {
+  const min = speciesMeta?.min_length ?? null
+  const unit = speciesMeta?.unit ?? 'cm'
+  const undersize = min != null && fish.length_cm != null && fish.length_cm < min
+
+  async function commitLength(v: string) {
+    const trimmed = v.trim()
+    const num = trimmed === '' ? null : parseFloat(trimmed)
+    if (num !== null && !(num >= 0)) return
+    if (num === (fish.length_cm ?? null)) return
+    const patch: FishEntryPatch = { length_cm: num }
+    // If this species auto-DQs undersize and the entered length is below the
+    // legal minimum, flip the DQ flag as part of the same save.
+    if (
+      speciesMeta?.auto_disqualify_undersize
+      && min != null && num != null && num < min
+      && !fish.disqualified
+    ) {
+      patch.disqualified = true
+      const unitLabel = unit === 'mm_carapace' ? 'mm carapace' : 'cm'
+      patch.disqualification_reason = `Undersize (${num} ${unitLabel} < ${min} ${unitLabel})`
+    }
+    await onField(fish, patch)
+  }
+
+  return (
+    <li className={
+      [styles.compCard, fish.disqualified ? styles.dqCard : '',
+       undersize && !fish.disqualified ? styles.warnCard : '',
+       fish.lock_result ? styles.lockedCard : ''].filter(Boolean).join(' ')
+    }>
+      <div className={styles.compCardHead}>
+        <span className={styles.compName}>{fish.species}</span>
+        <span>
+          {fish.disqualified
+            ? <span className={`${styles.badge} ${styles.badgeOverdue}`}>DQ</span>
+            : fish.pending && <span className={`${styles.badge} ${styles.badgeWarn}`}>To weigh</span>}
+          {fish.lock_result && <span className={`${styles.badge} ${styles.badgeLocked}`}>Locked</span>}
+        </span>
+      </div>
+      <div className={styles.weighFields}>
+        <label className={styles.field}><span>Length ({unit === 'mm_carapace' ? 'mm carapace' : 'cm'})</span>
+          <input className={styles.input} type="number" inputMode="decimal"
+                 disabled={fish.lock_result}
+                 defaultValue={fish.length_cm ?? ''}
+                 key={`l-${fish.id}-${fish.length_cm ?? ''}`}
+                 onBlur={e => commitLength(e.target.value)} />
+        </label>
+        <label className={styles.field}><span>Weight (g)</span>
+          <input className={styles.input} type="number" inputMode="decimal"
+                 disabled={fish.lock_result}
+                 defaultValue={fish.weight_grams ?? ''}
+                 key={`w-${fish.id}-${fish.weight_grams ?? ''}`}
+                 onBlur={e => {
+                   const v = e.target.value.trim()
+                   const num = v === '' ? null : parseFloat(v)
+                   if (num !== null && !(num > 0)) return
+                   if (num !== (fish.weight_grams ?? null)) onField(fish, { weight_grams: num })
+                 }} />
+        </label>
+      </div>
+      {undersize && !fish.disqualified && (
+        <div className={styles.warnText}>
+          Undersize: {fish.length_cm} {unit === 'mm_carapace' ? 'mm carapace' : 'cm'} is below the {min} {unit === 'mm_carapace' ? 'mm carapace' : 'cm'} minimum.
+          {speciesMeta?.auto_disqualify_undersize
+            ? ' Will auto-DQ on save.'
+            : ' Consider disqualifying.'}
+        </div>
+      )}
+      {fish.disqualified && fish.disqualification_reason && (
+        <div className={styles.warnText}>DQ: {fish.disqualification_reason}</div>
+      )}
+      <div className={styles.actionRow}>
+        <button className={styles.linkBtn} onClick={onToggleDq}>
+          {fish.disqualified ? 'Reinstate' : 'Disqualify'}
+        </button>
+        <button className={styles.linkBtn} onClick={onToggleLock}>
+          {fish.lock_result ? 'Unlock result' : 'Lock result'}
+        </button>
+        <button className={styles.linkBtnDanger} onClick={onDelete}>Delete</button>
+      </div>
+    </li>
+  )
+}
+
 // ── Results tab ──────────────────────────────────────────────────────────────
 
-function ResultsTab({ cid }: { cid: number }) {
+function ResultsTab({ comp, onChanged }: { comp: Competition; onChanged: () => void }) {
+  const cid = comp.id
   const [results, setResults] = useState<CompetitionResults | null>(null)
   const [rule, setRule] = useState<ScoringRule | null>(null)
   const [error, setError] = useState('')
+  const [locking, setLocking] = useState(false)
 
   const load = useCallback(() => {
     Promise.all([getResults(cid), getScoringRule(cid)])
@@ -1415,12 +2055,51 @@ function ResultsTab({ cid }: { cid: number }) {
     load()
   }
 
+  async function toggleLock() {
+    setLocking(true)
+    setError('')
+    try {
+      if (comp.results_locked) await unlockResults(cid)
+      else await lockResults(cid)
+      onChanged()
+      load()
+    } catch (e) { setError(errMsg(e)) }
+    finally { setLocking(false) }
+  }
+
+  async function shareLink() {
+    const url = `${window.location.origin}/competition/${cid}/results`
+    try {
+      await navigator.clipboard.writeText(url)
+      alert(`Public results link copied:\n${url}`)
+    } catch {
+      prompt('Copy the public results link:', url)
+    }
+  }
+
   if (error && !results) return <p className={styles.error} role="alert">{error}</p>
   if (!results || !rule) return <p className={styles.muted}>Loading results…</p>
 
   const t = results.totals
+  const isPublic = comp.visibility === 'released'
   return (
     <div>
+      <div className={styles.resultsHead}>
+        <span className={comp.results_locked ? styles.badgeLocked : styles.badgeWarn}>
+          {comp.results_locked ? 'Final · locked' : 'Provisional · live'}
+        </span>
+        <div className={styles.formActions}>
+          <button className={styles.btnGhost} onClick={() => downloadCompetitionCsv(cid, 'results')}>Export CSV</button>
+          <button className={styles.btnGhost} onClick={shareLink} disabled={!isPublic}
+                  title={!isPublic ? 'Set visibility to Released to enable the public share link' : undefined}>
+            Copy public link
+          </button>
+          <button className={styles.btnPrimary} onClick={toggleLock} disabled={locking}>
+            {comp.results_locked ? 'Unlock results' : 'Lock as final'}
+          </button>
+        </div>
+      </div>
+
       <div className={styles.countBar}>
         <div className={styles.count}><strong>{t.total_fish}</strong><span>Fish</span></div>
         <div className={styles.count}><strong>{t.total_weight_kg}</strong><span>Total kg</span></div>
@@ -1441,7 +2120,6 @@ function ResultsTab({ cid }: { cid: number }) {
             <input type="checkbox" checked={rule.use_team_scoring}
                    onChange={e => saveRule(rule.points_per_gram, e.target.checked)} /> Team scoring
           </label>
-          <button className={styles.btnGhost} onClick={() => downloadCompetitionCsv(cid, 'results')}>Export CSV</button>
         </div>
       </div>
 
@@ -1497,7 +2175,7 @@ function ResultsTab({ cid }: { cid: number }) {
 
       {results.biggest_by_species.length > 0 && (
         <>
-          <h2 className={styles.sectionTitle}>Biggest by species</h2>
+          <h2 className={styles.sectionTitle}>Species winners</h2>
           <ul className={styles.cardList}>
             {results.biggest_by_species.map(b => (
               <li key={b.species} className={styles.leaderRow}>
@@ -1518,9 +2196,13 @@ function IncidentsTab({ cid }: { cid: number }) {
   const [items, setItems] = useState<CompetitionIncident[]>([])
   const [competitors, setCompetitors] = useState<Competitor[]>([])
   const [error, setError] = useState('')
-  const [type, setType] = useState<IncidentType>('late_return')
+  const [showResolved, setShowResolved] = useState(true)
+  const [type, setType] = useState<IncidentType>('other')
+  const [severity, setSeverity] = useState<IncidentSeverity>('info')
   const [competitorId, setCompetitorId] = useState<number | ''>('')
+  const [location, setLocation] = useState('')
   const [notes, setNotes] = useState('')
+  const [actionTaken, setActionTaken] = useState('')
 
   const load = useCallback(() => {
     Promise.all([listIncidents(cid), listCompetitors(cid)])
@@ -1535,10 +2217,14 @@ function IncidentsTab({ cid }: { cid: number }) {
     try {
       await createIncident(cid, {
         incident_type: type,
+        severity,
         competitor_id: competitorId ? Number(competitorId) : null,
+        location: location.trim() || null,
+        action_taken: actionTaken.trim() || null,
         notes: notes.trim(),
       })
-      setNotes(''); setCompetitorId(''); load()
+      setNotes(''); setActionTaken(''); setLocation(''); setCompetitorId(''); setSeverity('info'); setType('other')
+      load()
     } catch (e) { setError(errMsg(e)) }
   }
 
@@ -1548,76 +2234,155 @@ function IncidentsTab({ cid }: { cid: number }) {
     load()
   }
 
+  const filtered = showResolved ? items : items.filter(i => !i.resolved)
+
   return (
     <div>
       <div className={styles.card}>
         <h2 className={styles.cardTitle}>Log incident</h2>
-        <div className={styles.weighGrid}>
-          <select className={styles.input} value={type} onChange={e => setType(e.target.value as IncidentType)}>
-            {Object.entries(INCIDENT_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-          </select>
-          <select className={styles.input} value={competitorId}
-                  onChange={e => setCompetitorId(e.target.value ? Number(e.target.value) : '')}>
-            <option value="">No specific competitor</option>
-            {competitors.map(c => <option key={c.id} value={c.id}>{c.full_name}</option>)}
-          </select>
-          <input className={styles.input} placeholder="What happened?" value={notes} onChange={e => setNotes(e.target.value)} />
-          <button className={styles.btnPrimary} onClick={add}>Log</button>
+        <div className={styles.formGrid}>
+          <label className={styles.field}><span>Type</span>
+            <select className={styles.input} value={type} onChange={e => setType(e.target.value as IncidentType)}>
+              {Object.entries(INCIDENT_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          </label>
+          <label className={styles.field}><span>Severity</span>
+            <select className={styles.input} value={severity} onChange={e => setSeverity(e.target.value as IncidentSeverity)}>
+              {Object.entries(SEVERITY_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          </label>
+          <label className={styles.field}><span>Competitor</span>
+            <select className={styles.input} value={competitorId}
+                    onChange={e => setCompetitorId(e.target.value ? Number(e.target.value) : '')}>
+              <option value="">No specific competitor</option>
+              {competitors.map(c => <option key={c.id} value={c.id}>{c.full_name}</option>)}
+            </select>
+          </label>
+          <label className={styles.field}><span>Location</span>
+            <input className={styles.input} value={location} maxLength={300}
+                   placeholder="e.g. North reef" onChange={e => setLocation(e.target.value)} />
+          </label>
         </div>
+        <label className={`${styles.field} ${styles.fieldFull}`}>
+          <span>What happened?</span>
+          <textarea className={styles.textarea} rows={3} value={notes}
+                    placeholder="Short description of the incident" onChange={e => setNotes(e.target.value)} />
+        </label>
+        <label className={`${styles.field} ${styles.fieldFull}`}>
+          <span>Action taken</span>
+          <textarea className={styles.textarea} rows={2} value={actionTaken}
+                    placeholder="e.g. First aid on scene, called coastguard" onChange={e => setActionTaken(e.target.value)} />
+        </label>
+        <div className={styles.formActions}>
+          <button className={styles.btnPrimary} onClick={add}>Log incident</button>
+        </div>
+      </div>
+
+      <div className={styles.filterRow}>
+        <label className={styles.checkInline}>
+          <input type="checkbox" checked={showResolved} onChange={e => setShowResolved(e.target.checked)} />
+          <span>Show resolved</span>
+        </label>
       </div>
 
       {error && <p className={styles.error} role="alert">{error}</p>}
 
-      {items.length === 0 ? (
+      {filtered.length === 0 ? (
         <p className={styles.muted}>No incidents logged.</p>
       ) : (
         <ul className={styles.cardList}>
-          {items.map(i => (
-            <li key={i.id} className={i.resolved ? styles.compCard : `${styles.compCard} ${styles.dqCard}`}>
-              <div className={styles.compCardHead}>
-                <span className={styles.compName}>{INCIDENT_LABELS[i.incident_type]}</span>
-                <span className={`${styles.badge} ${i.resolved ? styles.badge_returned : styles.badgeOverdue}`}>
-                  {i.resolved ? 'Resolved' : 'Open'}
-                </span>
-              </div>
-              <div className={styles.boardMeta}>{fmtTime(i.occurred_at)}</div>
-              {i.notes && <p className={styles.notes}>{i.notes}</p>}
-              {i.resolved && i.resolution_notes && <p className={styles.boardMeta}>Resolution: {i.resolution_notes}</p>}
-              {!i.resolved && (
-                <div className={styles.actionRow}>
-                  <button className={styles.linkBtn} onClick={() => resolve(i)}>Mark resolved</button>
+          {filtered.map(i => {
+            const sev = i.severity ?? 'info'
+            const sevCls =
+              sev === 'critical' ? styles.severityCritical
+              : sev === 'urgent' ? styles.severityUrgent
+              : sev === 'warning' ? styles.severityWarning
+              : styles.severityInfo
+            const cardCls =
+              i.resolved ? styles.compCard
+              : sev === 'critical' || sev === 'urgent' ? `${styles.compCard} ${styles.dqCard}`
+              : styles.compCard
+            return (
+              <li key={i.id} className={cardCls}>
+                <div className={styles.compCardHead}>
+                  <span className={styles.compName}>
+                    <span className={`${styles.severityDot} ${sevCls}`} aria-hidden="true" />
+                    {INCIDENT_LABELS[i.incident_type]}
+                    {i.competitor_name ? ` — ${i.competitor_name}` : ''}
+                  </span>
+                  <span className={`${styles.badge} ${i.resolved ? styles.badge_returned : styles.badgeOverdue}`}>
+                    {i.resolved ? 'Resolved' : 'Open'}
+                  </span>
                 </div>
-              )}
-            </li>
-          ))}
+                <div className={styles.boardMeta}>
+                  {fmtTime(i.occurred_at)} · Severity: {SEVERITY_LABELS[sev]}
+                  {i.location ? ` · ${i.location}` : ''}
+                </div>
+                {i.notes && <p className={styles.notes}>{i.notes}</p>}
+                {i.action_taken && <p className={styles.notes}><strong>Action:</strong> {i.action_taken}</p>}
+                {i.resolved && i.resolution_notes && (
+                  <p className={styles.boardMeta}>Resolution: {i.resolution_notes}</p>
+                )}
+                {!i.resolved && (
+                  <div className={styles.actionRow}>
+                    <button className={styles.linkBtn} onClick={() => resolve(i)}>Mark resolved</button>
+                  </div>
+                )}
+              </li>
+            )
+          })}
         </ul>
       )}
     </div>
   )
 }
 
-// ── Target species inline editor ─────────────────────────────────────────────
+// ── Target species editor ────────────────────────────────────────────────────
 
 const DEFAULT_SPECIES = [
   'Pollock', 'Bass', 'Cod', 'Coalfish', 'Ballan wrasse',
-  'Plaice', 'Flounder', 'Dab',
+  'Plaice', 'Flounder', 'Dab', 'Lobster', 'Brown crab',
 ]
 
+// Default minimum lengths / units for common UK species so the row is
+// pre-filled sensibly when an organiser picks one from the dropdown. Values
+// are baseline legal-size rules and can be edited per event.
+const SPECIES_DEFAULTS: Record<string, { min_length: number; unit: TargetSpeciesUnit }> = {
+  'Pollock': { min_length: 30, unit: 'cm' },
+  'Bass': { min_length: 42, unit: 'cm' },
+  'Cod': { min_length: 35, unit: 'cm' },
+  'Coalfish': { min_length: 35, unit: 'cm' },
+  'Ballan wrasse': { min_length: 30, unit: 'cm' },
+  'Plaice': { min_length: 27, unit: 'cm' },
+  'Flounder': { min_length: 25, unit: 'cm' },
+  'Dab': { min_length: 20, unit: 'cm' },
+  // Crustaceans use carapace measurements (mm across the widest point) — a
+  // fin-fish "cm" gate here would mark every legal entry as undersize.
+  'Lobster': { min_length: 87, unit: 'mm_carapace' },
+  'Brown crab': { min_length: 140, unit: 'mm_carapace' },
+}
+
 function TargetSpeciesEditor({
-  value,
-  onChange,
+  value, onChange,
 }: {
   value: TargetSpecies[]
   onChange: (v: TargetSpecies[]) => void
 }) {
-  const [newSpecies, setNewSpecies] = useState('')
   const [customSpecies, setCustomSpecies] = useState('')
 
   function add(species: string) {
     const s = species.trim()
     if (!s || value.some(x => x.species === s)) return
-    onChange([...value, { species: s, min_weight_g: null, notes: null }])
-    setNewSpecies('')
+    const defaults = SPECIES_DEFAULTS[s]
+    onChange([...value, {
+      species: s,
+      min_length: defaults?.min_length ?? null,
+      unit: defaults?.unit ?? 'cm',
+      notes: null,
+      points_bonus: null,
+      max_count: null,
+      auto_disqualify_undersize: true,
+    }])
     setCustomSpecies('')
   }
 
@@ -1634,8 +2399,8 @@ function TargetSpeciesEditor({
   return (
     <div>
       <div className={styles.speciesAddRow}>
-        <select className={styles.input} value={newSpecies}
-                onChange={e => { if (e.target.value) { add(e.target.value); setNewSpecies('') } }}>
+        <select className={styles.input} value=""
+                onChange={e => { if (e.target.value) add(e.target.value) }}>
           <option value="">+ Add species…</option>
           {available.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
@@ -1645,69 +2410,93 @@ function TargetSpeciesEditor({
         <button className={styles.btnGhost} onClick={() => add(customSpecies)} type="button">Add</button>
       </div>
 
-      {value.length > 0 && (
-        <table className={styles.speciesTable}>
-          <thead>
-            <tr>
-              <th>Species</th>
-              <th>Min. weight (g)</th>
-              <th>Notes</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {value.map(row => (
-              <tr key={row.species}>
-                <td><strong>{row.species}</strong></td>
-                <td>
-                  <input className={styles.inputSm}
-                         type="number" min={1} step={1}
-                         value={row.min_weight_g ?? ''}
-                         placeholder="—"
-                         onChange={e => {
-                           // A 0/blank/negative minimum means "no minimum"; store null
-                           // so the saved value matches what the views render.
-                           const n = Number(e.target.value)
-                           update(row.species, {
-                             min_weight_g: e.target.value && n > 0 ? n : null,
-                           })
-                         }} />
-                </td>
-                <td>
-                  <input className={styles.inputSm}
-                         value={row.notes ?? ''}
-                         placeholder="e.g. must be released under 36 cm"
-                         onChange={e => update(row.species, {
-                           notes: e.target.value || null,
-                         })} />
-                </td>
-                <td>
-                  <button className={styles.linkBtn} onClick={() => remove(row.species)} type="button">
-                    Remove
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {value.length === 0 && (
+        <p className={styles.muted}>No target species yet. Add one to start setting minimum sizes.</p>
       )}
+
+      {value.map(row => (
+        <div key={row.species} className={styles.speciesCard}>
+          <div className={styles.speciesCardHead}>
+            <strong>{row.species}</strong>
+            <button className={styles.linkBtnDanger} onClick={() => remove(row.species)} type="button">
+              Remove
+            </button>
+          </div>
+          <div className={styles.formGrid}>
+            <label className={styles.field}><span>Minimum length</span>
+              <input className={styles.input} type="number" min={0} step={0.5}
+                     value={row.min_length ?? ''}
+                     placeholder="—"
+                     onChange={e => {
+                       const n = Number(e.target.value)
+                       update(row.species, {
+                         min_length: e.target.value && n > 0 ? n : null,
+                         min_weight_g: null,   // upgrade off any legacy value
+                       })
+                     }} />
+            </label>
+            <label className={styles.field}><span>Unit</span>
+              <select className={styles.input} value={row.unit ?? 'cm'}
+                      onChange={e => update(row.species, { unit: e.target.value as TargetSpeciesUnit })}>
+                {Object.entries(UNIT_LABELS).map(([v, l]) => (
+                  <option key={v} value={v}>{l}</option>
+                ))}
+              </select>
+            </label>
+            <label className={styles.field}><span>Bonus points per landed fish</span>
+              <input className={styles.input} type="number" min={0} step={1}
+                     value={row.points_bonus ?? ''}
+                     placeholder="0"
+                     onChange={e => {
+                       const n = Number(e.target.value)
+                       update(row.species, {
+                         points_bonus: e.target.value && n >= 0 ? n : null,
+                       })
+                     }} />
+            </label>
+            <label className={styles.field}><span>Max count / bag limit</span>
+              <input className={styles.input} type="number" min={0} step={1}
+                     value={row.max_count ?? ''}
+                     placeholder="Unlimited"
+                     onChange={e => {
+                       const n = Number(e.target.value)
+                       update(row.species, {
+                         max_count: e.target.value && n >= 0 ? n : null,
+                       })
+                     }} />
+            </label>
+          </div>
+          <label className={`${styles.field} ${styles.fieldFull}`}>
+            <span>Measurement notes</span>
+            <input className={styles.input} value={row.notes ?? ''}
+                   placeholder="e.g. measure to fork; carapace across the widest point"
+                   onChange={e => update(row.species, { notes: e.target.value || null })} />
+          </label>
+          <label className={styles.checkInline}>
+            <input type="checkbox" checked={row.auto_disqualify_undersize ?? false}
+                   onChange={e => update(row.species, { auto_disqualify_undersize: e.target.checked })} />
+            <span>Auto-disqualify undersize catches at weigh-in</span>
+          </label>
+          {row.min_weight_g != null && (
+            <p className={styles.warnText}>
+              Legacy weight minimum still stored ({row.min_weight_g} g). Save this row to
+              migrate to length-based rules.
+            </p>
+          )}
+        </div>
+      ))}
     </div>
   )
 }
 
-// ── Schedule / itinerary editor ──────────────────────────────────────────────
+// ── Schedule / itinerary editor (unchanged) ──────────────────────────────────
 
 function ScheduleEditor({
-  value,
-  onChange,
+  value, onChange,
 }: {
   value: ScheduleItem[]
   onChange: (v: ScheduleItem[]) => void
 }) {
-  // Stable per-row keys so React identity follows a row when it's reordered —
-  // index keys would make focus/caret jump and inputs appear to swap. The keys
-  // ref is kept in lockstep with `value` by every mutator below, and reconciled
-  // to length here for external changes (initial load, "load preset", clear).
   const keysRef = useRef<number[]>([])
   const nextId = useRef(0)
   while (keysRef.current.length < value.length) keysRef.current.push(nextId.current++)
@@ -1793,10 +2582,31 @@ function ScheduleEditor({
   )
 }
 
-// ── Template tab ─────────────────────────────────────────────────────────────
+// ── Template / PDF tab ───────────────────────────────────────────────────────
+//
+// Multiple sheet types can be printed independently: an organiser info sheet
+// (the current brief), a competitor register, an emergency-contact sheet, a
+// water-board sheet, a weigh-in sheet, and a final results sheet. Each has
+// its own layout and a print target that hides everything else.
+
+type SheetKind = 'organiser' | 'register' | 'emergency' | 'board' | 'weighin' | 'results'
+const SHEETS: [SheetKind, string][] = [
+  ['organiser', 'Organiser info sheet'],
+  ['register', 'Competitor register'],
+  ['emergency', 'Emergency contact sheet'],
+  ['board', 'Water board sheet'],
+  ['weighin', 'Weigh-in sheet'],
+  ['results', 'Final results sheet'],
+]
 
 function TemplateTab({ comp, onChanged }: { comp: Competition; onChanged: () => void }) {
+  const [sheet, setSheet] = useState<SheetKind>('organiser')
   const [rule, setRule] = useState<ScoringRule | null>(null)
+  const [competitors, setCompetitors] = useState<Competitor[]>([])
+  const [teams, setTeams] = useState<CompetitionTeam[]>([])
+  const [results, setResults] = useState<CompetitionResults | null>(null)
+  const [entries, setEntries] = useState<FishEntry[]>([])
+
   const [editingSpecies, setEditingSpecies] = useState(false)
   const [speciesDraft, setSpeciesDraft] = useState<TargetSpecies[]>(comp.target_species ?? [])
   const [saving, setSaving] = useState(false)
@@ -1804,7 +2614,13 @@ function TemplateTab({ comp, onChanged }: { comp: Competition; onChanged: () => 
 
   useEffect(() => {
     getScoringRule(comp.id).then(setRule).catch(() => setRule(null))
+    listCompetitors(comp.id).then(setCompetitors).catch(() => setCompetitors([]))
+    listTeams(comp.id).then(setTeams).catch(() => setTeams([]))
+    getResults(comp.id).then(setResults).catch(() => setResults(null))
+    listFish(comp.id).then(setEntries).catch(() => setEntries([]))
   }, [comp.id])
+
+  useEffect(() => { setSpeciesDraft(comp.target_species ?? []) }, [comp.target_species])
 
   async function saveSpecies() {
     setSaving(true); setErr('')
@@ -1819,243 +2635,569 @@ function TemplateTab({ comp, onChanged }: { comp: Competition; onChanged: () => 
     }
   }
 
-  function handlePrint() {
-    window.print()
-  }
+  function handlePrint() { window.print() }
 
-  const bonusEntries = rule ? Object.entries(rule.species_bonus) : []
+  // Warnings shown before generation so an organiser can spot missing info.
+  const warnings: string[] = []
+  if (sheet === 'organiser' || sheet === 'register') {
+    if (!comp.emergency_contact_phone) warnings.push('No emergency contact phone set (Setup wizard).')
+    if (!comp.meeting_point_name) warnings.push('No meeting point set (Setup wizard).')
+    if ((comp.target_species ?? []).length === 0) warnings.push('No target species set.')
+  }
+  if (sheet === 'register' && competitors.length === 0) warnings.push('No competitors registered yet.')
+  if (sheet === 'board' && competitors.length === 0) warnings.push('No competitors to list on the water board.')
+  if (sheet === 'weighin' && competitors.length === 0) warnings.push('No competitors to list on the weigh-in sheet.')
+  if (sheet === 'results' && !results) warnings.push('Results not loaded yet.')
 
   return (
     <div className={styles.templateWrap}>
       <div className={styles.templateActions}>
-        <h2 className={styles.cardTitle}>Organiser template</h2>
+        <h2 className={styles.cardTitle}>Printable sheets</h2>
         <button className={styles.btnPrimary} onClick={handlePrint}>Print / Save PDF</button>
       </div>
       <p className={styles.muted}>
-        Fill in the competition details in the <strong>Setup</strong> tab, configure scoring in{' '}
-        <strong>Weigh-in</strong>, then use this tab to add target species and print the document.
-        Use your browser's <em>Print → Save as PDF</em> to generate a shareable PDF.
+        Pick a sheet and print with your browser's <em>Print → Save as PDF</em>.
+        Missing-information warnings show below the preview.
       </p>
+
+      <div className={styles.filterRow} role="group" aria-label="Choose sheet">
+        {SHEETS.map(([k, l]) => (
+          <button key={k} aria-pressed={sheet === k}
+                  className={sheet === k ? styles.chipActive : styles.chip}
+                  onClick={() => setSheet(k)}>{l}</button>
+        ))}
+      </div>
+
+      {warnings.length > 0 && (
+        <div className={styles.warningBanner}>
+          <strong>Before printing:</strong>
+          <ul>{warnings.map((w, i) => <li key={i}>{w}</li>)}</ul>
+        </div>
+      )}
 
       {err && <p className={styles.error} role="alert">{err}</p>}
 
-      {/* ── Target species editor ── */}
-      <div className={styles.card}>
-        <div className={styles.detailRow}>
-          <strong>Target species</strong>
-          {!editingSpecies && (
-            <button className={styles.linkBtn} onClick={() => { setSpeciesDraft(comp.target_species ?? []); setEditingSpecies(true) }}>
-              Edit
-            </button>
+      {/* Target species editor lives on the Organiser sheet where the printable
+          rules table already renders — this is the primary place to edit the
+          length-based rules that drive the weigh-in warnings. */}
+      {sheet === 'organiser' && (
+        <div className={styles.card}>
+          <div className={styles.detailRow}>
+            <strong>Target species</strong>
+            {!editingSpecies && (
+              <button className={styles.linkBtn} onClick={() => { setSpeciesDraft(comp.target_species ?? []); setEditingSpecies(true) }}>
+                Edit
+              </button>
+            )}
+          </div>
+          {editingSpecies ? (
+            <>
+              <TargetSpeciesEditor value={speciesDraft} onChange={setSpeciesDraft} />
+              <div className={styles.formActions}>
+                <button className={styles.btnGhost} onClick={() => setEditingSpecies(false)} disabled={saving}>Cancel</button>
+                <button className={styles.btnPrimary} onClick={saveSpecies} disabled={saving}>
+                  {saving ? 'Saving…' : 'Save species'}
+                </button>
+              </div>
+            </>
+          ) : (
+            comp.target_species && comp.target_species.length > 0 ? (
+              <table className={styles.speciesTable}>
+                <thead><tr><th>Species</th><th>Minimum length</th><th>Notes</th></tr></thead>
+                <tbody>
+                  {comp.target_species.map(s => (
+                    <tr key={s.species}>
+                      <td>{s.species}</td>
+                      <td>{formatSpeciesMin(s)}</td>
+                      <td>{s.notes ?? '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className={styles.muted}>No target species set. Click Edit to add species.</p>
+            )
           )}
         </div>
-        {editingSpecies ? (
-          <>
-            <TargetSpeciesEditor value={speciesDraft} onChange={setSpeciesDraft} />
-            <div className={styles.formActions}>
-              <button className={styles.btnGhost} onClick={() => setEditingSpecies(false)} disabled={saving}>Cancel</button>
-              <button className={styles.btnPrimary} onClick={saveSpecies} disabled={saving}>
-                {saving ? 'Saving…' : 'Save species'}
-              </button>
-            </div>
-          </>
-        ) : (
-          comp.target_species && comp.target_species.length > 0 ? (
-            <table className={styles.speciesTable}>
-              <thead><tr><th>Species</th><th>Min. weight</th><th>Notes</th></tr></thead>
-              <tbody>
-                {comp.target_species.map(s => (
-                  <tr key={s.species}>
-                    <td>{s.species}</td>
-                    <td>{s.min_weight_g != null ? `${s.min_weight_g} g` : '—'}</td>
-                    <td>{s.notes ?? '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p className={styles.muted}>No target species set. Click Edit to add species.</p>
-          )
-        )}
+      )}
+
+      <div className={styles.templateDoc} id="competition-template">
+        {sheet === 'organiser' && <OrganiserSheet comp={comp} rule={rule} />}
+        {sheet === 'register' && <RegisterSheet comp={comp} competitors={competitors} teams={teams} />}
+        {sheet === 'emergency' && <EmergencySheet comp={comp} competitors={competitors} />}
+        {sheet === 'board' && <BoardSheet comp={comp} competitors={competitors} teams={teams} />}
+        {sheet === 'weighin' && <WeighInSheet comp={comp} competitors={competitors} />}
+        {sheet === 'results' && <ResultsSheet comp={comp} results={results} entries={entries} />}
+      </div>
+    </div>
+  )
+}
+
+function SheetHeader({ comp, subtitle }: { comp: Competition; subtitle: string }) {
+  return (
+    <div className={styles.templateHeader}>
+      <p className={styles.templateKicker}>Spearfishing Competition · {subtitle}</p>
+      <h1 className={styles.templateTitle}>{comp.name}</h1>
+      <p className={styles.templateSub}>
+        {new Date(comp.competition_date).toLocaleDateString(undefined, {
+          weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+        })}
+        {comp.location_site ? ` · ${comp.location_site}` : ''}
+      </p>
+    </div>
+  )
+}
+
+function OrganiserSheet({ comp, rule }: { comp: Competition; rule: ScoringRule | null }) {
+  const bonusEntries = rule ? Object.entries(rule.species_bonus) : []
+  return (
+    <>
+      <SheetHeader comp={comp} subtitle="Information Sheet" />
+      <div className={styles.templateSection}>
+        <h2>Event details</h2>
+        <table className={styles.templateTable}>
+          <tbody>
+            <tr><td>Date</td><td><strong>{comp.competition_date}</strong>{comp.backup_date ? ` (backup: ${comp.backup_date})` : ''}</td></tr>
+            {comp.location_site && <tr><td>Location</td><td><strong>{comp.location_site}</strong></td></tr>}
+            {comp.start_time && <tr><td>Competition start</td><td><strong>{comp.start_time}</strong></td></tr>}
+            {comp.finish_time && <tr><td>All divers return by</td><td><strong>{comp.finish_time}</strong></td></tr>}
+            {comp.sign_in_deadline && <tr><td>Sign-in deadline</td><td><strong>{comp.sign_in_deadline}</strong></td></tr>}
+            {comp.weigh_in_start && <tr><td>Weigh-in opens</td><td><strong>{comp.weigh_in_start}</strong></td></tr>}
+            {comp.entry_fee && <tr><td>Entry fee</td><td><strong>{comp.entry_fee}</strong></td></tr>}
+          </tbody>
+        </table>
       </div>
 
-      {/* ── Printable template ── */}
-      <div className={styles.templateDoc} id="competition-template">
-        <div className={styles.templateHeader}>
-          <p className={styles.templateKicker}>Spearfishing Competition · Information Sheet</p>
-          <h1 className={styles.templateTitle}>{comp.name}</h1>
-          <p className={styles.templateSub}>
-            {new Date(comp.competition_date).toLocaleDateString(undefined, {
-              weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-            })}
-            {comp.location_site ? ` · ${comp.location_site}` : ''}
-          </p>
-        </div>
-
+      {(comp.organiser_name || comp.organiser_phone || comp.organiser_email) && (
         <div className={styles.templateSection}>
-          <h2>Event details</h2>
+          <h2>Organiser contact</h2>
           <table className={styles.templateTable}>
             <tbody>
-              <tr><td>Date</td><td><strong>{comp.competition_date}</strong>{comp.backup_date ? ` (backup: ${comp.backup_date})` : ''}</td></tr>
-              {comp.location_site && <tr><td>Location</td><td><strong>{comp.location_site}</strong></td></tr>}
-              {comp.start_time && <tr><td>Competition start</td><td><strong>{comp.start_time}</strong></td></tr>}
-              {comp.finish_time && <tr><td>All divers return by</td><td><strong>{comp.finish_time}</strong></td></tr>}
-              {comp.sign_in_deadline && <tr><td>Sign-in deadline</td><td><strong>{comp.sign_in_deadline}</strong></td></tr>}
-              {comp.weigh_in_start && <tr><td>Weigh-in opens</td><td><strong>{comp.weigh_in_start}</strong></td></tr>}
-              {comp.entry_fee && <tr><td>Entry fee</td><td><strong>{comp.entry_fee}</strong></td></tr>}
+              {comp.organiser_name && <tr><td>Name</td><td>{comp.organiser_name}</td></tr>}
+              {comp.organiser_phone && <tr><td>Phone</td><td>{comp.organiser_phone}</td></tr>}
+              {comp.organiser_email && <tr><td>Email</td><td>{comp.organiser_email}</td></tr>}
             </tbody>
           </table>
         </div>
+      )}
 
-        {(comp.organiser_name || comp.organiser_phone || comp.organiser_email) && (
-          <div className={styles.templateSection}>
-            <h2>Organiser contact</h2>
-            <table className={styles.templateTable}>
-              <tbody>
-                {comp.organiser_name && <tr><td>Name</td><td>{comp.organiser_name}</td></tr>}
-                {comp.organiser_phone && <tr><td>Phone</td><td>{comp.organiser_phone}</td></tr>}
-                {comp.organiser_email && <tr><td>Email</td><td>{comp.organiser_email}</td></tr>}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {(comp.emergency_contact_name || comp.emergency_contact_phone) && (
-          <div className={`${styles.templateSection} ${styles.templateEmergency}`}>
-            <h2>⚠ Emergency contact</h2>
-            <p>If a diver does not return by the deadline, call immediately:</p>
-            <table className={styles.templateTable}>
-              <tbody>
-                {comp.emergency_contact_name && <tr><td>Name</td><td><strong>{comp.emergency_contact_name}</strong></td></tr>}
-                {comp.emergency_contact_phone && <tr><td>Phone</td><td><strong>{comp.emergency_contact_phone}</strong></td></tr>}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {(comp.meeting_point_name || comp.meeting_point_notes
-          || (comp.meeting_point_lat != null && comp.meeting_point_lon != null)) && (
-          <div className={`${styles.templateSection} ${styles.templateMeet}`}>
-            <h2>📍 Where to meet</h2>
-            {comp.meeting_point_name && <p className={styles.templateMeetName}>{comp.meeting_point_name}</p>}
-            {comp.meeting_point_notes && <p className={styles.templatePre}>{comp.meeting_point_notes}</p>}
-            {comp.meeting_point_lat != null && comp.meeting_point_lon != null && (
-              <p className={styles.templateMapLink}>
-                Map: <a href={mapsLink(comp.meeting_point_lat, comp.meeting_point_lon)}
-                       target="_blank" rel="noopener noreferrer">
-                  {comp.meeting_point_lat.toFixed(4)}, {comp.meeting_point_lon.toFixed(4)}
-                </a>
-              </p>
-            )}
-          </div>
-        )}
-
-        {comp.schedule && comp.schedule.length > 0 && (
-          <div className={styles.templateSection}>
-            <h2>Schedule for the day</h2>
-            <ul className={styles.timeline}>
-              {comp.schedule.map((s, i) => (
-                <li key={i} className={styles.timelineItem}>
-                  <span className={styles.timelineTime}>{s.time}</span>
-                  <span className={styles.timelineBody}>
-                    <strong>{s.title}</strong>
-                    {s.detail && <span className={styles.timelineDetail}>{s.detail}</span>}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {safetyLines(comp.health_safety_notes).length > 0 && (
-          <div className={`${styles.templateSection} ${styles.templateSafety}`}>
-            <h2>⚠ Health &amp; safety</h2>
-            <ul className={styles.safetyList}>
-              {safetyLines(comp.health_safety_notes).map((line, i) => (
-                <li key={i}>{line}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {(comp.boundaries_notes || (comp.location_lat != null && comp.location_lon != null)) && (
-          <div className={styles.templateSection}>
-            <h2>Competition area &amp; boundaries</h2>
-            {comp.boundaries_notes && <p className={styles.templatePre}>{comp.boundaries_notes}</p>}
-            {comp.location_lat != null && comp.location_lon != null && (
-              <p className={styles.templateMapLink}>
-                Dive area: <a href={mapsLink(comp.location_lat, comp.location_lon)}
-                             target="_blank" rel="noopener noreferrer">
-                  {comp.location_lat.toFixed(4)}, {comp.location_lon.toFixed(4)}
-                </a>
-              </p>
-            )}
-          </div>
-        )}
-
-        {comp.target_species && comp.target_species.length > 0 && (
-          <div className={styles.templateSection}>
-            <h2>Target species</h2>
-            <table className={styles.templateTable}>
-              <thead>
-                <tr><th>Species</th><th>Min. weight</th><th>Notes</th></tr>
-              </thead>
-              <tbody>
-                {comp.target_species.map(s => (
-                  <tr key={s.species}>
-                    <td>{s.species}</td>
-                    <td>{s.min_weight_g != null ? `${s.min_weight_g} g (${(s.min_weight_g / 1000).toFixed(2)} kg)` : 'No minimum'}</td>
-                    <td>{s.notes ?? ''}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {rule && (
-          <div className={styles.templateSection}>
-            <h2>Scoring</h2>
-            <table className={styles.templateTable}>
-              <tbody>
-                <tr><td>Points per gram</td><td>{rule.points_per_gram}</td></tr>
-                <tr><td>Team scoring</td><td>{rule.use_team_scoring ? 'Yes' : 'No'}</td></tr>
-              </tbody>
-            </table>
-            {bonusEntries.length > 0 && (
-              <>
-                <h3>Species bonuses (flat additional points)</h3>
-                <table className={styles.templateTable}>
-                  <thead><tr><th>Species</th><th>Bonus points</th></tr></thead>
-                  <tbody>
-                    {bonusEntries.map(([species, pts]) => (
-                      <tr key={species}><td>{species}</td><td>+{pts}</td></tr>
-                    ))}
-                  </tbody>
-                </table>
-              </>
-            )}
-          </div>
-        )}
-
-        {comp.prize_info && (
-          <div className={styles.templateSection}>
-            <h2>Prizes</h2>
-            <p className={styles.templatePre}>{comp.prize_info}</p>
-          </div>
-        )}
-
-        {comp.additional_rules && (
-          <div className={styles.templateSection}>
-            <h2>Additional rules</h2>
-            <p className={styles.templatePre}>{comp.additional_rules}</p>
-          </div>
-        )}
-
-        <div className={styles.templateFooter}>
-          <p>Generated by DepthViz · {new Date().toLocaleDateString()}</p>
+      {(comp.emergency_contact_name || comp.emergency_contact_phone) && (
+        <div className={`${styles.templateSection} ${styles.templateEmergency}`}>
+          <h2>⚠ Emergency contact</h2>
+          <p>If a diver does not return by the deadline, call immediately:</p>
+          <table className={styles.templateTable}>
+            <tbody>
+              {comp.emergency_contact_name && <tr><td>Name</td><td><strong>{comp.emergency_contact_name}</strong></td></tr>}
+              {comp.emergency_contact_phone && <tr><td>Phone</td><td><strong>{comp.emergency_contact_phone}</strong></td></tr>}
+            </tbody>
+          </table>
         </div>
+      )}
+
+      {(comp.meeting_point_name || comp.meeting_point_notes
+        || (comp.meeting_point_lat != null && comp.meeting_point_lon != null)) && (
+        <div className={`${styles.templateSection} ${styles.templateMeet}`}>
+          <h2>📍 Where to meet</h2>
+          {comp.meeting_point_name && <p className={styles.templateMeetName}>{comp.meeting_point_name}</p>}
+          {comp.meeting_point_notes && <p className={styles.templatePre}>{comp.meeting_point_notes}</p>}
+          {comp.meeting_point_lat != null && comp.meeting_point_lon != null && (
+            <p className={styles.templateMapLink}>
+              Map: <a href={mapsLink(comp.meeting_point_lat, comp.meeting_point_lon)}
+                     target="_blank" rel="noopener noreferrer">
+                {comp.meeting_point_lat.toFixed(4)}, {comp.meeting_point_lon.toFixed(4)}
+              </a>
+            </p>
+          )}
+        </div>
+      )}
+
+      {comp.schedule && comp.schedule.length > 0 && (
+        <div className={styles.templateSection}>
+          <h2>Schedule for the day</h2>
+          <ul className={styles.timeline}>
+            {comp.schedule.map((s, i) => (
+              <li key={i} className={styles.timelineItem}>
+                <span className={styles.timelineTime}>{s.time}</span>
+                <span className={styles.timelineBody}>
+                  <strong>{s.title}</strong>
+                  {s.detail && <span className={styles.timelineDetail}>{s.detail}</span>}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {safetyLines(comp.health_safety_notes).length > 0 && (
+        <div className={`${styles.templateSection} ${styles.templateSafety}`}>
+          <h2>⚠ Health &amp; safety</h2>
+          <ul className={styles.safetyList}>
+            {safetyLines(comp.health_safety_notes).map((line, i) => <li key={i}>{line}</li>)}
+          </ul>
+        </div>
+      )}
+
+      {(comp.boundaries_notes || (comp.location_lat != null && comp.location_lon != null)) && (
+        <div className={styles.templateSection}>
+          <h2>Competition area &amp; boundaries</h2>
+          {comp.boundaries_notes && <p className={styles.templatePre}>{comp.boundaries_notes}</p>}
+          {comp.location_lat != null && comp.location_lon != null && (
+            <p className={styles.templateMapLink}>
+              Dive area: <a href={mapsLink(comp.location_lat, comp.location_lon)}
+                           target="_blank" rel="noopener noreferrer">
+                {comp.location_lat.toFixed(4)}, {comp.location_lon.toFixed(4)}
+              </a>
+            </p>
+          )}
+        </div>
+      )}
+
+      {comp.target_species && comp.target_species.length > 0 && (
+        <div className={styles.templateSection}>
+          <h2>Target species</h2>
+          <table className={styles.templateTable}>
+            <thead>
+              <tr><th>Species</th><th>Minimum length</th><th>Bonus</th><th>Max</th><th>Notes</th></tr>
+            </thead>
+            <tbody>
+              {comp.target_species.map(s => (
+                <tr key={s.species}>
+                  <td>{s.species}</td>
+                  <td>{formatSpeciesMin(s)}</td>
+                  <td>{s.points_bonus != null ? `+${s.points_bonus}` : '—'}</td>
+                  <td>{s.max_count != null ? s.max_count : '—'}</td>
+                  <td>{s.notes ?? ''}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className={styles.templatePre} style={{ fontSize: 12, marginTop: 8 }}>
+            Undersize catches must be released. Rows marked "auto-DQ" will be
+            disqualified automatically if a length below the minimum is entered
+            at weigh-in.
+          </p>
+        </div>
+      )}
+
+      {rule && (
+        <div className={styles.templateSection}>
+          <h2>Scoring</h2>
+          <table className={styles.templateTable}>
+            <tbody>
+              <tr><td>Points per gram</td><td>{rule.points_per_gram}</td></tr>
+              <tr><td>Team scoring</td><td>{rule.use_team_scoring ? 'Yes' : 'No'}</td></tr>
+            </tbody>
+          </table>
+          {bonusEntries.length > 0 && (
+            <>
+              <h3>Species bonuses (flat additional points)</h3>
+              <table className={styles.templateTable}>
+                <thead><tr><th>Species</th><th>Bonus points</th></tr></thead>
+                <tbody>
+                  {bonusEntries.map(([species, pts]) => (
+                    <tr key={species}><td>{species}</td><td>+{pts}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          )}
+        </div>
+      )}
+
+      {comp.prize_info && (
+        <div className={styles.templateSection}>
+          <h2>Prizes</h2>
+          <p className={styles.templatePre}>{comp.prize_info}</p>
+        </div>
+      )}
+
+      {comp.additional_rules && (
+        <div className={styles.templateSection}>
+          <h2>Additional rules</h2>
+          <p className={styles.templatePre}>{comp.additional_rules}</p>
+        </div>
+      )}
+
+      <div className={styles.templateFooter}>
+        <p>Generated by DepthViz · {new Date().toLocaleDateString()}</p>
       </div>
-    </div>
+    </>
+  )
+}
+
+function RegisterSheet({
+  comp, competitors, teams,
+}: { comp: Competition; competitors: Competitor[]; teams: CompetitionTeam[] }) {
+  const teamName = (id: number | null) => teams.find(t => t.id === id)?.name ?? '—'
+  return (
+    <>
+      <SheetHeader comp={comp} subtitle="Competitor Register" />
+      <div className={styles.templateSection}>
+        <p className={styles.templatePre}>
+          Have each competitor sign in before entering the water and sign out on
+          return. This sheet is the primary head-count record for the event.
+        </p>
+        <table className={styles.templateTable}>
+          <thead>
+            <tr>
+              <th style={{ width: 24 }}>#</th>
+              <th>Name</th>
+              <th>Team / buddy</th>
+              <th>Float</th>
+              <th>Paid</th>
+              <th>Waiver</th>
+              <th>Sign in</th>
+              <th>Sign out</th>
+            </tr>
+          </thead>
+          <tbody>
+            {competitors.map((c, i) => (
+              <tr key={c.id}>
+                <td>{i + 1}</td>
+                <td><strong>{c.full_name}</strong></td>
+                <td>{teamName(c.team_id)}</td>
+                <td>{c.float_colour ?? '—'}</td>
+                <td>{c.paid ? '✓' : '☐'}</td>
+                <td>{c.waiver_accepted ? '✓' : '☐'}</td>
+                <td>_________</td>
+                <td>_________</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  )
+}
+
+function EmergencySheet({
+  comp, competitors,
+}: { comp: Competition; competitors: Competitor[] }) {
+  return (
+    <>
+      <SheetHeader comp={comp} subtitle="Emergency Contact Sheet" />
+      {(comp.emergency_contact_name || comp.emergency_contact_phone) && (
+        <div className={`${styles.templateSection} ${styles.templateEmergency}`}>
+          <h2>⚠ Event emergency contact</h2>
+          <p><strong>{comp.emergency_contact_name ?? '—'}</strong> · {comp.emergency_contact_phone ?? '—'}</p>
+        </div>
+      )}
+      <div className={styles.templateSection}>
+        <h2>Competitor emergency contacts</h2>
+        <table className={styles.templateTable}>
+          <thead>
+            <tr>
+              <th>Competitor</th>
+              <th>Phone</th>
+              <th>Emergency contact</th>
+              <th>ICE phone</th>
+              <th>Medical notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {competitors.map(c => (
+              <tr key={c.id}>
+                <td><strong>{c.full_name}</strong></td>
+                <td>{c.phone ?? '—'}</td>
+                <td>{c.emergency_contact_name ?? '—'}</td>
+                <td>{c.emergency_contact_phone ?? '—'}</td>
+                <td>{c.medical_notes ?? '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  )
+}
+
+function BoardSheet({
+  comp, competitors, teams,
+}: { comp: Competition; competitors: Competitor[]; teams: CompetitionTeam[] }) {
+  const teamName = (id: number | null) => teams.find(t => t.id === id)?.name ?? '—'
+  return (
+    <>
+      <SheetHeader comp={comp} subtitle="Water Board" />
+      <div className={styles.templateSection}>
+        <p className={styles.templatePre}>
+          Everyone back and signed in by <strong>{dueBackLabel(comp)}</strong>.
+          Update this board every time a diver enters or leaves the water — this
+          is your live record of who is currently in the water.
+        </p>
+        <table className={styles.templateTable}>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Team / buddy</th>
+              <th>Float</th>
+              <th>Out</th>
+              <th>Back</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {competitors.map(c => (
+              <tr key={c.id}>
+                <td><strong>{c.full_name}</strong></td>
+                <td>{teamName(c.team_id)}</td>
+                <td>{c.float_colour ?? '—'}</td>
+                <td>_______</td>
+                <td>_______</td>
+                <td>_______________________</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  )
+}
+
+function WeighInSheet({ comp, competitors }: { comp: Competition; competitors: Competitor[] }) {
+  const rules = comp.target_species ?? []
+  return (
+    <>
+      <SheetHeader comp={comp} subtitle="Weigh-in Sheet" />
+      {rules.length > 0 && (
+        <div className={styles.templateSection}>
+          <h2>Minimum sizes</h2>
+          <table className={styles.templateTable}>
+            <thead><tr><th>Species</th><th>Min. length</th><th>Notes</th></tr></thead>
+            <tbody>
+              {rules.map(s => (
+                <tr key={s.species}>
+                  <td>{s.species}</td>
+                  <td>{formatSpeciesMin(s)}</td>
+                  <td>{s.notes ?? ''}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <div className={styles.templateSection}>
+        <p className={styles.templatePre}>
+          Judges: enter length first, then weight. Undersize catches must be
+          released — mark clearly if a fish is disqualified and give a reason.
+        </p>
+        <table className={styles.templateTable}>
+          <thead>
+            <tr>
+              <th>Competitor</th>
+              <th>Species</th>
+              <th>Length</th>
+              <th>Weight (g)</th>
+              <th>OK / DQ</th>
+              <th>Judge</th>
+            </tr>
+          </thead>
+          <tbody>
+            {competitors.map(c => (
+              <tr key={c.id}>
+                <td><strong>{c.full_name}</strong></td>
+                <td>_____________</td>
+                <td>______</td>
+                <td>______</td>
+                <td>_____</td>
+                <td>___</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  )
+}
+
+function ResultsSheet({
+  comp, results, entries,
+}: { comp: Competition; results: CompetitionResults | null; entries: FishEntry[] }) {
+  if (!results) {
+    return (
+      <>
+        <SheetHeader comp={comp} subtitle="Final Results" />
+        <p className={styles.templatePre}>Results not available yet.</p>
+      </>
+    )
+  }
+  const big = results.biggest_fish
+  const totalKg = results.totals.total_weight_kg
+  const dqCount = entries.filter(f => f.disqualified).length
+  return (
+    <>
+      <SheetHeader comp={comp} subtitle="Final Results" />
+      <div className={styles.templateSection}>
+        <p className={styles.templatePre}>
+          {comp.results_locked ? 'Final results — locked.' : 'Provisional results — subject to verification.'}
+          {' '}Total catch: <strong>{totalKg} kg</strong>. Disqualified fish: {dqCount}.
+        </p>
+      </div>
+      {big && (
+        <div className={styles.templateSection}>
+          <h2>Biggest fish</h2>
+          <p><strong>{big.competitor_name}</strong> · {big.species} · {big.weight_kg} kg</p>
+        </div>
+      )}
+      {results.individual.length > 0 && (
+        <div className={styles.templateSection}>
+          <h2>Overall leaderboard</h2>
+          <table className={styles.templateTable}>
+            <thead>
+              <tr><th>Rank</th><th>Name</th><th>Team</th><th>Points</th><th>Fish</th><th>Total kg</th></tr>
+            </thead>
+            <tbody>
+              {results.individual.map(r => (
+                <tr key={r.competitor_id}>
+                  <td>{r.rank}</td>
+                  <td>{r.competitor_name}</td>
+                  <td>{r.team_name ?? '—'}</td>
+                  <td>{r.points}</td>
+                  <td>{r.fish_count}</td>
+                  <td>{r.total_weight_kg}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {results.teams.length > 0 && (
+        <div className={styles.templateSection}>
+          <h2>Team leaderboard</h2>
+          <table className={styles.templateTable}>
+            <thead><tr><th>Rank</th><th>Team</th><th>Points</th><th>Total kg</th></tr></thead>
+            <tbody>
+              {results.teams.map(r => (
+                <tr key={r.team_id}>
+                  <td>{r.rank}</td>
+                  <td>{r.team_name}</td>
+                  <td>{r.points}</td>
+                  <td>{r.total_weight_kg}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {results.biggest_by_species.length > 0 && (
+        <div className={styles.templateSection}>
+          <h2>Species winners</h2>
+          <table className={styles.templateTable}>
+            <thead><tr><th>Species</th><th>Weight (kg)</th><th>Winner</th></tr></thead>
+            <tbody>
+              {results.biggest_by_species.map(b => (
+                <tr key={b.species}>
+                  <td>{b.species}</td>
+                  <td>{b.weight_kg}</td>
+                  <td>{b.competitor_name}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <div className={styles.templateFooter}>
+        <p>Generated by DepthViz · {new Date().toLocaleDateString()}</p>
+      </div>
+    </>
   )
 }

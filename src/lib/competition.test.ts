@@ -27,7 +27,7 @@ vi.mock('./cache', () => ({
 
 import {
   listCompetitions, createCompetition, setWaterStatus,
-  createFish, downloadCompetitionCsv,
+  createFish, downloadCompetitionCsv, parseCompetitorsCsv,
 } from './api'
 
 function jsonResponse(body: unknown) {
@@ -91,6 +91,55 @@ describe('competition API', () => {
     const body = JSON.parse(init.body as string)
     expect(body.species).toBe('Pollock')
     expect(body.weight_grams).toBeUndefined()
+  })
+
+  test('parseCompetitorsCsv reads the header row and produces competitor inputs', () => {
+    const csv = [
+      'full_name,phone,paid,waiver_accepted',
+      'Jamie Diver,07000000000,yes,true',
+      'Alex Spearo,,no,',
+      '',
+    ].join('\n')
+    const rows = parseCompetitorsCsv(csv)
+    expect(rows).toHaveLength(2)
+    expect(rows[0].full_name).toBe('Jamie Diver')
+    expect(rows[0].phone).toBe('07000000000')
+    expect(rows[0].paid).toBe(true)
+    expect(rows[0].waiver_accepted).toBe(true)
+    expect(rows[1].full_name).toBe('Alex Spearo')
+    expect(rows[1].phone).toBe(null)
+    expect(rows[1].paid).toBe(false)
+    expect(rows[1].waiver_accepted).toBe(false)
+  })
+
+  test('parseCompetitorsCsv handles quoted fields with commas', () => {
+    const csv = [
+      'full_name,notes',
+      '"Diver, One","Loves cod, hates mackerel"',
+    ].join('\n')
+    const rows = parseCompetitorsCsv(csv)
+    expect(rows[0].full_name).toBe('Diver, One')
+    expect(rows[0].notes).toBe('Loves cod, hates mackerel')
+  })
+
+  test('parseCompetitorsCsv skips rows without a name', () => {
+    const csv = ['full_name,phone', ',07000', 'Jamie,07001'].join('\n')
+    const rows = parseCompetitorsCsv(csv)
+    expect(rows.map(r => r.full_name)).toEqual(['Jamie'])
+  })
+
+  test('parseCompetitorsCsv normalises experience_level to known values', () => {
+    const csv = [
+      'full_name,experience_level',
+      'Alice,Beginner ',      // trailing space, wrong case
+      'Bob,intermediate',
+      'Cass,Expert',          // not a valid backend value
+      'Dave,',                // empty
+    ].join('\n')
+    const rows = parseCompetitorsCsv(csv)
+    expect(rows.map(r => r.experience_level)).toEqual([
+      'beginner', 'intermediate', null, null,
+    ])
   })
 
   test('downloadCompetitionCsv fetches the export route with auth', async () => {
