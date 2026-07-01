@@ -1,3 +1,15 @@
+# [1.10.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.9.0...v1.10.0) (2026-07-01)
+
+
+### Bug Fixes
+
+* **admin:** address Copilot review — chip labels, header alignment, id=0 guard ([f5bcf27](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/f5bcf27d9848aea3935d9eb59a29e61ef1c021be))
+
+
+### Features
+
+* **admin:** redesign admin panel as operational control room ([0012ab7](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/0012ab73da6d2de2648b0066e8c9d72e5f647844))
+
 # [1.9.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.8.1...v1.9.0) (2026-06-30)
 
 
