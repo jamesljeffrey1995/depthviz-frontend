@@ -128,6 +128,20 @@ describe('competition API', () => {
     expect(rows.map(r => r.full_name)).toEqual(['Jamie'])
   })
 
+  test('parseCompetitorsCsv normalises experience_level to known values', () => {
+    const csv = [
+      'full_name,experience_level',
+      'Alice,Beginner ',      // trailing space, wrong case
+      'Bob,intermediate',
+      'Cass,Expert',          // not a valid backend value
+      'Dave,',                // empty
+    ].join('\n')
+    const rows = parseCompetitorsCsv(csv)
+    expect(rows.map(r => r.experience_level)).toEqual([
+      'beginner', 'intermediate', null, null,
+    ])
+  })
+
   test('downloadCompetitionCsv fetches the export route with auth', async () => {
     // jsdom isn't configured; stub the DOM bits the download helper touches.
     const click = vi.fn()

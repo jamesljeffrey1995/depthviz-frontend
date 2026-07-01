@@ -924,6 +924,19 @@ export type CsvExportKind = 'competitors' | 'teams' | 'water-log' | 'fish' | 're
 // individually. Kept small — the day-of use case is a club sheet with a
 // couple of dozen names, not a bulk import — so the parsing is deliberately
 // forgiving: unknown columns are ignored, and only ``full_name`` is required.
+// The exact set of experience levels the backend accepts. Anything else in a
+// CSV column is dropped to null so a stray "Expert" or trailing space doesn't
+// cause a 422 mid-import.
+const EXPERIENCE_LEVELS = ['beginner', 'intermediate', 'experienced'] as const
+
+function normaliseExperienceLevel(raw: string | null | undefined): CompetitorInput['experience_level'] {
+  if (!raw) return null
+  const s = raw.trim().toLowerCase()
+  return (EXPERIENCE_LEVELS as readonly string[]).includes(s)
+    ? (s as CompetitorInput['experience_level'])
+    : null
+}
+
 export function parseCompetitorsCsv(text: string): CompetitorInput[] {
   const rows = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean)
   if (rows.length < 2) return []
@@ -949,7 +962,7 @@ export function parseCompetitorsCsv(text: string): CompetitorInput[] {
       emergency_contact_phone: val('emergency_contact_phone') ?? val('emergency_phone') ?? null,
       vehicle_reg: val('vehicle_reg') ?? val('reg') ?? null,
       float_colour: val('float_colour') ?? val('float') ?? null,
-      experience_level: (val('experience_level') as CompetitorInput['experience_level']) ?? null,
+      experience_level: normaliseExperienceLevel(val('experience_level')),
       paid: yes(val('paid') ?? ''),
       waiver_accepted: yes(val('waiver_accepted') ?? val('waiver') ?? ''),
       notes: val('notes') ?? null,

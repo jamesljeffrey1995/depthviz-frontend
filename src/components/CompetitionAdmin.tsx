@@ -349,14 +349,10 @@ function OverviewTab({
         />
       </div>
 
-      <OverviewSampleList title="Overdue divers" items={data.samples.overdue}
-                          empty="No overdue divers right now." tone="critical" />
-      <OverviewSampleList title="Solo divers without a buddy" items={data.samples.no_buddy}
-                          empty="Every competitor has a buddy." tone="warning" />
-      <OverviewSampleList title="Unpaid" items={data.samples.unpaid}
-                          empty="All paid." tone="warning" />
-      <OverviewSampleList title="Missing waivers" items={data.samples.missing_waiver}
-                          empty="All waivers signed." tone="warning" />
+      <OverviewSampleList title="Overdue divers" items={data.samples.overdue} tone="critical" />
+      <OverviewSampleList title="Solo divers without a buddy" items={data.samples.no_buddy} tone="warning" />
+      <OverviewSampleList title="Unpaid" items={data.samples.unpaid} tone="warning" />
+      <OverviewSampleList title="Missing waivers" items={data.samples.missing_waiver} tone="warning" />
 
       <div className={styles.overviewFoot}>
         <div className={styles.detailRow}>
@@ -421,9 +417,10 @@ function OverviewSampleList({
 }: {
   title: string
   items: { id: number; full_name: string }[]
-  empty?: string
   tone: 'critical' | 'warning'
 }) {
+  // No card when there is nothing to show — the Overview grid already
+  // communicates the zero-count case via the neutral card tone.
   if (items.length === 0) return null
   const cls = tone === 'critical' ? styles.sampleCritical : styles.sampleWarning
   return (
@@ -1971,7 +1968,8 @@ function FishRow({
       && !fish.disqualified
     ) {
       patch.disqualified = true
-      patch.disqualification_reason = `Undersize (${num} ${unit === 'mm_carapace' ? 'mm carapace' : 'cm'} < ${min})`
+      const unitLabel = unit === 'mm_carapace' ? 'mm carapace' : 'cm'
+      patch.disqualification_reason = `Undersize (${num} ${unitLabel} < ${min} ${unitLabel})`
     }
     await onField(fish, patch)
   }
@@ -2358,8 +2356,10 @@ const SPECIES_DEFAULTS: Record<string, { min_length: number; unit: TargetSpecies
   'Plaice': { min_length: 27, unit: 'cm' },
   'Flounder': { min_length: 25, unit: 'cm' },
   'Dab': { min_length: 20, unit: 'cm' },
+  // Crustaceans use carapace measurements (mm across the widest point) — a
+  // fin-fish "cm" gate here would mark every legal entry as undersize.
   'Lobster': { min_length: 87, unit: 'mm_carapace' },
-  'Brown crab': { min_length: 140, unit: 'cm' },
+  'Brown crab': { min_length: 140, unit: 'mm_carapace' },
 }
 
 function TargetSpeciesEditor({
