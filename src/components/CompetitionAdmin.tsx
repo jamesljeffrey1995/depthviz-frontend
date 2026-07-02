@@ -2199,13 +2199,8 @@ function ScoringCard({
 }) {
   const [bonusSpecies, setBonusSpecies] = useState('')
   const [bonusPoints, setBonusPoints] = useState('')
-  const [gramSpecies, setGramSpecies] = useState('')
-  const [gramRate, setGramRate] = useState('')
 
   const bonusEntries = Object.entries(rule.species_bonus || {}).sort(
-    (a, b) => a[0].localeCompare(b[0]),
-  )
-  const gramBonusEntries = Object.entries(rule.species_bonus_per_gram || {}).sort(
     (a, b) => a[0].localeCompare(b[0]),
   )
 
@@ -2229,20 +2224,6 @@ function ScoringCard({
     const next = { ...(rule.species_bonus || {}) }
     delete next[species]
     void onSave({ species_bonus: next })
-  }
-
-  function addGramBonus() {
-    const s = gramSpecies.trim()
-    const rate = parseFloat(gramRate)
-    if (!s || !Number.isFinite(rate)) return
-    void onSave({ species_bonus_per_gram: { ...(rule.species_bonus_per_gram || {}), [s]: rate } })
-    setGramSpecies(''); setGramRate('')
-  }
-
-  function removeGramBonus(species: string) {
-    const next = { ...(rule.species_bonus_per_gram || {}) }
-    delete next[species]
-    void onSave({ species_bonus_per_gram: next })
   }
 
   // Re-mount the numeric inputs whenever the rule is refreshed so the
@@ -2319,49 +2300,11 @@ function ScoringCard({
         </div>
       </div>
 
-      <div>
-        <h3 className={styles.cardTitle} style={{ fontSize: 14, marginTop: 8 }}>
-          Species bonus per gram
-        </h3>
-        <p className={styles.muted} style={{ margin: '0 0 6px', fontSize: 12 }}>
-          Added to the global points-per-gram rate for this species only.
-          e.g. global 1 pt/g + Bass +0.5 = 1.5 pts per gram of bass.
-        </p>
-        {gramBonusEntries.length === 0 ? (
-          <p className={styles.muted} style={{ margin: '4px 0 8px', fontSize: 12 }}>
-            No per-gram species bonuses yet.
-          </p>
-        ) : (
-          <ul className={styles.cardList} style={{ marginBottom: 8 }}>
-            {gramBonusEntries.map(([species, rate]) => (
-              <li key={species} className={styles.leaderRow}>
-                <span className={styles.leaderName}>{species}</span>
-                <span className={styles.leaderPts}>+{rate} pts/g</span>
-                <button className={styles.linkBtnDanger} onClick={() => removeGramBonus(species)}>
-                  Remove
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-        <div className={styles.toolbar}>
-          <label className={styles.field}><span>Species</span>
-            <input className={styles.input} value={gramSpecies}
-                   placeholder="e.g. Bass"
-                   onChange={e => setGramSpecies(e.target.value)} />
-          </label>
-          <label className={styles.field}><span>Extra points per gram</span>
-            <input className={styles.input} type="number" inputMode="decimal" step="any"
-                   value={gramRate}
-                   placeholder="e.g. 0.5"
-                   onChange={e => setGramRate(e.target.value)} />
-          </label>
-          <button className={styles.btnGhost} onClick={addGramBonus}
-                  disabled={!gramSpecies.trim() || !Number.isFinite(parseFloat(gramRate))}>
-            Add per-gram bonus
-          </button>
-        </div>
-      </div>
+      <p className={styles.muted} style={{ margin: 0, fontSize: 12 }}>
+        Per-species <em>Extra points per gram</em> now lives with each species
+        row on the Templates tab (Organiser sheet → Target species → Edit). It
+        stacks on top of the global points-per-gram rate above.
+      </p>
     </div>
   )
 }
@@ -2691,11 +2634,15 @@ const SPECIES_DEFAULTS: Record<string, { min_length: number; unit: TargetSpecies
 
 function TargetSpeciesEditor({
   value, onChange,
+  speciesBonusPerGram, onSpeciesBonusPerGramChange,
 }: {
   value: TargetSpecies[]
   onChange: (v: TargetSpecies[]) => void
+  speciesBonusPerGram?: Record<string, number>
+  onSpeciesBonusPerGramChange?: (v: Record<string, number>) => void
 }) {
   const [customSpecies, setCustomSpecies] = useState('')
+  const perGramEditable = speciesBonusPerGram !== undefined && !!onSpeciesBonusPerGramChange
 
   function add(species: string) {
     const s = species.trim()
@@ -2715,10 +2662,27 @@ function TargetSpeciesEditor({
 
   function remove(species: string) {
     onChange(value.filter(x => x.species !== species))
+    if (perGramEditable && speciesBonusPerGram && species in speciesBonusPerGram) {
+      const next = { ...speciesBonusPerGram }
+      delete next[species]
+      onSpeciesBonusPerGramChange!(next)
+    }
   }
 
   function update(species: string, patch: Partial<TargetSpecies>) {
     onChange(value.map(x => x.species === species ? { ...x, ...patch } : x))
+  }
+
+  function updatePerGram(species: string, raw: string) {
+    if (!perGramEditable || !speciesBonusPerGram) return
+    const n = parseFloat(raw)
+    const next = { ...speciesBonusPerGram }
+    if (raw !== '' && Number.isFinite(n) && n > 0) {
+      next[species] = n
+    } else {
+      delete next[species]
+    }
+    onSpeciesBonusPerGramChange!(next)
   }
 
   const available = DEFAULT_SPECIES.filter(s => !value.some(x => x.species === s))
@@ -2792,6 +2756,15 @@ function TargetSpeciesEditor({
                        })
                      }} />
             </label>
+            {perGramEditable && (
+              <label className={styles.field}>
+                <span>Extra points per gram</span>
+                <input className={styles.input} type="number" inputMode="decimal" min={0} step="any"
+                       value={speciesBonusPerGram![row.species] ?? ''}
+                       placeholder="0"
+                       onChange={e => updatePerGram(row.species, e.target.value)} />
+              </label>
+            )}
           </div>
           <label className={`${styles.field} ${styles.fieldFull}`}>
             <span>Measurement notes</span>
@@ -2936,6 +2909,7 @@ function TemplateTab({ comp, onChanged }: { comp: Competition; onChanged: () => 
 
   const [editingSpecies, setEditingSpecies] = useState(false)
   const [speciesDraft, setSpeciesDraft] = useState<TargetSpecies[]>(comp.target_species ?? [])
+  const [perGramDraft, setPerGramDraft] = useState<Record<string, number>>({})
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState('')
 
@@ -2948,11 +2922,26 @@ function TemplateTab({ comp, onChanged }: { comp: Competition; onChanged: () => 
   }, [comp.id])
 
   useEffect(() => { setSpeciesDraft(comp.target_species ?? []) }, [comp.target_species])
+  useEffect(() => { setPerGramDraft({ ...(rule?.species_bonus_per_gram ?? {}) }) }, [rule])
+
+  function startEditingSpecies() {
+    setSpeciesDraft(comp.target_species ?? [])
+    setPerGramDraft({ ...(rule?.species_bonus_per_gram ?? {}) })
+    setEditingSpecies(true)
+  }
 
   async function saveSpecies() {
     setSaving(true); setErr('')
     try {
       await updateCompetition(comp.id, { target_species: speciesDraft })
+      // Persist per-species per-gram bonuses if they've drifted from the rule
+      // — the editor now lives with the species rows, so a "Save species" also
+      // commits any per-gram tweaks the organiser made in those rows.
+      const current = rule?.species_bonus_per_gram ?? {}
+      if (rule && JSON.stringify(current) !== JSON.stringify(perGramDraft)) {
+        const nextRule = await updateScoringRule(comp.id, { species_bonus_per_gram: perGramDraft })
+        setRule(nextRule)
+      }
       setEditingSpecies(false)
       onChanged()
     } catch (e) {
@@ -3012,14 +3001,19 @@ function TemplateTab({ comp, onChanged }: { comp: Competition; onChanged: () => 
           <div className={styles.detailRow}>
             <strong>Target species</strong>
             {!editingSpecies && (
-              <button className={styles.linkBtn} onClick={() => { setSpeciesDraft(comp.target_species ?? []); setEditingSpecies(true) }}>
+              <button className={styles.linkBtn} onClick={startEditingSpecies}>
                 Edit
               </button>
             )}
           </div>
           {editingSpecies ? (
             <>
-              <TargetSpeciesEditor value={speciesDraft} onChange={setSpeciesDraft} />
+              <TargetSpeciesEditor
+                value={speciesDraft}
+                onChange={setSpeciesDraft}
+                speciesBonusPerGram={rule ? perGramDraft : undefined}
+                onSpeciesBonusPerGramChange={rule ? setPerGramDraft : undefined}
+              />
               <div className={styles.formActions}>
                 <button className={styles.btnGhost} onClick={() => setEditingSpecies(false)} disabled={saving}>Cancel</button>
                 <button className={styles.btnPrimary} onClick={saveSpecies} disabled={saving}>
@@ -3030,15 +3024,19 @@ function TemplateTab({ comp, onChanged }: { comp: Competition; onChanged: () => 
           ) : (
             comp.target_species && comp.target_species.length > 0 ? (
               <table className={styles.speciesTable}>
-                <thead><tr><th>Species</th><th>Minimum length</th><th>Notes</th></tr></thead>
+                <thead><tr><th>Species</th><th>Minimum length</th><th>Extra pts/g</th><th>Notes</th></tr></thead>
                 <tbody>
-                  {comp.target_species.map(s => (
-                    <tr key={s.species}>
-                      <td>{s.species}</td>
-                      <td>{formatSpeciesMin(s)}</td>
-                      <td>{s.notes ?? '—'}</td>
-                    </tr>
-                  ))}
+                  {comp.target_species.map(s => {
+                    const perGram = rule?.species_bonus_per_gram?.[s.species]
+                    return (
+                      <tr key={s.species}>
+                        <td>{s.species}</td>
+                        <td>{formatSpeciesMin(s)}</td>
+                        <td>{perGram != null && perGram > 0 ? `+${perGram}` : '—'}</td>
+                        <td>{s.notes ?? '—'}</td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             ) : (
@@ -3077,7 +3075,6 @@ function SheetHeader({ comp, subtitle }: { comp: Competition; subtitle: string }
 
 function OrganiserSheet({ comp, rule }: { comp: Competition; rule: ScoringRule | null }) {
   const bonusEntries = rule ? Object.entries(rule.species_bonus) : []
-  const gramBonusEntries = rule ? Object.entries(rule.species_bonus_per_gram || {}) : []
   return (
     <>
       <SheetHeader comp={comp} subtitle="Information Sheet" />
@@ -3185,18 +3182,22 @@ function OrganiserSheet({ comp, rule }: { comp: Competition; rule: ScoringRule |
           <h2>Target species</h2>
           <table className={styles.templateTable}>
             <thead>
-              <tr><th>Species</th><th>Minimum length</th><th>Bonus</th><th>Max</th><th>Notes</th></tr>
+              <tr><th>Species</th><th>Minimum length</th><th>Bonus</th><th>Max</th><th>Extra pts/g</th><th>Notes</th></tr>
             </thead>
             <tbody>
-              {comp.target_species.map(s => (
-                <tr key={s.species}>
-                  <td>{s.species}</td>
-                  <td>{formatSpeciesMin(s)}</td>
-                  <td>{s.points_bonus != null ? `+${s.points_bonus}` : '—'}</td>
-                  <td>{s.max_count != null ? s.max_count : '—'}</td>
-                  <td>{s.notes ?? ''}</td>
-                </tr>
-              ))}
+              {comp.target_species.map(s => {
+                const perGram = rule?.species_bonus_per_gram?.[s.species]
+                return (
+                  <tr key={s.species}>
+                    <td>{s.species}</td>
+                    <td>{formatSpeciesMin(s)}</td>
+                    <td>{s.points_bonus != null ? `+${s.points_bonus}` : '—'}</td>
+                    <td>{s.max_count != null ? s.max_count : '—'}</td>
+                    <td>{perGram != null && perGram > 0 ? `+${perGram}` : '—'}</td>
+                    <td>{s.notes ?? ''}</td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
           <p className={styles.templatePre} style={{ fontSize: 12, marginTop: 8 }}>
@@ -3232,19 +3233,6 @@ function OrganiserSheet({ comp, rule }: { comp: Competition; rule: ScoringRule |
                 <tbody>
                   {bonusEntries.map(([species, pts]) => (
                     <tr key={species}><td>{species}</td><td>+{pts}</td></tr>
-                  ))}
-                </tbody>
-              </table>
-            </>
-          )}
-          {gramBonusEntries.length > 0 && (
-            <>
-              <h3>Species bonus per gram (added to base rate)</h3>
-              <table className={styles.templateTable}>
-                <thead><tr><th>Species</th><th>Extra points per gram</th></tr></thead>
-                <tbody>
-                  {gramBonusEntries.map(([species, rate]) => (
-                    <tr key={species}><td>{species}</td><td>+{rate}</td></tr>
                   ))}
                 </tbody>
               </table>
