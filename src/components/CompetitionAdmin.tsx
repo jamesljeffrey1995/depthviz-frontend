@@ -78,7 +78,7 @@ function readStoredCompId(): number | null {
 function readStoredTab(): Tab {
   try {
     const raw = localStorage.getItem(LAST_TAB_KEY)
-    return (TAB_VALUES as string[]).includes(raw ?? '') ? (raw as Tab) : 'overview'
+    return TAB_VALUES.find(t => t === raw) ?? 'overview'
   } catch { return 'overview' }
 }
 
@@ -207,15 +207,17 @@ export function CompetitionAdmin({ isAdmin }: Props) {
   useEffect(() => { if (isAdmin) load() }, [isAdmin, load])
 
   useEffect(() => {
+    if (!isAdmin) return
     try {
       if (selectedId === null) localStorage.removeItem(LAST_COMP_KEY)
       else localStorage.setItem(LAST_COMP_KEY, String(selectedId))
     } catch {}
-  }, [selectedId])
+  }, [isAdmin, selectedId])
 
   useEffect(() => {
+    if (!isAdmin) return
     try { localStorage.setItem(LAST_TAB_KEY, tab) } catch {}
-  }, [tab])
+  }, [isAdmin, tab])
 
   const selected = competitions.find(c => c.id === selectedId) ?? null
 
