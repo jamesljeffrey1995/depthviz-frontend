@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.14.1...v1.15.0) (2026-07-02)
+
+
+### Features
+
+* **competition:** move per-species per-gram inline with species rows ([77726ba](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/77726ba1524cab93b50ae4d53f2a5759cf6cd196))
+
 ## [1.14.1](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.14.0...v1.14.1) (2026-07-02)
 
 
