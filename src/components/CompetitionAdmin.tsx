@@ -94,15 +94,6 @@ const boardCache = new Map<number, WaterStatusBoard>()
 // opaque JSON blob and clear it when the wizard is submitted or cancelled.
 const WIZARD_DRAFT_KEY = 'dv_admin_new_comp_draft'
 
-function readWizardDraft(): CompetitionInput | null {
-  try {
-    const raw = localStorage.getItem(WIZARD_DRAFT_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw)
-    return parsed && typeof parsed === 'object' && typeof parsed.name === 'string' ? parsed : null
-  } catch { return null }
-}
-
 const STATUS_LABELS: Record<CompetitorStatus, string> = {
   not_arrived: 'Not arrived',
   registered: 'Registered',
@@ -342,20 +333,32 @@ function OverviewTab({
   // shows the last-known counters immediately; the effect below revalidates.
   const [data, setData] = useState<CompetitionOverview | null>(() => overviewCache.get(comp.id) ?? null)
   const [error, setError] = useState('')
+  // Guard against a stale in-flight fetch for a previous competition
+  // resolving after the user has switched to a new one.
+  const activeIdRef = useRef(comp.id)
 
-  const load = useCallback(() => {
-    getOverview(comp.id)
-      .then(d => { overviewCache.set(comp.id, d); setData(d) })
-      .catch(e => setError(errMsg(e)))
-  }, [comp.id])
-
-  // Refresh every 15s so the safety-critical counters stay live.
   useEffect(() => {
+    activeIdRef.current = comp.id
     setData(overviewCache.get(comp.id) ?? null)
+    setError('')
+
+    const load = () => {
+      const requestedId = comp.id
+      getOverview(requestedId)
+        .then(d => {
+          overviewCache.set(requestedId, d)
+          if (activeIdRef.current === requestedId) setData(d)
+        })
+        .catch(e => {
+          if (activeIdRef.current === requestedId) setError(errMsg(e))
+        })
+    }
+
     load()
+    // Refresh every 15s so the safety-critical counters stay live.
     const id = setInterval(load, 15000)
     return () => clearInterval(id)
-  }, [comp.id, load])
+  }, [comp.id])
 
   if (error && !data) return <p className={styles.error} role="alert">{error}</p>
   if (!data) return <p className={styles.muted}>Loading overview…</p>
@@ -576,6 +579,19 @@ const EMPTY_COMP: CompetitionInput = {
   target_species: [], schedule: [], results_locked: false,
 }
 
+// Merge any persisted draft over EMPTY_COMP so that fields added since the
+// draft was stored still have a defined default — otherwise a controlled
+// input can crash on an undefined value from an older schema.
+function readWizardDraft(): CompetitionInput {
+  try {
+    const raw = localStorage.getItem(WIZARD_DRAFT_KEY)
+    if (!raw) return { ...EMPTY_COMP }
+    const parsed = JSON.parse(raw)
+    if (!parsed || typeof parsed !== 'object') return { ...EMPTY_COMP }
+    return { ...EMPTY_COMP, ...parsed }
+  } catch { return { ...EMPTY_COMP } }
+}
+
 type WizardStep =
   | 'basics' | 'timings' | 'rules' | 'species' | 'safety' | 'registration' | 'review'
 
@@ -642,7 +658,7 @@ function CompetitionWizard({
   const isNew = !initial
   const [draft, setDraft] = useState<CompetitionInput>(() => {
     if (initial) return draftFromCompetition(initial)
-    return readWizardDraft() ?? { ...EMPTY_COMP }
+    return readWizardDraft()
   })
   const [step, setStep] = useState<WizardStep>('basics')
   const [saving, setSaving] = useState(false)
@@ -1162,15 +1178,26 @@ function BoardTab({ cid, onOpenIncident }: { cid: number; onOpenIncident: () => 
   const [error, setError] = useState('')
   const [filter, setFilter] = useState<CompetitorStatus | 'all' | 'overdue'>('all')
   const [busy, setBusy] = useState<number | null>(null)
+  // Track the active cid so a late response for a previous competition
+  // doesn't overwrite the currently-selected board.
+  const activeCidRef = useRef(cid)
 
   const load = useCallback(() => {
-    getBoard(cid)
-      .then(b => { boardCache.set(cid, b); setBoard(b) })
-      .catch(e => setError(errMsg(e)))
+    const requestedCid = cid
+    getBoard(requestedCid)
+      .then(b => {
+        boardCache.set(requestedCid, b)
+        if (activeCidRef.current === requestedCid) setBoard(b)
+      })
+      .catch(e => {
+        if (activeCidRef.current === requestedCid) setError(errMsg(e))
+      })
   }, [cid])
 
   useEffect(() => {
+    activeCidRef.current = cid
     setBoard(boardCache.get(cid) ?? null)
+    setError('')
     load()
     const id = setInterval(load, 20000)
     return () => clearInterval(id)
