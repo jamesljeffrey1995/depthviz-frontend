@@ -1,3 +1,15 @@
+# [1.13.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.12.0...v1.13.0) (2026-07-02)
+
+
+### Bug Fixes
+
+* **competition:** address Copilot review on scoring card ([83fb079](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/83fb07968abfbc631494bf7fabc658c71f03316f))
+
+
+### Features
+
+* **competition:** multiple scoring dimensions in admin UI ([58b91eb](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/58b91eb07e94b5cee9baf97b499497111f91ac39))
+
 # [1.12.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.11.0...v1.12.0) (2026-07-01)
 
 
