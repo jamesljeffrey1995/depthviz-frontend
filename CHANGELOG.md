@@ -1,3 +1,11 @@
+## [1.14.1](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.14.0...v1.14.1) (2026-07-02)
+
+
+### Bug Fixes
+
+* **competition:** collapse internal whitespace in schedule title lookup ([f88a716](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/f88a716a3c8f1446da813b94e578af56543219cf)), closes [#232](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/232)
+* **competition:** drive "Everyone back by" off the Competition end row ([64f78a6](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/64f78a6777d574317ef969b8bba6f11f2d7797f8))
+
 # [1.14.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.13.1...v1.14.0) (2026-07-02)
 
 
