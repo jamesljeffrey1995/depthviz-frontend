@@ -1,3 +1,11 @@
+## [1.13.1](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.13.0...v1.13.1) (2026-07-02)
+
+
+### Bug Fixes
+
+* **competition:** correct water-board "back by" and persist tab state ([fc77ba4](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/fc77ba4c6403da19777f17e5dcef76365b408832))
+* **competition:** guard admin localStorage writes and drop unsafe cast ([1308231](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/130823154d36627f8e560f0c0b6ebd3db105f2b0)), closes [#230](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/230)
+
 # [1.13.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.12.0...v1.13.0) (2026-07-02)
 
 
