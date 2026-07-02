@@ -149,12 +149,28 @@ function fmtTime(iso: string | null): string {
   return new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
 }
 
+/** Look up a schedule row by title (case-insensitive, whitespace-tolerant)
+ *  and return its time, or null if no row matches. Used to prefer the
+ *  organiser-set schedule over the coarse start/finish fields. */
+function scheduleTime(comp: Competition, title: string): string | null {
+  // Collapse any run of whitespace (tabs, newlines, doubled spaces) to a
+  // single space so "Competition  end" or "Competition\tend" still match.
+  const normalize = (s: string) => s.trim().replace(/\s+/g, ' ').toLowerCase()
+  const target = normalize(title)
+  const hit = (comp.schedule ?? []).find(s => normalize(s.title ?? '') === target)
+  const t = (hit?.time ?? '').trim()
+  return t || null
+}
+
 /** Time everyone must be back on the surface — the water board's "Everyone
- *  back by" chip. Prefers finish_time; sign_in_deadline is the later
- *  paperwork deadline (used by dueBackAndSignedInLabel) and would mislead
- *  the safety board. */
+ *  back by" chip. The organiser-set "Competition end" schedule row is the
+ *  canonical answer; finish_time and sign_in_deadline fall back for older
+ *  competitions that haven't set a schedule yet. */
 function outOfWaterLabel(comp: Competition): string {
-  return comp.finish_time ?? comp.sign_in_deadline ?? '—'
+  return scheduleTime(comp, 'Competition end')
+    ?? comp.finish_time
+    ?? comp.sign_in_deadline
+    ?? '—'
 }
 
 /** Time everyone must be back on shore AND signed in — used on the printed
