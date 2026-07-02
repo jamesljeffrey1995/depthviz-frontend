@@ -2039,6 +2039,8 @@ function FishRow({
 // Scoring editor: four dimensions (weight, length, per-fish flat, per-species
 // bonus) that combine additively, plus the team-scoring toggle. Each numeric
 // input commits on blur; the species-bonus editor commits on Add / Remove.
+type NumericScoringField = 'points_per_gram' | 'points_per_cm' | 'points_per_fish'
+
 function ScoringCard({
   rule,
   onSave,
@@ -2053,26 +2055,33 @@ function ScoringCard({
     (a, b) => a[0].localeCompare(b[0]),
   )
 
-  function commitNumeric(field: keyof ScoringRule, raw: string) {
+  function commitNumeric(field: NumericScoringField, raw: string) {
     const n = parseFloat(raw)
     const val = Number.isFinite(n) && n >= 0 ? n : 0
-    if (val !== rule[field]) onSave({ [field]: val })
+    // Fire-and-forget: onSave surfaces its own errors via the parent's
+    // try/catch. void keeps this from becoming an unhandled rejection.
+    if (val !== rule[field]) void onSave({ [field]: val })
   }
 
   function addBonus() {
     const s = bonusSpecies.trim()
     const pts = parseFloat(bonusPoints)
     if (!s || !Number.isFinite(pts)) return
-    onSave({ species_bonus: { ...(rule.species_bonus || {}), [s]: pts } })
+    void onSave({ species_bonus: { ...(rule.species_bonus || {}), [s]: pts } })
     setBonusSpecies(''); setBonusPoints('')
   }
 
   function removeBonus(species: string) {
     const next = { ...(rule.species_bonus || {}) }
     delete next[species]
-    onSave({ species_bonus: next })
+    void onSave({ species_bonus: next })
   }
 
+  // Re-mount the numeric inputs whenever the rule is refreshed so the
+  // displayed value tracks the server-side rule (e.g. after a save that
+  // clamped or normalised the value). Uncontrolled inputs would otherwise
+  // hold onto the last typed value.
+  const inputKey = rule.updated_at
   return (
     <div className={styles.card}>
       <h2 className={styles.cardTitle}>Scoring</h2>
@@ -2082,23 +2091,23 @@ function ScoringCard({
       </p>
       <div className={styles.formGrid}>
         <label className={styles.field}><span>Points per gram (weight)</span>
-          <input className={styles.input} type="number" inputMode="decimal" min={0} step="any"
+          <input key={`ppg-${inputKey}`} className={styles.input} type="number" inputMode="decimal" min={0} step="any"
                  defaultValue={rule.points_per_gram}
                  onBlur={e => commitNumeric('points_per_gram', e.target.value)} />
         </label>
         <label className={styles.field}><span>Points per cm (length)</span>
-          <input className={styles.input} type="number" inputMode="decimal" min={0} step="any"
+          <input key={`ppc-${inputKey}`} className={styles.input} type="number" inputMode="decimal" min={0} step="any"
                  defaultValue={rule.points_per_cm}
                  onBlur={e => commitNumeric('points_per_cm', e.target.value)} />
         </label>
         <label className={styles.field}><span>Points per fish (flat)</span>
-          <input className={styles.input} type="number" inputMode="decimal" min={0} step="any"
+          <input key={`ppf-${inputKey}`} className={styles.input} type="number" inputMode="decimal" min={0} step="any"
                  defaultValue={rule.points_per_fish}
                  onBlur={e => commitNumeric('points_per_fish', e.target.value)} />
         </label>
         <label className={styles.checkInline} style={{ alignSelf: 'end' }}>
           <input type="checkbox" checked={rule.use_team_scoring}
-                 onChange={e => onSave({ use_team_scoring: e.target.checked })} /> Team scoring
+                 onChange={e => void onSave({ use_team_scoring: e.target.checked })} /> Team scoring
         </label>
       </div>
 
@@ -2160,10 +2169,16 @@ function ResultsTab({ comp, onChanged }: { comp: Competition; onChanged: () => v
   useEffect(() => { load() }, [load])
 
   async function saveRule(patch: Partial<ScoringRule>) {
-    const next = await updateScoringRule(cid, patch)
-    setRule(next)
-    // Refresh results (leaderboard) with the new rule applied.
-    getResults(cid).then(setResults).catch(e => setError(errMsg(e)))
+    setError('')
+    try {
+      const next = await updateScoringRule(cid, patch)
+      setRule(next)
+      // Refresh results (leaderboard) with the new rule applied.
+      const fresh = await getResults(cid)
+      setResults(fresh)
+    } catch (e) {
+      setError(errMsg(e))
+    }
   }
 
   async function toggleLock() {
