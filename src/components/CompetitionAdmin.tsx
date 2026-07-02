@@ -153,10 +153,11 @@ function fmtTime(iso: string | null): string {
  *  and return its time, or null if no row matches. Used to prefer the
  *  organiser-set schedule over the coarse start/finish fields. */
 function scheduleTime(comp: Competition, title: string): string | null {
-  const target = title.trim().toLowerCase()
-  const hit = (comp.schedule ?? []).find(s =>
-    (s.title ?? '').trim().toLowerCase() === target,
-  )
+  // Collapse any run of whitespace (tabs, newlines, doubled spaces) to a
+  // single space so "Competition  end" or "Competition\tend" still match.
+  const normalize = (s: string) => s.trim().replace(/\s+/g, ' ').toLowerCase()
+  const target = normalize(title)
+  const hit = (comp.schedule ?? []).find(s => normalize(s.title ?? '') === target)
   const t = (hit?.time ?? '').trim()
   return t || null
 }
