@@ -82,6 +82,18 @@ function readStoredTab(): Tab {
   } catch { return 'overview' }
 }
 
+// In-memory caches so a tab that re-mounts after a route change flashes the
+// last-known payload immediately instead of a "Loading…" placeholder. The
+// cache is refreshed by the tab's own effect on mount, so the flash is
+// replaced by the fresh data as soon as the API responds.
+const overviewCache = new Map<number, CompetitionOverview>()
+const boardCache = new Map<number, WaterStatusBoard>()
+
+// Draft persistence for the "+ New" competition wizard: dropping onto another
+// route mid-flow no longer discards the partly-filled form. We persist an
+// opaque JSON blob and clear it when the wizard is submitted or cancelled.
+const WIZARD_DRAFT_KEY = 'dv_admin_new_comp_draft'
+
 const STATUS_LABELS: Record<CompetitorStatus, string> = {
   not_arrived: 'Not arrived',
   registered: 'Registered',
@@ -317,19 +329,36 @@ export function CompetitionAdmin({ isAdmin }: Props) {
 function OverviewTab({
   comp, onNavigate,
 }: { comp: Competition; onNavigate: (t: Tab) => void; onChanged: () => void }) {
-  const [data, setData] = useState<CompetitionOverview | null>(null)
+  // Seed from the module cache so re-mounting the tab after a route change
+  // shows the last-known counters immediately; the effect below revalidates.
+  const [data, setData] = useState<CompetitionOverview | null>(() => overviewCache.get(comp.id) ?? null)
   const [error, setError] = useState('')
+  // Guard against a stale in-flight fetch for a previous competition
+  // resolving after the user has switched to a new one.
+  const activeIdRef = useRef(comp.id)
 
-  const load = useCallback(() => {
-    getOverview(comp.id).then(setData).catch(e => setError(errMsg(e)))
-  }, [comp.id])
-
-  // Refresh every 15s so the safety-critical counters stay live.
   useEffect(() => {
+    activeIdRef.current = comp.id
+    setData(overviewCache.get(comp.id) ?? null)
+    setError('')
+
+    const load = () => {
+      const requestedId = comp.id
+      getOverview(requestedId)
+        .then(d => {
+          overviewCache.set(requestedId, d)
+          if (activeIdRef.current === requestedId) setData(d)
+        })
+        .catch(e => {
+          if (activeIdRef.current === requestedId) setError(errMsg(e))
+        })
+    }
+
     load()
+    // Refresh every 15s so the safety-critical counters stay live.
     const id = setInterval(load, 15000)
     return () => clearInterval(id)
-  }, [load])
+  }, [comp.id])
 
   if (error && !data) return <p className={styles.error} role="alert">{error}</p>
   if (!data) return <p className={styles.muted}>Loading overview…</p>
@@ -550,6 +579,19 @@ const EMPTY_COMP: CompetitionInput = {
   target_species: [], schedule: [], results_locked: false,
 }
 
+// Merge any persisted draft over EMPTY_COMP so that fields added since the
+// draft was stored still have a defined default — otherwise a controlled
+// input can crash on an undefined value from an older schema.
+function readWizardDraft(): CompetitionInput {
+  try {
+    const raw = localStorage.getItem(WIZARD_DRAFT_KEY)
+    if (!raw) return { ...EMPTY_COMP }
+    const parsed = JSON.parse(raw)
+    if (!parsed || typeof parsed !== 'object') return { ...EMPTY_COMP }
+    return { ...EMPTY_COMP, ...parsed }
+  } catch { return { ...EMPTY_COMP } }
+}
+
 type WizardStep =
   | 'basics' | 'timings' | 'rules' | 'species' | 'safety' | 'registration' | 'review'
 
@@ -609,10 +651,28 @@ function CompetitionWizard({
   onCancel: () => void
   onSaved: (c: Competition) => void
 }) {
-  const [draft, setDraft] = useState<CompetitionInput>(draftFromCompetition(initial))
+  // For the create flow (no `initial`), seed the draft from any persisted
+  // localStorage blob so a route-change mid-flow doesn't wipe the form.
+  // Edits always start from the current server state — persisting a stale
+  // edit-draft would confuse a returning admin.
+  const isNew = !initial
+  const [draft, setDraft] = useState<CompetitionInput>(() => {
+    if (initial) return draftFromCompetition(initial)
+    return readWizardDraft()
+  })
   const [step, setStep] = useState<WizardStep>('basics')
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState('')
+
+  useEffect(() => {
+    if (!isNew) return
+    try { localStorage.setItem(WIZARD_DRAFT_KEY, JSON.stringify(draft)) } catch {}
+  }, [isNew, draft])
+
+  function clearDraftStorage() {
+    if (!isNew) return
+    try { localStorage.removeItem(WIZARD_DRAFT_KEY) } catch {}
+  }
 
   function set<K extends keyof CompetitionInput>(key: K, value: CompetitionInput[K]) {
     setDraft(d => ({ ...d, [key]: value }))
@@ -661,12 +721,18 @@ function CompetitionWizard({
       const saved = initial
         ? await updateCompetition(initial.id, payload)
         : await createCompetition(payload)
+      clearDraftStorage()
       onSaved(saved)
     } catch (e) {
       setErr(errMsg(e))
     } finally {
       setSaving(false)
     }
+  }
+
+  function handleCancel() {
+    clearDraftStorage()
+    onCancel()
   }
 
   const stepIndex = WIZARD_STEPS.findIndex(([k]) => k === step)
@@ -705,7 +771,7 @@ function CompetitionWizard({
       {step === 'review' && <WizardStepReview draft={draft} />}
 
       <div className={styles.formActions}>
-        <button className={styles.btnGhost} onClick={onCancel} disabled={saving}>Cancel</button>
+        <button className={styles.btnGhost} onClick={handleCancel} disabled={saving}>Cancel</button>
         {!isFirst && (
           <button className={styles.btnGhost} onClick={() => setStep(WIZARD_STEPS[stepIndex - 1][0])}
                   disabled={saving}>‹ Back</button>
@@ -1106,20 +1172,36 @@ const BOARD_FILTERS: { key: CompetitorStatus | 'all' | 'overdue'; label: string 
 ]
 
 function BoardTab({ cid, onOpenIncident }: { cid: number; onOpenIncident: () => void }) {
-  const [board, setBoard] = useState<WaterStatusBoard | null>(null)
+  // Same stale-while-revalidate trick as OverviewTab: keep the last-known
+  // board in memory so the safety board doesn't blank out on remount.
+  const [board, setBoard] = useState<WaterStatusBoard | null>(() => boardCache.get(cid) ?? null)
   const [error, setError] = useState('')
   const [filter, setFilter] = useState<CompetitorStatus | 'all' | 'overdue'>('all')
   const [busy, setBusy] = useState<number | null>(null)
+  // Track the active cid so a late response for a previous competition
+  // doesn't overwrite the currently-selected board.
+  const activeCidRef = useRef(cid)
 
   const load = useCallback(() => {
-    getBoard(cid).then(setBoard).catch(e => setError(errMsg(e)))
+    const requestedCid = cid
+    getBoard(requestedCid)
+      .then(b => {
+        boardCache.set(requestedCid, b)
+        if (activeCidRef.current === requestedCid) setBoard(b)
+      })
+      .catch(e => {
+        if (activeCidRef.current === requestedCid) setError(errMsg(e))
+      })
   }, [cid])
 
   useEffect(() => {
+    activeCidRef.current = cid
+    setBoard(boardCache.get(cid) ?? null)
+    setError('')
     load()
     const id = setInterval(load, 20000)
     return () => clearInterval(id)
-  }, [load])
+  }, [cid, load])
 
   async function act(c: Competitor, status: CompetitorStatus) {
     setBusy(c.id)
@@ -2101,8 +2183,13 @@ function ScoringCard({
 }) {
   const [bonusSpecies, setBonusSpecies] = useState('')
   const [bonusPoints, setBonusPoints] = useState('')
+  const [gramSpecies, setGramSpecies] = useState('')
+  const [gramRate, setGramRate] = useState('')
 
   const bonusEntries = Object.entries(rule.species_bonus || {}).sort(
+    (a, b) => a[0].localeCompare(b[0]),
+  )
+  const gramBonusEntries = Object.entries(rule.species_bonus_per_gram || {}).sort(
     (a, b) => a[0].localeCompare(b[0]),
   )
 
@@ -2126,6 +2213,20 @@ function ScoringCard({
     const next = { ...(rule.species_bonus || {}) }
     delete next[species]
     void onSave({ species_bonus: next })
+  }
+
+  function addGramBonus() {
+    const s = gramSpecies.trim()
+    const rate = parseFloat(gramRate)
+    if (!s || !Number.isFinite(rate)) return
+    void onSave({ species_bonus_per_gram: { ...(rule.species_bonus_per_gram || {}), [s]: rate } })
+    setGramSpecies(''); setGramRate('')
+  }
+
+  function removeGramBonus(species: string) {
+    const next = { ...(rule.species_bonus_per_gram || {}) }
+    delete next[species]
+    void onSave({ species_bonus_per_gram: next })
   }
 
   // Re-mount the numeric inputs whenever the rule is refreshed so the
@@ -2198,6 +2299,50 @@ function ScoringCard({
           <button className={styles.btnGhost} onClick={addBonus}
                   disabled={!bonusSpecies.trim() || !Number.isFinite(parseFloat(bonusPoints))}>
             Add species bonus
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <h3 className={styles.cardTitle} style={{ fontSize: 14, marginTop: 8 }}>
+          Species bonus per gram
+        </h3>
+        <p className={styles.muted} style={{ margin: '0 0 6px', fontSize: 12 }}>
+          Added to the global points-per-gram rate for this species only.
+          e.g. global 1 pt/g + Bass +0.5 = 1.5 pts per gram of bass.
+        </p>
+        {gramBonusEntries.length === 0 ? (
+          <p className={styles.muted} style={{ margin: '4px 0 8px', fontSize: 12 }}>
+            No per-gram species bonuses yet.
+          </p>
+        ) : (
+          <ul className={styles.cardList} style={{ marginBottom: 8 }}>
+            {gramBonusEntries.map(([species, rate]) => (
+              <li key={species} className={styles.leaderRow}>
+                <span className={styles.leaderName}>{species}</span>
+                <span className={styles.leaderPts}>+{rate} pts/g</span>
+                <button className={styles.linkBtnDanger} onClick={() => removeGramBonus(species)}>
+                  Remove
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className={styles.toolbar}>
+          <label className={styles.field}><span>Species</span>
+            <input className={styles.input} value={gramSpecies}
+                   placeholder="e.g. Bass"
+                   onChange={e => setGramSpecies(e.target.value)} />
+          </label>
+          <label className={styles.field}><span>Extra points per gram</span>
+            <input className={styles.input} type="number" inputMode="decimal" step="any"
+                   value={gramRate}
+                   placeholder="e.g. 0.5"
+                   onChange={e => setGramRate(e.target.value)} />
+          </label>
+          <button className={styles.btnGhost} onClick={addGramBonus}
+                  disabled={!gramSpecies.trim() || !Number.isFinite(parseFloat(gramRate))}>
+            Add per-gram bonus
           </button>
         </div>
       </div>
@@ -2916,6 +3061,7 @@ function SheetHeader({ comp, subtitle }: { comp: Competition; subtitle: string }
 
 function OrganiserSheet({ comp, rule }: { comp: Competition; rule: ScoringRule | null }) {
   const bonusEntries = rule ? Object.entries(rule.species_bonus) : []
+  const gramBonusEntries = rule ? Object.entries(rule.species_bonus_per_gram || {}) : []
   return (
     <>
       <SheetHeader comp={comp} subtitle="Information Sheet" />
@@ -3070,6 +3216,19 @@ function OrganiserSheet({ comp, rule }: { comp: Competition; rule: ScoringRule |
                 <tbody>
                   {bonusEntries.map(([species, pts]) => (
                     <tr key={species}><td>{species}</td><td>+{pts}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          )}
+          {gramBonusEntries.length > 0 && (
+            <>
+              <h3>Species bonus per gram (added to base rate)</h3>
+              <table className={styles.templateTable}>
+                <thead><tr><th>Species</th><th>Extra points per gram</th></tr></thead>
+                <tbody>
+                  {gramBonusEntries.map(([species, rate]) => (
+                    <tr key={species}><td>{species}</td><td>+{rate}</td></tr>
                   ))}
                 </tbody>
               </table>

@@ -1350,6 +1350,7 @@ export interface ScoringRule {
   points_per_cm: number
   points_per_fish: number
   species_bonus: Record<string, number>
+  species_bonus_per_gram: Record<string, number>
   use_team_scoring: boolean
   updated_at: string
 }
@@ -1359,6 +1360,7 @@ export interface ScoringRuleInput {
   points_per_cm?: number
   points_per_fish?: number
   species_bonus?: Record<string, number>
+  species_bonus_per_gram?: Record<string, number>
   use_team_scoring?: boolean
 }
 
