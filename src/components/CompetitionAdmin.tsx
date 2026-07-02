@@ -57,6 +57,31 @@ type Tab =
   | 'overview' | 'board' | 'competitors' | 'teams' | 'weighin'
   | 'results' | 'incidents' | 'setup' | 'template'
 
+// Persist the last-viewed competition + tab so navigating away and back
+// doesn't dump the organiser onto Overview of the newest event.
+const LAST_COMP_KEY = 'dv_admin_comp_id'
+const LAST_TAB_KEY = 'dv_admin_comp_tab'
+const TAB_VALUES: Tab[] = [
+  'overview', 'board', 'competitors', 'teams', 'weighin',
+  'results', 'incidents', 'setup', 'template',
+]
+
+function readStoredCompId(): number | null {
+  try {
+    const raw = localStorage.getItem(LAST_COMP_KEY)
+    if (!raw) return null
+    const n = Number(raw)
+    return Number.isFinite(n) && n > 0 ? n : null
+  } catch { return null }
+}
+
+function readStoredTab(): Tab {
+  try {
+    const raw = localStorage.getItem(LAST_TAB_KEY)
+    return TAB_VALUES.find(t => t === raw) ?? 'overview'
+  } catch { return 'overview' }
+}
+
 const STATUS_LABELS: Record<CompetitorStatus, string> = {
   not_arrived: 'Not arrived',
   registered: 'Registered',
@@ -112,9 +137,17 @@ function fmtTime(iso: string | null): string {
   return new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
 }
 
-/** Adds sign_in_deadline (falling back to finish_time) to the event date and
- *  returns an HH:MM label for the "due back" column on the water board. */
-function dueBackLabel(comp: Competition): string {
+/** Time everyone must be back on the surface — the water board's "Everyone
+ *  back by" chip. Prefers finish_time; sign_in_deadline is the later
+ *  paperwork deadline (used by dueBackAndSignedInLabel) and would mislead
+ *  the safety board. */
+function outOfWaterLabel(comp: Competition): string {
+  return comp.finish_time ?? comp.sign_in_deadline ?? '—'
+}
+
+/** Time everyone must be back on shore AND signed in — used on the printed
+ *  board sheet. Prefers sign_in_deadline, then falls back to finish_time. */
+function dueBackAndSignedInLabel(comp: Competition): string {
   return comp.sign_in_deadline ?? comp.finish_time ?? '—'
 }
 
@@ -147,8 +180,8 @@ function StatusBadge({ status, overdue }: { status: CompetitorStatus; overdue?: 
 
 export function CompetitionAdmin({ isAdmin }: Props) {
   const [competitions, setCompetitions] = useState<Competition[]>([])
-  const [selectedId, setSelectedId] = useState<number | null>(null)
-  const [tab, setTab] = useState<Tab>('overview')
+  const [selectedId, setSelectedId] = useState<number | null>(() => readStoredCompId())
+  const [tab, setTab] = useState<Tab>(() => readStoredTab())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showCreate, setShowCreate] = useState(false)
@@ -159,7 +192,12 @@ export function CompetitionAdmin({ isAdmin }: Props) {
     listCompetitions()
       .then(items => {
         setCompetitions(items)
-        if (items.length > 0 && selectedId === null) setSelectedId(items[0].id)
+        // Restore the last-viewed competition if it still exists; otherwise
+        // fall back to the newest so we don't leave the picker blank.
+        setSelectedId(prev => {
+          if (prev !== null && items.some(c => c.id === prev)) return prev
+          return items.length > 0 ? items[0].id : null
+        })
       })
       .catch(e => setError(errMsg(e)))
       .finally(() => setLoading(false))
@@ -167,6 +205,19 @@ export function CompetitionAdmin({ isAdmin }: Props) {
   }, [])
 
   useEffect(() => { if (isAdmin) load() }, [isAdmin, load])
+
+  useEffect(() => {
+    if (!isAdmin) return
+    try {
+      if (selectedId === null) localStorage.removeItem(LAST_COMP_KEY)
+      else localStorage.setItem(LAST_COMP_KEY, String(selectedId))
+    } catch {}
+  }, [isAdmin, selectedId])
+
+  useEffect(() => {
+    if (!isAdmin) return
+    try { localStorage.setItem(LAST_TAB_KEY, tab) } catch {}
+  }, [isAdmin, tab])
 
   const selected = competitions.find(c => c.id === selectedId) ?? null
 
@@ -1126,7 +1177,7 @@ function BoardTab({ cid, onOpenIncident }: { cid: number; onOpenIncident: () => 
   if (!board) return <p className={styles.muted}>Loading board…</p>
 
   const c = board.counts
-  const due = dueBackLabel(board.competition)
+  const due = outOfWaterLabel(board.competition)
   return (
     <div>
       <div className={styles.countBar}>
@@ -3143,7 +3194,7 @@ function BoardSheet({
       <SheetHeader comp={comp} subtitle="Water Board" />
       <div className={styles.templateSection}>
         <p className={styles.templatePre}>
-          Everyone back and signed in by <strong>{dueBackLabel(comp)}</strong>.
+          Everyone back and signed in by <strong>{dueBackAndSignedInLabel(comp)}</strong>.
           Update this board every time a diver enters or leaves the water — this
           is your live record of who is currently in the water.
         </p>
