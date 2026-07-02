@@ -2036,6 +2036,115 @@ function FishRow({
 
 // ── Results tab ──────────────────────────────────────────────────────────────
 
+// Scoring editor: four dimensions (weight, length, per-fish flat, per-species
+// bonus) that combine additively, plus the team-scoring toggle. Each numeric
+// input commits on blur; the species-bonus editor commits on Add / Remove.
+function ScoringCard({
+  rule,
+  onSave,
+}: {
+  rule: ScoringRule
+  onSave: (patch: Partial<ScoringRule>) => void | Promise<void>
+}) {
+  const [bonusSpecies, setBonusSpecies] = useState('')
+  const [bonusPoints, setBonusPoints] = useState('')
+
+  const bonusEntries = Object.entries(rule.species_bonus || {}).sort(
+    (a, b) => a[0].localeCompare(b[0]),
+  )
+
+  function commitNumeric(field: keyof ScoringRule, raw: string) {
+    const n = parseFloat(raw)
+    const val = Number.isFinite(n) && n >= 0 ? n : 0
+    if (val !== rule[field]) onSave({ [field]: val })
+  }
+
+  function addBonus() {
+    const s = bonusSpecies.trim()
+    const pts = parseFloat(bonusPoints)
+    if (!s || !Number.isFinite(pts)) return
+    onSave({ species_bonus: { ...(rule.species_bonus || {}), [s]: pts } })
+    setBonusSpecies(''); setBonusPoints('')
+  }
+
+  function removeBonus(species: string) {
+    const next = { ...(rule.species_bonus || {}) }
+    delete next[species]
+    onSave({ species_bonus: next })
+  }
+
+  return (
+    <div className={styles.card}>
+      <h2 className={styles.cardTitle}>Scoring</h2>
+      <p className={styles.muted} style={{ margin: 0, fontSize: 12 }}>
+        Each fish's score is the sum of every dimension you enable. Set a
+        dimension to 0 to ignore it.
+      </p>
+      <div className={styles.formGrid}>
+        <label className={styles.field}><span>Points per gram (weight)</span>
+          <input className={styles.input} type="number" inputMode="decimal" min={0} step="any"
+                 defaultValue={rule.points_per_gram}
+                 onBlur={e => commitNumeric('points_per_gram', e.target.value)} />
+        </label>
+        <label className={styles.field}><span>Points per cm (length)</span>
+          <input className={styles.input} type="number" inputMode="decimal" min={0} step="any"
+                 defaultValue={rule.points_per_cm}
+                 onBlur={e => commitNumeric('points_per_cm', e.target.value)} />
+        </label>
+        <label className={styles.field}><span>Points per fish (flat)</span>
+          <input className={styles.input} type="number" inputMode="decimal" min={0} step="any"
+                 defaultValue={rule.points_per_fish}
+                 onBlur={e => commitNumeric('points_per_fish', e.target.value)} />
+        </label>
+        <label className={styles.checkInline} style={{ alignSelf: 'end' }}>
+          <input type="checkbox" checked={rule.use_team_scoring}
+                 onChange={e => onSave({ use_team_scoring: e.target.checked })} /> Team scoring
+        </label>
+      </div>
+
+      <div>
+        <h3 className={styles.cardTitle} style={{ fontSize: 14, marginTop: 8 }}>
+          Species bonus (flat points per fish landed)
+        </h3>
+        {bonusEntries.length === 0 ? (
+          <p className={styles.muted} style={{ margin: '4px 0 8px', fontSize: 12 }}>
+            No species bonuses yet.
+          </p>
+        ) : (
+          <ul className={styles.cardList} style={{ marginBottom: 8 }}>
+            {bonusEntries.map(([species, pts]) => (
+              <li key={species} className={styles.leaderRow}>
+                <span className={styles.leaderName}>{species}</span>
+                <span className={styles.leaderPts}>+{pts} pts</span>
+                <button className={styles.linkBtnDanger} onClick={() => removeBonus(species)}>
+                  Remove
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className={styles.toolbar}>
+          <label className={styles.field}><span>Species</span>
+            <input className={styles.input} value={bonusSpecies}
+                   placeholder="e.g. Bass"
+                   onChange={e => setBonusSpecies(e.target.value)} />
+          </label>
+          <label className={styles.field}><span>Bonus points</span>
+            <input className={styles.input} type="number" inputMode="decimal" step="any"
+                   value={bonusPoints}
+                   placeholder="e.g. 100"
+                   onChange={e => setBonusPoints(e.target.value)} />
+          </label>
+          <button className={styles.btnGhost} onClick={addBonus}
+                  disabled={!bonusSpecies.trim() || !Number.isFinite(parseFloat(bonusPoints))}>
+            Add species bonus
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ResultsTab({ comp, onChanged }: { comp: Competition; onChanged: () => void }) {
   const cid = comp.id
   const [results, setResults] = useState<CompetitionResults | null>(null)
@@ -2050,9 +2159,11 @@ function ResultsTab({ comp, onChanged }: { comp: Competition; onChanged: () => v
   }, [cid])
   useEffect(() => { load() }, [load])
 
-  async function saveRule(pointsPerGram: number, useTeam: boolean) {
-    await updateScoringRule(cid, { points_per_gram: pointsPerGram, use_team_scoring: useTeam })
-    load()
+  async function saveRule(patch: Partial<ScoringRule>) {
+    const next = await updateScoringRule(cid, patch)
+    setRule(next)
+    // Refresh results (leaderboard) with the new rule applied.
+    getResults(cid).then(setResults).catch(e => setError(errMsg(e)))
   }
 
   async function toggleLock() {
@@ -2110,18 +2221,7 @@ function ResultsTab({ comp, onChanged }: { comp: Competition; onChanged: () => v
         <div className={styles.count}><strong>{t.competitors}</strong><span>Competitors</span></div>
       </div>
 
-      <div className={styles.card}>
-        <h2 className={styles.cardTitle}>Scoring</h2>
-        <div className={styles.toolbar}>
-          <label className={styles.field}><span>Points per gram</span>
-            <input className={styles.input} type="number" inputMode="decimal" defaultValue={rule.points_per_gram}
-                   onBlur={e => saveRule(parseFloat(e.target.value) || 0, rule.use_team_scoring)} /></label>
-          <label className={styles.checkInline}>
-            <input type="checkbox" checked={rule.use_team_scoring}
-                   onChange={e => saveRule(rule.points_per_gram, e.target.checked)} /> Team scoring
-          </label>
-        </div>
-      </div>
+      <ScoringCard rule={rule} onSave={saveRule} />
 
       {error && <p className={styles.error} role="alert">{error}</p>}
 
@@ -2884,7 +2984,15 @@ function OrganiserSheet({ comp, rule }: { comp: Competition; rule: ScoringRule |
           <h2>Scoring</h2>
           <table className={styles.templateTable}>
             <tbody>
-              <tr><td>Points per gram</td><td>{rule.points_per_gram}</td></tr>
+              {rule.points_per_gram > 0 && (
+                <tr><td>Points per gram (weight)</td><td>{rule.points_per_gram}</td></tr>
+              )}
+              {rule.points_per_cm > 0 && (
+                <tr><td>Points per cm (length)</td><td>{rule.points_per_cm}</td></tr>
+              )}
+              {rule.points_per_fish > 0 && (
+                <tr><td>Points per fish (flat)</td><td>{rule.points_per_fish}</td></tr>
+              )}
               <tr><td>Team scoring</td><td>{rule.use_team_scoring ? 'Yes' : 'No'}</td></tr>
             </tbody>
           </table>
