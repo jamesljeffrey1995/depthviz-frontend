@@ -1,3 +1,15 @@
+# [1.14.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.13.1...v1.14.0) (2026-07-02)
+
+
+### Bug Fixes
+
+* **competition:** guard tab races and wizard-draft schema drift ([3c7dd79](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/3c7dd799cf88a486fb4b31058158a0f099a19fa1)), closes [#231](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/231)
+
+
+### Features
+
+* **competition:** per-species per-gram scoring + kill remount flash ([c1b7ed3](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/c1b7ed3a2c15b84aadefbed73504a89410f0c768))
+
 ## [1.13.1](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.13.0...v1.13.1) (2026-07-02)
 
 
