@@ -1347,6 +1347,8 @@ export interface ScoringRule {
   id: number
   competition_id: number
   points_per_gram: number
+  points_per_cm: number
+  points_per_fish: number
   species_bonus: Record<string, number>
   use_team_scoring: boolean
   updated_at: string
@@ -1354,6 +1356,8 @@ export interface ScoringRule {
 
 export interface ScoringRuleInput {
   points_per_gram?: number
+  points_per_cm?: number
+  points_per_fish?: number
   species_bonus?: Record<string, number>
   use_team_scoring?: boolean
 }
