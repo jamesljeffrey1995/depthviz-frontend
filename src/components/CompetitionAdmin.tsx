@@ -158,7 +158,7 @@ function fmtTime(iso: string | null): string {
  *  timezone shifts; other inputs fall back to the local Date parse. */
 function fmtDate(iso: string | null | undefined): string {
   if (!iso) return '—'
-  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso)
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso)
   if (m) return `${m[3]}/${m[2]}/${m[1].slice(-2)}`
   const d = new Date(iso)
   if (isNaN(d.getTime())) return iso
