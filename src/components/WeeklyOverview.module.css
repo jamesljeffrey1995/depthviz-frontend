@@ -251,7 +251,7 @@
 .good .verdict { color: var(--good); }
 
 .decent .vis,
-.decent .verdict { color: #5ba87a; }
+.decent .verdict { color: #7fb87a; }
 
 .marginal .vis,
 .marginal .verdict { color: var(--warn); }
@@ -260,7 +260,7 @@
 .poor .verdict { color: var(--danger); }
 
 .blocked .vis,
-.blocked .verdict { color: #555; }
+.blocked .verdict { color: #7a8a9a; }
 
 /* ── Hint ── */
 .hint {

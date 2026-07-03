@@ -1,5 +1,6 @@
 import { memo } from 'react'
 import type { DayForecast } from '../types'
+import { getDiveRating } from '../lib/diveRating'
 import { WindArrow } from './WindArrow'
 import styles from './WeeklyOverview.module.css'
 
@@ -51,7 +52,12 @@ export const WeeklyOverview = memo(function WeeklyOverview({ days, locationName,
           const { day: dayLabel, date: dateLabel } = formatDate(day.date)
           const isBest = i === bestIdx
           const isSelected = i === selectedIndex
-          const colorCls = styles[day.color_class as keyof typeof styles] ?? ''
+          // Use the same NE-UK-calibrated rating as the day overview so the
+          // colour and verdict here agree with the detail view a user taps into
+          // (the API's color_class/verdict is the older, more pessimistic scale).
+          const rating = getDiveRating(vis)
+          const verdictLabel = rating.label
+          const colorCls = styles[rating.colorClass as keyof typeof styles] ?? ''
 
           const windSpeed = Math.round(day.wind_speed)
           const gust = day.wind_gust != null ? Math.round(day.wind_gust) : null
@@ -72,7 +78,7 @@ export const WeeklyOverview = memo(function WeeklyOverview({ days, locationName,
                 !day.is_forecast ? styles.historical : '',
               ].join(' ')}
               onClick={() => onSelectDay(i)}
-              aria-label={`${dayLabel} ${dateLabel}: ${vis.toFixed(1)} metres visibility, ${day.verdict}, wind ${windDesc}${isBest ? ', best day this week' : ''}`}
+              aria-label={`${dayLabel} ${dateLabel}: ${vis.toFixed(1)} metres visibility, ${verdictLabel}, wind ${windDesc}${isBest ? ', best day this week' : ''}`}
               aria-pressed={isSelected}
             >
               {isBest && <div className={styles.bestBadge} aria-hidden="true">BEST</div>}
@@ -82,7 +88,7 @@ export const WeeklyOverview = memo(function WeeklyOverview({ days, locationName,
               <div className={styles.dayDate}>{dateLabel}</div>
 
               <div className={styles.vis}>{vis.toFixed(1)}<span className={styles.visUnit}>m</span></div>
-              <div className={styles.verdict}>{day.verdict}</div>
+              <div className={styles.verdict}>{verdictLabel}</div>
 
               <div className={styles.metrics}>
                 <div className={styles.metric}>
