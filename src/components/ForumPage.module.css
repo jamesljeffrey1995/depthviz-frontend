@@ -2,6 +2,10 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
+  /* Discussion threads read best at a comfortable measure in the wide shell. */
+  width: 100%;
+  max-width: 900px;
+  margin-inline: auto;
 }
 
 .pageTitle {
@@ -53,6 +57,7 @@
   font-size: 12px;
   letter-spacing: 0.08em;
   font-weight: 700;
+  min-height: 44px;
   padding: 9px 16px;
   border-radius: var(--radius-md);
   cursor: pointer;
@@ -108,6 +113,23 @@
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+  flex: 1;
+}
+
+/* Square initial tile — a subtle visual marker per category. */
+.catGlyph {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 24px;
+  color: var(--accent);
+  background: rgba(0, 201, 255, 0.08);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
 }
 
 .catName {
@@ -119,9 +141,10 @@
 
 .catDesc,
 .threadMeta {
-  font-size: 12px;
+  font-size: 12.5px;
+  line-height: 1.5;
   color: var(--text);
-  opacity: 0.75;
+  opacity: 0.85;
 }
 
 .catCount,
@@ -130,6 +153,54 @@
   font-size: 11px;
   color: var(--accent);
   letter-spacing: 0.06em;
+}
+
+.catCount {
+  margin-top: 2px;
+}
+
+.catCta {
+  flex-shrink: 0;
+  align-self: center;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0.7;
+  transition: opacity var(--transition-base);
+}
+
+.catItem:hover .catCta,
+.catItem:focus-visible .catCta {
+  opacity: 1;
+}
+
+.startHint {
+  margin: 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text);
+  opacity: 0.85;
+}
+
+/* ── Empty state ── */
+.emptyBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  text-align: center;
+  background: var(--surface-1);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: var(--space-xl) var(--space-lg);
+}
+
+.emptyTitle {
+  margin: 0;
+  color: var(--text-bright);
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .threadTitle {

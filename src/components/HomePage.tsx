@@ -24,10 +24,10 @@ interface Tile {
 }
 
 const TILES: Tile[] = [
-  { label: 'Check Visibility', desc: 'AI-calibrated 7-day underwater visibility forecast for any coast.', path: '/map' },
+  { label: 'Forecast', desc: 'AI-calibrated 7-day underwater visibility forecast for any coast.', path: '/map' },
+  { label: 'Best Visibility', desc: 'Find where the water is clearest right now.', path: '/best' },
   { label: 'Discussions', desc: 'Talk spots, gear, safety and catches with other divers.', path: '/forum' },
   { label: 'Weight Belt', desc: 'Work out your neutral-buoyancy weighting in seconds.', path: '/weight' },
-  { label: 'Best Visibility', desc: 'Find where the water is clearest right now.', path: '/best' },
   { label: 'Apnea Training', desc: 'Run O₂ and CO₂ tables to build your breath-hold.', path: '/training' },
   { label: 'Activity Feed', desc: 'Latest dive reports and catches from the community.', path: '/feed' },
 ]
@@ -50,10 +50,12 @@ export function HomePage() {
     <div className={styles.home}>
       <section className={styles.hero}>
         <h1 className={styles.heroTitle}>Dive smarter.</h1>
+        <p className={styles.heroTagline}>
+          AI-calibrated underwater visibility forecasts for UK spearfishers and freedivers.
+        </p>
         <p className={styles.heroLead}>
-          DepthViz forecasts underwater visibility for spearfishers and freedivers,
-          then sharpens it with reports from divers in the water. Check the vis,
-          plan your session, and swap notes with the community.
+          Check the vis before you drive, plan your session around swell, wind and
+          tide, and sharpen every forecast with reports from divers in the water.
         </p>
         <div className={styles.heroActions}>
           <button className={styles.primaryBtn} onClick={() => navigate('/map')}>
@@ -69,7 +71,7 @@ export function HomePage() {
         <div className={styles.sectionHead}>
           <h2 id="news-heading" className={styles.sectionTitle}>Latest news</h2>
           <button className={styles.moreLink} onClick={() => navigate('/news')}>
-            All news →
+            View all news →
           </button>
         </div>
         {loadingNews ? (
@@ -104,6 +106,7 @@ export function HomePage() {
             <button key={t.path} className={styles.tile} onClick={() => navigate(t.path)}>
               <span className={styles.tileLabel}>{t.label}</span>
               <span className={styles.tileDesc}>{t.desc}</span>
+              <span className={styles.tileGo} aria-hidden="true">Open →</span>
             </button>
           ))}
         </div>

@@ -71,13 +71,39 @@
   }
 }
 
+/* Marker-colour key under the map */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 16px;
+  margin-top: 10px;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.legendDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
 .hint {
   font-size: 9px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  opacity: 0.35;
+  opacity: 0.45;
   text-align: center;
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
 /* Add Spot row */

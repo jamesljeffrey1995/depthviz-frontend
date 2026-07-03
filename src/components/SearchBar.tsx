@@ -4,8 +4,12 @@ import type { GeocodingResult } from '../types'
 import styles from './SearchBar.module.css'
 
 interface SearchBarProps {
-  onSearch: (query: string) => void
-  onLocate: () => void
+  /** Returns false when no matching location was found, so the bar can show
+   *  an inline hint instead of failing silently. */
+  onSearch: (query: string) => boolean | void | Promise<boolean | void>
+  /** May reject (e.g. geolocation denied) — the bar shows a friendly inline
+   *  error rather than a dead button. */
+  onLocate: () => Promise<void> | void
   getSuggestions: (query: string) => Promise<GeocodingResult[]>
   onSelectSuggestion: (result: GeocodingResult) => void
 }
@@ -16,6 +20,8 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [selectedResult, setSelectedResult] = useState<GeocodingResult | null>(null)
   const [activeIndex, setActiveIndex] = useState(-1)
+  const [locating, setLocating] = useState(false)
+  const [inlineError, setInlineError] = useState('')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const abortRef = useRef<AbortController | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -25,6 +31,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
     setQuery(value)
     setSelectedResult(null)
     setActiveIndex(-1)
+    setInlineError('')
     clearTimeout(debounceRef.current)
     // Cancel any in-flight suggestion request
     abortRef.current?.abort()
@@ -50,17 +57,36 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
     setSuggestions([])
     setShowSuggestions(false)
     setActiveIndex(-1)
+    setInlineError('')
     onSelectSuggestion(result)
   }, [onSelectSuggestion])
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     setShowSuggestions(false)
+    setInlineError('')
     if (selectedResult) {
       onSelectSuggestion(selectedResult)
-    } else {
-      onSearch(query)
+      return
+    }
+    if (!query.trim()) return
+    const found = await onSearch(query)
+    if (found === false) {
+      setInlineError('No matching spot found — try a nearby beach, town or mark name.')
     }
   }, [query, onSearch, onSelectSuggestion, selectedResult])
+
+  const handleLocate = useCallback(async () => {
+    if (locating) return
+    setInlineError('')
+    setLocating(true)
+    try {
+      await onLocate()
+    } catch {
+      setInlineError("Couldn't get your position — check location permissions and try again, or search by name.")
+    } finally {
+      setLocating(false)
+    }
+  }, [locating, onLocate])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!showSuggestions) {
@@ -120,7 +146,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
           value={query}
           onChange={e => handleInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Enter coastal location..."
+          placeholder="Search a coast, mark, beach or dive spot…"
           autoComplete="off"
         />
         {showSuggestions && (
@@ -150,9 +176,19 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
         )}
       </div>
       <div className={styles.buttonRow}>
-        <button className={styles.btnDive} onClick={handleSubmit} aria-label="Search for this location">DIVE ›</button>
-        <button className={styles.btnLocate} onClick={onLocate} aria-label="Use my current GPS location">⊕ USE MY LOCATION</button>
+        <button className={styles.btnDive} onClick={handleSubmit} aria-label="Check visibility for this location">Check visibility ›</button>
+        <button
+          className={styles.btnLocate}
+          onClick={handleLocate}
+          disabled={locating}
+          aria-label="Use my current GPS location"
+        >
+          {locating ? 'Locating…' : '⊕ Use my location'}
+        </button>
       </div>
+      {inlineError && (
+        <p className={styles.inlineError} role="alert">{inlineError}</p>
+      )}
     </div>
   )
 }
