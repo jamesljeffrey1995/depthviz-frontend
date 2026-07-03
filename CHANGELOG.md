@@ -1,3 +1,15 @@
+# [1.19.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.18.0...v1.19.0) (2026-07-03)
+
+
+### Bug Fixes
+
+* **ui:** address review — icon key typing, dv-pop utility, row focus ring ([5e44abd](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/5e44abd4abd96b0e37e08f69bc0e8b9dfeead348))
+
+
+### Features
+
+* **ui:** mobile UX redesign — design system, premium nav, home & places ([e72a80f](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/e72a80fbef2daf0497e7976274eec29a9ce20d0e))
+
 # [1.18.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.17.0...v1.18.0) (2026-07-03)
 
 
