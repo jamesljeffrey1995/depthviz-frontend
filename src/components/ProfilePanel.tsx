@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import { getMyProfile, updateProfile, getMyReports, getLeaderboard } from '../lib/api'
-import type { UserProfile, ReportRead, LeaderboardEntry } from '../types'
+import { getMyProfile, updateProfile, updateProfileDetails, getMyReports, getLeaderboard } from '../lib/api'
+import type { UserProfile, ProfileDiverDetails, ReportRead, LeaderboardEntry, ExperienceLevel } from '../types'
 import styles from './ProfilePanel.module.css'
 
 const AdminPanel = lazy(() => import('./AdminPanel').then(m => ({ default: m.AdminPanel })))
@@ -9,6 +9,26 @@ const AdminPanel = lazy(() => import('./AdminPanel').then(m => ({ default: m.Adm
 interface ProfilePanelProps {
   onClose?: () => void
   onNavigateFriends?: () => void
+}
+
+const EXPERIENCE_LABELS: Record<ExperienceLevel, string> = {
+  beginner: 'Beginner',
+  intermediate: 'Intermediate',
+  experienced: 'Experienced',
+}
+
+// The editable diver-detail fields, mirrored from the profile into local form
+// state so the competition registration form can pre-fill from them.
+function detailsFromProfile(p: UserProfile | null): ProfileDiverDetails {
+  return {
+    phone: p?.phone ?? '',
+    emergency_contact_name: p?.emergency_contact_name ?? '',
+    emergency_contact_phone: p?.emergency_contact_phone ?? '',
+    vehicle_reg: p?.vehicle_reg ?? '',
+    experience_level: p?.experience_level ?? null,
+    float_colour: p?.float_colour ?? '',
+    medical_notes: p?.medical_notes ?? '',
+  }
 }
 
 export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) {
@@ -19,13 +39,40 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
   const [editName, setEditName] = useState(false)
   const [nameInput, setNameInput] = useState('')
   const [tab, setTab] = useState<'mine' | 'board' | 'admin'>('mine')
+  const [detailsOpen, setDetailsOpen] = useState(false)
+  const [details, setDetails] = useState<ProfileDiverDetails>(detailsFromProfile(null))
+  const [savingDetails, setSavingDetails] = useState(false)
+  const [detailsSaved, setDetailsSaved] = useState(false)
 
   useEffect(() => {
     if (!user) return
-    getMyProfile().then(p => { setProfile(p); setNameInput(p.display_name ?? '') }).catch(() => {})
+    getMyProfile().then(p => {
+      setProfile(p)
+      setNameInput(p.display_name ?? '')
+      setDetails(detailsFromProfile(p))
+    }).catch(() => {})
     getMyReports().then(setReports).catch(() => {})
     getLeaderboard().then(setLeaderboard).catch(() => {})
   }, [user])
+
+  const setDetail = (patch: Partial<ProfileDiverDetails>) => {
+    setDetails(d => ({ ...d, ...patch }))
+    setDetailsSaved(false)
+  }
+
+  const saveDetails = async () => {
+    setSavingDetails(true)
+    try {
+      const updated = await updateProfileDetails(details)
+      setProfile(updated)
+      setDetails(detailsFromProfile(updated))
+      setDetailsSaved(true)
+    } catch {
+      // Leave the form as-is so the diver can retry; a failed save is transient.
+    } finally {
+      setSavingDetails(false)
+    }
+  }
 
   const saveName = async () => {
     const trimmed = nameInput.trim().slice(0, 50)
@@ -100,6 +147,73 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
           </div>
         </div>
       )}
+
+      {/* Diver details — saved once, reused to pre-fill competition sign-up. */}
+      <div className={styles.details}>
+        <button
+          className={styles.detailsHead}
+          onClick={() => setDetailsOpen(o => !o)}
+          aria-expanded={detailsOpen}
+        >
+          <span>Diver details</span>
+          <span aria-hidden="true">{detailsOpen ? '▾' : '▸'}</span>
+        </button>
+        {detailsOpen && (
+          <>
+            <p className={styles.detailsHint}>
+              Save these once and we'll pre-fill them for you when you register for a competition.
+            </p>
+            <div className={styles.detailsGrid}>
+              <label className={styles.detailField}>
+                <span>Phone</span>
+                <input className={styles.detailInput} type="tel" value={details.phone ?? ''}
+                  onChange={e => setDetail({ phone: e.target.value })} />
+              </label>
+              <label className={styles.detailField}>
+                <span>Experience</span>
+                <select className={styles.detailSelect} value={details.experience_level ?? ''}
+                  onChange={e => setDetail({ experience_level: (e.target.value || null) as ExperienceLevel | null })}>
+                  <option value="">Select…</option>
+                  {(Object.keys(EXPERIENCE_LABELS) as ExperienceLevel[]).map(k => (
+                    <option key={k} value={k}>{EXPERIENCE_LABELS[k]}</option>
+                  ))}
+                </select>
+              </label>
+              <label className={styles.detailField}>
+                <span>Float colour</span>
+                <input className={styles.detailInput} value={details.float_colour ?? ''}
+                  onChange={e => setDetail({ float_colour: e.target.value })} />
+              </label>
+              <label className={styles.detailField}>
+                <span>Vehicle reg</span>
+                <input className={styles.detailInput} value={details.vehicle_reg ?? ''}
+                  onChange={e => setDetail({ vehicle_reg: e.target.value })} />
+              </label>
+              <label className={styles.detailField}>
+                <span>Emergency contact name</span>
+                <input className={styles.detailInput} value={details.emergency_contact_name ?? ''}
+                  onChange={e => setDetail({ emergency_contact_name: e.target.value })} />
+              </label>
+              <label className={styles.detailField}>
+                <span>Emergency contact phone</span>
+                <input className={styles.detailInput} type="tel" value={details.emergency_contact_phone ?? ''}
+                  onChange={e => setDetail({ emergency_contact_phone: e.target.value })} />
+              </label>
+              <label className={styles.detailField}>
+                <span>Medical notes</span>
+                <textarea className={styles.detailTextarea} value={details.medical_notes ?? ''}
+                  onChange={e => setDetail({ medical_notes: e.target.value })} />
+              </label>
+            </div>
+            <div className={styles.detailsActions}>
+              <button className={styles.detailsSave} onClick={saveDetails} disabled={savingDetails}>
+                {savingDetails ? 'Saving…' : 'Save details'}
+              </button>
+              {detailsSaved && <span className={styles.detailsSaved} aria-live="polite">Saved ✓</span>}
+            </div>
+          </>
+        )}
+      </div>
 
       {/* Friends — moved here from the bottom navigation bar */}
       {onNavigateFriends && (

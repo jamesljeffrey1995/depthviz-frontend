@@ -3,13 +3,14 @@ import {
   listOpenCompetitions,
   listMyCompetitions,
   getMyRegistration,
+  getMyProfile,
   registerForCompetition,
   updateMyRegistration,
   withdrawRegistration,
 } from '../lib/api'
 import type {
   OpenCompetition, MyCompetition, MyRegistration, RegistrationInput,
-  ExperienceLevel, BuddyStatus,
+  ExperienceLevel, BuddyStatus, UserProfile,
 } from '../types'
 import { ApiError } from '../lib/api'
 import styles from './CompetitionRegister.module.css'
@@ -198,6 +199,32 @@ function emptyForm(): RegistrationInput {
   }
 }
 
+// Seed a fresh registration form from the diver's saved profile so they don't
+// retype details they've already stored. Full name falls back to the account's
+// display name; the waiver is always left unticked (it must be a fresh consent).
+function formFromProfile(profile: UserProfile | null): RegistrationInput {
+  const base = emptyForm()
+  if (!profile) return base
+  return {
+    ...base,
+    full_name: profile.display_name ?? '',
+    phone: profile.phone ?? '',
+    emergency_contact_name: profile.emergency_contact_name ?? '',
+    emergency_contact_phone: profile.emergency_contact_phone ?? '',
+    vehicle_reg: profile.vehicle_reg ?? '',
+    experience_level: profile.experience_level ?? null,
+    float_colour: profile.float_colour ?? '',
+    medical_notes: profile.medical_notes ?? '',
+  }
+}
+
+// Whether the form is still the blank baseline — i.e. the diver hasn't typed
+// anything yet. Used to decide if it's safe to re-seed from a late-arriving
+// profile without clobbering their input.
+function formIsPristine(form: RegistrationInput): boolean {
+  return JSON.stringify(form) === JSON.stringify(emptyForm())
+}
+
 function fmtDate(iso: string): string {
   const d = new Date(iso + 'T00:00:00')
   return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString(undefined, {
@@ -211,6 +238,7 @@ export function CompetitionRegister() {
   const [selected, setSelected] = useState<OpenCompetition | null>(null)
   const [registration, setRegistration] = useState<MyRegistration | null>(null)
   const [form, setForm] = useState<RegistrationInput>(emptyForm)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
   const [editingBuddy, setEditingBuddy] = useState('')
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
@@ -236,6 +264,12 @@ export function CompetitionRegister() {
 
   useEffect(() => { loadList() }, [loadList])
 
+  // Load the diver's saved profile once so the registration form can pre-fill
+  // from it. Best-effort — a missing profile just leaves the form blank.
+  useEffect(() => {
+    getMyProfile().then(setProfile).catch(() => {})
+  }, [])
+
   // While a registered event is live, refresh so the diver's own water status
   // (signed out / returned, set by the admin on the board) stays current.
   const hasLive = mine.some(m => m.is_live)
@@ -249,7 +283,7 @@ export function CompetitionRegister() {
     setSelected(comp)
     setError(null)
     setNotice(null)
-    setForm(emptyForm())
+    setForm(formFromProfile(profile))
     if (comp.already_registered) {
       try {
         const reg = await getMyRegistration(comp.id)
@@ -261,7 +295,16 @@ export function CompetitionRegister() {
     } else {
       setRegistration(null)
     }
-  }, [])
+  }, [profile])
+
+  // If the diver opened a competition before their profile finished loading
+  // (slow network), openComp seeded a blank form. Re-seed once the profile
+  // arrives — but only while the form is still untouched, so we never overwrite
+  // details they've already started typing.
+  useEffect(() => {
+    if (!profile || !selected || registration) return
+    setForm(f => (formIsPristine(f) ? formFromProfile(profile) : f))
+  }, [profile, selected, registration])
 
   const back = () => {
     setSelected(null)
