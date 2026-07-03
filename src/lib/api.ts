@@ -33,6 +33,7 @@ import type {
   SeabedClass,
   TidesResponse,
   UserProfile,
+  ProfileDiverDetails,
 } from '../types'
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '/api'
@@ -315,9 +316,18 @@ export async function getMyProfile(): Promise<UserProfile> {
 }
 
 export async function updateProfile(displayName: string) {
-  return apiFetch('/profile/me', {
+  return apiFetch<UserProfile>('/profile/me', {
     method: 'PATCH',
     body: JSON.stringify({ display_name: displayName }),
+  })
+}
+
+// Save the diver-detail fields reused to pre-fill competition registration.
+// Only the fields provided are changed; a field sent as '' clears it.
+export async function updateProfileDetails(details: ProfileDiverDetails) {
+  return apiFetch<UserProfile>('/profile/me', {
+    method: 'PATCH',
+    body: JSON.stringify(details),
   })
 }
 

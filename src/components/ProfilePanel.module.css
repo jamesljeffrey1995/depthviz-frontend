@@ -68,6 +68,39 @@
 .friendsBtn:hover { background: rgba(0,201,255,0.12); }
 .friendsBtn svg { width: 15px; height: 15px; flex-shrink: 0; }
 
+/* Diver details — saved once, reused to pre-fill competition registration. */
+.details {
+  background: rgba(2,13,20,0.4); border: 1px solid rgba(0,201,255,0.08);
+  padding: 14px; margin-bottom: 14px;
+}
+.detailsHead {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  background: none; border: none; cursor: pointer; padding: 0;
+  color: var(--accent); font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.2em; text-transform: uppercase;
+}
+.detailsHint { font-size: 10px; opacity: .45; margin: 8px 0 12px; line-height: 1.5; }
+.detailsGrid { display: flex; flex-direction: column; gap: 10px; }
+.detailField { display: flex; flex-direction: column; gap: 4px; }
+.detailField > span {
+  font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; opacity: .55;
+}
+.detailInput, .detailSelect, .detailTextarea {
+  background: rgba(10,61,92,0.3); border: 1px solid rgba(0,201,255,0.2);
+  color: var(--text-bright); font-family: var(--font-mono); font-size: 12px;
+  padding: 7px 9px; outline: none; width: 100%;
+}
+.detailTextarea { resize: vertical; min-height: 54px; }
+.detailInput:focus, .detailSelect:focus, .detailTextarea:focus { border-color: rgba(0,201,255,0.45); }
+.detailsActions { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+.detailsSave {
+  background: rgba(0,201,255,0.1); border: 1px solid rgba(0,201,255,0.3);
+  color: var(--accent); font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.15em; text-transform: uppercase; padding: 8px 16px; cursor: pointer;
+}
+.detailsSave:disabled { opacity: .5; cursor: default; }
+.detailsSaved { font-size: 10px; color: var(--excellent); letter-spacing: 0.1em; }
+
 .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
 .tab {
   flex: 1; min-width: 0; background: rgba(4,30,46,0.6); border: 1px solid rgba(0,201,255,0.08);

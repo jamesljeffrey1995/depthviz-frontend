@@ -217,12 +217,32 @@ export interface UserProfile {
   supabase_uid: string
   email: string
   display_name: string | null
+  // Saved diver details, reused to pre-fill the competition registration form.
+  phone: string | null
+  emergency_contact_name: string | null
+  emergency_contact_phone: string | null
+  vehicle_reg: string | null
+  experience_level: ExperienceLevel | null
+  float_colour: string | null
+  medical_notes: string | null
   report_count: number
   mean_accuracy: number | null
   trusted: boolean
   // Server-verified admin flag from /profile/me. The backend re-checks admin
   // identity on every /admin/* route, so this only controls UI visibility.
   is_admin: boolean
+}
+
+// The diver-detail fields on a profile that can be edited and are reused to
+// pre-fill competition registration. Keyed subset of UserProfile.
+export interface ProfileDiverDetails {
+  phone?: string | null
+  emergency_contact_name?: string | null
+  emergency_contact_phone?: string | null
+  vehicle_reg?: string | null
+  experience_level?: ExperienceLevel | null
+  float_colour?: string | null
+  medical_notes?: string | null
 }
 
 export interface LeaderboardEntry {
