@@ -23,6 +23,7 @@ import type {
   CompetitionOverview, RecommendedAction,
 } from '../types'
 import { CompetitionLocationPicker, type PickedPoint } from './CompetitionLocationPicker'
+import { isFreeEntry } from '../lib/entryFee'
 import styles from './CompetitionAdmin.module.css'
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -345,7 +346,7 @@ export function CompetitionAdmin({ isAdmin }: Props) {
 
           {tab === 'overview' && <OverviewTab comp={selected} onNavigate={setTab} onChanged={load} />}
           {tab === 'board' && <BoardTab cid={selected.id} onOpenIncident={() => setTab('incidents')} />}
-          {tab === 'competitors' && <CompetitorsTab cid={selected.id} />}
+          {tab === 'competitors' && <CompetitorsTab cid={selected.id} freeEntry={isFreeEntry(selected.entry_fee)} />}
           {tab === 'teams' && <TeamsTab cid={selected.id} />}
           {tab === 'weighin' && <WeighInTab comp={selected} />}
           {tab === 'results' && <ResultsTab comp={selected} onChanged={load} />}
@@ -399,6 +400,9 @@ function OverviewTab({
 
   const c = data.counts
   const rec = data.recommended_action
+  // A free (£0) event has no payments to chase, so the paid/unpaid card and
+  // drill-down list are omitted from the command centre.
+  const freeEntry = isFreeEntry(comp.entry_fee)
 
   return (
     <div className={styles.overviewWrap}>
@@ -433,13 +437,15 @@ function OverviewTab({
           detail="Registered but not on site"
           onOpen={() => onNavigate('board')}
         />
-        <OverviewCard
-          tone={data.unpaid > 0 ? 'warning' : 'neutral'}
-          label="Unpaid"
-          value={data.unpaid}
-          detail="Payment still outstanding"
-          onOpen={() => onNavigate('competitors')}
-        />
+        {!freeEntry && (
+          <OverviewCard
+            tone={data.unpaid > 0 ? 'warning' : 'neutral'}
+            label="Unpaid"
+            value={data.unpaid}
+            detail="Payment still outstanding"
+            onOpen={() => onNavigate('competitors')}
+          />
+        )}
         <OverviewCard
           tone={data.missing_waiver > 0 ? 'warning' : 'neutral'}
           label="Missing waivers"
@@ -465,7 +471,7 @@ function OverviewTab({
 
       <OverviewSampleList title="Overdue divers" items={data.samples.overdue} tone="critical" />
       <OverviewSampleList title="Solo divers without a buddy" items={data.samples.no_buddy} tone="warning" />
-      <OverviewSampleList title="Unpaid" items={data.samples.unpaid} tone="warning" />
+      {!freeEntry && <OverviewSampleList title="Unpaid" items={data.samples.unpaid} tone="warning" />}
       <OverviewSampleList title="Missing waivers" items={data.samples.missing_waiver} tone="warning" />
 
       <div className={styles.overviewFoot}>
@@ -1512,7 +1518,12 @@ const COMPETITOR_FILTERS: { key: CompetitorFilterKey; label: string }[] = [
   { key: 'withdrawn', label: 'Withdrawn' },
 ]
 
-function CompetitorsTab({ cid }: { cid: number }) {
+function CompetitorsTab({ cid, freeEntry }: { cid: number; freeEntry: boolean }) {
+  // A free (£0) event has nothing to collect, so the paid/unpaid filter and
+  // per-competitor toggle are hidden entirely.
+  const competitorFilters = freeEntry
+    ? COMPETITOR_FILTERS.filter(f => f.key !== 'unpaid')
+    : COMPETITOR_FILTERS
   const [items, setItems] = useState<Competitor[]>([])
   const [teams, setTeams] = useState<CompetitionTeam[]>([])
   const [error, setError] = useState('')
@@ -1596,7 +1607,7 @@ function CompetitorsTab({ cid }: { cid: number }) {
       </div>
 
       <div className={styles.filterRow} role="group" aria-label="Filter competitors">
-        {COMPETITOR_FILTERS.map(f => (
+        {competitorFilters.map(f => (
           <button key={f.key} aria-pressed={filters.has(f.key)}
                   className={filters.has(f.key) ? styles.chipActive : styles.chip}
                   onClick={() => toggleFilter(f.key)}>
@@ -1631,9 +1642,11 @@ function CompetitorsTab({ cid }: { cid: number }) {
                 {c.emergency_contact_phone ? ` ${c.emergency_contact_phone}` : ''}
               </div>
               <div className={styles.tagRow}>
-                <button className={c.paid ? styles.tagOn : styles.tagOff} onClick={() => togglePaid(c)}>
-                  {c.paid ? 'Paid' : 'Unpaid'}
-                </button>
+                {!freeEntry && (
+                  <button className={c.paid ? styles.tagOn : styles.tagOff} onClick={() => togglePaid(c)}>
+                    {c.paid ? 'Paid' : 'Unpaid'}
+                  </button>
+                )}
                 <button className={c.waiver_accepted ? styles.tagOn : styles.tagOff} onClick={() => toggleWaiver(c)}>
                   {c.waiver_accepted ? 'Waiver ✓' : 'No waiver'}
                 </button>
@@ -3335,6 +3348,8 @@ function RegisterSheet({
   comp, competitors, teams,
 }: { comp: Competition; competitors: Competitor[]; teams: CompetitionTeam[] }) {
   const teamName = (id: number | null) => teams.find(t => t.id === id)?.name ?? '—'
+  // Free (£0) events have no payment to record, so drop the Paid column.
+  const showPaid = !isFreeEntry(comp.entry_fee)
   return (
     <>
       <SheetHeader comp={comp} subtitle="Competitor Register" />
@@ -3350,7 +3365,7 @@ function RegisterSheet({
               <th>Name</th>
               <th>Team / buddy</th>
               <th>Float</th>
-              <th>Paid</th>
+              {showPaid && <th>Paid</th>}
               <th>Waiver</th>
               <th>Sign in</th>
               <th>Sign out</th>
@@ -3363,7 +3378,7 @@ function RegisterSheet({
                 <td><strong>{c.full_name}</strong></td>
                 <td>{teamName(c.team_id)}</td>
                 <td>{c.float_colour ?? '—'}</td>
-                <td>{c.paid ? '✓' : '☐'}</td>
+                {showPaid && <td>{c.paid ? '✓' : '☐'}</td>}
                 <td>{c.waiver_accepted ? '✓' : '☐'}</td>
                 <td>_________</td>
                 <td>_________</td>
