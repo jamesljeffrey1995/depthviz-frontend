@@ -1,3 +1,15 @@
+# [1.17.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.16.0...v1.17.0) (2026-07-03)
+
+
+### Bug Fixes
+
+* **competition:** re-seed registration form when profile loads late; tel inputs ([cc7cf96](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/cc7cf96514f697952a79d3bea3a528f80733a37d))
+
+
+### Features
+
+* **competition:** pre-fill registration from saved diver profile ([eff08b0](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/eff08b0b527b24d64423551eb6767f163341bca7))
+
 # [1.16.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.15.0...v1.16.0) (2026-07-03)
 
 
