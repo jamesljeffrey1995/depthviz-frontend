@@ -7,7 +7,6 @@
 
 .list {
   display: flex;
-  justify-content: safe center;
   gap: 4px;
   list-style: none;
   margin: 0;
@@ -25,6 +24,18 @@
 
 .list li {
   flex-shrink: 0;
+}
+
+/* Centre the row when it fits without clipping it when it overflows —
+   auto margins collapse to 0 inside a scroll container, unlike
+   `justify-content: center`, and work in every browser (no reliance on
+   the `safe` keyword). */
+.list li:first-child {
+  margin-inline-start: auto;
+}
+
+.list li:last-child {
+  margin-inline-end: auto;
 }
 
 .link {

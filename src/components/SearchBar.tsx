@@ -69,7 +69,13 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
       return
     }
     if (!query.trim()) return
-    const found = await onSearch(query)
+    let found: boolean | void
+    try {
+      found = await onSearch(query)
+    } catch {
+      setInlineError("Search didn't go through — check your connection and try again.")
+      return
+    }
     if (found === false) {
       setInlineError('No matching spot found — try a nearby beach, town or mark name.')
     }
