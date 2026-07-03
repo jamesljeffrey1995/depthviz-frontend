@@ -1,3 +1,15 @@
+# [1.16.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.15.0...v1.16.0) (2026-07-03)
+
+
+### Bug Fixes
+
+* **competition:** harden per-gram wizard state on load, retry and refresh ([ab7b5f3](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/ab7b5f3dab5a00685b856b9c41bd582bfd9a1e37))
+
+
+### Features
+
+* **competition:** edit per-gram bonuses in the setup wizard ([6c27e02](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/6c27e02cb869423f250ec046b612db54360ba851))
+
 # [1.15.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.14.1...v1.15.0) (2026-07-02)
 
 
