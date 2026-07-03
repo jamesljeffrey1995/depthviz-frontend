@@ -107,8 +107,9 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
       a.click()
       a.remove()
       URL.revokeObjectURL(url)
-    } catch {
-      setDataError('Could not export your data — please try again.')
+    } catch (e) {
+      const detail = e instanceof Error && e.message ? ` (${e.message})` : ''
+      setDataError(`Could not export your data — please try again${detail}.`)
     } finally {
       setExporting(false)
     }
@@ -123,8 +124,9 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
       // Account and login are gone; sign out and close the panel.
       signOut()
       onClose?.()
-    } catch {
-      setDataError('Could not delete your account — please try again or contact us.')
+    } catch (e) {
+      const detail = e instanceof Error && e.message ? ` (${e.message})` : ''
+      setDataError(`Could not delete your account — please try again or contact us${detail}.`)
       setDeleting(false)
     }
   }
