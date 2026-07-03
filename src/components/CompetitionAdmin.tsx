@@ -680,6 +680,24 @@ function CompetitionWizard({
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState('')
 
+  // Per-species per-gram bonuses live on the scoring rule, a separate entity
+  // from the competition record. Editing now lives with the species rows in
+  // this wizard, so load the existing rule (edit flow only — a brand-new
+  // competition has no rule until it's created) and persist any changes on save.
+  const [rule, setRule] = useState<ScoringRule | null>(null)
+  const [perGramDraft, setPerGramDraft] = useState<Record<string, number>>({})
+  // Once the competition record is written we must not write it again on a
+  // Save retry (a create flow would otherwise duplicate the competition). Hold
+  // the saved record so a retry only re-attempts the per-gram scoring-rule save.
+  const savedCompRef = useRef<Competition | null>(null)
+
+  useEffect(() => {
+    if (!initial) return
+    getScoringRule(initial.id)
+      .then(r => { setRule(r); setPerGramDraft({ ...(r.species_bonus_per_gram ?? {}) }) })
+      .catch(() => { setRule(null); setPerGramDraft({}) })
+  }, [initial])
+
   useEffect(() => {
     if (!isNew) return
     try { localStorage.setItem(WIZARD_DRAFT_KEY, JSON.stringify(draft)) } catch {}
@@ -734,9 +752,26 @@ function CompetitionWizard({
         .filter(s => s.time || s.title),
     }
     try {
-      const saved = initial
+      const saved = savedCompRef.current ?? (initial
         ? await updateCompetition(initial.id, payload)
-        : await createCompetition(payload)
+        : await createCompetition(payload))
+      savedCompRef.current = saved
+      // Commit per-species per-gram bonuses to the scoring rule. On the create
+      // flow there was no rule to load, so only push when the organiser set
+      // something; on edit, push whenever it drifted from the loaded rule.
+      const currentPerGram = rule?.species_bonus_per_gram ?? {}
+      if (JSON.stringify(currentPerGram) !== JSON.stringify(perGramDraft)) {
+        try {
+          const nextRule = await updateScoringRule(saved.id, { species_bonus_per_gram: perGramDraft })
+          setRule(nextRule)
+        } catch {
+          // The competition itself saved; keep the wizard open so the organiser
+          // can retry the per-gram save rather than silently losing it.
+          setErr('Competition saved, but the per-gram bonuses could not be saved — try Save again.')
+          setSaving(false)
+          return
+        }
+      }
       clearDraftStorage()
       onSaved(saved)
     } catch (e) {
@@ -781,7 +816,13 @@ function CompetitionWizard({
       {step === 'basics' && <WizardStepBasics draft={draft} set={set} />}
       {step === 'timings' && <WizardStepTimings draft={draft} set={set} />}
       {step === 'rules' && <WizardStepRules draft={draft} set={set} />}
-      {step === 'species' && <WizardStepSpecies draft={draft} set={set} />}
+      {step === 'species' && (
+        <WizardStepSpecies
+          draft={draft} set={set}
+          speciesBonusPerGram={perGramDraft}
+          onSpeciesBonusPerGramChange={setPerGramDraft}
+        />
+      )}
       {step === 'safety' && <WizardStepSafety draft={draft} set={set} />}
       {step === 'registration' && <WizardStepRegistration draft={draft} set={set} setDraft={setDraft} />}
       {step === 'review' && <WizardStepReview draft={draft} />}
@@ -922,17 +963,25 @@ function WizardStepRules({ draft, set }: WizardStepProps) {
   )
 }
 
-function WizardStepSpecies({ draft, set }: WizardStepProps) {
+function WizardStepSpecies({
+  draft, set, speciesBonusPerGram, onSpeciesBonusPerGramChange,
+}: WizardStepProps & {
+  speciesBonusPerGram: Record<string, number>
+  onSpeciesBonusPerGramChange: (v: Record<string, number>) => void
+}) {
   return (
     <div>
       <p className={styles.muted}>
         Set a legal minimum <strong>length</strong> for each target species (spearfishing
         rules are almost always length-based). Undersize catches can be
-        automatically disqualified at weigh-in.
+        automatically disqualified at weigh-in. Set <strong>extra points per gram</strong>
+        {' '}here if a species should score bonus weight points.
       </p>
       <TargetSpeciesEditor
         value={draft.target_species ?? []}
         onChange={v => set('target_species', v)}
+        speciesBonusPerGram={speciesBonusPerGram}
+        onSpeciesBonusPerGramChange={onSpeciesBonusPerGramChange}
       />
     </div>
   )
@@ -2909,7 +2958,6 @@ function TemplateTab({ comp, onChanged }: { comp: Competition; onChanged: () => 
 
   const [editingSpecies, setEditingSpecies] = useState(false)
   const [speciesDraft, setSpeciesDraft] = useState<TargetSpecies[]>(comp.target_species ?? [])
-  const [perGramDraft, setPerGramDraft] = useState<Record<string, number>>({})
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState('')
 
@@ -2922,26 +2970,18 @@ function TemplateTab({ comp, onChanged }: { comp: Competition; onChanged: () => 
   }, [comp.id])
 
   useEffect(() => { setSpeciesDraft(comp.target_species ?? []) }, [comp.target_species])
-  useEffect(() => { setPerGramDraft({ ...(rule?.species_bonus_per_gram ?? {}) }) }, [rule])
 
   function startEditingSpecies() {
     setSpeciesDraft(comp.target_species ?? [])
-    setPerGramDraft({ ...(rule?.species_bonus_per_gram ?? {}) })
     setEditingSpecies(true)
   }
 
   async function saveSpecies() {
     setSaving(true); setErr('')
     try {
+      // Length-based rules only — per-gram bonuses are edited in the setup
+      // wizard's Target species step, not here.
       await updateCompetition(comp.id, { target_species: speciesDraft })
-      // Persist per-species per-gram bonuses if they've drifted from the rule
-      // — the editor now lives with the species rows, so a "Save species" also
-      // commits any per-gram tweaks the organiser made in those rows.
-      const current = rule?.species_bonus_per_gram ?? {}
-      if (rule && JSON.stringify(current) !== JSON.stringify(perGramDraft)) {
-        const nextRule = await updateScoringRule(comp.id, { species_bonus_per_gram: perGramDraft })
-        setRule(nextRule)
-      }
       setEditingSpecies(false)
       onChanged()
     } catch (e) {
@@ -3008,11 +3048,12 @@ function TemplateTab({ comp, onChanged }: { comp: Competition; onChanged: () => 
           </div>
           {editingSpecies ? (
             <>
+              {/* Per-gram bonuses are edited in the setup wizard (Target species
+                  step); here we only edit the length-based rules. The table
+                  below still shows the per-gram values read-only. */}
               <TargetSpeciesEditor
                 value={speciesDraft}
                 onChange={setSpeciesDraft}
-                speciesBonusPerGram={rule ? perGramDraft : undefined}
-                onSpeciesBonusPerGramChange={rule ? setPerGramDraft : undefined}
               />
               <div className={styles.formActions}>
                 <button className={styles.btnGhost} onClick={() => setEditingSpecies(false)} disabled={saving}>Cancel</button>
