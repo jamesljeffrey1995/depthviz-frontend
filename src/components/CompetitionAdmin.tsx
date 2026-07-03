@@ -93,6 +93,11 @@ const boardCache = new Map<number, WaterStatusBoard>()
 // route mid-flow no longer discards the partly-filled form. We persist an
 // opaque JSON blob and clear it when the wizard is submitted or cancelled.
 const WIZARD_DRAFT_KEY = 'dv_admin_new_comp_draft'
+// Per-species per-gram bonuses live on the scoring rule (a separate entity), so
+// they can't ride inside the CompetitionInput draft blob — persist them under
+// their own key so the create flow survives a route change/refresh like the
+// rest of the wizard fields.
+const WIZARD_PERGRAM_KEY = 'dv_admin_new_comp_pergram'
 
 const STATUS_LABELS: Record<CompetitorStatus, string> = {
   not_arrived: 'Not arrived',
@@ -608,6 +613,21 @@ function readWizardDraft(): CompetitionInput {
   } catch { return { ...EMPTY_COMP } }
 }
 
+function readWizardPerGram(): Record<string, number> {
+  try {
+    const raw = localStorage.getItem(WIZARD_PERGRAM_KEY)
+    if (!raw) return {}
+    const parsed = JSON.parse(raw)
+    if (!parsed || typeof parsed !== 'object') return {}
+    // Keep only positive numeric bonuses — matches what the editor writes.
+    const out: Record<string, number> = {}
+    for (const [k, v] of Object.entries(parsed)) {
+      if (typeof v === 'number' && Number.isFinite(v) && v > 0) out[k] = v
+    }
+    return out
+  } catch { return {} }
+}
+
 type WizardStep =
   | 'basics' | 'timings' | 'rules' | 'species' | 'safety' | 'registration' | 'review'
 
@@ -685,27 +705,53 @@ function CompetitionWizard({
   // this wizard, so load the existing rule (edit flow only — a brand-new
   // competition has no rule until it's created) and persist any changes on save.
   const [rule, setRule] = useState<ScoringRule | null>(null)
-  const [perGramDraft, setPerGramDraft] = useState<Record<string, number>>({})
-  // Once the competition record is written we must not write it again on a
+  const [perGramDraft, setPerGramDraft] = useState<Record<string, number>>(
+    () => (initial ? {} : readWizardPerGram()),
+  )
+  // Tracks whether the organiser has touched per-gram values yet, so a slow
+  // scoring-rule fetch on the edit flow can't clobber in-progress edits.
+  const perGramEditedRef = useRef(false)
+  // Once the competition record is written we must not create it again on a
   // Save retry (a create flow would otherwise duplicate the competition). Hold
-  // the saved record so a retry only re-attempts the per-gram scoring-rule save.
+  // the saved record and re-apply edits via update on retry.
   const savedCompRef = useRef<Competition | null>(null)
+
+  const editPerGram = useCallback((v: Record<string, number>) => {
+    perGramEditedRef.current = true
+    setPerGramDraft(v)
+  }, [])
 
   useEffect(() => {
     if (!initial) return
+    let cancelled = false
     getScoringRule(initial.id)
-      .then(r => { setRule(r); setPerGramDraft({ ...(r.species_bonus_per_gram ?? {}) }) })
-      .catch(() => { setRule(null); setPerGramDraft({}) })
-  }, [initial])
+      .then(r => {
+        if (cancelled) return
+        setRule(r)
+        // Seed the editable draft from the rule only if the organiser hasn't
+        // already started editing — never overwrite live input.
+        if (!perGramEditedRef.current) setPerGramDraft({ ...(r.species_bonus_per_gram ?? {}) })
+      })
+      // Leave perGramDraft untouched on failure so a transient error doesn't
+      // wipe the organiser's input.
+      .catch(() => { if (!cancelled) setRule(null) })
+    return () => { cancelled = true }
+  }, [initial?.id])
 
   useEffect(() => {
     if (!isNew) return
     try { localStorage.setItem(WIZARD_DRAFT_KEY, JSON.stringify(draft)) } catch {}
   }, [isNew, draft])
 
+  useEffect(() => {
+    if (!isNew) return
+    try { localStorage.setItem(WIZARD_PERGRAM_KEY, JSON.stringify(perGramDraft)) } catch {}
+  }, [isNew, perGramDraft])
+
   function clearDraftStorage() {
     if (!isNew) return
     try { localStorage.removeItem(WIZARD_DRAFT_KEY) } catch {}
+    try { localStorage.removeItem(WIZARD_PERGRAM_KEY) } catch {}
   }
 
   function set<K extends keyof CompetitionInput>(key: K, value: CompetitionInput[K]) {
@@ -752,9 +798,14 @@ function CompetitionWizard({
         .filter(s => s.time || s.title),
     }
     try {
-      const saved = savedCompRef.current ?? (initial
-        ? await updateCompetition(initial.id, payload)
-        : await createCompetition(payload))
+      // On a Save retry the competition already exists — re-apply edits via
+      // update (never a second create) so later field changes still persist
+      // while avoiding a duplicate competition.
+      const saved = savedCompRef.current
+        ? await updateCompetition(savedCompRef.current.id, payload)
+        : (initial
+          ? await updateCompetition(initial.id, payload)
+          : await createCompetition(payload))
       savedCompRef.current = saved
       // Commit per-species per-gram bonuses to the scoring rule. On the create
       // flow there was no rule to load, so only push when the organiser set
@@ -820,7 +871,7 @@ function CompetitionWizard({
         <WizardStepSpecies
           draft={draft} set={set}
           speciesBonusPerGram={perGramDraft}
-          onSpeciesBonusPerGramChange={setPerGramDraft}
+          onSpeciesBonusPerGramChange={editPerGram}
         />
       )}
       {step === 'safety' && <WizardStepSafety draft={draft} set={set} />}
