@@ -26,7 +26,11 @@ interface ForumProps {
 }
 
 // ── Forum index: list of categories ────────────────────────────────────────
-export function ForumIndex() {
+interface ForumIndexProps {
+  user?: User | null
+}
+
+export function ForumIndex({ user }: ForumIndexProps) {
   const navigate = useNavigate()
   const [cats, setCats] = useState<ForumCategory[]>([])
   const [loading, setLoading] = useState(true)
@@ -39,6 +43,8 @@ export function ForumIndex() {
       .finally(() => setLoading(false))
   }, [])
 
+  const noThreadsAnywhere = !loading && cats.length > 0 && cats.every(c => c.thread_count === 0)
+
   return (
     <div className={styles.container}>
       <h1 className={styles.pageTitle}>Discussions</h1>
@@ -47,21 +53,37 @@ export function ForumIndex() {
       </p>
       {error && <p className={styles.error} role="alert">{error}</p>}
       {loading ? (
-        <p className={styles.muted}>Loading…</p>
+        <p className={styles.muted} role="status">Loading…</p>
       ) : (
-        <ul className={styles.catList}>
-          {cats.map(c => (
-            <li key={c.id}>
-              <button className={styles.catItem} onClick={() => navigate(`/forum/${c.slug}`)}>
-                <div className={styles.catMain}>
-                  <span className={styles.catName}>{c.name}</span>
-                  {c.description && <span className={styles.catDesc}>{c.description}</span>}
-                </div>
-                <span className={styles.catCount}>{c.thread_count} {c.thread_count === 1 ? 'thread' : 'threads'}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className={styles.catList}>
+            {cats.map(c => (
+              <li key={c.id}>
+                <button className={styles.catItem} onClick={() => navigate(`/forum/${c.slug}`)}>
+                  <span className={styles.catGlyph} aria-hidden="true">{c.name.charAt(0)}</span>
+                  <div className={styles.catMain}>
+                    <span className={styles.catName}>{c.name}</span>
+                    {c.description && <span className={styles.catDesc}>{c.description}</span>}
+                    <span className={styles.catCount}>
+                      {c.thread_count === 0
+                        ? 'No threads yet — be the first to post'
+                        : `${c.thread_count} ${c.thread_count === 1 ? 'thread' : 'threads'}`}
+                    </span>
+                  </div>
+                  <span className={styles.catCta} aria-hidden="true">
+                    {c.thread_count === 0 ? 'Start thread →' : 'View →'}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+          {noThreadsAnywhere && (
+            <p className={styles.startHint}>
+              No threads yet — start the first local discussion.
+              {!user && ' Sign in to start a thread.'}
+            </p>
+          )}
+        </>
       )}
     </div>
   )
@@ -144,9 +166,19 @@ export function ForumCategoryPage({ user, onShowAuth }: ForumProps) {
       )}
 
       {loading ? (
-        <p className={styles.muted}>Loading…</p>
-      ) : view && view.threads.length === 0 ? (
-        <p className={styles.muted}>No threads yet — start the first one.</p>
+        <p className={styles.muted} role="status">Loading…</p>
+      ) : view && view.threads.length === 0 && !composerOpen ? (
+        <div className={styles.emptyBox}>
+          <p className={styles.emptyTitle}>No threads yet — start the first local discussion.</p>
+          <p className={styles.muted}>
+            {user
+              ? 'Ask a question, share a report, or post what you found on your last dive.'
+              : 'Sign in to start a thread.'}
+          </p>
+          <button className={styles.primaryBtn} onClick={openComposer}>
+            {user ? '+ Start a thread' : 'Sign in to start a thread'}
+          </button>
+        </div>
       ) : (
         <ul className={styles.threadList}>
           {view?.threads.map(t => (

@@ -254,33 +254,34 @@ export default function App() {
     return results.slice(0, 8)
   }
 
+  // Errors propagate to the SearchBar, which shows a friendly inline message
+  // (geolocation denied/unavailable) instead of a silently dead button.
   const handleLocate = async () => {
-    try {
-      const coords = await getLocation()
-      setCurrentLat(coords.latitude)
-      setCurrentLon(coords.longitude)
-      const name = `${coords.latitude.toFixed(2)}N, ${Math.abs(coords.longitude).toFixed(2)}${coords.longitude >= 0 ? 'E' : 'W'}`
-      setCurrentName(name)
-      const matched = findLocationByCoords(coords.latitude, coords.longitude, locations)
-      setSelectedLocationId(matched?.id ?? null)
-      navigate('/forecast')
-      searchByCoords(coords.latitude, coords.longitude, name, matched?.id, units)
-    } catch (e) { console.error(e) }
+    const coords = await getLocation()
+    setCurrentLat(coords.latitude)
+    setCurrentLon(coords.longitude)
+    const name = `${coords.latitude.toFixed(2)}N, ${Math.abs(coords.longitude).toFixed(2)}${coords.longitude >= 0 ? 'E' : 'W'}`
+    setCurrentName(name)
+    const matched = findLocationByCoords(coords.latitude, coords.longitude, locations)
+    setSelectedLocationId(matched?.id ?? null)
+    navigate('/forecast')
+    searchByCoords(coords.latitude, coords.longitude, name, matched?.id, units)
   }
 
-  const handleSearch = async (query: string) => {
+  /** Returns false when nothing matched, so the SearchBar can say so inline. */
+  const handleSearch = (query: string): boolean => {
     const results = getLocalSuggestions(query)
-    if (results.length) {
-      const loc = results[0]
-      setCurrentLat(loc.latitude)
-      setCurrentLon(loc.longitude)
-      const name = formatLocationName(loc)
-      setCurrentName(name)
-      const matched = findLocationByCoords(loc.latitude, loc.longitude, locations)
-      setSelectedLocationId(matched?.id ?? null)
-      navigate('/forecast')
-      searchByCoords(loc.latitude, loc.longitude, name, matched?.id, units)
-    }
+    if (!results.length) return false
+    const loc = results[0]
+    setCurrentLat(loc.latitude)
+    setCurrentLon(loc.longitude)
+    const name = formatLocationName(loc)
+    setCurrentName(name)
+    const matched = findLocationByCoords(loc.latitude, loc.longitude, locations)
+    setSelectedLocationId(matched?.id ?? null)
+    navigate('/forecast')
+    searchByCoords(loc.latitude, loc.longitude, name, matched?.id, units)
+    return true
   }
 
   const handleSaveLocation = async (isPrivate = false) => {
@@ -403,23 +404,29 @@ export default function App() {
         </div>
       )}
 
-      <div className={styles.searchWrap}>
-      <SearchBar
-        onSearch={handleSearch}
-        onLocate={handleLocate}
-        getSuggestions={async (q) => getLocalSuggestions(q)}
-        onSelectSuggestion={(r) => {
-          const name = formatLocationName(r)
-          setCurrentLat(r.latitude)
-          setCurrentLon(r.longitude)
-          setCurrentName(name)
-          const matched = findLocationByCoords(r.latitude, r.longitude, locations)
-          setSelectedLocationId(matched?.id ?? null)
-          navigate('/forecast')
-          searchByCoords(r.latitude, r.longitude, name, matched?.id, units)
-        }}
-      />
-      </div>
+      {/* The spot search is the forecast entry point, so it lives on the home
+          page and the forecast/map route group. Content pages (news, forum,
+          weight, training…) skip it — repeating the form on every page made
+          the chrome feel heavier than the content. */}
+      {(currentPath === '/' || MAP_GROUP_ROUTES.includes(currentPath) || FORECAST_ROUTES.includes(currentPath)) && (
+        <div className={styles.searchWrap}>
+        <SearchBar
+          onSearch={handleSearch}
+          onLocate={handleLocate}
+          getSuggestions={async (q) => getLocalSuggestions(q)}
+          onSelectSuggestion={(r) => {
+            const name = formatLocationName(r)
+            setCurrentLat(r.latitude)
+            setCurrentLon(r.longitude)
+            setCurrentName(name)
+            const matched = findLocationByCoords(r.latitude, r.longitude, locations)
+            setSelectedLocationId(matched?.id ?? null)
+            navigate('/forecast')
+            searchByCoords(r.latitude, r.longitude, name, matched?.id, units)
+          }}
+        />
+        </div>
+      )}
 
       {error && <div className={styles.error} role="alert">{error}</div>}
 
@@ -610,7 +617,7 @@ export default function App() {
               route and a thread link never resolves as a category slug. */}
           <Route path="/forum" element={
             <Suspense fallback={null}>
-              <ForumIndex />
+              <ForumIndex user={user} />
             </Suspense>
           } />
           <Route path="/forum/thread/:id" element={
@@ -629,9 +636,27 @@ export default function App() {
               pick a spot; otherwise it renders the full map view. */}
           <Route path="/map" element={
             splitView ? (
-              <div className={styles.empty}>
-                <div className={styles.emptyIcon} aria-hidden="true">&#128205;</div>
-                <div className={styles.emptyText}>Choose a spot on the map<br />to see its visibility forecast</div>
+              <div className={styles.placeholderPanel}>
+                <h2 className={styles.placeholderTitle}>Pick a spot to see visibility</h2>
+                <p className={styles.placeholderSub}>
+                  Choose a marker on the map, search a coast, or use your location —
+                  the full 7-day forecast for that spot appears here.
+                </p>
+                <ul className={styles.placeholderList} aria-label="What the forecast includes">
+                  <li>Visibility</li>
+                  <li>Swell</li>
+                  <li>Wind</li>
+                  <li>Tides</li>
+                  <li>Confidence</li>
+                  <li>Recent reports</li>
+                </ul>
+                <p className={styles.placeholderHint}>
+                  Each forecast is AI-calibrated against dive reports from the community,
+                  so spots with recent reports carry higher confidence.
+                </p>
+                <p className={styles.placeholderSafety}>
+                  Not a substitute for local knowledge. Always dive with a buddy.
+                </p>
               </div>
             ) : mapView
           } />

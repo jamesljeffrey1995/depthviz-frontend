@@ -14,27 +14,43 @@
   margin-bottom: var(--space-md);
 }
 
-/* Service-worker update + offline-ready toasts, pinned above the bottom nav. */
+/* Service-worker update + offline-ready toasts.
+   Mobile: compact, centred just above the bottom tab bar so it never covers
+   forms, calculator results or map controls mid-screen.
+   Desktop (no bottom bar): docked bottom-right, out of the content column. */
 .updateToast,
 .readyToast {
   position: fixed;
   left: 50%;
-  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(64px + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
   z-index: 1000;
   display: flex;
   align-items: center;
-  gap: var(--space-md);
-  max-width: calc(100vw - 2 * var(--space-md));
-  background: var(--surface, #07151d);
-  border: 1px solid var(--accent);
-  border-radius: var(--radius-sm);
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-sm) var(--space-md);
+  max-width: min(420px, calc(100vw - 2 * var(--space-md)));
+  background: rgba(4, 21, 31, 0.97);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
   color: var(--text-bright);
   font-family: var(--font-mono);
   font-size: 12px;
-  letter-spacing: 0.04em;
+  line-height: 1.5;
+  letter-spacing: 0.03em;
   padding: var(--space-sm) var(--space-md);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+@media (min-width: 481px) {
+  .updateToast,
+  .readyToast {
+    left: auto;
+    right: var(--space-md);
+    bottom: var(--space-md);
+    transform: none;
+  }
 }
 
 .readyToast {
@@ -56,7 +72,8 @@
   font-size: 11px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 6px 12px;
+  min-height: 36px;
+  padding: 6px 14px;
   border-radius: var(--radius-sm);
   cursor: pointer;
 }

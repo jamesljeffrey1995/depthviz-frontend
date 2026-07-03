@@ -525,6 +525,17 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
         </div>
       )}
 
+      <div className={styles.legend} aria-label="Map marker key">
+        <span className={styles.legendItem}>
+          <span className={styles.legendDot} style={{ background: '#00c9ff' }} aria-hidden="true" /> Featured spot
+        </span>
+        <span className={styles.legendItem}>
+          <span className={styles.legendDot} style={{ background: '#2ecc71' }} aria-hidden="true" /> Community spot
+        </span>
+        <span className={styles.legendItem}>
+          <span className={styles.legendDot} style={{ background: '#ffb800' }} aria-hidden="true" /> Your private spot
+        </span>
+      </div>
       <div className={styles.hint}>Tap a marker to view forecasts for that spot</div>
     </div>
   )

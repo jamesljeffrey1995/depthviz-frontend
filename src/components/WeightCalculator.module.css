@@ -16,7 +16,7 @@
   font-size: 10px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  opacity: 0.4;
+  opacity: 0.6;
   margin-bottom: 20px;
 }
 
@@ -25,12 +25,13 @@
   background: rgba(212, 133, 10, 0.1);
   border: 1px solid rgba(212, 133, 10, 0.4);
   border-left-width: 3px;
+  border-radius: var(--radius-sm);
   color: var(--text-bright);
   padding: 14px 16px;
   margin-bottom: 18px;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.7;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
 }
 
 .safety strong { color: var(--warn); }
@@ -66,11 +67,19 @@
 
 .label {
   display: block;
-  font-size: 9px;
-  letter-spacing: 0.25em;
+  font-size: 10px;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  opacity: 0.5;
+  color: var(--text);
+  opacity: 0.85;
   margin-bottom: 8px;
+}
+
+.fieldError {
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--warn);
 }
 
 .input, .select {
@@ -142,13 +151,17 @@
   width: 100%;
   accent-color: var(--accent);
   margin: 4px 0 6px;
+  /* A taller hit area makes the slider workable with wet or gloved thumbs. */
+  height: 32px;
+  cursor: pointer;
 }
 
 .sliderHint {
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.6;
-  opacity: 0.55;
-  letter-spacing: 0.03em;
+  color: var(--text);
+  opacity: 0.85;
+  letter-spacing: 0.02em;
 }
 
 /* ── Result ── */
@@ -178,10 +191,48 @@
 }
 
 .resultRange {
-  font-size: 11px;
-  letter-spacing: 0.05em;
-  opacity: 0.7;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  opacity: 0.9;
   margin-top: 10px;
+}
+
+.resultExplain {
+  margin: 16px auto 0;
+  max-width: 460px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text);
+  text-align: center;
+}
+
+.resultInvalid {
+  margin: 10px auto 0;
+  max-width: 420px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--warn);
+}
+
+/* What the estimate assumed — shown as quiet chips under the breakdown. */
+.resultAssumptions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.assumptionChip {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+  border: 1px solid var(--border);
+  background: rgba(0, 201, 255, 0.05);
+  border-radius: 999px;
+  padding: 4px 10px;
 }
 
 .breakdown {
@@ -194,9 +245,9 @@
 .breakdownRow {
   display: flex;
   justify-content: space-between;
-  font-size: 10px;
-  letter-spacing: 0.05em;
-  opacity: 0.7;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
   padding: 4px 0;
 }
 
@@ -220,23 +271,51 @@
   margin: 0 0 12px;
 }
 
+/* Numbered step cards — scannable rather than a dense paragraph list. */
 .howto ol {
-  margin: 0 0 12px;
-  padding-left: 18px;
+  list-style: none;
+  counter-reset: step;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .howto li {
-  font-size: 11px;
+  counter-increment: step;
+  position: relative;
+  font-size: 12px;
   line-height: 1.7;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
   color: var(--text);
-  margin-bottom: 6px;
+  background: rgba(0, 201, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px 10px 46px;
+}
+
+.howto li::before {
+  content: counter(step);
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--accent);
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
 }
 
 .howtoNote {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.7;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
   color: var(--text);
   margin: 0;
 }
@@ -244,9 +323,10 @@
 .howtoNote strong { color: var(--warn); }
 
 .assumptions {
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.7;
-  letter-spacing: 0.03em;
-  opacity: 0.45;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  opacity: 0.7;
   padding: 0 4px;
 }
