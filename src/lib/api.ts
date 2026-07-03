@@ -331,6 +331,22 @@ export async function updateProfileDetails(details: ProfileDiverDetails) {
   })
 }
 
+// UK GDPR right of access: download everything held for the account as JSON.
+export async function exportMyData(): Promise<unknown> {
+  return apiFetch<unknown>('/profile/me/export')
+}
+
+export interface AccountDeletionResult {
+  status: string
+  auth_login_removed: boolean
+  deleted: Record<string, number>
+}
+
+// UK GDPR right to erasure: permanently delete the account and its data.
+export async function deleteMyAccount(): Promise<AccountDeletionResult> {
+  return apiFetch<AccountDeletionResult>('/profile/me', { method: 'DELETE' })
+}
+
 export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
   const key = 'leaderboard'
   const cached = cacheGet<LeaderboardEntry[]>(key)

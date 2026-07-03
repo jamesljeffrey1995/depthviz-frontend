@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import { getMyProfile, updateProfile, updateProfileDetails, getMyReports, getLeaderboard } from '../lib/api'
+import { getMyProfile, updateProfile, updateProfileDetails, getMyReports, getLeaderboard, exportMyData, deleteMyAccount } from '../lib/api'
 import type { UserProfile, ProfileDiverDetails, ReportRead, LeaderboardEntry, ExperienceLevel } from '../types'
 import styles from './ProfilePanel.module.css'
 
@@ -43,6 +43,11 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
   const [details, setDetails] = useState<ProfileDiverDetails>(detailsFromProfile(null))
   const [savingDetails, setSavingDetails] = useState(false)
   const [detailsSaved, setDetailsSaved] = useState(false)
+  const [privacyOpen, setPrivacyOpen] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [dataError, setDataError] = useState('')
 
   useEffect(() => {
     if (!user) return
@@ -86,6 +91,42 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
   const handleSignOut = () => {
     signOut()
     onClose?.()
+  }
+
+  const handleExport = async () => {
+    setExporting(true)
+    setDataError('')
+    try {
+      const data = await exportMyData()
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `depthviz-my-data-${new Date().toISOString().slice(0, 10)}.json`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    } catch {
+      setDataError('Could not export your data — please try again.')
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    if (confirmDelete.trim().toUpperCase() !== 'DELETE') return
+    setDeleting(true)
+    setDataError('')
+    try {
+      await deleteMyAccount()
+      // Account and login are gone; sign out and close the panel.
+      signOut()
+      onClose?.()
+    } catch {
+      setDataError('Could not delete your account — please try again or contact us.')
+      setDeleting(false)
+    }
   }
 
   if (!user) return null
@@ -212,6 +253,56 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
               {detailsSaved && <span className={styles.detailsSaved} aria-live="polite">Saved ✓</span>}
             </div>
           </>
+        )}
+      </div>
+
+      {/* Privacy & your data — GDPR export / erasure */}
+      <div className={styles.details}>
+        <button
+          className={styles.detailsHead}
+          onClick={() => setPrivacyOpen(o => !o)}
+          aria-expanded={privacyOpen}
+        >
+          Privacy &amp; your data {privacyOpen ? '▲' : '▼'}
+        </button>
+        {privacyOpen && (
+          <div className={styles.privacyBody}>
+            <p className={styles.privacyNote}>
+              You can download everything we hold about you, or permanently delete
+              your account at any time.
+            </p>
+            <button
+              className={styles.detailsSave}
+              onClick={handleExport}
+              disabled={exporting}
+            >
+              {exporting ? 'Preparing…' : 'Download my data'}
+            </button>
+
+            <div className={styles.dangerZone}>
+              <p className={styles.dangerLabel}>Delete account</p>
+              <p className={styles.privacyNote}>
+                This permanently erases your account and data. Your dive reports are
+                kept but anonymised (they improve forecasts for everyone) and cannot
+                be traced back to you. This cannot be undone. Type <strong>DELETE</strong> to confirm.
+              </p>
+              <input
+                className={styles.nameInput}
+                value={confirmDelete}
+                onChange={e => setConfirmDelete(e.target.value)}
+                placeholder="DELETE"
+                aria-label="Type DELETE to confirm account deletion"
+              />
+              <button
+                className={styles.deleteBtn}
+                onClick={handleDeleteAccount}
+                disabled={deleting || confirmDelete.trim().toUpperCase() !== 'DELETE'}
+              >
+                {deleting ? 'Deleting…' : 'Permanently delete my account'}
+              </button>
+            </div>
+            {dataError && <p className={styles.dataError} aria-live="polite">{dataError}</p>}
+          </div>
         )}
       </div>
 

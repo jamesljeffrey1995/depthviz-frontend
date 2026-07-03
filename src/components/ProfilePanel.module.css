@@ -101,6 +101,25 @@
 .detailsSave:disabled { opacity: .5; cursor: default; }
 .detailsSaved { font-size: 10px; color: var(--excellent); letter-spacing: 0.1em; }
 
+/* Privacy & your data (GDPR export / erasure) */
+.privacyBody { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+.privacyNote { font-size: 10px; opacity: .55; line-height: 1.5; margin: 0; }
+.dangerZone {
+  margin-top: 6px; padding-top: 12px; border-top: 1px solid rgba(192,57,43,0.3);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.dangerLabel {
+  font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--danger); margin: 0;
+}
+.deleteBtn {
+  background: rgba(192,57,43,0.1); border: 1px solid rgba(192,57,43,0.45);
+  color: var(--danger); font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.15em; text-transform: uppercase; padding: 8px 16px; cursor: pointer;
+}
+.deleteBtn:disabled { opacity: .45; cursor: default; }
+.dataError { font-size: 10px; color: var(--danger); margin: 0; }
+
 .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
 .tab {
   flex: 1; min-width: 0; background: rgba(4,30,46,0.6); border: 1px solid rgba(0,201,255,0.08);
