@@ -166,7 +166,7 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
             <div className={styles.detailsGrid}>
               <label className={styles.detailField}>
                 <span>Phone</span>
-                <input className={styles.detailInput} value={details.phone ?? ''}
+                <input className={styles.detailInput} type="tel" value={details.phone ?? ''}
                   onChange={e => setDetail({ phone: e.target.value })} />
               </label>
               <label className={styles.detailField}>
@@ -196,7 +196,7 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
               </label>
               <label className={styles.detailField}>
                 <span>Emergency contact phone</span>
-                <input className={styles.detailInput} value={details.emergency_contact_phone ?? ''}
+                <input className={styles.detailInput} type="tel" value={details.emergency_contact_phone ?? ''}
                   onChange={e => setDetail({ emergency_contact_phone: e.target.value })} />
               </label>
               <label className={styles.detailField}>

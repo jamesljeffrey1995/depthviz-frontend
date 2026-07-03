@@ -218,6 +218,13 @@ function formFromProfile(profile: UserProfile | null): RegistrationInput {
   }
 }
 
+// Whether the form is still the blank baseline — i.e. the diver hasn't typed
+// anything yet. Used to decide if it's safe to re-seed from a late-arriving
+// profile without clobbering their input.
+function formIsPristine(form: RegistrationInput): boolean {
+  return JSON.stringify(form) === JSON.stringify(emptyForm())
+}
+
 function fmtDate(iso: string): string {
   const d = new Date(iso + 'T00:00:00')
   return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString(undefined, {
@@ -289,6 +296,15 @@ export function CompetitionRegister() {
       setRegistration(null)
     }
   }, [profile])
+
+  // If the diver opened a competition before their profile finished loading
+  // (slow network), openComp seeded a blank form. Re-seed once the profile
+  // arrives — but only while the form is still untouched, so we never overwrite
+  // details they've already started typing.
+  useEffect(() => {
+    if (!profile || !selected || registration) return
+    setForm(f => (formIsPristine(f) ? formFromProfile(profile) : f))
+  }, [profile, selected, registration])
 
   const back = () => {
     setSelected(null)
