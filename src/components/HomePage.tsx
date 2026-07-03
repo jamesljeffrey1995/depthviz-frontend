@@ -29,6 +29,7 @@ const TILES: Tile[] = [
   { label: 'Discussions', desc: 'Talk spots, gear, safety and catches with other divers.', path: '/forum' },
   { label: 'Weight Belt', desc: 'Work out your neutral-buoyancy weighting in seconds.', path: '/weight' },
   { label: 'Apnea Training', desc: 'Run O₂ and CO₂ tables to build your breath-hold.', path: '/training' },
+  { label: 'Competitions', desc: 'Register for spearfishing competitions and track your event.', path: '/competition' },
   { label: 'Activity Feed', desc: 'Latest dive reports and catches from the community.', path: '/feed' },
 ]
 
