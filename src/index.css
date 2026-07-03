@@ -241,6 +241,12 @@ input:focus-visible {
   animation: dv-fade-in-up 380ms var(--ease-spring) both;
 }
 
+/* Pop a value/badge in — used for microinteractions such as a favourite
+   heart or an updated visibility number. */
+.dv-pop {
+  animation: dv-pop 320ms var(--ease-spring) both;
+}
+
 /* Skeleton placeholder — a shimmering surface used instead of spinners. */
 .dv-skeleton {
   background: linear-gradient(

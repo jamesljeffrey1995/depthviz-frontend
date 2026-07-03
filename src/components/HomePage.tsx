@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getNews } from '../lib/api'
 import type { Announcement } from '../types'
@@ -20,7 +20,7 @@ function timeAgo(iso: string): string {
 /* ── Inline icons ──
    Small, stroked line icons in the expedition style. Kept inline so each
    quick-action ships without a network request and inherits currentColor. */
-const icons: Record<string, ReactNode> = {
+const icons = {
   forecast: (
     <>
       <path d="M2 6c1.5-1.5 3-1.5 4.5 0S9.5 7.5 11 6s3-1.5 4.5 0S18.5 7.5 20 6" />

@@ -58,6 +58,13 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Inset the focus ring so it isn't clipped by the row's overflow: hidden. */
+.rowHead:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-radius: var(--radius-md);
+}
+
 .rowMain {
   display: flex;
   flex-direction: column;
