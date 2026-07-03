@@ -1,3 +1,15 @@
+# [1.18.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.17.0...v1.18.0) (2026-07-03)
+
+
+### Bug Fixes
+
+* **competition:** detect zero entry fee with a trailing suffix ([2f0c9f7](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/2f0c9f78a4a18a72de45d3ba998e016951d5041a))
+
+
+### Features
+
+* **competition:** hide paid/unpaid tracking for free (£0) events ([c0d8333](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/c0d8333e2d748090d25ecf5241793e1504de272a))
+
 # [1.17.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.16.0...v1.17.0) (2026-07-03)
 
 
