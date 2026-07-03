@@ -26,22 +26,53 @@
   --font-mono: 'Space Mono', monospace;
   --font-display: 'Bebas Neue', sans-serif;
 
-  /* ── Spacing scale ── */
+  /* ── Spacing scale ──
+     Base 8pt rhythm: 8 · 12 · 16 · 24 · 32 · 48. The legacy xs/xl/2xl
+     steps are kept so existing components keep compiling; new UI should
+     prefer the numeric tokens for a consistent vertical rhythm. */
   --space-xs:  4px;
   --space-sm:  8px;
+  --space-12:  12px;
   --space-md:  16px;
   --space-lg:  24px;
+  --space-32:  32px;
   --space-xl:  40px;
+  --space-48:  48px;
   --space-2xl: 64px;
 
-  /* ── Border radius ── */
-  --radius-sm: 3px;
-  --radius-md: 6px;
-  --radius-lg: 10px;
+  /* ── Border radius ──
+     Softer corners for the redesign; pill for chips/segmented controls. */
+  --radius-sm:  4px;
+  --radius-md:  8px;
+  --radius-lg:  14px;
+  --radius-xl:  20px;
+  --radius-pill: 999px;
+
+  /* ── Elevation ──
+     Three deliberate steps: compact list items, standard cards, and
+     floating surfaces (bottom sheets, primary cards, active nav). */
+  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --elev-2: 0 6px 20px rgba(0, 0, 0, 0.42);
+  --elev-3: 0 16px 40px rgba(0, 0, 0, 0.55);
+
+  /* ── Typography scale ──
+     A tighter set of steps so pages stop shouting: one page title, one
+     section title, then card / label / meta. */
+  --text-hero:    clamp(34px, 8vw, 52px);
+  --text-title:   clamp(24px, 5vw, 30px);
+  --text-section: 20px;
+  --text-card:    16px;
+  --text-body:    14px;
+  --text-label:   13px;
+  --text-meta:    11px;
 
   /* ── Motion & shadow ── */
+  --transition-fast: 110ms ease;
   --transition-base: 150ms ease;
+  --transition-slow: 320ms cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
   --shadow-glow:    0 0 24px rgba(0, 201, 255, 0.18);
+  --shadow-glow-sm: 0 0 12px rgba(0, 201, 255, 0.28);
   --shadow-card:    0 6px 24px rgba(0, 0, 0, 0.45);
 }
 
@@ -178,6 +209,66 @@ input:focus-visible {
 ::selection {
   background: rgba(0, 201, 255, 0.25);
   color: var(--text-bright);
+}
+
+/* ── Motion primitives ──
+   Shared, subtle animations for the redesign. Kept here so any component
+   (and CSS module) can reference them by name. All are disabled wholesale
+   by the reduced-motion block below. */
+@keyframes dv-fade-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes dv-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes dv-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+@keyframes dv-pop {
+  0%   { transform: scale(0.6); opacity: 0; }
+  60%  { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* Fade a block of content up as it mounts. */
+.dv-animate-in {
+  animation: dv-fade-in-up 380ms var(--ease-spring) both;
+}
+
+/* Pop a value/badge in — used for microinteractions such as a favourite
+   heart or an updated visibility number. */
+.dv-pop {
+  animation: dv-pop 320ms var(--ease-spring) both;
+}
+
+/* Skeleton placeholder — a shimmering surface used instead of spinners. */
+.dv-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(13, 74, 110, 0.18) 25%,
+    rgba(0, 201, 255, 0.10) 50%,
+    rgba(13, 74, 110, 0.18) 75%
+  );
+  background-size: 800px 100%;
+  animation: dv-shimmer 1.4s linear infinite;
+  border-radius: var(--radius-md);
+}
+
+/* Press feedback — opt-in tactile scale for tappable surfaces. */
+.dv-pressable {
+  transition: transform var(--transition-fast), box-shadow var(--transition-base),
+    border-color var(--transition-base), background var(--transition-base);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dv-pressable:active {
+  transform: scale(0.98);
 }
 
 /* ── Reduced motion ── */

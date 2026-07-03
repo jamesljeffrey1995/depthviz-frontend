@@ -55,8 +55,29 @@ function bestDayIndex(days: DayForecast[]): number {
   return best
 }
 
+/** Direction visibility is heading over the next day: ▲ improving, ▼ dropping, ▬ steady. */
+function trendFor(days: DayForecast[]): { symbol: string; label: string; cls: string } | null {
+  if (days.length < 2) return null
+  const now = days[0].vis_corrected ?? days[0].vis_estimate
+  const next = days[1].vis_corrected ?? days[1].vis_estimate
+  const delta = next - now
+  if (delta > 0.5) return { symbol: '▲', label: 'improving', cls: styles.trendUp }
+  if (delta < -0.5) return { symbol: '▼', label: 'dropping', cls: styles.trendDown }
+  return { symbol: '▬', label: 'steady', cls: styles.trendFlat }
+}
+
 export function PlacesDashboard({ locations, userUid, units, onSelectLocation }: Props) {
   const [conditions, setConditions] = useState<Record<number, PlaceConditions>>({})
+  const [expanded, setExpanded] = useState<Set<number>>(new Set())
+
+  const toggle = useCallback((id: number) => {
+    setExpanded(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }, [])
 
   const fetchConditionsForPlace = useCallback(async (loc: Location) => {
     setConditions(prev => ({
@@ -146,81 +167,94 @@ export function PlacesDashboard({ locations, userUid, units, onSelectLocation }:
   return (
     <div className={styles.dashboard}>
       <div className={styles.heading}>My Places</div>
-      <div className={styles.grid}>
+      <ul className={styles.list}>
         {locations.map(loc => {
           const cond = conditions[loc.id]
           const isPrivate = Boolean(loc.encrypted_lat && loc.encrypted_lon)
           const today = cond?.today
+          const isOpen = expanded.has(loc.id)
+          const colorCls = today ? (styles[today.color_class as keyof typeof styles] ?? '') : ''
+          const trend = cond?.status === 'done' ? trendFor(cond.days) : null
+          const vis = today ? (today.vis_corrected ?? today.vis_estimate) : null
 
           return (
-            <div key={loc.id} className={styles.card}>
-              <div className={styles.cardTop}>
-                <div className={styles.placeName}>{loc.name}</div>
-                <div className={styles.placeMeta}>
-                  {isPrivate ? (
-                    <span className={styles.privateBadge}>Private</span>
-                  ) : (
-                    <span className={styles.publicBadge}>Public</span>
-                  )}
-                </div>
-              </div>
-
-              {/* Today's conditions */}
-              {cond?.status === 'loading' && (
-                <div className={styles.loadingPulse}>
-                  <div className={styles.skeletonVis} />
-                  <div className={styles.skeletonStrip} />
-                </div>
-              )}
-
-              {cond?.status === 'done' && today && (
-                <div className={styles.todayBlock}>
-                  <div className={`${styles.todayVis} ${styles[today.color_class as keyof typeof styles] ?? ''}`}>
-                    {(today.vis_corrected ?? today.vis_estimate).toFixed(1)}
-                    <span className={styles.todayVisUnit}>m</span>
-                  </div>
-                  <div className={`${styles.todayVerdict} ${styles[today.color_class as keyof typeof styles] ?? ''}`}>
-                    {today.verdict}
-                  </div>
-                  <div className={styles.todayMeta}>
-                    {today.wave_height != null && (
-                      <span title="Wave height">↕ {today.wave_height.toFixed(1)}{units}</span>
-                    )}
-                    {today.sea_temp != null && (
-                      <span title="Sea temperature">🌡 {today.sea_temp.toFixed(0)}°C</span>
-                    )}
-                    {today.wind_speed != null && (
-                      <span title="Wind speed">💨 {Math.round(today.wind_speed)}kn</span>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {cond?.status === 'error' && (
-                <div className={styles.condError}>Conditions unavailable</div>
-              )}
-
-              {cond?.status === 'private_no_key' && (
-                <div className={styles.condError}>Encryption key unavailable — re-save this spot to restore access</div>
-              )}
-
-              {/* Mini 7-day strip */}
-              {cond?.status === 'done' && cond.days.length > 0 && (
-                <MiniStrip days={cond.days} bestDayIdx={cond.bestDayIdx} />
-              )}
-
+            <li key={loc.id} className={`${styles.row} ${isOpen ? styles.rowOpen : ''}`}>
+              {/* Collapsed summary — the whole row is a toggle */}
               <button
-                className={styles.viewBtn}
-                onClick={() => handleView(loc)}
-                disabled={cond?.status === 'private_no_key'}
-                aria-label={cond?.status === 'private_no_key' ? `${loc.name} — encryption key not available on this device` : `View full forecast for ${loc.name}`}
+                className={styles.rowHead}
+                onClick={() => toggle(loc.id)}
+                aria-expanded={isOpen}
+                aria-label={`${loc.name}${vis != null ? `, ${vis.toFixed(1)} metres visibility` : ''} — tap to ${isOpen ? 'collapse' : 'expand'}`}
               >
-                View Forecast →
+                <span className={styles.rowMain}>
+                  <span className={styles.placeName}>{loc.name}</span>
+                  <span className={styles.rowSub}>
+                    <span className={isPrivate ? styles.privateBadge : styles.publicBadge}>
+                      {isPrivate ? 'Private' : 'Public'}
+                    </span>
+                    {cond?.status === 'done' && today && (
+                      <span className={`${styles.verdict} ${colorCls}`}>{today.verdict}</span>
+                    )}
+                    {cond?.status === 'error' && <span className={styles.subDim}>Unavailable</span>}
+                    {cond?.status === 'private_no_key' && <span className={styles.subDim}>Key needed</span>}
+                  </span>
+                </span>
+
+                <span className={styles.rowRight}>
+                  {cond?.status === 'loading' && <span className={`${styles.visSkeleton} dv-skeleton`} />}
+                  {cond?.status === 'done' && vis != null && (
+                    <span className={styles.visWrap}>
+                      <span className={`${styles.visNum} ${colorCls}`}>{vis.toFixed(1)}</span>
+                      <span className={styles.visUnit}>m</span>
+                      {trend && <span className={`${styles.trend} ${trend.cls}`} title={`Visibility ${trend.label}`} aria-label={`Visibility ${trend.label}`}>{trend.symbol}</span>}
+                    </span>
+                  )}
+                  <span className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ''}`} aria-hidden="true">›</span>
+                </span>
               </button>
-            </div>
+
+              {/* Expanded detail */}
+              {isOpen && (
+                <div className={`${styles.rowDetail} dv-animate-in`}>
+                  {cond?.status === 'done' && today && (
+                    <div className={styles.detailMeta}>
+                      {today.wave_height != null && (
+                        <span title="Wave height">↕ {today.wave_height.toFixed(1)}{units}</span>
+                      )}
+                      {today.sea_temp != null && (
+                        <span title="Sea temperature">🌡 {today.sea_temp.toFixed(0)}°C</span>
+                      )}
+                      {today.wind_speed != null && (
+                        <span title="Wind speed">💨 {Math.round(today.wind_speed)}kn</span>
+                      )}
+                    </div>
+                  )}
+
+                  {cond?.status === 'done' && cond.days.length > 0 && (
+                    <MiniStrip days={cond.days} bestDayIdx={cond.bestDayIdx} />
+                  )}
+
+                  {cond?.status === 'error' && (
+                    <div className={styles.condError}>Conditions unavailable</div>
+                  )}
+                  {cond?.status === 'private_no_key' && (
+                    <div className={styles.condError}>Encryption key unavailable — re-save this spot to restore access</div>
+                  )}
+
+                  <button
+                    className={`${styles.viewBtn} dv-pressable`}
+                    onClick={() => handleView(loc)}
+                    disabled={cond?.status === 'private_no_key'}
+                    aria-label={cond?.status === 'private_no_key' ? `${loc.name} — encryption key not available on this device` : `View full forecast for ${loc.name}`}
+                  >
+                    View forecast →
+                  </button>
+                </div>
+              )}
+            </li>
           )
         })}
-      </div>
+      </ul>
     </div>
   )
 }
