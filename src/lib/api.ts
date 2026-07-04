@@ -482,6 +482,112 @@ export async function getAdminForecastDebug(locationId: number): Promise<import(
   return apiFetch(`/admin/forecast-debug/${locationId}`)
 }
 
+// ── Security & Traffic Analytics (admin-only) ────────────────────────────────
+import type {
+  TrafficOverview,
+  TrafficTopUser,
+  TrafficTopIp,
+  TrafficEndpointRow,
+  TrafficLocationRow,
+  TrafficLiveEvent,
+  TrafficSubjectDetail,
+  SecurityAlertRow,
+  RateLimitConfig,
+} from '../types'
+
+export async function getTrafficOverview(hours = 24, buckets = 48): Promise<TrafficOverview> {
+  return apiFetch(`/admin/analytics/overview?hours=${hours}&buckets=${buckets}`)
+}
+
+export async function getTrafficTopUsers(
+  hours = 24, sort = 'requests', desc = true, limit = 50,
+): Promise<{ count: number; hours: number; users: TrafficTopUser[] }> {
+  return apiFetch(`/admin/analytics/top-users?hours=${hours}&sort=${sort}&desc=${desc}&limit=${limit}`)
+}
+
+export async function getTrafficTopIps(
+  hours = 24, limit = 50,
+): Promise<{ count: number; hours: number; ips: TrafficTopIp[] }> {
+  return apiFetch(`/admin/analytics/top-ips?hours=${hours}&limit=${limit}`)
+}
+
+export async function getTrafficEndpoints(
+  hours = 24,
+): Promise<{ count: number; hours: number; endpoints: TrafficEndpointRow[] }> {
+  return apiFetch(`/admin/analytics/endpoints?hours=${hours}`)
+}
+
+export async function getTrafficLocations(
+  hours = 24,
+): Promise<{ count: number; hours: number; locations: TrafficLocationRow[] }> {
+  return apiFetch(`/admin/analytics/locations?hours=${hours}`)
+}
+
+export async function getTrafficLive(
+  filters: Partial<Record<'user_id' | 'ip' | 'endpoint' | 'location' | 'status' | 'bots_only', string>> = {},
+  limit = 100,
+): Promise<{ count: number; events: TrafficLiveEvent[] }> {
+  const params = new URLSearchParams({ limit: String(limit) })
+  for (const [k, v] of Object.entries(filters)) {
+    if (v !== undefined && v !== '') params.set(k, String(v))
+  }
+  return apiFetch(`/admin/analytics/live?${params}`)
+}
+
+export async function getTrafficSubject(
+  subjectType: 'user' | 'ip', subject: string, hours = 24,
+): Promise<TrafficSubjectDetail> {
+  return apiFetch(`/admin/analytics/subject/${subjectType}/${encodeURIComponent(subject)}?hours=${hours}`)
+}
+
+export async function getSecurityAlerts(
+  includeDismissed = false,
+): Promise<{ count: number; active: number; alerts: SecurityAlertRow[] }> {
+  return apiFetch(`/admin/analytics/alerts?include_dismissed=${includeDismissed}`)
+}
+
+export async function dismissSecurityAlert(alertId: number): Promise<void> {
+  await apiFetch(`/admin/analytics/alerts/${alertId}/dismiss`, { method: 'POST' })
+}
+
+export async function runSecuritySweep(): Promise<{ alerts_raised: number }> {
+  return apiFetch('/admin/analytics/alerts/sweep', { method: 'POST' })
+}
+
+export async function getRateLimitConfig(): Promise<RateLimitConfig> {
+  return apiFetch('/admin/analytics/rate-limit')
+}
+
+export async function updateRateLimitConfig(cfg: Partial<RateLimitConfig>): Promise<RateLimitConfig> {
+  return apiFetch('/admin/analytics/rate-limit', { method: 'PUT', body: JSON.stringify(cfg) })
+}
+
+/**
+ * Download an analytics export (CSV or JSON) as a file. Fetches with the auth
+ * header, then triggers a browser download of the blob so the admin gets the
+ * raw file rather than JSON parsed into memory.
+ */
+export async function downloadTrafficExport(
+  dataset: 'traffic' | 'suspicious-users' | 'top-ips' | 'endpoints' | 'locations',
+  format: 'csv' | 'json' = 'csv',
+  hours = 24,
+): Promise<void> {
+  const { data: { session } } = await supabase.auth.getSession()
+  const headers: Record<string, string> = {}
+  if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`
+  const res = await fetch(`${API_BASE}/admin/analytics/export/${dataset}?format=${format}&hours=${hours}`, { headers })
+  if (!res.ok) throw new ApiError(res.status, `Export failed (${res.status})`)
+  const blob = await res.blob()
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `depthviz-${dataset}-${new Date().toISOString().slice(0, 10)}.${format}`
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+}
+
 export async function refreshAdminForecast(locationId?: number): Promise<{ invalidated: number; location_id: number | null }> {
   // Guard on `!= null` (not truthy) so ``locationId === 0`` still routes to
   // the scoped invalidation path — the signature allows it and future site

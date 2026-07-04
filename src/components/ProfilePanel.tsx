@@ -5,6 +5,7 @@ import type { UserProfile, ProfileDiverDetails, ReportRead, LeaderboardEntry, Ex
 import styles from './ProfilePanel.module.css'
 
 const AdminPanel = lazy(() => import('./AdminPanel').then(m => ({ default: m.AdminPanel })))
+const TrafficAnalytics = lazy(() => import('./admin/TrafficAnalytics').then(m => ({ default: m.TrafficAnalytics })))
 
 interface ProfilePanelProps {
   onClose?: () => void
@@ -38,7 +39,7 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [editName, setEditName] = useState(false)
   const [nameInput, setNameInput] = useState('')
-  const [tab, setTab] = useState<'mine' | 'board' | 'admin'>('mine')
+  const [tab, setTab] = useState<'mine' | 'board' | 'admin' | 'security'>('mine')
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [details, setDetails] = useState<ProfileDiverDetails>(detailsFromProfile(null))
   const [savingDetails, setSavingDetails] = useState(false)
@@ -326,6 +327,9 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
         {profile?.is_admin && (
           <button className={`${styles.tab} ${tab === 'admin' ? styles.tabActive : ''}`} onClick={() => setTab('admin')}>Admin</button>
         )}
+        {profile?.is_admin && (
+          <button className={`${styles.tab} ${tab === 'security' ? styles.tabActive : ''}`} onClick={() => setTab('security')}>Security</button>
+        )}
       </div>
 
       {tab === 'mine' && (
@@ -369,6 +373,12 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
       {tab === 'admin' && profile?.is_admin && (
         <Suspense fallback={null}>
           <AdminPanel />
+        </Suspense>
+      )}
+
+      {tab === 'security' && profile?.is_admin && (
+        <Suspense fallback={null}>
+          <TrafficAnalytics />
         </Suspense>
       )}
     </div>
