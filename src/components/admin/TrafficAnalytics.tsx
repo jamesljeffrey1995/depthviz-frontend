@@ -82,7 +82,7 @@ export function TrafficAnalytics() {
       <div className={styles.toolbar}>
         <h2 className={styles.title}>Security · Traffic Analytics</h2>
         <span className={styles.spacer} />
-        {tab !== 'live' && tab !== 'settings' && (
+        {tab !== 'live' && tab !== 'settings' && tab !== 'alerts' && (
           <div className={styles.rangeGroup} role="group" aria-label="Time range">
             {RANGES.map(r => (
               <button
@@ -154,7 +154,7 @@ function OverviewTab({ hours }: { hours: number }) {
         <StatTile label="Active users" value={s.active_users} sub="last hour" />
         <StatTile label="Active IPs" value={s.active_ips} sub="last hour" />
         <StatTile label="Forecasts" value={fmtCompact(s.forecasts_generated)} sub="generated · 24h" />
-        <StatTile label="Cache hit" value={cachePct} tone={s.cache_hit_pct != null && s.cache_hit_pct < 40 ? 'warn' : 'good'} />
+        <StatTile label="Cache hit" value={cachePct} tone={s.cache_hit_pct == null ? undefined : s.cache_hit_pct < 40 ? 'warn' : 'good'} />
         <StatTile label="Avg response" value={s.avg_response_ms == null ? '—' : `${s.avg_response_ms}ms`} />
         <StatTile label="Failed · 24h" value={fmtCompact(s.failed_requests)} tone={s.failed_requests > 0 ? 'warn' : undefined} />
         <StatTile label="401 / 403 / 429" value={`${s.count_401}/${s.count_403}/${s.count_429}`} tone={s.count_429 > 0 ? 'bad' : undefined} />
@@ -237,9 +237,18 @@ function useSort<T>(rows: T[], initialKey: keyof T) {
 
 function Th<T>({ label, k, sort, noSort }: { label: string; k?: keyof T; sort?: ReturnType<typeof useSort<T>>; noSort?: boolean }) {
   if (noSort || !k || !sort) return <th className={styles.noSort}>{label}</th>
+  const active = sort.key === k
   return (
-    <th onClick={() => sort.toggle(k)}>
-      {label}{sort.key === k && <span className={styles.sortArrow}>{sort.desc ? '↓' : '↑'}</span>}
+    <th
+      role="button"
+      tabIndex={0}
+      aria-sort={active ? (sort.desc ? 'descending' : 'ascending') : 'none'}
+      onClick={() => sort.toggle(k)}
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); sort.toggle(k) }
+      }}
+    >
+      {label}{active && <span className={styles.sortArrow}>{sort.desc ? '↓' : '↑'}</span>}
     </th>
   )
 }
@@ -273,8 +282,8 @@ function UsersTab({ hours }: { hours: number }) {
       <div className={styles.filters}>
         <input className={styles.input} placeholder="Search user id…" value={q} onChange={e => setQ(e.target.value)} />
         <span className={styles.spacer} />
-        <button className={styles.refreshBtn} onClick={() => downloadTrafficExport('suspicious-users', 'csv', hours)}>Export CSV</button>
-        <button className={styles.refreshBtn} onClick={() => downloadTrafficExport('suspicious-users', 'json', hours)}>Export JSON</button>
+        <button className={styles.refreshBtn} onClick={() => downloadTrafficExport('suspicious-users', 'csv', hours).catch(e => setError(describe(e, 'Export failed')))}>Export CSV</button>
+        <button className={styles.refreshBtn} onClick={() => downloadTrafficExport('suspicious-users', 'json', hours).catch(e => setError(describe(e, 'Export failed')))}>Export JSON</button>
       </div>
       {loading && rows.length === 0 ? <div className={styles.loading}>Loading…</div>
         : error ? <div className={styles.error}>{error}</div>
@@ -349,8 +358,8 @@ function IpsTab({ hours }: { hours: number }) {
       <div className={styles.filters}>
         <input className={styles.input} placeholder="Search IP / country / bot…" value={q} onChange={e => setQ(e.target.value)} />
         <span className={styles.spacer} />
-        <button className={styles.refreshBtn} onClick={() => downloadTrafficExport('top-ips', 'csv', hours)}>Export CSV</button>
-        <button className={styles.refreshBtn} onClick={() => downloadTrafficExport('top-ips', 'json', hours)}>Export JSON</button>
+        <button className={styles.refreshBtn} onClick={() => downloadTrafficExport('top-ips', 'csv', hours).catch(e => setError(describe(e, 'Export failed')))}>Export CSV</button>
+        <button className={styles.refreshBtn} onClick={() => downloadTrafficExport('top-ips', 'json', hours).catch(e => setError(describe(e, 'Export failed')))}>Export JSON</button>
       </div>
       {loading && rows.length === 0 ? <div className={styles.loading}>Loading…</div>
         : error ? <div className={styles.error}>{error}</div>
@@ -416,7 +425,7 @@ function EndpointsTab({ hours }: { hours: number }) {
     <div className={styles.panel}>
       <div className={styles.filters}>
         <span className={styles.spacer} />
-        <button className={styles.refreshBtn} onClick={() => downloadTrafficExport('endpoints', 'csv', hours)}>Export CSV</button>
+        <button className={styles.refreshBtn} onClick={() => downloadTrafficExport('endpoints', 'csv', hours).catch(e => setError(describe(e, 'Export failed')))}>Export CSV</button>
       </div>
       {loading && rows.length === 0 ? <div className={styles.loading}>Loading…</div>
         : error ? <div className={styles.error}>{error}</div>
@@ -724,6 +733,7 @@ function SettingsTab() {
     if (!cfg) return
     setSaving(true)
     setMsg(null)
+    setError(null)  // clear any stale error from a previous attempt
     try {
       const saved = await updateRateLimitConfig(cfg)
       setCfg(saved)
@@ -768,7 +778,15 @@ function SettingsTab() {
               type="number"
               min={0}
               value={(cfg[f.key] as number | null) ?? ''}
-              onChange={e => setField(f.key, e.target.value === '' ? null : Number(e.target.value))}
+              onChange={e => {
+                // burst_window_seconds is non-nullable (a window is meaningless
+                // as null); empty falls back to the default rather than clearing.
+                if (e.target.value === '') {
+                  setField(f.key, f.key === 'burst_window_seconds' ? 10 : null)
+                } else {
+                  setField(f.key, Number(e.target.value))
+                }
+              }}
             />
           </div>
         ))}

@@ -576,7 +576,15 @@ export async function downloadTrafficExport(
   const headers: Record<string, string> = {}
   if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`
   const res = await fetch(`${API_BASE}/admin/analytics/export/${dataset}?format=${format}&hours=${hours}`, { headers })
-  if (!res.ok) throw new ApiError(res.status, `Export failed (${res.status})`)
+  if (!res.ok) {
+    // Mirror apiFetch's error mapping so the admin sees the FastAPI `detail`
+    // message and 401/429 route through the existing typed-error flows.
+    const message = parseErrorBody(await res.text().catch(() => ''))
+    if (res.status === 401) throw new AuthError(message || 'Not authenticated')
+    if (res.status === 429) throw new RateLimitError(message || 'Too many requests — please wait a moment')
+    if (res.status >= 500) throw new ServerError(res.status, message || 'Server error')
+    throw new ApiError(res.status, message || `Export failed (${res.status})`)
+  }
   const blob = await res.blob()
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')

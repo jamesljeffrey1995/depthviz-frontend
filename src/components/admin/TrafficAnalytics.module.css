@@ -13,7 +13,8 @@
   --danger: #c0392b;
   --warning: #f1a325;
   --ok: #0fb37a;
-  --accent: var(--accent, #00c9ff);
+  /* --accent is inherited from the global :root (src/index.css) — do not
+     redefine it here (a self-referential var() would break inheritance). */
   --muted: rgba(139, 184, 204, 0.55);
   display: flex;
   flex-direction: column;
