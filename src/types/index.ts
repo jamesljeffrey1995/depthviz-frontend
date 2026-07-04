@@ -1500,3 +1500,169 @@ export interface CompetitionResults {
     competitors: number
   }
 }
+
+// ── Security & Traffic Analytics (/admin/analytics/*) ────────────────────────
+export type SuspicionBand = 'normal' | 'monitor' | 'suspicious' | 'likely_scraper'
+
+export interface TrafficOverviewSummary {
+  requests_today: number
+  requests_hour: number
+  active_users: number
+  active_ips: number
+  forecasts_generated: number
+  cache_hit_pct: number | null
+  avg_response_ms: number | null
+  failed_requests: number
+  count_401: number
+  count_403: number
+  count_429: number
+  generated_at: string | null
+}
+
+export interface TrafficSeriesPoint {
+  t: string | null
+  requests: number
+  forecasts: number
+  errors: number
+  error_rate: number
+  avg_response_ms: number
+}
+
+export interface TrafficGeoRow {
+  country: string
+  requests: number
+}
+
+export interface TrafficOverview {
+  summary: TrafficOverviewSummary
+  series: TrafficSeriesPoint[]
+  geo: TrafficGeoRow[]
+  ingest: { queue_depth: number; dropped: number; enabled: boolean }
+}
+
+export interface TrafficTopUser {
+  user_id: string
+  requests: number
+  forecast_requests: number
+  unique_locations: number
+  unique_ips: number
+  failed_requests: number
+  avg_interval_s: number | null
+  last_active: string | null
+  suspicion_score: number
+  suspicion_band: SuspicionBand
+  signals: string[]
+}
+
+export interface TrafficTopIp {
+  ip_hash: string
+  ip: string | null
+  requests: number
+  unique_users: number
+  unique_locations: number
+  unique_endpoints: number
+  country: string | null
+  user_agent: string | null
+  bot_kind: string | null
+  failed_requests: number
+  last_active: string | null
+  suspicion_score: number
+  suspicion_band: SuspicionBand
+  signals: string[]
+}
+
+export interface TrafficEndpointRow {
+  endpoint: string
+  requests: number
+  avg_latency_ms: number | null
+  error_rate: number
+  cache_hit_rate: number | null
+  unique_users: number
+  unique_ips: number
+}
+
+export interface TrafficLocationRow {
+  location: string
+  views: number
+  forecast_requests: number
+  conditions_requests: number
+  unique_users: number
+  unique_ips: number
+}
+
+export interface TrafficLiveEvent {
+  id: number
+  time: string | null
+  user_id: string | null
+  ip: string | null
+  ip_hash: string | null
+  country: string | null
+  method: string
+  endpoint: string
+  path: string
+  location: string | null
+  status: number
+  duration_ms: number
+  bytes: number
+  cache_hit: boolean | null
+  auth_method: string
+  bot_kind: string | null
+  user_agent: string | null
+}
+
+export interface SecurityAlertRow {
+  id: number
+  created_at: string | null
+  updated_at: string | null
+  alert_type: string
+  severity: 'info' | 'warning' | 'critical'
+  subject: string
+  subject_type: string
+  score: number | null
+  message: string
+  details: Record<string, unknown>
+  hit_count: number
+  dismissed: boolean
+}
+
+export interface RateLimitConfig {
+  enabled: boolean
+  per_user_per_hour: number | null
+  per_ip_per_hour: number | null
+  per_endpoint_per_hour: number | null
+  burst_limit: number | null
+  burst_window_seconds: number
+  daily_quota_per_user: number | null
+  daily_quota_per_ip: number | null
+  updated_at: string | null
+  updated_by: string | null
+}
+
+export interface TrafficSubjectDetail {
+  subject: string
+  subject_type: 'user' | 'ip'
+  hours: number
+  profile: {
+    request_count: number
+    forecast_count: number
+    failed_count: number
+    distinct_locations: number
+    distinct_endpoints: number
+    distinct_ips: number
+    distinct_users: number
+    cache_bypass_misses: number
+    avg_interval_s: number | null
+    min_interval_s: number | null
+    interval_stddev_s: number | null
+    span_minutes: number
+    active_hours: number
+    requests_per_hour: number
+    is_bot_ua: boolean
+    bot_kind: string | null
+  }
+  suspicion: {
+    score: number
+    band: SuspicionBand
+    signals: { code: string; points: number; label: string }[]
+  }
+}
