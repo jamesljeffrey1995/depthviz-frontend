@@ -23,11 +23,15 @@ export type Build = 'muscular' | 'lean' | 'average' | 'stocky'
 export type SuitType = 'none' | 'shorty' | 'full' | 'fullHood'
 export type WaterType = 'salt' | 'fresh'
 
-/** Individually-selectable neoprene regions on the body figure. */
-export type SuitRegion = 'hood' | 'torso' | 'arms' | 'legs'
+/**
+ * Individually-selectable neoprene regions on the body figure. "body" covers
+ * the torso and arms together (a wetsuit jacket), which is how two-piece
+ * freediving suits are actually cut.
+ */
+export type SuitRegion = 'hood' | 'body' | 'legs'
 
 /** Ordered region keys (used to iterate deterministically). */
-export const SUIT_REGIONS: SuitRegion[] = ['hood', 'torso', 'arms', 'legs']
+export const SUIT_REGIONS: SuitRegion[] = ['hood', 'body', 'legs']
 
 /** Per-region neoprene thickness in mm (0 or absent = bare skin there). */
 export type SuitRegions = Partial<Record<SuitRegion, number>>
@@ -95,14 +99,14 @@ const SUIT_COVERAGE: Record<SuitType, number> = {
 }
 
 /**
- * Fraction of total body surface area covered by each region. Torso + arms +
- * legs sum to 1.0 (a full suit), and the hood adds 0.12 on top — so a uniform
- * 5 mm full suit + hood matches the legacy `fullHood` coverage of 1.12.
+ * Fraction of total body surface area covered by each region. Body (torso +
+ * arms) and legs sum to 1.0 (a full suit), and the hood adds 0.12 on top — so
+ * a uniform 5 mm full suit + hood matches the legacy `fullHood` coverage of
+ * 1.12.
  */
 export const REGION_COVERAGE: Record<SuitRegion, number> = {
   hood: 0.12,
-  torso: 0.4,
-  arms: 0.18,
+  body: 0.58,
   legs: 0.42,
 }
 

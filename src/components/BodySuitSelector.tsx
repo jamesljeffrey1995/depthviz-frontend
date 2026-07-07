@@ -14,19 +14,14 @@ const THICKNESS_CHOICES = [0, 1.5, 2, 3, 5, 7, 8]
 
 const REGION_LABEL: Record<SuitRegion, string> = {
   hood: 'Hood',
-  torso: 'Body',
-  arms: 'Arms',
+  body: 'Body',
   legs: 'Legs',
 }
 
 /** Where each region's thickness badge is drawn on the figure. */
 const BADGE_POS: Record<SuitRegion, { x: number; y: number }[]> = {
   hood: [{ x: 100, y: 52 }],
-  torso: [{ x: 100, y: 150 }],
-  arms: [
-    { x: 47, y: 150 },
-    { x: 153, y: 150 },
-  ],
+  body: [{ x: 100, y: 148 }],
   legs: [
     { x: 83, y: 285 },
     { x: 117, y: 285 },
@@ -47,7 +42,7 @@ const fmtMm = (mm: number) => (mm <= 0 ? 'Bare' : `${mm} mm`)
  * neoprene is there. Each part can be a different thickness — or bare.
  */
 export function BodySuitSelector({ value, onChange }: Props) {
-  const [selected, setSelected] = useState<SuitRegion>('torso')
+  const [selected, setSelected] = useState<SuitRegion>('body')
   const titleId = useId()
 
   const mmOf = (region: SuitRegion) => value[region] ?? 0
@@ -92,14 +87,10 @@ export function BodySuitSelector({ value, onChange }: Props) {
             <rect x={102} y={196} width={30} height={158} rx={14} />
           </g>
 
-          {/* Arms */}
-          <g {...regionAttrs('arms')}>
+          {/* Body — torso and arms together (a wetsuit jacket) */}
+          <g {...regionAttrs('body')}>
             <rect x={36} y={92} width={22} height={98} rx={11} />
             <rect x={142} y={92} width={22} height={98} rx={11} />
-          </g>
-
-          {/* Torso */}
-          <g {...regionAttrs('torso')}>
             <rect x={62} y={88} width={76} height={116} rx={16} />
           </g>
 

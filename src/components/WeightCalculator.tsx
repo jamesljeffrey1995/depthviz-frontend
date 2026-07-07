@@ -27,10 +27,9 @@ const BUILD_OPTIONS: { value: Build; label: string; hint: string }[] = [
   { value: 'stocky', label: 'Stocky / higher body fat', hint: 'More naturally buoyant' },
 ]
 
-const REGION_SHORT: Record<'hood' | 'torso' | 'arms' | 'legs', string> = {
+const REGION_SHORT: Record<'hood' | 'body' | 'legs', string> = {
   hood: 'Hood',
-  torso: 'Body',
-  arms: 'Arms',
+  body: 'Body',
   legs: 'Legs',
 }
 
@@ -59,8 +58,7 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
   // Per-region neoprene thickness (mm). Default: a 5 mm full suit, bare head.
   const [regions, setRegions] = useState<SuitRegions>({
     hood: 0,
-    torso: 5,
-    arms: 5,
+    body: 5,
     legs: 5,
   })
   const [neutralDepthM, setNeutralDepthM] = useState(10)

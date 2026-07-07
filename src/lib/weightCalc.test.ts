@@ -108,7 +108,7 @@ describe('per-region suit model', () => {
     const legacy = calculateWeight({ ...base, suitType: 'fullHood', wetsuitMm: 5 })
     const region = calculateWeight({
       ...regionBase,
-      regions: { hood: 5, torso: 5, arms: 5, legs: 5 },
+      regions: { hood: 5, body: 5, legs: 5 },
     })
     expect(region.suitBuoyancySurface).toBeCloseTo(legacy.suitBuoyancySurface, 6)
   })
@@ -117,7 +117,7 @@ describe('per-region suit model', () => {
     const legacy = calculateWeight({ ...base, suitType: 'full', wetsuitMm: 5 })
     const region = calculateWeight({
       ...regionBase,
-      regions: { torso: 5, arms: 5, legs: 5 },
+      regions: { body: 5, legs: 5 },
     })
     expect(region.suitBuoyancySurface).toBeCloseTo(legacy.suitBuoyancySurface, 6)
   })
@@ -134,7 +134,7 @@ describe('per-region suit model', () => {
   })
 
   test('missing region entries count as bare, not NaN', () => {
-    const r = calculateWeight({ ...regionBase, regions: { torso: 5 } })
+    const r = calculateWeight({ ...regionBase, regions: { body: 5 } })
     expect(Number.isFinite(r.suitBuoyancySurface)).toBe(true)
     expect(r.suitBuoyancySurface).toBeGreaterThan(0)
   })
