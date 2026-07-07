@@ -1,3 +1,11 @@
+# [1.20.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.19.0...v1.20.0) (2026-07-07)
+
+
+### Features
+
+* **weight:** merge arms into the body region ([75731c7](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/75731c74c7319c34c88f7951410a6bb82a9dd82c))
+* **weight:** per-body-part wetsuit thickness selector ([b1e1fcf](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/b1e1fcfd46440023891ebe8a094834894b9852da))
+
 # [1.19.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.18.0...v1.19.0) (2026-07-03)
 
 
