@@ -38,8 +38,8 @@ const fmtMm = (mm: number) => (mm <= 0 ? 'Bare' : `${mm} mm`)
 
 /**
  * Interactive body figure for choosing wetsuit thickness per region. Tap a
- * body part (hood, body, arms or legs) to select it, then pick how thick the
- * neoprene is there. Each part can be a different thickness — or bare.
+ * body part — hood, body (torso + arms) or legs — to select it, then pick how
+ * thick the neoprene is there. Each part can be a different thickness — or bare.
  */
 export function BodySuitSelector({ value, onChange }: Props) {
   const [selected, setSelected] = useState<SuitRegion>('body')

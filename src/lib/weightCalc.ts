@@ -45,8 +45,9 @@ export interface WeightCalcInput {
   build: Build
   /**
    * Per-region neoprene thickness in millimetres. This is the preferred way to
-   * describe the suit — the diver sets the thickness of the hood, torso, arms
-   * and legs independently. When present it overrides `suitType` / `wetsuitMm`.
+   * describe the suit — the diver sets the thickness of the hood, body (torso +
+   * arms) and legs independently. When present it overrides `suitType` /
+   * `wetsuitMm`.
    */
   regions?: SuitRegions
   /**

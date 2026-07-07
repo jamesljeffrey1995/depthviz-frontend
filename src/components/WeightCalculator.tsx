@@ -35,7 +35,7 @@ const REGION_SHORT: Record<'hood' | 'body' | 'legs', string> = {
 
 /**
  * Compact human-readable summary of a per-region suit, e.g.
- * "Body 5 · Arms 3 · Legs 3 mm" — or "no wetsuit" when every part is bare.
+ * "Body 5 · Legs 3 mm" — or "no wetsuit" when every part is bare.
  */
 function describeSuit(regions: SuitRegions): string {
   const covered = SUIT_REGIONS.filter(r => (regions[r] ?? 0) > 0)
