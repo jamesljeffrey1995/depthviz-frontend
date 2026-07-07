@@ -2,10 +2,12 @@ import { useMemo, useState } from 'react'
 import {
   calculateWeight,
   kgToLb,
+  SUIT_REGIONS,
   type Build,
-  type SuitType,
+  type SuitRegions,
   type WaterType,
 } from '../lib/weightCalc'
+import { BodySuitSelector } from './BodySuitSelector'
 import styles from './WeightCalculator.module.css'
 
 interface Props {
@@ -25,14 +27,21 @@ const BUILD_OPTIONS: { value: Build; label: string; hint: string }[] = [
   { value: 'stocky', label: 'Stocky / higher body fat', hint: 'More naturally buoyant' },
 ]
 
-const SUIT_OPTIONS: { value: SuitType; label: string }[] = [
-  { value: 'none', label: 'No wetsuit' },
-  { value: 'shorty', label: 'Shorty' },
-  { value: 'full', label: 'Full suit' },
-  { value: 'fullHood', label: 'Full suit + hood' },
-]
+const REGION_SHORT: Record<'hood' | 'body' | 'legs', string> = {
+  hood: 'Hood',
+  body: 'Body',
+  legs: 'Legs',
+}
 
-const THICKNESS_OPTIONS = [1.5, 2, 3, 5, 7, 8]
+/**
+ * Compact human-readable summary of a per-region suit, e.g.
+ * "Body 5 · Legs 3 mm" — or "no wetsuit" when every part is bare.
+ */
+function describeSuit(regions: SuitRegions): string {
+  const covered = SUIT_REGIONS.filter(r => (regions[r] ?? 0) > 0)
+  if (covered.length === 0) return 'no wetsuit'
+  return `${covered.map(r => `${REGION_SHORT[r]} ${regions[r]}`).join(' · ')} mm`
+}
 
 /** Plausible input ranges — outside these the estimate isn't meaningful. */
 const HEIGHT_RANGE_CM = { min: 120, max: 220 }
@@ -46,15 +55,19 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
   const [heightCm, setHeightCm] = useState(178)
   const [weightKg, setWeightKg] = useState(80)
   const [build, setBuild] = useState<Build>('average')
-  const [suitType, setSuitType] = useState<SuitType>('full')
-  const [wetsuitMm, setWetsuitMm] = useState(5)
+  // Per-region neoprene thickness (mm). Default: a 5 mm full suit, bare head.
+  const [regions, setRegions] = useState<SuitRegions>({
+    hood: 0,
+    body: 5,
+    legs: 5,
+  })
   const [neutralDepthM, setNeutralDepthM] = useState(10)
   const [water, setWater] = useState<WaterType>('salt')
 
   const result = useMemo(
     () =>
-      calculateWeight({ heightCm, weightKg, build, wetsuitMm, suitType, neutralDepthM, water }),
-    [heightCm, weightKg, build, wetsuitMm, suitType, neutralDepthM, water],
+      calculateWeight({ heightCm, weightKg, build, regions, neutralDepthM, water }),
+    [heightCm, weightKg, build, regions, neutralDepthM, water],
   )
 
   const imperial = unitSystem === 'imperial'
@@ -72,7 +85,7 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
       : `${r.min}–${r.max} ${unit}`
   const inputsValid = !heightInvalid && !weightInvalid
 
-  const suitLabel = SUIT_OPTIONS.find(o => o.value === suitType)?.label ?? suitType
+  const suitLabel = describeSuit(regions)
   const buildLabel = BUILD_OPTIONS.find(o => o.value === build)?.label ?? build
 
   return (
@@ -180,34 +193,9 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
           </select>
         </div>
 
-        <div className={styles.row}>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="wc-suit">Wetsuit type</label>
-            <select
-              id="wc-suit"
-              className={styles.select}
-              value={suitType}
-              onChange={e => setSuitType(e.target.value as SuitType)}
-            >
-              {SUIT_OPTIONS.map(o => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="wc-thickness">Neoprene thickness</label>
-            <select
-              id="wc-thickness"
-              className={styles.select}
-              value={wetsuitMm}
-              disabled={suitType === 'none'}
-              onChange={e => setWetsuitMm(Number(e.target.value))}
-            >
-              {THICKNESS_OPTIONS.map(t => (
-                <option key={t} value={t}>{t} mm</option>
-              ))}
-            </select>
-          </div>
+        <div className={styles.field}>
+          <span className={styles.label}>Wetsuit — set thickness per body part</span>
+          <BodySuitSelector value={regions} onChange={setRegions} />
         </div>
 
         <div className={styles.field}>
@@ -287,7 +275,7 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
             </div>
 
             <div className={styles.resultAssumptions} aria-label="Based on your inputs">
-              <span className={styles.assumptionChip}>{suitLabel}{suitType !== 'none' ? ` · ${wetsuitMm} mm` : ''}</span>
+              <span className={styles.assumptionChip}>{suitLabel}</span>
               <span className={styles.assumptionChip}>{buildLabel}</span>
               <span className={styles.assumptionChip}>{WATER_LABEL[water]}</span>
               <span className={styles.assumptionChip}>neutral at {neutralDepthM} m</span>
