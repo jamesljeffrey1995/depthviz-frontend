@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getNews } from '../lib/api'
-import type { Announcement } from '../types'
+import { getNews, getBestVisibility } from '../lib/api'
+import { safeColorClass } from '../lib/visibilityPalette'
+import type { Announcement, BestVisSpot } from '../types'
 import styles from './HomePage.module.css'
 
 /** Compact relative date, e.g. "3 days ago". */
@@ -32,6 +33,12 @@ const icons = {
     <>
       <circle cx="12" cy="12" r="3" />
       <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+    </>
+  ),
+  report: (
+    <>
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4Z" />
     </>
   ),
   feed: (
@@ -83,17 +90,131 @@ interface Action {
   icon: keyof typeof icons
 }
 
-/* Two-column quick-actions grid — the app's whole surface reachable in one tap. */
-const ACTIONS: Action[] = [
-  { label: 'Forecast', path: '/map', icon: 'forecast' },
-  { label: 'Best visibility', path: '/best', icon: 'best' },
-  { label: 'Activity feed', path: '/feed', icon: 'feed' },
-  { label: 'Catches', path: '/catches', icon: 'catches' },
-  { label: 'Weight belt', path: '/weight', icon: 'weight' },
-  { label: 'Apnea training', path: '/training', icon: 'training' },
-  { label: 'Competitions', path: '/competition', icon: 'competition' },
-  { label: 'Community', path: '/forum', icon: 'community' },
+interface ActionGroup {
+  title: string
+  hint: string
+  actions: Action[]
+}
+
+/* Quick actions grouped by what the user is actually trying to do, so the home
+   screen reads as a purpose-built dive tool rather than a random app grid. */
+const ACTION_GROUPS: ActionGroup[] = [
+  {
+    title: 'Plan a dive',
+    hint: 'Where and when the water will be clear',
+    actions: [
+      { label: 'Forecast', path: '/map', icon: 'forecast' },
+      { label: 'Best vis today', path: '/best', icon: 'best' },
+    ],
+  },
+  {
+    title: 'Share local knowledge',
+    hint: 'Real reports make the next forecast sharper',
+    actions: [
+      { label: 'Activity feed', path: '/feed', icon: 'feed' },
+      { label: 'Catches', path: '/catches', icon: 'catches' },
+      { label: 'Discussions', path: '/forum', icon: 'community' },
+    ],
+  },
+  {
+    title: 'Prepare',
+    hint: 'Get your kit and breath-hold dialled in',
+    actions: [
+      { label: 'Weight belt', path: '/weight', icon: 'weight' },
+      { label: 'Apnea training', path: '/training', icon: 'training' },
+    ],
+  },
+  {
+    title: 'Events',
+    hint: 'Club comps and organised dives',
+    actions: [
+      { label: 'Competitions', path: '/competition', icon: 'competition' },
+    ],
+  },
 ]
+
+/* The forecast drivers, in plain English — so a first-time visitor understands
+   what actually goes into the number before they trust it. */
+const HOW_IT_WORKS: { label: string; detail: string }[] = [
+  { label: 'Swell & waves', detail: 'Big swell stirs the seabed and drops visibility fast.' },
+  { label: 'Wind', detail: 'Onshore wind churns the surface and pushes murky water in.' },
+  { label: 'Rain & runoff', detail: 'Heavy rain flushes sediment off the land into the shallows.' },
+  { label: 'Tides', detail: 'Tidal flow moves clearer or dirtier water past your spot.' },
+  { label: 'Ocean data', detail: 'Satellite and model data on plankton, sediment and clarity.' },
+  { label: 'Diver reports', detail: 'Your on-the-day reports calibrate and correct the model.' },
+]
+
+/** Small teaser of the top-ranked UK spots for today. Deep-links into the full
+ *  Best Visibility page rather than trying to load a forecast from the home
+ *  screen — one clear next step, no half-loaded state. */
+function BestTodayCard() {
+  const navigate = useNavigate()
+  const [spots, setSpots] = useState<BestVisSpot[] | null>(null)
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    getBestVisibility()
+      .then(res => { if (!cancelled) setSpots(res.spots.slice(0, 3)) })
+      .catch(() => { if (!cancelled) setFailed(true) })
+    return () => { cancelled = true }
+  }, [])
+
+  // Fail quietly — the homepage should never lead with an error box. The full
+  // Best Visibility page owns the loud error/retry state.
+  if (failed) return null
+
+  return (
+    <section className={styles.section} aria-labelledby="best-heading">
+      <div className={styles.sectionHead}>
+        <h2 id="best-heading" className={styles.sectionTitle}>Best vis today</h2>
+        <button className={styles.moreLink} onClick={() => navigate('/best')}>
+          See all spots →
+        </button>
+      </div>
+      <div className={styles.bestCard}>
+        {spots === null ? (
+          <ul className={styles.bestList} aria-hidden="true">
+            {[0, 1, 2].map(i => (
+              <li key={i} className={styles.bestSkeleton}>
+                <span className={`${styles.bestSkelRank} dv-skeleton`} />
+                <span className={`${styles.bestSkelName} dv-skeleton`} />
+                <span className={`${styles.bestSkelVis} dv-skeleton`} />
+              </li>
+            ))}
+          </ul>
+        ) : spots.length === 0 ? (
+          <p className={styles.muted}>No spots ranked for today yet — check back after the morning update.</p>
+        ) : (
+          <ul className={styles.bestList}>
+            {spots.map((spot, i) => {
+              const vis = spot.day.vis_corrected ?? spot.day.vis_estimate
+              const cc = safeColorClass(spot.day.color_class)
+              return (
+                <li key={`${spot.lat}-${spot.lon}`}>
+                  <button
+                    className={`${styles.bestRow} dv-pressable`}
+                    onClick={() => navigate('/best')}
+                    aria-label={`${spot.name}: ${spot.day.verdict}, about ${vis.toFixed(1)} metres`}
+                  >
+                    <span className={styles.bestRank}>{i + 1}</span>
+                    <span className={styles.bestInfo}>
+                      <span className={styles.bestName}>{spot.name}</span>
+                      <span className={`${styles.bestVerdict} ${styles[cc]}`}>{spot.day.verdict}</span>
+                    </span>
+                    <span className={styles.bestVisBlock}>
+                      <span className={`${styles.bestVisValue} ${styles[cc]}`}>{vis.toFixed(1)}m</span>
+                    </span>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </div>
+    </section>
+  )
+}
 
 export function HomePage() {
   const navigate = useNavigate()
@@ -112,37 +233,83 @@ export function HomePage() {
   return (
     <div className={styles.home}>
       <section className={`${styles.hero} dv-animate-in`}>
-        <h1 className={styles.heroTitle}>Dive smarter.</h1>
+        <p className={styles.heroKicker}>UK spearfishing &amp; freediving · North East coast &amp; beyond</p>
+        <h1 className={styles.heroTitle}>Know the vis before you drive to the coast.</h1>
         <p className={styles.heroTagline}>
-          AI-calibrated underwater visibility forecasts for UK spearfishers and freedivers.
+          DepthViz turns swell, wind, rain, tide and ocean data — corrected by real diver
+          reports — into a straight answer: is it worth getting in, and where?
         </p>
-        <button
-          className={`${styles.primaryBtn} dv-pressable`}
-          onClick={() => navigate('/map')}
-        >
-          <svg className={styles.primaryBtnIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            {icons.forecast}
-          </svg>
-          Check forecast
-        </button>
+        <div className={styles.heroActions}>
+          <button
+            className={`${styles.primaryBtn} dv-pressable`}
+            onClick={() => navigate('/map')}
+          >
+            <svg className={styles.btnIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              {icons.forecast}
+            </svg>
+            Check forecast
+          </button>
+          <button
+            className={`${styles.secondaryBtn} dv-pressable`}
+            onClick={() => navigate('/report')}
+          >
+            <svg className={styles.btnIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              {icons.report}
+            </svg>
+            Report visibility
+          </button>
+        </div>
+        <p className={styles.heroTrust}>
+          Forecasts are estimates — confidence varies with the conditions, and every report
+          you add makes the next one sharper. Not a substitute for local knowledge.
+        </p>
       </section>
 
+      <BestTodayCard />
+
       <section className={styles.section} aria-labelledby="explore-heading">
-        <h2 id="explore-heading" className={styles.sectionTitle}>Quick actions</h2>
-        <div className={styles.actionGrid}>
-          {ACTIONS.map(a => (
-            <button
-              key={a.path}
-              className={`${styles.action} dv-pressable`}
-              onClick={() => navigate(a.path)}
-            >
-              <span className={styles.actionIcon} aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  {icons[a.icon]}
-                </svg>
-              </span>
-              <span className={styles.actionLabel}>{a.label}</span>
-            </button>
+        <h2 id="explore-heading" className={styles.sectionTitle}>Everything in DepthViz</h2>
+        <div className={styles.groups}>
+          {ACTION_GROUPS.map(group => (
+            <div key={group.title} className={styles.group}>
+              <div className={styles.groupHead}>
+                <span className={styles.groupTitle}>{group.title}</span>
+                <span className={styles.groupHint}>{group.hint}</span>
+              </div>
+              <div className={styles.actionRow}>
+                {group.actions.map(a => (
+                  <button
+                    key={a.path}
+                    className={`${styles.action} dv-pressable`}
+                    onClick={() => navigate(a.path)}
+                  >
+                    <span className={styles.actionIcon} aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        {icons[a.icon]}
+                      </svg>
+                    </span>
+                    <span className={styles.actionLabel}>{a.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className={styles.section} aria-labelledby="how-heading">
+        <h2 id="how-heading" className={styles.sectionTitle}>How DepthViz works</h2>
+        <p className={styles.sectionLead}>
+          Underwater visibility is driven by a handful of things you can&apos;t see from the
+          car park. DepthViz weighs them up for every UK spot, then corrects the result
+          against what divers actually reported.
+        </p>
+        <div className={styles.howGrid}>
+          {HOW_IT_WORKS.map(item => (
+            <div key={item.label} className={styles.howItem}>
+              <span className={styles.howLabel}>{item.label}</span>
+              <span className={styles.howDetail}>{item.detail}</span>
+            </div>
           ))}
         </div>
       </section>
@@ -164,7 +331,20 @@ export function HomePage() {
             ))}
           </ul>
         ) : news.length === 0 ? (
-          <p className={styles.muted}>No announcements yet — check back soon.</p>
+          <div className={styles.newsEmpty}>
+            <svg className={styles.newsEmptyIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M4 4h16v12H5.2L4 17.2Z" />
+              <path d="M8 9h8M8 12h5" />
+            </svg>
+            <p className={styles.newsEmptyTitle}>No announcements yet</p>
+            <p className={styles.newsEmptyText}>
+              Product updates and dive-community notices will show up here. In the meantime,
+              check today&apos;s forecast or add a report to help the next diver.
+            </p>
+            <button className={`${styles.newsEmptyBtn} dv-pressable`} onClick={() => navigate('/map')}>
+              Check the forecast
+            </button>
+          </div>
         ) : (
           <ul className={styles.newsList}>
             {news.map(n => (

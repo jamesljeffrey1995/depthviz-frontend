@@ -1,15 +1,11 @@
 import { useState, useEffect } from 'react'
 import { getBestVisibility } from '../lib/api'
+import { safeColorClass } from '../lib/visibilityPalette'
 import type { BestVisSpot } from '../types'
 import styles from './BestVisibility.module.css'
 
 interface Props {
   onSelectSpot: (lat: number, lon: number, name: string) => void
-}
-
-const COLOR_CLASSES = new Set(['blocked', 'poor', 'marginal', 'decent', 'good', 'excellent'])
-function safeColorClass(cls: string | undefined): string {
-  return cls && COLOR_CLASSES.has(cls) ? cls : 'decent'
 }
 
 // Number of placeholder rows to render while the fan-out resolves.
