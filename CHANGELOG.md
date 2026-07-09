@@ -1,3 +1,10 @@
+# [1.22.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.21.0...v1.22.0) (2026-07-09)
+
+
+### Features
+
+* **forecast:** show explainable-visibility "at a glance" card ([4b3e8b2](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/4b3e8b285b5e5f1e0a1702078a3978e7a56c31d3))
+
 # [1.21.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.20.0...v1.21.0) (2026-07-09)
 
 
