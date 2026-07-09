@@ -17,9 +17,9 @@
 
 /* ── "At a glance" explainable-visibility summary ─────────────────────────── */
 .summary {
-  background: rgba(0, 201, 255, 0.05);
-  border: 1px solid rgba(0, 201, 255, 0.14);
-  border-radius: var(--radius-sm, 8px);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   padding: 12px 14px;
   margin-bottom: 16px;
 }

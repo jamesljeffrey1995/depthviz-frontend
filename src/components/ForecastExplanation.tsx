@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import type { DayForecast, ForecastResponse } from '../types'
+import type { DayForecast, ForecastResponse, VisibilityExplanation } from '../types'
 import { summariseDrivers, computeConfidence } from '../lib/diveRating'
 import { buildVisSummary } from '../lib/visTrend'
 import styles from './ForecastExplanation.module.css'
@@ -10,14 +10,16 @@ interface Props {
   forecast: Pick<ForecastResponse, 'report_count' | 'model_confidence'>
 }
 
-/** Public-friendly "Why?" panel — a plain-English breakdown of what's
- *  helping and hurting visibility, plus the trend and confidence context. */
-const CONFIDENCE_COLORS: Record<string, string> = {
+// Keyed by the confidence union so a new/renamed level is a compile error here
+// rather than silently falling through to a default colour.
+const CONFIDENCE_COLORS: Record<VisibilityExplanation['confidence'], string> = {
   high: 'var(--good)',
   medium: 'var(--accent)',
   low: 'var(--warn)',
 }
 
+/** Public-friendly "Why?" panel — a plain-English breakdown of what's
+ *  helping and hurting visibility, plus the trend and confidence context. */
 export const ForecastExplanation = memo(function ForecastExplanation({ day, days, forecast }: Props) {
   const { helping, hurting } = summariseDrivers(day)
   const trend = days.length > 1 ? buildVisSummary(days) : ''
@@ -37,7 +39,7 @@ export const ForecastExplanation = memo(function ForecastExplanation({ day, days
             </div>
             <span
               className={styles.confChip}
-              style={{ color: CONFIDENCE_COLORS[summary.confidence] ?? 'var(--text-dim)' }}
+              style={{ color: CONFIDENCE_COLORS[summary.confidence] }}
             >
               {summary.confidence} confidence
             </span>
@@ -111,12 +113,17 @@ export const ForecastExplanation = memo(function ForecastExplanation({ day, days
         </div>
       )}
 
-      <div className={styles.confidenceStrip}>
-        <span className={styles.confidenceLevel} style={{ color: confidence.color }}>
-          {confidence.label} confidence
-        </span>
-        {confidence.reasons.join(' · ')}.
-      </div>
+      {/* Legacy client-side confidence strip. Suppressed when the richer
+          server-side summary card is shown so the panel never displays two
+          differently-derived "confidence" figures that could contradict. */}
+      {!summary && (
+        <div className={styles.confidenceStrip}>
+          <span className={styles.confidenceLevel} style={{ color: confidence.color }}>
+            {confidence.label} confidence
+          </span>
+          {confidence.reasons.join(' · ')}.
+        </div>
+      )}
     </section>
   )
 })
