@@ -135,6 +135,21 @@ export interface DayForecast {
   river_discharge: RiverDischarge | null
   water_quality: WaterQuality | null
   bias_attribution: BiasAttribution | null
+  explanation: VisibilityExplanation | null
+}
+
+/** Explainable-visibility "at a glance" card — assembled server-side from the
+ *  day's condition factors, satellite ocean-colour, the independent visibility
+ *  estimates, and recent diver reports. */
+export interface VisibilityExplanation {
+  visibility_m: number
+  confidence: 'low' | 'medium' | 'high'
+  main_reason: string
+  contributing_factors: string[]
+  satellite_signal: string | null
+  local_reports: string | null
+  model_agreement: string | null
+  agreement_score: number | null
 }
 
 export interface ForecastResponse {
