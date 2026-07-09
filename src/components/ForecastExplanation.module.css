@@ -15,6 +15,87 @@
   margin-bottom: 12px;
 }
 
+/* ── "At a glance" explainable-visibility summary ─────────────────────────── */
+.summary {
+  background: rgba(0, 201, 255, 0.05);
+  border: 1px solid rgba(0, 201, 255, 0.14);
+  border-radius: var(--radius-sm, 8px);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+
+.summaryHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.visBlock {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  color: var(--text-bright);
+}
+
+.visValue {
+  font-family: var(--font-mono);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.visUnit {
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.confChip {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.summaryRows {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.summaryRow {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+@media (max-width: 480px) {
+  .summaryRow {
+    grid-template-columns: 1fr;
+    gap: 1px;
+  }
+}
+
+.summaryRow dt {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  align-self: center;
+}
+
+.summaryRow dd {
+  margin: 0;
+  color: var(--text);
+}
+
 .columns {
   display: grid;
   grid-template-columns: 1fr 1fr;

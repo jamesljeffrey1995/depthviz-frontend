@@ -34,6 +34,7 @@ function mkDay(overrides: Partial<DayForecast>): DayForecast {
     river_discharge: null,
     water_quality: null,
     bias_attribution: null,
+    explanation: null,
     ...overrides,
   }
 }

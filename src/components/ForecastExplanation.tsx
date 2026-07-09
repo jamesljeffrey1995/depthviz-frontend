@@ -12,14 +12,63 @@ interface Props {
 
 /** Public-friendly "Why?" panel — a plain-English breakdown of what's
  *  helping and hurting visibility, plus the trend and confidence context. */
+const CONFIDENCE_COLORS: Record<string, string> = {
+  high: 'var(--good)',
+  medium: 'var(--accent)',
+  low: 'var(--warn)',
+}
+
 export const ForecastExplanation = memo(function ForecastExplanation({ day, days, forecast }: Props) {
   const { helping, hurting } = summariseDrivers(day)
   const trend = days.length > 1 ? buildVisSummary(days) : ''
   const confidence = computeConfidence(day, forecast)
+  const summary = day.explanation
 
   return (
     <section className={styles.panel} aria-label="Why is visibility this way?">
       <div className={styles.title}>Why?</div>
+
+      {summary && (
+        <div className={styles.summary}>
+          <div className={styles.summaryHead}>
+            <div className={styles.visBlock}>
+              <span className={styles.visValue}>{summary.visibility_m.toFixed(1)}</span>
+              <span className={styles.visUnit}>m</span>
+            </div>
+            <span
+              className={styles.confChip}
+              style={{ color: CONFIDENCE_COLORS[summary.confidence] ?? 'var(--text-dim)' }}
+            >
+              {summary.confidence} confidence
+            </span>
+          </div>
+
+          <dl className={styles.summaryRows}>
+            <div className={styles.summaryRow}>
+              <dt>Main reason</dt>
+              <dd>{summary.main_reason}</dd>
+            </div>
+            {summary.satellite_signal && (
+              <div className={styles.summaryRow}>
+                <dt>Satellite signal</dt>
+                <dd>{summary.satellite_signal}</dd>
+              </div>
+            )}
+            {summary.local_reports && (
+              <div className={styles.summaryRow}>
+                <dt>Local reports</dt>
+                <dd>{summary.local_reports}</dd>
+              </div>
+            )}
+            {summary.model_agreement && (
+              <div className={styles.summaryRow}>
+                <dt>Model agreement</dt>
+                <dd>{summary.model_agreement}</dd>
+              </div>
+            )}
+          </dl>
+        </div>
+      )}
 
       <div className={styles.columns}>
         <div className={styles.column}>
