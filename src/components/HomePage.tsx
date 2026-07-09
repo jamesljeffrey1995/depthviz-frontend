@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getNews, getBestVisibility } from '../lib/api'
+import { safeColorClass } from '../lib/visibilityPalette'
 import type { Announcement, BestVisSpot } from '../types'
 import styles from './HomePage.module.css'
 
@@ -142,11 +143,6 @@ const HOW_IT_WORKS: { label: string; detail: string }[] = [
   { label: 'Ocean data', detail: 'Satellite and model data on plankton, sediment and clarity.' },
   { label: 'Diver reports', detail: 'Your on-the-day reports calibrate and correct the model.' },
 ]
-
-const COLOR_CLASSES = new Set(['blocked', 'poor', 'marginal', 'decent', 'good', 'excellent'])
-function safeColorClass(cls: string | undefined): string {
-  return cls && COLOR_CLASSES.has(cls) ? cls : 'decent'
-}
 
 /** Small teaser of the top-ranked UK spots for today. Deep-links into the full
  *  Best Visibility page rather than trying to load a forecast from the home

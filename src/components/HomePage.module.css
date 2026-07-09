@@ -233,13 +233,15 @@
   font-weight: 700;
 }
 
-/* Rating colour classes — mirror the app's shared visibility palette. */
-.blocked { color: #7a8a9a; }
-.poor { color: #e0503f; }
-.marginal { color: #f0a01f; }
+/* Rating colour classes — mirror the shared visibility palette used on the
+   Best Visibility page (BestVisibility.module.css) via the global tokens, so
+   colours stay consistent and theme-safe across the app. */
+.blocked { color: #4a4a5a; }
+.poor { color: var(--danger); }
+.marginal { color: var(--warn); }
 .decent { color: #7fb87a; }
-.good { color: #4ecb8d; }
-.excellent { color: var(--accent); }
+.good { color: var(--good); }
+.excellent { color: var(--excellent); }
 
 .bestSkeleton {
   display: flex;
