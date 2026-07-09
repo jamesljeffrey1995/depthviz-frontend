@@ -1,3 +1,10 @@
+# [1.21.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.20.0...v1.21.0) (2026-07-09)
+
+
+### Features
+
+* **home:** decision-focused homepage — value hero, best-vis teaser, grouped tools ([f55ae41](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/f55ae415f7404ef853ee77537ed67933ab394482))
+
 # [1.20.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.19.0...v1.20.0) (2026-07-07)
 
 
