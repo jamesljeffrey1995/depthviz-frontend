@@ -92,7 +92,7 @@ function LegalRouteWrapper({ onBack }: { onBack: () => void }) {
 
 export default function App() {
   const { user, loading: authLoading } = useAuth()
-  const { status, forecast, error, isRevalidating, searchByCoords, init } = useConditions()
+  const { status, forecast, forecastUnits, error, isRevalidating, searchByCoords, init } = useConditions()
   const serviceStatus = useServiceStatus()
   const downServices = ([
     ['open_meteo', 'Open-Meteo'],
@@ -116,9 +116,11 @@ export default function App() {
   // Label heights from the unit the displayed forecast was actually computed in,
   // not the live toggle. While a units change is refetching (stale-while-
   // revalidate) the old forecast is still on screen, so pairing its numbers with
-  // the new toggle value would show e.g. metres labelled "ft". `units` still
-  // drives the toggle UI and the refetch; only the data display uses this.
-  const dataUnits: 'ft' | 'm' = forecast?.units ?? units
+  // the new toggle value would show e.g. metres labelled "ft". `forecastUnits`
+  // is tracked in the hook alongside the forecast, so it stays correct even for
+  // responses the API didn't stamp with `units` (older caches / pre-deploy).
+  // `units` still drives the toggle UI and the refetch; only display uses this.
+  const dataUnits: 'ft' | 'm' = forecastUnits ?? forecast?.units ?? units
   const [weekView, setWeekView] = useState(false)
   const [diveDepth, setDiveDepth] = useState<number>(() => {
     const VALID_DEPTHS = [5, 10, 15, 20, 30]
@@ -238,7 +240,7 @@ export default function App() {
       if (forecastRaw) {
         const stored = JSON.parse(forecastRaw) as { units?: string; forecast?: ForecastResponse }
         if (stored?.units === units && stored.forecast) {
-          init(stored.forecast)
+          init(stored.forecast, units)
         }
       }
       searchByCoords(loc.lat, loc.lon, loc.name, loc.locationId ?? undefined, units)
