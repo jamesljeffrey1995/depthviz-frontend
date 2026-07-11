@@ -1,3 +1,11 @@
+## [1.22.1](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.22.0...v1.22.1) (2026-07-11)
+
+
+### Bug Fixes
+
+* **units:** label heights from the forecast's own units and fix dive-rating conversion ([1b41c01](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/1b41c01f44020174d5ab50779051b7ce958dc3a2))
+* **units:** track the displayed forecast's units in the hook ([20151d6](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/20151d600352d137e69ef7000cea11aa82f5ff24))
+
 # [1.22.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.21.0...v1.22.0) (2026-07-09)
 
 
