@@ -162,6 +162,11 @@ export interface ForecastResponse {
   report_count: number
   model_confidence: 'none' | 'low' | 'medium' | 'high'
   calibration_active: boolean
+  /** Wave/swell height unit the numbers in `days` are expressed in. The UI
+   *  labels heights from this — not its own toggle — so a slow or failed
+   *  refetch can never show a value in one unit with the other's label.
+   *  Optional so forecasts cached before this field existed still parse. */
+  units?: 'ft' | 'm'
 }
 
 export interface BestVisSpot {

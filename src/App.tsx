@@ -113,6 +113,12 @@ export default function App() {
       return v === 'ft' || v === 'm' ? v : 'ft'
     } catch { return 'ft' }
   })
+  // Label heights from the unit the displayed forecast was actually computed in,
+  // not the live toggle. While a units change is refetching (stale-while-
+  // revalidate) the old forecast is still on screen, so pairing its numbers with
+  // the new toggle value would show e.g. metres labelled "ft". `units` still
+  // drives the toggle UI and the refetch; only the data display uses this.
+  const dataUnits: 'ft' | 'm' = forecast?.units ?? units
   const [weekView, setWeekView] = useState(false)
   const [diveDepth, setDiveDepth] = useState<number>(() => {
     const VALID_DEPTHS = [5, 10, 15, 20, 30]
@@ -771,7 +777,7 @@ export default function App() {
                       <WeeklyOverview
                         days={forecast.days}
                         locationName={forecast.location_name}
-                        units={units}
+                        units={dataUnits}
                         selectedIndex={selectedDay}
                         onSelectDay={(i) => { setSelectedDay(i); setWeekView(false) }}
                       />
@@ -787,7 +793,7 @@ export default function App() {
                           lon={forecast.lon}
                           reportCount={forecast.report_count}
                           modelConfidence={forecast.model_confidence}
-                          units={units}
+                          units={dataUnits}
                           isAdmin={isAdmin}
                           biasOffset={forecast.bias_offset}
                           globalBiasOffset={forecast.global_bias_offset}
@@ -858,7 +864,7 @@ export default function App() {
                   locations={locations}
                   onSubmitted={() => navigate('/forecast')}
                   initialLocationId={selectedLocationId}
-                  units={units}
+                  units={dataUnits}
                 />
               </Suspense>
             ) : (
