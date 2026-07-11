@@ -217,6 +217,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, modelConfi
         todayIndex={todayIdx}
         locationName={locationName}
         forecast={{ report_count: reportCount, model_confidence: modelConfidence }}
+        units={units}
         onJumpToBestWindow={onSelectDay}
       />
 
@@ -225,6 +226,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, modelConfi
         day={day}
         days={heroDays}
         forecast={{ report_count: reportCount, model_confidence: modelConfidence }}
+        units={units}
       />
 
       {/* Visibility trend sparkline */}

@@ -1,5 +1,14 @@
 import type { DayForecast, ForecastResponse } from '../types'
 import { visForDay } from './visTrend'
+import { feetToMetres, type Units } from './units'
+
+/** Wave/swell heights on a DayForecast are in the display unit the forecast was
+ *  fetched with. The sea-state thresholds below are calibrated in metres, so
+ *  normalise before comparing. */
+function dominantWaveMetres(day: DayForecast, units: Units): number {
+  const dom = Math.max(day.wave_height ?? 0, day.swell_height ?? 0)
+  return units === 'ft' ? feetToMetres(dom) : dom
+}
 
 /** Locally calibrated visibility buckets for North East UK spearfishing /
  *  freediving. Deliberately NOT tropical-scuba thresholds — 3m is workable
@@ -63,6 +72,7 @@ const CONF_COLORS: Record<ConfidenceLevel, string> = {
 export function computeConfidence(
   day: DayForecast,
   forecast: Pick<ForecastResponse, 'report_count' | 'model_confidence'>,
+  units: Units = 'm',
 ): ConfidenceInfo {
   const reasons: string[] = []
   const reports = forecast.report_count ?? 0
@@ -82,7 +92,7 @@ export function computeConfidence(
   if (reports === 0 && level === 'high') level = 'medium'
 
   // Big swell or high wind — model gates in and out; treat as lower confidence.
-  const dominantWave = Math.max(day.wave_height ?? 0, day.swell_height ?? 0)
+  const dominantWave = dominantWaveMetres(day, units)
   if (dominantWave > 2 || (day.wind_speed ?? 0) > 25) {
     reasons.push('unsettled surface conditions')
     if (level === 'high') level = 'medium'
@@ -203,7 +213,7 @@ export interface DriverImpact {
 
 /** Break the forecast into the top helping/hurting drivers a diver can act on.
  *  Uses factors + algae + resuspension + river discharge. */
-export function summariseDrivers(day: DayForecast): { helping: DriverImpact[]; hurting: DriverImpact[] } {
+export function summariseDrivers(day: DayForecast, units: Units = 'm'): { helping: DriverImpact[]; hurting: DriverImpact[] } {
   const helping: DriverImpact[] = []
   const hurting: DriverImpact[] = []
 
@@ -211,10 +221,12 @@ export function summariseDrivers(day: DayForecast): { helping: DriverImpact[]; h
     list.push({ label, helping: list === helping, detail })
   }
 
-  // Swell/wave
-  const dom = Math.max(day.wave_height ?? 0, day.swell_height ?? 0)
-  if (dom < 0.6) push(helping, 'Swell', `low swell (${dom.toFixed(1)}m)`)
-  else if (dom > 1.5) push(hurting, 'Swell', `${dom.toFixed(1)}m swell stirring the surface`)
+  // Swell/wave. Thresholds are in metres; the displayed number stays in the
+  // user's unit so it matches the wave/swell figures elsewhere on the card.
+  const domM = dominantWaveMetres(day, units)
+  const domDisplay = Math.max(day.wave_height ?? 0, day.swell_height ?? 0)
+  if (domM < 0.6) push(helping, 'Swell', `low swell (${domDisplay.toFixed(1)}${units})`)
+  else if (domM > 1.5) push(hurting, 'Swell', `${domDisplay.toFixed(1)}${units} swell stirring the surface`)
 
   // Wind
   const wind = day.wind_speed ?? 0
@@ -251,8 +263,8 @@ export function summariseDrivers(day: DayForecast): { helping: DriverImpact[]; h
 
 /** Build the single-sentence "main reason" for the rating, e.g. for the hero.
  *  Combines the dominant driver + trend hint. */
-export function buildMainReason(day: DayForecast, best: BestWindow | null, todayIdx: number): string {
-  const { helping, hurting } = summariseDrivers(day)
+export function buildMainReason(day: DayForecast, best: BestWindow | null, todayIdx: number, units: Units = 'm'): string {
+  const { helping, hurting } = summariseDrivers(day, units)
   const primaryHurt = hurting[0]
   const primaryHelp = helping[0]
 

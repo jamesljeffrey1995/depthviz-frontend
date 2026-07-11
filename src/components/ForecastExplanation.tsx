@@ -8,6 +8,9 @@ interface Props {
   day: DayForecast
   days: DayForecast[]
   forecast: Pick<ForecastResponse, 'report_count' | 'model_confidence'>
+  /** Unit the day's wave/swell heights are in — so the helping/hurting swell
+   *  driver applies its metre-calibrated thresholds and labels correctly. */
+  units?: 'ft' | 'm'
 }
 
 // Keyed by the confidence union so a new/renamed level is a compile error here
@@ -20,10 +23,10 @@ const CONFIDENCE_COLORS: Record<VisibilityExplanation['confidence'], string> = {
 
 /** Public-friendly "Why?" panel — a plain-English breakdown of what's
  *  helping and hurting visibility, plus the trend and confidence context. */
-export const ForecastExplanation = memo(function ForecastExplanation({ day, days, forecast }: Props) {
-  const { helping, hurting } = summariseDrivers(day)
+export const ForecastExplanation = memo(function ForecastExplanation({ day, days, forecast, units = 'm' }: Props) {
+  const { helping, hurting } = summariseDrivers(day, units)
   const trend = days.length > 1 ? buildVisSummary(days) : ''
-  const confidence = computeConfidence(day, forecast)
+  const confidence = computeConfidence(day, forecast, units)
   const summary = day.explanation
 
   return (

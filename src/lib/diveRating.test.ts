@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getDiveRating, findBestWindow, computeConfidence } from './diveRating'
+import { getDiveRating, findBestWindow, computeConfidence, summariseDrivers } from './diveRating'
 import type { DayForecast } from '../types'
 
 function mkDay(overrides: Partial<DayForecast>): DayForecast {
@@ -110,5 +110,42 @@ describe('computeConfidence', () => {
     const day = mkDay({ wave_height: 0.2, wind_speed: 5, water_quality: { bgc_kd: 0.2, bgc_kd_vis: null, bgc_source: 'BGC', erddap_chlorophyll: null, erddap_kd490: null, erddap_kd490_vis: null, erddap_obs_date: '2025-06-30' } })
     const info = computeConfidence(day, { report_count: 6, model_confidence: 'high' })
     expect(info.level).toBe('high')
+  })
+
+  it('applies the 2m sea-state threshold in metres even when heights are in feet', () => {
+    // 1.5 m swell = ~4.9 ft. The API sends 4.92 when units='ft'. The metre
+    // threshold (>2 m = unsettled) must not fire off the raw feet number.
+    const calmDay = mkDay({
+      wave_height: 4.92, swell_height: 4.92, wind_speed: 5,
+      water_quality: { bgc_kd: 0.2, bgc_kd_vis: null, bgc_source: 'BGC', erddap_chlorophyll: null, erddap_kd490: null, erddap_kd490_vis: null, erddap_obs_date: '2025-06-30' },
+    })
+    const ft = computeConfidence(calmDay, { report_count: 6, model_confidence: 'high' }, 'ft')
+    expect(ft.reasons.some(r => r.includes('settled'))).toBe(true)
+    expect(ft.reasons.some(r => r.includes('unsettled'))).toBe(false)
+    // The same physical sea state read as metres would (wrongly, pre-fix) look
+    // huge — confirm the metre path agrees the day is calm.
+    const m = computeConfidence(mkDay({ wave_height: 1.5, swell_height: 1.5, wind_speed: 5, water_quality: calmDay.water_quality }), { report_count: 6, model_confidence: 'high' }, 'm')
+    expect(m.reasons.some(r => r.includes('settled'))).toBe(true)
+  })
+})
+
+describe('summariseDrivers unit handling (regression: feet values labelled "m")', () => {
+  it('labels the swell driver in the requested unit, not always metres', () => {
+    // 1.8 m swell → hurting. In ft view the number is ~5.9 ft and must read
+    // "5.9ft", never "5.9m" or the metres number "1.8ft".
+    const ftDay = mkDay({ wave_height: 5.91, swell_height: 5.91 })
+    const { hurting } = summariseDrivers(ftDay, 'ft')
+    const swell = hurting.find(d => d.label === 'Swell')
+    expect(swell).toBeDefined()
+    expect(swell!.detail).toContain('5.9ft')
+    expect(swell!.detail).not.toContain('5.9m')
+  })
+
+  it('classifies a calm day (in feet) as low swell, not stirring the surface', () => {
+    // 0.4 m swell = ~1.3 ft. Below the 0.6 m "low swell" threshold.
+    const ftDay = mkDay({ wave_height: 1.31, swell_height: 1.31 })
+    const { helping, hurting } = summariseDrivers(ftDay, 'ft')
+    expect(helping.some(d => d.label === 'Swell' && d.detail.includes('low swell'))).toBe(true)
+    expect(hurting.some(d => d.label === 'Swell')).toBe(false)
   })
 })

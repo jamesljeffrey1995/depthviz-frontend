@@ -18,6 +18,9 @@ interface Props {
   todayIndex: number
   locationName: string
   forecast: Pick<ForecastResponse, 'report_count' | 'model_confidence'>
+  /** Unit the day's wave/swell heights are in — needed so the recommendation
+   *  text applies its metre-calibrated sea-state thresholds correctly. */
+  units?: 'ft' | 'm'
   onJumpToBestWindow?: (index: number) => void
 }
 
@@ -58,13 +61,13 @@ function formatDate(dateStr: string): string {
 }
 
 export const ForecastHeroCard = memo(function ForecastHeroCard({
-  day, days, todayIndex, locationName, forecast, onJumpToBestWindow,
+  day, days, todayIndex, locationName, forecast, units = 'm', onJumpToBestWindow,
 }: Props) {
   const vis = visForDay(day)
   const rating = getDiveRating(vis)
-  const confidence = computeConfidence(day, forecast)
+  const confidence = computeConfidence(day, forecast, units)
   const best = findBestWindow(days)
-  const mainReason = buildMainReason(day, best, todayIndex)
+  const mainReason = buildMainReason(day, best, todayIndex, units)
   const recommendation = buildRecommendation(vis, rating, confidence, best, todayIndex)
 
   return (
