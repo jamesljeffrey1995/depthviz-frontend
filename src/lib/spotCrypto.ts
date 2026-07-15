@@ -170,7 +170,12 @@ export async function encryptCoord(value: number, key: CryptoKey): Promise<strin
   const combined = new Uint8Array(iv.length + new Uint8Array(ciphertext).length)
   combined.set(iv)
   combined.set(new Uint8Array(ciphertext), iv.length)
-  return btoa(String.fromCharCode(...combined))
+  // Build the binary string with a byte loop rather than
+  // String.fromCharCode(...combined) — spreading every byte as an argument can
+  // overflow the call stack for larger payloads. Matches shareTable.ts's loop.
+  let bin = ''
+  for (const b of combined) bin += String.fromCharCode(b)
+  return btoa(bin)
 }
 
 /** Decrypt a coordinate value from base64(iv + ciphertext). */

@@ -188,6 +188,10 @@ export default function App() {
     if (currentPath !== '/forecast') setWeekView(false)
   }, [currentPath])
 
+  // Always-current units, so the boot restore effect (which fires later, on
+  // authLoading) doesn't act on a stale captured value.
+  const unitsRef = useRef<'ft' | 'm'>(units)
+  unitsRef.current = units
   const prevUnitsRef = useRef<'ft' | 'm'>(units)
   useEffect(() => {
     if (prevUnitsRef.current === units) return
@@ -237,16 +241,22 @@ export default function App() {
       setSelectedLocationId(typeof loc.locationId === 'number' ? loc.locationId : null)
       // Home page has no forecast — don't restore a snapshot or fetch conditions.
       if (!FORECAST_ROUTES.includes(currentPath)) return
+      // Read units from a ref rather than the value captured when this effect
+      // was created: the effect fires when authLoading flips (async), by which
+      // point a boot-time units toggle could have changed the preference. Using
+      // the stale capture would restore/refetch in the wrong unit.
+      const currentUnits = unitsRef.current
       const forecastRaw = localStorage.getItem('dv_last_forecast')
       if (forecastRaw) {
         const stored = JSON.parse(forecastRaw) as { units?: string; forecast?: ForecastResponse }
-        if (stored?.units === units && stored.forecast) {
-          init(stored.forecast, units)
+        if (stored?.units === currentUnits && stored.forecast) {
+          init(stored.forecast, currentUnits)
         }
       }
-      searchByCoords(loc.lat, loc.lon, loc.name, loc.locationId ?? undefined, units)
+      searchByCoords(loc.lat, loc.lon, loc.name, loc.locationId ?? undefined, currentUnits)
     } catch {}
-    // init and searchByCoords are stable (useCallback []); units & currentPath captured once on mount
+    // init and searchByCoords are stable (useCallback []); units is read via
+    // unitsRef and currentPath is captured once on mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading])
 

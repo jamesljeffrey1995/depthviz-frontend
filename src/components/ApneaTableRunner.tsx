@@ -300,12 +300,19 @@ export function ApneaTableRunner({ user, onShowAuth, sharedTable }: Props) {
   useEffect(() => {
     if (phase !== 'hold' && phase !== 'rest' && phase !== 'prep') return
     let lock: { release: () => Promise<void> } | null = null
+    let released = false
     type Nav = Navigator & { wakeLock?: { request: (type: 'screen') => Promise<{ release: () => Promise<void> }> } }
     const w = navigator as Nav
     if (w.wakeLock) {
-      w.wakeLock.request('screen').then(l => { lock = l }).catch(() => {})
+      w.wakeLock.request('screen').then(l => {
+        // The request resolves asynchronously; if cleanup already ran, release
+        // immediately so the acquired lock doesn't leak.
+        if (released) l.release().catch(() => {})
+        else lock = l
+      }).catch(() => {})
     }
     return () => {
+      released = true
       if (lock) lock.release().catch(() => {})
     }
   }, [phase])

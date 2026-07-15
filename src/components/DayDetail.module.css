@@ -200,6 +200,35 @@
   line-height: 1.8;
 }
 
+/* Measured chlorophyll-a surfaced in the algae card (issue #121) */
+.algaeMeasured {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.algaeMeasuredLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.6;
+}
+
+.algaeMeasuredValue {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.algaeContradiction {
+  flex-basis: 100%;
+  margin-top: 2px;
+  font-size: 11px;
+  font-style: italic;
+  opacity: 0.75;
+}
+
 /* Factors */
 .grid {
   display: grid;
