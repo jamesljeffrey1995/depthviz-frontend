@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   analyseVideo,
   subscribeOpenCVLog,
@@ -14,6 +14,24 @@ interface Props {
 }
 
 type Phase = 'idle' | 'extracting' | 'analysing' | 'done' | 'error'
+
+// ── Sparkbar colour: red→yellow→green by visibility ──
+// Module-scope pure function so it isn't reallocated on every render.
+function barColor(vis: number, max: number): string {
+  const t = Math.min(vis / Math.max(max, 1), 1)
+  if (t < 0.5) {
+    const r = 220
+    const g = Math.round(80 + t * 2 * 140)
+    return `rgb(${r},${g},50)`
+  }
+  const r = Math.round(220 - (t - 0.5) * 2 * 180)
+  const g = 200
+  return `rgb(${r},${g},60)`
+}
+
+// A dive clip can be thousands of frames; rendering one DOM node each makes the
+// sparkline enormous. Cap the drawn bars and evenly downsample past this.
+const MAX_SPARK_BARS = 240
 
 export default function VisibilityAnalyser({ calib = 4.0, onResult, className }: Props) {
   const [phase, setPhase] = useState<Phase>('idle')
@@ -123,20 +141,19 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
     URL.revokeObjectURL(url)
   }
 
-  // ── Sparkbar colour: red→yellow→green by visibility ──
-  function barColor(vis: number, max: number): string {
-    const t = Math.min(vis / Math.max(max, 1), 1)
-    if (t < 0.5) {
-      const r = 220
-      const g = Math.round(80 + t * 2 * 140)
-      return `rgb(${r},${g},50)`
-    }
-    const r = Math.round(220 - (t - 0.5) * 2 * 180)
-    const g = 200
-    return `rgb(${r},${g},60)`
-  }
-
   const isProcessing = phase === 'extracting' || phase === 'analysing'
+
+  // Evenly downsample the per-frame series to at most MAX_SPARK_BARS so the
+  // sparkline DOM stays bounded regardless of clip length.
+  const sparkFrames = useMemo(() => {
+    const frames = report?.frames
+    if (!frames) return []
+    if (frames.length <= MAX_SPARK_BARS) return frames
+    const step = frames.length / MAX_SPARK_BARS
+    const out: typeof frames = []
+    for (let i = 0; i < MAX_SPARK_BARS; i++) out.push(frames[Math.floor(i * step)])
+    return out
+  }, [report])
 
   return (
     <div className={`${styles.container} ${className ?? ''}`}>
@@ -153,7 +170,7 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
             onDrop={onDrop}
             onClick={() => inputRef.current?.click()}
           >
-            <div className={styles.dropzoneIcon}>🎥</div>
+            <div className={styles.dropzoneIcon} aria-hidden="true">🎥</div>
             <div className={styles.dropzoneTitle}>Drop dive video here</div>
             <div className={styles.dropzoneHint}>or click to browse — MP4, MOV, WebM</div>
             <input
@@ -290,7 +307,7 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
           <div className={styles.sparkSection}>
             <div className={styles.sparkTitle}>Per-frame visibility</div>
             <div className={styles.sparkContainer}>
-              {report.frames.map((f) => {
+              {sparkFrames.map((f) => {
                 const maxVis = report.visibility_m.max
                 const heightPct = maxVis > 0 ? (f.visibility_m / maxVis) * 100 : 0
                 return (

@@ -411,9 +411,13 @@ export function ApneaTableRunner({ user, onShowAuth, sharedTable }: Props) {
         <label htmlFor="audio-toggle">Audio cues (start, countdown, finish)</label>
       </div>
 
-      <div className={`${styles.runnerCard} ${phaseClass}`} aria-live="polite">
-        <div className={styles.phaseLabel}>{phaseLabel}</div>
-        <div className={styles.bigTime}>{formatTime(displaySeconds)}</div>
+      <div className={`${styles.runnerCard} ${phaseClass}`}>
+        {/* Only the phase label is a live region — it changes a handful of
+            times per session. The big countdown re-renders continuously, so
+            keeping it out of the live region (and hidden from SR) stops the
+            screen reader from being flooded with per-tick announcements. */}
+        <div className={styles.phaseLabel} aria-live="polite">{phaseLabel}</div>
+        <div className={styles.bigTime} aria-hidden="true">{formatTime(displaySeconds)}</div>
         <div className={styles.roundInfo}>
           {phase === 'idle' && `${table.cycles.length} rounds · total ${Math.round(totalSeconds(table.cycles) / 60)} min`}
           {phase === 'hold' && `Hold ${cycleIdx + 1}/${table.cycles.length} · target ${formatTime(table.cycles[cycleIdx].hold_seconds)}`}
