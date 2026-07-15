@@ -1,3 +1,15 @@
+# [1.23.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.22.1...v1.23.0) (2026-07-15)
+
+
+### Bug Fixes
+
+* **design:** address review — a11y, safe button defaults, disclosure ([f1f2d06](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/f1f2d065148050c0a57903f5fcd9fc110cbc98b6))
+
+
+### Features
+
+* **design:** decision-first redesign — Dive Quality Score, DS tokens & UI library ([7045383](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/7045383994dd3a3deb300b4208c655f22292cb6c))
+
 ## [1.22.1](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.22.0...v1.22.1) (2026-07-11)
 
 
