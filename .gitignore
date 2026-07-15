@@ -1,7 +1,26 @@
+# Dependencies
 node_modules
+
+# Build output
 dist
 dist-ssr
-*.local
+.vite/
+
+# Environment & secrets
 .env
-.env.local
+.env.*
+!.env.example
+*.local
+
+# Logs
+*.log
+logs/
+
+# OS
 .DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp

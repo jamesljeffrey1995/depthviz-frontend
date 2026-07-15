@@ -212,7 +212,7 @@ function CookiePolicy() {
         <ul>
           <li><span className={styles.highlight}>Supabase auth token</span> — keeps you signed in between sessions (localStorage)</li>
           <li><span className={styles.highlight}>Cookie consent preference</span> — remembers your cookie banner choice (localStorage)</li>
-          <li><span className={styles.highlight}>Custom dive spots</span> — stores your user-added map spots locally in your browser (localStorage). These are never sent to our servers and are not visible to other users.</li>
+          <li><span className={styles.highlight}>Custom dive spots</span> — stores your user-added map spots locally in your browser (localStorage). These are never sent to our servers and are not visible to other users. Because they stay on your device only, they are held in plain text (not encrypted): anyone with access to this browser profile — a shared computer, or a malicious browser extension — could read their names and coordinates. Remove them, or clear this site&rsquo;s storage, on a device you do not control.</li>
         </ul>
       </div>
 
