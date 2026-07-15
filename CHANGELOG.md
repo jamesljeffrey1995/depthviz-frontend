@@ -1,3 +1,10 @@
+## [1.23.1](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.23.0...v1.23.1) (2026-07-15)
+
+
+### Bug Fixes
+
+* consolidate .gitignore and ignore .env.* ([#168](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/168)); disclose plaintext local spot storage ([#155](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/155)) ([2b341e3](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/2b341e350df916e3a8a930dce61f908caa0a2977))
+
 # [1.23.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.22.1...v1.23.0) (2026-07-15)
 
 
