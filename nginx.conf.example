@@ -60,18 +60,25 @@ server {
 
     # Content-Security-Policy
     # 'unsafe-eval' + 'wasm-unsafe-eval' are required by @techstark/opencv-js.
-    # Keep this in sync with public/_headers (Cloudflare/Netlify) and the
-    # <meta> tag in index.html.
+    # This MUST stay byte-for-byte in sync with the canonical policy in
+    # vite.config.ts (cspValue), public/_headers, and the <meta> tag in
+    # index.html. The directive list below is the same policy the app is
+    # actually served with in dev/preview; the frontend talks only to Supabase
+    # (wildcard) and Open-Meteo geocoding, and loads OSM/NASA-GIBS/CoastWatch/
+    # EOX imagery. Marine/weather upstreams (StormGlass, Copernicus, Open-Meteo
+    # marine) are backend-only and must NOT appear here. Fonts are self-hosted
+    # via @fontsource, so no Google Fonts hosts.
     add_header Content-Security-Policy
         "default-src 'self'; \
          script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'; \
-         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; \
-         font-src 'self' https://fonts.gstatic.com; \
-         img-src 'self' data: https://*.tile.openstreetmap.org https://tiles.openseamap.org; \
-         connect-src 'self' https://ffkagdpikhnmsdltcwig.supabase.co https://geocoding-api.open-meteo.com https://api.open-meteo.com https://marine-api.open-meteo.com https://api.stormglass.io https://marine.copernicus.eu; \
-         object-src 'none'; \
+         style-src 'self' 'unsafe-inline'; \
+         img-src 'self' data: blob: https://*.tile.openstreetmap.org https://gibs.earthdata.nasa.gov https://coastwatch.noaa.gov https://tiles.maps.eox.at; \
+         connect-src 'self' https://*.supabase.co https://geocoding-api.open-meteo.com; \
+         font-src 'self'; \
          media-src 'self' blob:; \
          worker-src 'self' blob:; \
+         object-src 'none'; \
+         base-uri 'self'; \
          frame-ancestors 'none';"
         always;
 }
