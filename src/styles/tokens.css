@@ -1,0 +1,216 @@
+/* ============================================================================
+   DepthViz Design System — Design Tokens
+   ----------------------------------------------------------------------------
+   The single source of truth for the redesign. Every new component styles
+   itself from these `--ds-*` variables so the whole product reads as one
+   system. Tokens are namespaced (`--ds-`) so they can be introduced
+   progressively alongside the legacy `index.css` variables without collisions.
+
+   Layers:
+     1. Primitive scales   — raw values (never referenced directly in a card)
+     2. Semantic tokens    — role-based aliases the components actually use
+     3. Dive-quality scale — the 6-step visibility rating, colour + on-colour
+     4. Theme surfaces      — dark (default) and light overrides
+
+   Colour is never the only signal: every quality step ships with a label and
+   an icon in the component layer, and each accent has a paired "on" colour
+   verified for WCAG AA contrast.
+   ========================================================================== */
+
+:root {
+  /* ── 1. Primitive scales ────────────────────────────────────────────── */
+
+  /* Ink / neutral ramp (cool, ocean-tinted greys) */
+  --ds-ink-950: #05121c;
+  --ds-ink-900: #081b28;
+  --ds-ink-850: #0b2233;
+  --ds-ink-800: #102b3f;
+  --ds-ink-700: #1a3a52;
+  --ds-ink-600: #2b5170;
+  --ds-ink-500: #4a6f8c;
+  --ds-ink-400: #6d90a8;
+  --ds-ink-300: #9bb6c8;
+  --ds-ink-200: #c4d6e1;
+  --ds-ink-100: #e4eef4;
+  --ds-ink-050: #f2f7fa;
+  --ds-white:   #ffffff;
+
+  /* Ocean accent (primary brand) */
+  --ds-ocean-100: #d3f4ff;
+  --ds-ocean-300: #6fe0ff;
+  --ds-ocean-400: #24c6f0;
+  --ds-ocean-500: #06a6d6;   /* primary accent */
+  --ds-ocean-600: #0682ad;
+  --ds-ocean-700: #0a6488;
+
+  /* Depth accent (secondary — deep teal/indigo for charts + advanced) */
+  --ds-depth-400: #5b8def;
+  --ds-depth-500: #3d6fd6;
+
+  /* Quality hues — chosen for distinct luminance steps (colourblind-safe) */
+  --ds-q-blown:     #64788c;  /* grey — not worth getting wet */
+  --ds-q-poor:      #e5533d;  /* red-orange */
+  --ds-q-marginal:  #f0a01f;  /* amber */
+  --ds-q-workable:  #7cc47a;  /* soft green */
+  --ds-q-good:      #22b573;  /* green */
+  --ds-q-excellent: #17d1a6;  /* teal-cyan */
+
+  /* Status hues */
+  --ds-danger:  #e5533d;
+  --ds-warn:    #f0a01f;
+  --ds-success: #22b573;
+  --ds-info:    #24c6f0;
+
+  /* ── 2. Spacing — strict 8px system (4 is the only sub-step) ─────────── */
+  --ds-space-1:  4px;
+  --ds-space-2:  8px;
+  --ds-space-3:  12px;
+  --ds-space-4:  16px;
+  --ds-space-5:  24px;
+  --ds-space-6:  32px;
+  --ds-space-7:  48px;
+  --ds-space-8:  64px;
+
+  /* ── Radii ──────────────────────────────────────────────────────────── */
+  --ds-radius-sm:   8px;
+  --ds-radius-md:  12px;   /* cards */
+  --ds-radius-lg:  16px;   /* large cards / hero */
+  --ds-radius-xl:  24px;   /* modals / sheets */
+  --ds-radius-pill: 999px;
+
+  /* ── Typography ─────────────────────────────────────────────────────── */
+  --ds-font-sans: 'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont,
+                  'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --ds-font-num:  'Inter Variable', 'Inter', ui-monospace, 'Space Mono', monospace;
+
+  /* Type scale (size / line-height / weight handled per role in components) */
+  --ds-text-hero:    clamp(36px, 7vw, 48px);
+  --ds-text-display: clamp(28px, 5vw, 34px);
+  --ds-text-h1:      28px;
+  --ds-text-h2:      24px;
+  --ds-text-h3:      20px;
+  --ds-text-card:    17px;
+  --ds-text-body:    15px;
+  --ds-text-meta:    13px;
+  --ds-text-label:   12px;
+
+  --ds-lh-tight: 1.1;
+  --ds-lh-snug:  1.3;
+  --ds-lh-body:  1.55;
+
+  --ds-fw-regular: 400;
+  --ds-fw-medium:  500;
+  --ds-fw-semi:    600;
+  --ds-fw-bold:    700;
+
+  --ds-tracking-tight: -0.02em;
+  --ds-tracking-label:  0.04em;
+
+  /* ── Motion ─────────────────────────────────────────────────────────── */
+  --ds-dur-fast:  150ms;
+  --ds-dur-base:  220ms;
+  --ds-dur-slow:  300ms;
+  --ds-ease:        cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ds-ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ── 4a. Dark theme surfaces (default) ──────────────────────────────── */
+  --ds-bg:            var(--ds-ink-950);
+  --ds-surface:       #0b2233cc;               /* frosted card */
+  --ds-surface-solid: #0d2740;
+  --ds-surface-raised:#12324c;
+  --ds-surface-sunken:#081b28;
+  --ds-hairline:      rgba(155, 182, 200, 0.14);
+  --ds-hairline-strong: rgba(155, 182, 200, 0.26);
+
+  --ds-text-strong:  var(--ds-ink-050);
+  --ds-text-body:    var(--ds-ink-200);
+  --ds-text-muted:   var(--ds-ink-400);
+  --ds-text-faint:   var(--ds-ink-500);
+
+  --ds-accent:       var(--ds-ocean-400);
+  --ds-accent-strong:var(--ds-ocean-300);
+  --ds-on-accent:    #04222e;
+  --ds-accent-wash:  rgba(36, 198, 240, 0.12);
+
+  --ds-focus-ring:   var(--ds-ocean-300);
+
+  /* Shadows — used only to establish hierarchy, never for decoration */
+  --ds-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --ds-shadow-2: 0 8px 24px rgba(0, 0, 0, 0.40);
+  --ds-shadow-3: 0 20px 48px rgba(0, 0, 0, 0.52);
+  --ds-shadow-focus: 0 0 0 3px rgba(36, 198, 240, 0.35);
+
+  /* Chart ink — trend line, gridline, area fill */
+  --ds-chart-grid:  rgba(155, 182, 200, 0.10);
+  --ds-chart-axis:  var(--ds-ink-500);
+  --ds-chart-line:  var(--ds-ocean-400);
+  --ds-chart-area:  rgba(36, 198, 240, 0.16);
+  --ds-chart-now:   var(--ds-ocean-300);
+}
+
+/* ── 4b. Light theme ──────────────────────────────────────────────────── */
+:root[data-ds-theme='light'] {
+  --ds-bg:            var(--ds-ink-050);
+  --ds-surface:       #ffffffe6;
+  --ds-surface-solid: #ffffff;
+  --ds-surface-raised:#ffffff;
+  --ds-surface-sunken:#eaf1f6;
+  --ds-hairline:      rgba(16, 43, 63, 0.10);
+  --ds-hairline-strong: rgba(16, 43, 63, 0.18);
+
+  --ds-text-strong:  var(--ds-ink-900);
+  --ds-text-body:    var(--ds-ink-800);
+  --ds-text-muted:   var(--ds-ink-600);
+  --ds-text-faint:   var(--ds-ink-500);
+
+  --ds-accent:       var(--ds-ocean-600);
+  --ds-accent-strong:var(--ds-ocean-700);
+  --ds-on-accent:    #ffffff;
+  --ds-accent-wash:  rgba(6, 130, 173, 0.10);
+
+  --ds-shadow-1: 0 1px 2px rgba(16, 43, 63, 0.08);
+  --ds-shadow-2: 0 8px 24px rgba(16, 43, 63, 0.10);
+  --ds-shadow-3: 0 20px 48px rgba(16, 43, 63, 0.16);
+
+  --ds-chart-grid:  rgba(16, 43, 63, 0.08);
+  --ds-chart-axis:  var(--ds-ink-500);
+  --ds-chart-line:  var(--ds-ocean-600);
+  --ds-chart-area:  rgba(6, 130, 173, 0.12);
+  --ds-chart-now:   var(--ds-ocean-600);
+}
+
+/* Respect OS preference when the app hasn't pinned a theme. The live app is
+   dark today, so light only activates via the explicit attribute above; this
+   block keeps the tokens correct if the shell later opts into system theme. */
+@media (prefers-color-scheme: light) {
+  :root[data-ds-theme='system'] {
+    --ds-bg: var(--ds-ink-050);
+    --ds-surface: #ffffffe6;
+    --ds-surface-solid: #ffffff;
+    --ds-text-strong: var(--ds-ink-900);
+    --ds-text-body: var(--ds-ink-800);
+    --ds-text-muted: var(--ds-ink-600);
+    --ds-accent: var(--ds-ocean-600);
+    --ds-on-accent: #ffffff;
+  }
+}
+
+/* ── Utility: a11y-friendly focus ring for any DS component ───────────── */
+.ds-focusable:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-shadow-focus);
+  border-radius: var(--ds-radius-sm);
+}
+
+/* Screen-reader-only helper reused across DS components */
+.ds-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

@@ -54,6 +54,7 @@ const ForumThreadPage = lazy(() => import('./components/ForumPage').then(m => ({
 const ChangelogPage = lazy(() => import('./components/ChangelogPage').then(m => ({ default: m.ChangelogPage })))
 const CompetitionAdmin = lazy(() => import('./components/CompetitionAdmin').then(m => ({ default: m.CompetitionAdmin })))
 const CompetitionRegister = lazy(() => import('./components/CompetitionRegister').then(m => ({ default: m.CompetitionRegister })))
+const DesignSystemPage = lazy(() => import('./components/DesignSystemPage').then(m => ({ default: m.DesignSystemPage })))
 
 /** Routes that depend on a loaded location's conditions context (the forecast
  *  itself plus its forecast-adjacent pages — tides, report, history, dispute).
@@ -617,6 +618,13 @@ export default function App() {
           <Route path="/changelog" element={
             <Suspense fallback={null}>
               <ChangelogPage onBack={() => navigate(-1)} />
+            </Suspense>
+          } />
+
+          {/* Living design-system style guide */}
+          <Route path="/design" element={
+            <Suspense fallback={null}>
+              <DesignSystemPage />
             </Suspense>
           } />
 
