@@ -7,8 +7,8 @@ import { VisTrendChart } from './VisTrendChart'
 import { SwellChart } from './SwellChart'
 import { KelpVisibilityNote } from './KelpVisibilityNote'
 import { SatelliteImageryCard } from './SatelliteImageryCard'
-import { ForecastHeroCard } from './ForecastHeroCard'
 import { ForecastExplanation } from './ForecastExplanation'
+import { DiveScoreCard } from './DiveScoreCard'
 import styles from './DayDetail.module.css'
 
 interface Props {
@@ -210,14 +210,16 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, modelConfi
 
   return (
     <div className={styles.card}>
-      {/* Decision hero — the answer to "should I dive this spot?" */}
-      <ForecastHeroCard
+      {/* Decision hero — the single, prominent Dive Quality Score that answers
+          "should I dive this spot today?" before any scrolling. Supersedes the
+          legacy ForecastHeroCard, folding in the best-window shortcut. */}
+      <DiveScoreCard
         day={day}
-        days={heroDays}
-        todayIndex={todayIdx}
         locationName={locationName}
         forecast={{ report_count: reportCount, model_confidence: modelConfidence }}
         units={units}
+        days={heroDays}
+        todayIndex={todayIdx}
         onJumpToBestWindow={onSelectDay}
       />
 
