@@ -58,7 +58,9 @@ export const DiveScoreCard = memo(function DiveScoreCard({
   const result = computeDiveScore(day, units)
   const confidence = computeConfidence(day, forecast, units)
   const answer = ANSWER_META[result.answer]
-  const [showFactors, setShowFactors] = useState(true)
+  // Progressive disclosure: the score, verdict and key-driver line answer the
+  // question at a glance; the full factor breakdown is one tap away.
+  const [showFactors, setShowFactors] = useState(false)
 
   const best = days ? findBestWindow(days) : null
   const bestIsNow = !!best && best.startIndex <= todayIndex && best.endIndex >= todayIndex
@@ -97,6 +99,7 @@ export const DiveScoreCard = memo(function DiveScoreCard({
 
       {/* 5 · Why — the factor breakdown, expandable */}
       <button
+        type="button"
         className={styles.toggle}
         onClick={() => setShowFactors(v => !v)}
         aria-expanded={showFactors}

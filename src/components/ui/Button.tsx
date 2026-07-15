@@ -25,11 +25,15 @@ export function Button({
   iconStart,
   iconEnd,
   className = '',
+  type = 'button',
   children,
   ...rest
 }: ButtonProps) {
   return (
     <button
+      // Default to "button" so a DS button never triggers an accidental form
+      // submit; callers can still opt into type="submit".
+      type={type}
       className={[
         styles.btn,
         styles[variant],

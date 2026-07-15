@@ -21,15 +21,14 @@ export function SegmentedControl<T extends string>({
   options, value, onChange, ariaLabel, size = 'md',
 }: SegmentedControlProps<T>) {
   return (
-    <div className={`${styles.group} ${styles[`size_${size}`]}`} role="tablist" aria-label={ariaLabel}>
+    <div className={`${styles.group} ${styles[`size_${size}`]}`} role="group" aria-label={ariaLabel}>
       {options.map(opt => {
         const active = opt.value === value
         return (
           <button
             key={opt.value}
             type="button"
-            role="tab"
-            aria-selected={active}
+            aria-pressed={active}
             className={`${styles.seg} ${active ? styles.active : ''}`}
             onClick={() => onChange(opt.value)}
           >
