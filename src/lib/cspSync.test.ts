@@ -75,16 +75,26 @@ function withoutFrameAncestors(d: Record<string, string[]>): Record<string, stri
 }
 
 describe('Content-Security-Policy stays in sync across all copies', () => {
-  const canonical = withoutFrameAncestors(parseCsp(extractCsp('vite.config.ts')))
+  const canonical = parseCsp(extractCsp('vite.config.ts'))
 
-  it('the canonical policy hardens object-src and base-uri', () => {
+  it('the canonical policy hardens object-src, base-uri, and frame-ancestors', () => {
     expect(canonical['object-src']).toEqual(["'none'"])
     expect(canonical['base-uri']).toEqual(["'self'"])
+    expect(canonical['frame-ancestors']).toEqual(["'none'"])
   })
 
-  for (const file of ['public/_headers', 'index.html', 'nginx.conf.example']) {
-    it(`${file} matches the canonical CSP`, () => {
-      expect(withoutFrameAncestors(parseCsp(extractCsp(file)))).toEqual(canonical)
+  // Server-delivered copies must match the FULL canonical policy, including
+  // frame-ancestors — otherwise one could silently drop it and still pass.
+  for (const file of ['public/_headers', 'nginx.conf.example']) {
+    it(`${file} matches the canonical CSP exactly`, () => {
+      expect(parseCsp(extractCsp(file))).toEqual(canonical)
     })
   }
+
+  // The index.html <meta> copy cannot express frame-ancestors, so it's the only
+  // copy compared with that one directive omitted from both sides.
+  it('index.html matches the canonical CSP (minus frame-ancestors)', () => {
+    expect(withoutFrameAncestors(parseCsp(extractCsp('index.html'))))
+      .toEqual(withoutFrameAncestors(canonical))
+  })
 })

@@ -358,12 +358,16 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
                         className={`${styles.voteBtn} ${userVote === 'up' ? styles.voteBtnActive : ''}`}
                         onClick={() => handleDbVote(loc.id, 'up')}
                         aria-label="Upvote this spot"
+                        aria-describedby={`vote-count-${loc.id}`}
                       >
                         👍
                       </button>
+                      {/* Associate the count with both buttons via
+                          aria-describedby (not a live region) so screen readers
+                          get the relationship without an announcement per vote. */}
                       <span
+                        id={`vote-count-${loc.id}`}
                         className={styles.voteCount}
-                        role="status"
                         aria-label={`${voteCount} net vote${Math.abs(voteCount) === 1 ? '' : 's'}`}
                       >
                         {voteCount}
@@ -372,6 +376,7 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
                         className={`${styles.voteBtn} ${userVote === 'down' ? styles.voteBtnActive : ''}`}
                         onClick={() => handleDbVote(loc.id, 'down')}
                         aria-label="Downvote this spot"
+                        aria-describedby={`vote-count-${loc.id}`}
                       >
                         👎
                       </button>
