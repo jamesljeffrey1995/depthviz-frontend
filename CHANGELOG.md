@@ -1,3 +1,17 @@
+# [1.24.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.23.1...v1.24.0) (2026-07-16)
+
+
+### Bug Fixes
+
+* **frontend:** a11y announcements + render-perf in map/analyser ([38f0c46](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/38f0c463ad0871f394d38136dcc0e4e03310a49f)), closes [#158](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/158) [#159](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/159) [#159](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/159) [#158](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/158)
+* **frontend:** address Copilot review — CSP test rigor + a11y associations ([2f87086](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/2f87086692f00b78a23fb0b5fc49a79672834305))
+* **frontend:** CSP sync, api robustness, cookie consent, timers, canonical domain ([dc7cac5](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/dc7cac5b77e333f4f17b60d06435f87580bd74db)), closes [#156](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/156) [#157](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/157) [#160](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/160) [#161](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/161) [#167](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/167) [#156](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/156) [#157](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/157) [#160](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/160) [#161](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/161) [#167](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/167)
+
+
+### Features
+
+* **frontend:** surface measured chl-a; rewrite README; correctness cleanups ([f52ec48](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/f52ec48f41b5154d36b3a6f9678586a3a5ce8e02)), closes [#121](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/121) [#166](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/166) [#169](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/169) [#121](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/121) [#166](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/166) [#169](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/169)
+
 ## [1.23.1](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.23.0...v1.23.1) (2026-07-15)
 
 
