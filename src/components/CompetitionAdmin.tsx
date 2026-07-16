@@ -160,7 +160,7 @@ function fmtTime(iso: string | null): string {
 function fmtDate(iso: string | null | undefined): string {
   if (!iso) return '—'
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso)
-  if (m) return `${m[3]}/${m[2]}/${m[1].slice(-2)}`
+  if (m) return `${m[3]}/${m[2]}/${m[1]!.slice(-2)}`
   const d = new Date(iso)
   if (isNaN(d.getTime())) return iso
   const dd = String(d.getDate()).padStart(2, '0')
@@ -243,7 +243,7 @@ export function CompetitionAdmin({ isAdmin }: Props) {
         // fall back to the newest so we don't leave the picker blank.
         setSelectedId(prev => {
           if (prev !== null && items.some(c => c.id === prev)) return prev
-          return items.length > 0 ? items[0].id : null
+          return items[0]?.id ?? null
         })
       })
       .catch(e => setError(errMsg(e)))
@@ -900,12 +900,12 @@ function CompetitionWizard({
       <div className={styles.formActions}>
         <button className={styles.btnGhost} onClick={handleCancel} disabled={saving}>Cancel</button>
         {!isFirst && (
-          <button className={styles.btnGhost} onClick={() => setStep(WIZARD_STEPS[stepIndex - 1][0])}
+          <button className={styles.btnGhost} onClick={() => setStep(WIZARD_STEPS[stepIndex - 1]![0])}
                   disabled={saving}>‹ Back</button>
         )}
         {!isLast ? (
           <button className={styles.btnPrimary}
-                  onClick={() => setStep(WIZARD_STEPS[stepIndex + 1][0])}
+                  onClick={() => setStep(WIZARD_STEPS[stepIndex + 1]![0])}
                   disabled={saving}>Next ›</button>
         ) : (
           <button className={styles.btnPrimary} onClick={save} disabled={saving}>
@@ -2115,6 +2115,7 @@ function CompetitorWeighIn({
       .sort((a, b) => a.created_at.localeCompare(b.created_at))
     if (candidates.length === 0) return
     const target = candidates.filter(f => f.pending).pop() ?? candidates[candidates.length - 1]
+    if (!target) return
     if (target.lock_result) {
       onError('Cannot remove a locked fish — unlock it first.')
       return
@@ -2939,9 +2940,9 @@ function ScheduleEditor({
     const j = i + dir
     if (j < 0 || j >= value.length) return
     const next = [...value]
-    ;[next[i], next[j]] = [next[j], next[i]]
+    ;[next[i], next[j]] = [next[j]!, next[i]!]
     const k = keysRef.current
-    ;[k[i], k[j]] = [k[j], k[i]]
+    ;[k[i], k[j]] = [k[j]!, k[i]!]
     onChange(next)
   }
   function add() {

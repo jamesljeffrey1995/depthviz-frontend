@@ -71,12 +71,16 @@ interface Anchor { x: number; y: number }
 
 function interpolate(x: number, anchors: Anchor[]): number {
   if (!Number.isFinite(x)) return 0
-  if (x <= anchors[0].x) return anchors[0].y
+  const first = anchors[0]
+  if (!first) return 0
+  if (x <= first.x) return first.y
   const last = anchors[anchors.length - 1]
+  if (!last) return 0
   if (x >= last.x) return last.y
   for (let i = 1; i < anchors.length; i++) {
     const a = anchors[i - 1]
     const b = anchors[i]
+    if (!a || !b) continue
     if (x <= b.x) {
       const t = (x - a.x) / (b.x - a.x)
       return a.y + t * (b.y - a.y)
@@ -162,12 +166,12 @@ const BANDS: ScoreBand[] = [
 ]
 
 export function bandForScore(score: number): ScoreBand {
-  if (score >= 82) return BANDS[0]
-  if (score >= 64) return BANDS[1]
-  if (score >= 48) return BANDS[2]
-  if (score >= 30) return BANDS[3]
-  if (score >= 14) return BANDS[4]
-  return BANDS[5]
+  if (score >= 82) return BANDS[0]!
+  if (score >= 64) return BANDS[1]!
+  if (score >= 48) return BANDS[2]!
+  if (score >= 30) return BANDS[3]!
+  if (score >= 14) return BANDS[4]!
+  return BANDS[5]!
 }
 
 /** Dominant wave height in metres, normalised from the forecast's display unit. */
@@ -260,5 +264,5 @@ export function computeDiveScore(day: DayForecast, units: Units = 'm'): DiveScor
       : b.sub * b.weight - a.sub * a.weight,  // best contributor first
   )
 
-  return { score, band, answer: band.answer, keyDriver: sorted[0], factors }
+  return { score, band, answer: band.answer, keyDriver: sorted[0]!, factors }
 }

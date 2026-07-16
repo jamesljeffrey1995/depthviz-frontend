@@ -22,6 +22,7 @@ function parseCsp(csp: string): Record<string, string[]> {
     const tokens = part.trim().split(/\s+/).filter(Boolean)
     if (tokens.length === 0) continue
     const [name, ...sources] = tokens
+    if (!name) continue
     out[name] = sources.sort()
   }
   return out

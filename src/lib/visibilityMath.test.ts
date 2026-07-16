@@ -123,7 +123,7 @@ describe('UDCP transmission → visibility contract for real dive footage', () =
   test('lower transmission (more turbid) yields lower visibility', () => {
     const vis = turbidDarkChannels.map((d) => beerLambert(transmissionFromDarkChannel(d), CALIB))
     for (let i = 1; i < vis.length; i++) {
-      expect(vis[i]).toBeLessThan(vis[i - 1])
+      expect(vis[i]).toBeLessThan(vis[i - 1]!)
     }
   })
 })

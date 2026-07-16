@@ -49,7 +49,9 @@ function bestDayIndex(days: DayForecast[]): number {
   let best = 0
   let bestVis = -1
   for (let i = 0; i < days.length; i++) {
-    const vis = days[i].vis_corrected ?? days[i].vis_estimate
+    const d = days[i]
+    if (!d) continue
+    const vis = d.vis_corrected ?? d.vis_estimate
     if (vis > bestVis) { bestVis = vis; best = i }
   }
   return best
@@ -57,13 +59,15 @@ function bestDayIndex(days: DayForecast[]): number {
 
 /** Direction visibility is heading over the next day: ▲ improving, ▼ dropping, ▬ steady. */
 function trendFor(days: DayForecast[]): { symbol: string; label: string; cls: string } | null {
-  if (days.length < 2) return null
-  const now = days[0].vis_corrected ?? days[0].vis_estimate
-  const next = days[1].vis_corrected ?? days[1].vis_estimate
+  const d0 = days[0]
+  const d1 = days[1]
+  if (!d0 || !d1) return null
+  const now = d0.vis_corrected ?? d0.vis_estimate
+  const next = d1.vis_corrected ?? d1.vis_estimate
   const delta = next - now
-  if (delta > 0.5) return { symbol: '▲', label: 'improving', cls: styles.trendUp }
-  if (delta < -0.5) return { symbol: '▼', label: 'dropping', cls: styles.trendDown }
-  return { symbol: '▬', label: 'steady', cls: styles.trendFlat }
+  if (delta > 0.5) return { symbol: '▲', label: 'improving', cls: styles.trendUp ?? '' }
+  if (delta < -0.5) return { symbol: '▼', label: 'dropping', cls: styles.trendDown ?? '' }
+  return { symbol: '▬', label: 'steady', cls: styles.trendFlat ?? '' }
 }
 
 export function PlacesDashboard({ locations, userUid, units, onSelectLocation }: Props) {
@@ -102,7 +106,7 @@ export function PlacesDashboard({ locations, userUid, units, onSelectLocation }:
         }
       }
       const forecast = await getForecast(lat, lon, loc.name, units, loc.id)
-      const todayStr = new Date().toISOString().split('T')[0]
+      const todayStr = new Date().toISOString().slice(0, 10)
       const todayIdx = forecast.days.findIndex(d => d.date === todayStr)
       // Slice to 7 days from today so the mini strip shows a clean 7-day window
       const startIdx = todayIdx >= 0 ? todayIdx : 0

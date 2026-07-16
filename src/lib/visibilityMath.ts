@@ -8,8 +8,11 @@ export function percentile(sorted: number[], p: number): number {
   const idx = (p / 100) * (sorted.length - 1)
   const lo = Math.floor(idx)
   const hi = Math.ceil(idx)
-  if (lo === hi) return sorted[lo]
-  return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo)
+  const loV = sorted[lo]
+  const hiV = sorted[hi]
+  if (loV === undefined || hiV === undefined) return 0
+  if (lo === hi) return loV
+  return loV + (hiV - loV) * (idx - lo)
 }
 
 // Transmission must stay strictly inside (0, 1) before taking the log:

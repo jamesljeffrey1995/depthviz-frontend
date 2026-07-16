@@ -11,7 +11,7 @@ interface Props {
 }
 
 function formatDate(dateStr: string): string {
-  const todayStr = new Date().toISOString().split('T')[0]
+  const todayStr = new Date().toISOString().slice(0, 10)
   const todayDate = new Date(todayStr + 'T00:00:00')
   const d = new Date(dateStr + 'T00:00:00')
   const diff = Math.round((d.getTime() - todayDate.getTime()) / 86400000)
@@ -52,7 +52,7 @@ function trendMarker(prevVis: number | null, vis: number): '↑' | '↓' | '·' 
 
 export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, onSelect }: Props) {
   const bestWindow = useMemo(() => findBestWindow(days), [days])
-  const todayISO = new Date().toISOString().split('T')[0]
+  const todayISO = new Date().toISOString().slice(0, 10)
 
   return (
     <div className={styles.strip}>
@@ -72,7 +72,8 @@ export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, 
             isToday ? styles.today : '',
           ].filter(Boolean).join(' ')
           const driver = primaryDriver(day.factors)
-          const trend = trendMarker(i > 0 ? visForDay(days[i - 1]) : null, vis)
+          const prevDay = i > 0 ? days[i - 1] : undefined
+          const trend = trendMarker(prevDay ? visForDay(prevDay) : null, vis)
 
           return (
             <button

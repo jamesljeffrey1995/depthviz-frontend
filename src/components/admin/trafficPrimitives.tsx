@@ -22,10 +22,10 @@ const BAND_LABEL: Record<SuspicionBand, string> = {
 }
 
 const BAND_CLASS: Record<SuspicionBand, string> = {
-  normal: styles.susNormal,
-  monitor: styles.susMonitor,
-  suspicious: styles.susSuspicious,
-  likely_scraper: styles.susScraper,
+  normal: styles.susNormal ?? '',
+  monitor: styles.susMonitor ?? '',
+  suspicious: styles.susSuspicious ?? '',
+  likely_scraper: styles.susScraper ?? '',
 }
 
 export function SuspicionChip({ score, band }: { score: number; band: SuspicionBand }) {
@@ -107,7 +107,7 @@ export function LineChart<T>({
         ))}
         {xLabelIdx.map(i => (
           <text key={`x${i}`} x={x(i)} y={H - PAD.bottom + 14} textAnchor="middle" fill={COLORS.axis} fontSize="8" fontFamily="monospace">
-            {fmtTime(data[i][timeKey] as string)}
+            {fmtTime(data[i]?.[timeKey] as string)}
           </text>
         ))}
         {series.map(s => {

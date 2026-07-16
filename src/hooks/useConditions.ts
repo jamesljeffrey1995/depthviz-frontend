@@ -32,8 +32,8 @@ export function useConditions() {
     setState(s => ({ ...s, status: s.forecast ? 'success' : 'loading', error: '', isRevalidating: !!s.forecast }))
     try {
       const results = await geocode(query)
-      if (!results.length) throw new Error('Location not found')
       const loc = results[0]
+      if (!loc) throw new Error('Location not found')
       const name = formatLocationName(loc)
       const forecast = await getForecast(loc.latitude, loc.longitude, name, units)
       if (id !== searchIdRef.current) return // Stale request — discard

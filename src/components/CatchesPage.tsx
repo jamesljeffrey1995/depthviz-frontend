@@ -28,7 +28,7 @@ function buildDateOptions(): { value: string; label: string }[] {
   for (let i = 0; i <= 7; i++) {
     const d = new Date(today)
     d.setDate(today.getDate() - i)
-    const value = d.toISOString().split('T')[0]
+    const value = d.toISOString().slice(0, 10)
     const label = i === 0 ? 'Today' : i === 1 ? 'Yesterday' :
       d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })
     options.push({ value, label })
@@ -60,7 +60,7 @@ export function CatchesPage({ user, locations, onShowAuth }: CatchesPageProps) {
 
   // Form state
   const [formLocationId, setFormLocationId] = useState<number | ''>('')
-  const [formDate, setFormDate] = useState(() => new Date().toISOString().split('T')[0])
+  const [formDate, setFormDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [formSpecies, setFormSpecies] = useState('')
   const [formWeight, setFormWeight] = useState('')
   const [formLength, setFormLength] = useState('')
@@ -119,7 +119,7 @@ export function CatchesPage({ user, locations, onShowAuth }: CatchesPageProps) {
 
   const resetForm = () => {
     setFormLocationId('')
-    setFormDate(new Date().toISOString().split('T')[0])
+    setFormDate(new Date().toISOString().slice(0, 10))
     setFormSpecies('')
     setFormWeight('')
     setFormLength('')

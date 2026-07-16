@@ -108,7 +108,7 @@ export function FriendsPanel({ onClose }: FriendsPanelProps) {
           {friends.map(f => (
             <div key={f.friendship_id} className={styles.friendCard}>
               <div className={styles.friendAvatar}>
-                {(f.display_name ?? '?')[0].toUpperCase()}
+                {(f.display_name ?? '?').charAt(0).toUpperCase()}
               </div>
               <div className={styles.friendInfo}>
                 <div className={styles.friendName}>{f.display_name}</div>
@@ -138,7 +138,7 @@ export function FriendsPanel({ onClose }: FriendsPanelProps) {
           {requests.map(r => (
             <div key={r.id} className={styles.friendCard}>
               <div className={styles.friendAvatar}>
-                {(r.from_name ?? '?')[0].toUpperCase()}
+                {(r.from_name ?? '?').charAt(0).toUpperCase()}
               </div>
               <div className={styles.friendInfo}>
                 <div className={styles.friendName}>{r.from_name}</div>
@@ -177,7 +177,7 @@ export function FriendsPanel({ onClose }: FriendsPanelProps) {
             return (
               <div key={u.uid} className={styles.userResult}>
                 <div className={styles.friendAvatar}>
-                  {(u.display_name ?? '?')[0].toUpperCase()}
+                  {(u.display_name ?? '?').charAt(0).toUpperCase()}
                 </div>
                 <div className={styles.friendInfo}>
                   <div className={styles.friendName}>{u.display_name}</div>

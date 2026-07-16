@@ -33,8 +33,9 @@ function shortDay(dateStr: string): string {
  *  weekday by a day for users west of UTC — so build the date from its parts
  *  in local time instead, keeping the calendar day stable everywhere. */
 function parseLocalDate(dateStr: string): Date {
-  const [y, m, d] = dateStr.split('T')[0].split('-').map(Number)
-  return new Date(y, (m ?? 1) - 1, d ?? 1)
+  const datePart = dateStr.split('T')[0] ?? dateStr
+  const [y, m, d] = datePart.split('-').map(Number)
+  return new Date(y ?? 1970, (m ?? 1) - 1, d ?? 1)
 }
 
 export function weekdayShort(dateStr: string): string {
@@ -46,9 +47,11 @@ export function weekdayLong(dateStr: string): string {
 }
 
 function formatRange(series: { date: string }[], start: number, end: number): string {
+  const startDate = series[start]?.date ?? ''
+  const endDate = series[end]?.date ?? ''
   return start === end
-    ? shortDay(series[start].date)
-    : `${shortDay(series[start].date)}–${shortDay(series[end].date)}`
+    ? shortDay(startDate)
+    : `${shortDay(startDate)}–${shortDay(endDate)}`
 }
 
 /**
@@ -73,7 +76,7 @@ export function buildVisSummary(days: DayForecast[]): string {
   // First contiguous run of the best category present.
   const start = series.findIndex(s => s.cat === best)
   let end = start
-  while (end + 1 < n && series[end + 1].cat === best) end++
+  while (end + 1 < n && series[end + 1]?.cat === best) end++
 
   const label = best === 'good' ? 'Good' : 'Marginal'
   const range = formatRange(series, start, end)
@@ -85,7 +88,7 @@ export function buildVisSummary(days: DayForecast[]): string {
     return `${label} visibility expected ${range}, deteriorating ${shortDay(after.date)}.`
   }
   if (before && RANK[before.cat] < RANK[best]) {
-    return `Improving — ${label.toLowerCase()} visibility expected from ${shortDay(series[start].date)}.`
+    return `Improving — ${label.toLowerCase()} visibility expected from ${shortDay(series[start]?.date ?? '')}.`
   }
   return `${label} visibility expected ${range}.`
 }

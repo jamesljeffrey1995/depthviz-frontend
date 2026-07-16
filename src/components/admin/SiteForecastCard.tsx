@@ -56,7 +56,7 @@ export function SiteForecastCard({ site, selected, onSelect, debug }: Props) {
 
 function pickDriver(site: AdminSiteRow, debug?: AdminForecastDebug | null): string {
   if (debug?.main_negative_drivers && debug.main_negative_drivers.length > 0) {
-    return debug.main_negative_drivers[0].label
+    return debug.main_negative_drivers[0]?.label ?? ''
   }
   if (Math.abs(site.bias_offset ?? 0) > 2.0) {
     return `Reports disagree ${signedNum(site.bias_offset ?? 0, 1, 'm')}`

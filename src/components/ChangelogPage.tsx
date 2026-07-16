@@ -27,9 +27,9 @@ function parseChangelog(raw: string): ChangelogEntry[] {
     if (versionMatch) {
       if (currentSection && current) current.sections.push(currentSection)
       if (current) entries.push(current)
-      const linkMatch = versionMatch[1].match(/^\[([^\]]+)\]\([^)]+\)$/)
-      const version = linkMatch ? linkMatch[1] : versionMatch[1]
-      current = { version, date: versionMatch[2], sections: [] }
+      const linkMatch = (versionMatch[1] ?? '').match(/^\[([^\]]+)\]\([^)]+\)$/)
+      const version = (linkMatch ? linkMatch[1] : versionMatch[1]) ?? ''
+      current = { version, date: versionMatch[2] ?? '', sections: [] }
       currentSection = null
       continue
     }
@@ -37,7 +37,7 @@ function parseChangelog(raw: string): ChangelogEntry[] {
     const sectionMatch = line.match(/^###\s+(.+)/)
     if (sectionMatch && current) {
       if (currentSection) current.sections.push(currentSection)
-      currentSection = { heading: sectionMatch[1], items: [] }
+      currentSection = { heading: sectionMatch[1] ?? '', items: [] }
       continue
     }
 
@@ -46,7 +46,7 @@ function parseChangelog(raw: string): ChangelogEntry[] {
       // Strip markdown commit links like ([abc1234](url)) at the end, then drop
       // leftover inline markdown (** ** emphasis, ` ` code) so the bare text reads
       // cleanly instead of showing raw markers.
-      const text = itemMatch[1]
+      const text = (itemMatch[1] ?? '')
         .replace(/\s*\(\[[\da-f]+\]\([^)]+\)\)/g, '')
         .replace(/\s*\[#[\w-]+\]\([^)]+\)/g, '')
         .replace(/\*\*([^*]+)\*\*/g, '$1')

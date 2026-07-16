@@ -1117,13 +1117,13 @@ function normaliseExperienceLevel(raw: string | null | undefined): CompetitorInp
 export function parseCompetitorsCsv(text: string): CompetitorInput[] {
   const rows = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean)
   if (rows.length < 2) return []
-  const header = splitCsvRow(rows[0]).map(h => h.trim().toLowerCase())
+  const header = splitCsvRow(rows[0] ?? '').map(h => h.trim().toLowerCase())
   const idx = (name: string) => header.indexOf(name)
   const out: CompetitorInput[] = []
   const NAME = idx('full_name') !== -1 ? idx('full_name') : idx('name')
   if (NAME === -1) return []
   for (let i = 1; i < rows.length; i++) {
-    const cells = splitCsvRow(rows[i])
+    const cells = splitCsvRow(rows[i] ?? '')
     const name = (cells[NAME] ?? '').trim()
     if (!name) continue
     const yes = (v?: string) => /^(y|yes|true|1)$/i.test((v ?? '').trim())

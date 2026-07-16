@@ -427,8 +427,8 @@ export function ApneaTableRunner({ user, onShowAuth, sharedTable }: Props) {
         <div className={styles.bigTime}>{formatTime(displaySeconds)}</div>
         <div className={styles.roundInfo}>
           {phase === 'idle' && `${table.cycles.length} rounds · total ${Math.round(totalSeconds(table.cycles) / 60)} min`}
-          {phase === 'hold' && `Hold ${cycleIdx + 1}/${table.cycles.length} · target ${formatTime(table.cycles[cycleIdx].hold_seconds)}`}
-          {phase === 'rest' && `Rest ${formatTime(table.cycles[cycleIdx].rest_seconds)} before round ${cycleIdx + 2}`}
+          {phase === 'hold' && `Hold ${cycleIdx + 1}/${table.cycles.length} · target ${formatTime(table.cycles[cycleIdx]?.hold_seconds ?? 0)}`}
+          {phase === 'rest' && `Rest ${formatTime(table.cycles[cycleIdx]?.rest_seconds ?? 0)} before round ${cycleIdx + 2}`}
           {phase === 'prep' && 'Get into position — first hold starts when this reaches zero'}
           {phase === 'done' && 'Session complete — recover and hydrate'}
         </div>

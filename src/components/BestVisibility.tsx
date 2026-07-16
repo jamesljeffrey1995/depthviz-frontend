@@ -24,7 +24,7 @@ export function BestVisibility({ onSelectSpot }: Props) {
   const [progress, setProgress] = useState(0)
 
   // Compute today's date once at mount to avoid drift across midnight
-  const [todayISO] = useState(() => new Date().toISOString().split('T')[0])
+  const [todayISO] = useState(() => new Date().toISOString().slice(0, 10))
   const todayDisplay = new Date(todayISO + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
 
   useEffect(() => {
