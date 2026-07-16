@@ -14,7 +14,7 @@
     "@fontsource-variable/inter": "^5.2.8",
     "@fontsource/bebas-neue": "^5.2.7",
     "@fontsource/space-mono": "^5.2.9",
-    "@supabase/supabase-js": "^2.99.1",
+    "@supabase/supabase-js": "^2.110.7",
     "@techstark/opencv-js": "^4.12.0-release.1",
     "leaflet": "^1.9.4",
     "mp4box": "^2.3.0",
