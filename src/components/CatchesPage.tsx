@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { getCatches, getMyCatches, logCatch, deleteCatch, getCatchSpecies } from '../lib/api'
 import type { CatchRead, Location } from '../types'
@@ -50,6 +50,13 @@ export function CatchesPage({ user, locations, onShowAuth }: CatchesPageProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
+
+  // The post-submit success timer must be cleared if the component unmounts
+  // first, otherwise it calls setState/setTab on a dead component.
+  const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => () => {
+    if (successTimerRef.current) clearTimeout(successTimerRef.current)
+  }, [])
 
   // Form state
   const [formLocationId, setFormLocationId] = useState<number | ''>('')
@@ -144,7 +151,8 @@ export function CatchesPage({ user, locations, onShowAuth }: CatchesPageProps) {
       })
       resetForm()
       setSuccessMsg('Catch logged successfully!')
-      setTimeout(() => {
+      if (successTimerRef.current) clearTimeout(successTimerRef.current)
+      successTimerRef.current = setTimeout(() => {
         setSuccessMsg('')
         setTab('mine')
       }, 1500)

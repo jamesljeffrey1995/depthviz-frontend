@@ -379,6 +379,38 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, modelConfi
           {day.algae.drivers.length > 0 && (
             <div className={styles.algaeDrivers}>{day.algae.drivers.join(' · ')}</div>
           )}
+          {day.water_quality?.erddap_chlorophyll != null && (() => {
+            const chl = day.water_quality.erddap_chlorophyll
+            // Thresholded badge so a diver can read the number without knowing
+            // oceanography. Colours come from the --ds-q-* / semantic tokens.
+            const badge = chl < 1
+              ? { label: 'clear', color: 'var(--ds-q-excellent)' }
+              : chl <= 5
+                ? { label: 'elevated', color: 'var(--ds-warn)' }
+                : { label: 'bloom', color: 'var(--ds-danger)' }
+            // Surface it when the heuristic risk label and the measurement point
+            // in opposite directions — the whole reason this card can mislead.
+            const risk = day.algae.risk
+            const contradiction =
+              (risk === 'high' || risk === 'moderate') && chl < 1
+                ? 'Satellite shows clear water'
+                : risk === 'low' && chl > 5
+                  ? 'Satellite shows active bloom — heuristic underestimates'
+                  : risk === 'low' && chl >= 1
+                    ? 'Satellite shows elevated chl-a'
+                    : null
+            return (
+              <div className={styles.algaeMeasured}>
+                <span className={styles.algaeMeasuredLabel}>Measured chl-a</span>
+                <span className={styles.algaeMeasuredValue} style={{ color: badge.color }}>
+                  {chl.toFixed(2)} mg/m³ · {badge.label}
+                </span>
+                {contradiction && (
+                  <div className={styles.algaeContradiction}>{contradiction}</div>
+                )}
+              </div>
+            )
+          })()}
           {waterQuality && (
             <div className={styles.waterQualityNote} style={{ color: waterQuality.color }}>
               {waterQuality.description}
@@ -802,12 +834,9 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, modelConfi
                     <div className={styles.clarityValue}>{day.water_quality.bgc_kd_vis.toFixed(1)}m</div>
                   </div>
                 )}
-                {day.water_quality.erddap_chlorophyll != null && (
-                  <div className={styles.clarityStat}>
-                    <div className={styles.clarityLabel}>Chlorophyll</div>
-                    <div className={styles.clarityValue}>{day.water_quality.erddap_chlorophyll.toFixed(2)} mg/m³</div>
-                  </div>
-                )}
+                {/* Measured chlorophyll-a now lives in the Algae Bloom Risk card
+                    (with a threshold badge + contradiction note); not duplicated
+                    here. It remains in the debug section above for diagnostics. */}
                 {day.water_quality.erddap_kd490 != null && (
                   <div className={styles.clarityStat}>
                     <div className={styles.clarityLabel}>Kd490</div>

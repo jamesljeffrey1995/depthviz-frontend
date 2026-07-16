@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -193,9 +193,15 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  /** DB locations not already covered by a private localStorage spot */
-  const dbLocations = locations.filter(loc =>
-    !privateSpots.some(s => haversineMetres(s.lat, s.lon, loc.lat, loc.lon) < 50)
+  /** DB locations not already covered by a private localStorage spot.
+   *  This is an O(locations × privateSpots) Haversine scan, so memoise it —
+   *  otherwise every unrelated re-render (vote, hover, form state) repeats the
+   *  whole quadratic filter and makes map interaction janky as spots grow. */
+  const dbLocations = useMemo(() =>
+    locations.filter(loc =>
+      !privateSpots.some(s => haversineMetres(s.lat, s.lon, loc.lat, loc.lon) < 50)
+    ),
+    [locations, privateSpots]
   )
 
   const handleMapClick = useCallback((lat: number, lon: number) => {
@@ -352,14 +358,25 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
                         className={`${styles.voteBtn} ${userVote === 'up' ? styles.voteBtnActive : ''}`}
                         onClick={() => handleDbVote(loc.id, 'up')}
                         aria-label="Upvote this spot"
+                        aria-describedby={`vote-count-${loc.id}`}
                       >
                         👍
                       </button>
-                      <span className={styles.voteCount}>{voteCount}</span>
+                      {/* Associate the count with both buttons via
+                          aria-describedby (not a live region) so screen readers
+                          get the relationship without an announcement per vote. */}
+                      <span
+                        id={`vote-count-${loc.id}`}
+                        className={styles.voteCount}
+                        aria-label={`${voteCount} net vote${Math.abs(voteCount) === 1 ? '' : 's'}`}
+                      >
+                        {voteCount}
+                      </span>
                       <button
                         className={`${styles.voteBtn} ${userVote === 'down' ? styles.voteBtnActive : ''}`}
                         onClick={() => handleDbVote(loc.id, 'down')}
                         aria-label="Downvote this spot"
+                        aria-describedby={`vote-count-${loc.id}`}
                       >
                         👎
                       </button>

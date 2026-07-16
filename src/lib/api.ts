@@ -56,10 +56,25 @@ export class AuthError extends ApiError {
 }
 
 export class RateLimitError extends ApiError {
-  constructor(message: string) {
+  /** Seconds the server asked us to wait, parsed from the `Retry-After`
+   *  header (numeric seconds or an HTTP-date). `null` when absent/unparseable. */
+  retryAfterSeconds: number | null
+  constructor(message: string, retryAfterSeconds: number | null = null) {
     super(429, message)
     this.name = 'RateLimitError'
+    this.retryAfterSeconds = retryAfterSeconds
   }
+}
+
+/** Parse a `Retry-After` header value (delta-seconds or HTTP-date) into a
+ *  non-negative number of seconds, or `null` if it can't be interpreted. */
+export function parseRetryAfter(value: string | null): number | null {
+  if (!value) return null
+  const trimmed = value.trim()
+  if (/^\d+$/.test(trimmed)) return Number(trimmed)
+  const when = Date.parse(trimmed)
+  if (!Number.isNaN(when)) return Math.max(0, Math.round((when - Date.now()) / 1000))
+  return null
 }
 
 export class ServerError extends ApiError {
@@ -108,15 +123,26 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const method = options?.method ?? 'GET'
   const isRead = method === 'GET'
 
-  // Deduplicate identical in-flight GET requests
-  const dedupeKey = isRead ? `${method}:${path}` : ''
+  // Deduplicate identical in-flight GET requests. The key MUST include the
+  // caller's identity: two reads to the same path can straddle a sign-in/out
+  // boundary, and a key of method+path alone would hand the second caller the
+  // response fetched under the previous identity.
+  const identity = session?.user?.id ?? 'anon'
+  const dedupeKey = isRead ? `${identity}:${method}:${path}` : ''
   if (isRead && pendingRequests.has(dedupeKey)) {
     return pendingRequests.get(dedupeKey) as Promise<T>
   }
 
+  // Exponential backoff with full jitter, so retrying clients don't all fire at
+  // exactly the same instant (thundering herd).
+  const backoffMs = (attempt: number): number => {
+    const base = 1000 * 2 ** attempt
+    return base / 2 + Math.random() * (base / 2)
+  }
+
   const doFetch = async (): Promise<T> => {
     let lastError: Error | null = null
-    const maxAttempts = isRead ? 2 : 1 // Retry reads once on server/network error
+    const maxAttempts = isRead ? 3 : 1 // Retry reads on server/network error
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
@@ -126,11 +152,20 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
           const body = await res.text()
           const message = parseErrorBody(body)
           if (res.status === 401) throw new AuthError(message || 'Not authenticated')
-          if (res.status === 429) throw new RateLimitError(message || 'Too many requests — please wait a moment')
+          if (res.status === 429) {
+            const retryAfter = parseRetryAfter(res.headers.get('Retry-After'))
+            // Honour a short server-supplied Retry-After on reads, then retry
+            // once more; otherwise surface the delay to the caller.
+            if (isRead && retryAfter !== null && retryAfter <= 5 && attempt < maxAttempts - 1) {
+              await new Promise(r => setTimeout(r, retryAfter * 1000))
+              continue
+            }
+            throw new RateLimitError(message || 'Too many requests — please wait a moment', retryAfter)
+          }
           if (res.status >= 500) {
             lastError = new ServerError(res.status, message || 'Server error')
             if (attempt < maxAttempts - 1) {
-              await new Promise(r => setTimeout(r, 1000))
+              await new Promise(r => setTimeout(r, backoffMs(attempt)))
               continue
             }
             throw lastError
@@ -142,10 +177,10 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
         return res.json()
       } catch (e) {
         if (e instanceof ApiError) throw e
-        // Network error — retry reads
+        // Network error — retry reads with backoff + jitter
         lastError = e instanceof Error ? e : new Error('Network error')
         if (attempt < maxAttempts - 1) {
-          await new Promise(r => setTimeout(r, 1000))
+          await new Promise(r => setTimeout(r, backoffMs(attempt)))
           continue
         }
         throw lastError
@@ -183,9 +218,16 @@ export async function geocode(query: string): Promise<GeocodingResult[]> {
 
   const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=en&format=json`
   const res = await fetch(url)
+  if (!res.ok) {
+    throw new ApiError(res.status, `Geocoding failed (${res.status})`)
+  }
   const data = await res.json()
   const results = (data.results ?? []) as GeocodingResult[]
-  cacheSet(key, results, TTL.GEOCODE)
+  // Don't cache an empty result for the full hour — a transient upstream blip
+  // would otherwise suppress valid matches for that query until the TTL lapses.
+  if (results.length > 0) {
+    cacheSet(key, results, TTL.GEOCODE)
+  }
   return results
 }
 
@@ -617,21 +659,16 @@ export interface ModelWeights {
   updated_at: string | null
 }
 
-let _cachedWeights: ModelWeights | null = null
-
 export async function getModelWeights(): Promise<ModelWeights> {
-  if (_cachedWeights) return _cachedWeights
-
+  // Rely solely on the TTL cache. A previous module-level memo short-circuited
+  // before the TTL check, so a server-side weights update was never picked up
+  // for the tab's lifetime (the 5-min TTL was effectively infinite).
   const key = 'ml-weights'
   const cached = cacheGet<ModelWeights>(key)
-  if (cached) {
-    _cachedWeights = cached
-    return cached
-  }
+  if (cached) return cached
 
   const result = await apiFetch<ModelWeights>('/forecast/weights')
   cacheSet(key, result, TTL.FORECAST)
-  _cachedWeights = result
   return result
 }
 

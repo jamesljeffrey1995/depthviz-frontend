@@ -3,64 +3,64 @@
 
   <!-- Core app pages -->
   <url>
-    <loc>https://depthviz.com/</loc>
+    <loc>https://depthviz.uk/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://depthviz.com/forecast</loc>
+    <loc>https://depthviz.uk/forecast</loc>
     <changefreq>hourly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://depthviz.com/tides</loc>
+    <loc>https://depthviz.uk/tides</loc>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://depthviz.com/feed</loc>
+    <loc>https://depthviz.uk/feed</loc>
     <changefreq>hourly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://depthviz.com/catches</loc>
+    <loc>https://depthviz.uk/catches</loc>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://depthviz.com/best</loc>
+    <loc>https://depthviz.uk/best</loc>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
 
   <!-- Legal pages — static content, worth indexing -->
   <url>
-    <loc>https://depthviz.com/legal/privacy</loc>
+    <loc>https://depthviz.uk/legal/privacy</loc>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://depthviz.com/legal/terms</loc>
+    <loc>https://depthviz.uk/legal/terms</loc>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://depthviz.com/legal/cookies</loc>
+    <loc>https://depthviz.uk/legal/cookies</loc>
     <changefreq>monthly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
-    <loc>https://depthviz.com/legal/security</loc>
+    <loc>https://depthviz.uk/legal/security</loc>
     <changefreq>monthly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
-    <loc>https://depthviz.com/legal/contact</loc>
+    <loc>https://depthviz.uk/legal/contact</loc>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://depthviz.com/legal/accessibility</loc>
+    <loc>https://depthviz.uk/legal/accessibility</loc>
     <changefreq>monthly</changefreq>
     <priority>0.2</priority>
   </url>
