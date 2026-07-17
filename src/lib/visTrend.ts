@@ -34,8 +34,13 @@ function shortDay(dateStr: string): string {
  *  in local time instead, keeping the calendar day stable everywhere. */
 function parseLocalDate(dateStr: string): Date {
   const datePart = dateStr.split('T')[0] ?? dateStr
-  const [y, m, d] = datePart.split('-').map(Number)
-  return new Date(y ?? 1970, (m ?? 1) - 1, d ?? 1)
+  const parts = datePart.split('-').map(Number)
+  // Validate with Number.isFinite so a malformed part (Number('foo') === NaN)
+  // falls back to a sane default instead of producing new Date(NaN, …).
+  const y = Number.isFinite(parts[0]) ? (parts[0] as number) : 1970
+  const m = Number.isFinite(parts[1]) ? (parts[1] as number) : 1
+  const d = Number.isFinite(parts[2]) ? (parts[2] as number) : 1
+  return new Date(y, m - 1, d)
 }
 
 export function weekdayShort(dateStr: string): string {
