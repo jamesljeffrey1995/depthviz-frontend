@@ -182,7 +182,7 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
             <div className={styles.statLbl}>Accuracy</div>
           </div>
           <div className={styles.stat}>
-            <div className={styles.statVal} style={{ color: profile.trusted ? 'var(--excellent)' : 'var(--text)' }}>
+            <div className={styles.statVal} style={{ color: profile.trusted ? 'var(--ds-q-excellent)' : 'var(--text)' }}>
               {profile.trusted ? '★ Trusted' : 'Standard'}
             </div>
             <div className={styles.statLbl}>Status</div>

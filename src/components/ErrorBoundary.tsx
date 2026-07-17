@@ -30,7 +30,7 @@ export class ErrorBoundary extends Component<Props, State> {
           justifyContent: 'center',
           minHeight: '100vh',
           gap: '16px',
-          fontFamily: 'var(--font-mono)',
+          fontFamily: 'var(--ds-font-sans)',
           color: 'var(--text-bright, #d4eaf5)',
         }}>
           <div style={{ fontSize: '24px', fontFamily: 'var(--font-display, sans-serif)', letterSpacing: '0.2em' }}>

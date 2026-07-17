@@ -12,23 +12,23 @@
   background:
     radial-gradient(ellipse 90% 120% at 50% -10%, rgba(0, 201, 255, 0.10), transparent 60%),
     var(--surface-1);
-  border: 1px solid var(--border);
+  border: 1px solid var(--ds-hairline);
   border-radius: var(--radius-lg);
   padding: var(--space-32) var(--space-lg);
   box-shadow: var(--elev-2);
 }
 
 .heroKicker {
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: var(--text-meta);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--ds-accent);
   margin: 0 0 var(--space-12);
 }
 
 .heroTitle {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: var(--text-hero);
   letter-spacing: 0.02em;
   color: var(--text-bright);
@@ -59,7 +59,7 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-sm);
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: var(--text-label);
   letter-spacing: 0.06em;
   padding: 14px 24px;
@@ -70,9 +70,9 @@
 }
 
 .primaryBtn {
-  background: var(--accent);
+  background: var(--ds-accent);
   color: var(--ocean-deep);
-  border: 1px solid var(--accent);
+  border: 1px solid var(--ds-accent);
 }
 
 .primaryBtn:hover {
@@ -82,13 +82,13 @@
 .secondaryBtn {
   background: transparent;
   color: var(--text-bright);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--ds-hairline-strong);
 }
 
 .secondaryBtn:hover,
 .secondaryBtn:focus-visible {
   background: var(--surface-2);
-  border-color: var(--accent);
+  border-color: var(--ds-accent);
 }
 
 .btnIcon {
@@ -119,7 +119,7 @@
 }
 
 .sectionTitle {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: var(--text-section);
   letter-spacing: 0.05em;
   color: var(--text-bright);
@@ -129,8 +129,8 @@
 .moreLink {
   background: none;
   border: none;
-  color: var(--accent);
-  font-family: var(--font-mono);
+  color: var(--ds-accent);
+  font-family: var(--ds-font-sans);
   font-size: var(--text-meta);
   letter-spacing: 0.06em;
   cursor: pointer;
@@ -158,7 +158,7 @@
 /* ── Best vis today (teaser card) ── */
 .bestCard {
   background: var(--surface-1);
-  border: 1px solid var(--border);
+  border: 1px solid var(--ds-hairline);
   border-radius: var(--radius-lg);
   padding: var(--space-sm);
 }
@@ -172,7 +172,7 @@
 }
 
 .bestList > li + li {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--ds-hairline);
 }
 
 .bestRow {
@@ -193,7 +193,7 @@
 }
 
 .bestRank {
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: var(--text-label);
   color: var(--text-dim);
   width: 18px;
@@ -228,7 +228,7 @@
 }
 
 .bestVisValue {
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: var(--text-section);
   font-weight: 700;
 }
@@ -237,11 +237,11 @@
    Best Visibility page (BestVisibility.module.css) via the global tokens, so
    colours stay consistent and theme-safe across the app. */
 .blocked { color: #4a4a5a; }
-.poor { color: var(--danger); }
-.marginal { color: var(--warn); }
+.poor { color: var(--ds-danger); }
+.marginal { color: var(--ds-warn); }
 .decent { color: #7fb87a; }
-.good { color: var(--good); }
-.excellent { color: var(--excellent); }
+.good { color: var(--ds-q-good); }
+.excellent { color: var(--ds-q-excellent); }
 
 .bestSkeleton {
   display: flex;
@@ -275,7 +275,7 @@
 }
 
 .groupTitle {
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: var(--text-label);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -306,7 +306,7 @@
   gap: var(--space-sm);
   text-align: center;
   background: var(--surface-1);
-  border: 1px solid var(--border);
+  border: 1px solid var(--ds-hairline);
   border-radius: var(--radius-lg);
   padding: var(--space-md) var(--space-12);
   min-height: 92px;
@@ -316,7 +316,7 @@
 
 .action:hover,
 .action:focus-visible {
-  border-color: var(--border-strong);
+  border-color: var(--ds-hairline-strong);
   background: var(--surface-2);
   box-shadow: var(--elev-2);
 }
@@ -329,7 +329,7 @@
   height: 40px;
   border-radius: var(--radius-md);
   background: rgba(0, 201, 255, 0.10);
-  color: var(--accent);
+  color: var(--ds-accent);
   transition: background var(--transition-base);
 }
 
@@ -366,14 +366,14 @@
   width: 100%;
   text-align: left;
   background: var(--surface-1);
-  border: 1px solid var(--border);
+  border: 1px solid var(--ds-hairline);
   border-radius: var(--radius-md);
   padding: var(--space-12) var(--space-md);
   cursor: pointer;
 }
 
 .newsItem:hover {
-  border-color: var(--border-strong);
+  border-color: var(--ds-hairline-strong);
   background: var(--surface-2);
 }
 
@@ -396,7 +396,7 @@
   font-size: var(--text-meta);
   letter-spacing: 0.08em;
   color: var(--ocean-deep);
-  background: var(--accent);
+  background: var(--ds-accent);
   padding: 2px 7px;
   border-radius: var(--radius-sm);
 }
@@ -405,9 +405,9 @@
   font-size: var(--text-meta);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--ds-accent);
   background: rgba(0, 201, 255, 0.10);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--ds-hairline-strong);
   padding: 2px 8px;
   border-radius: var(--radius-pill);
 }
@@ -443,7 +443,7 @@
   gap: var(--space-sm);
   padding: var(--space-12) var(--space-md);
   background: var(--surface-1);
-  border: 1px solid var(--border);
+  border: 1px solid var(--ds-hairline);
   border-radius: var(--radius-md);
 }
 
@@ -475,8 +475,8 @@
   flex-direction: column;
   gap: var(--space-xs);
   background: var(--surface-1);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--border-strong);
+  border: 1px solid var(--ds-hairline);
+  border-left: 3px solid var(--ds-hairline-strong);
   border-radius: var(--radius-md);
   padding: var(--space-12) var(--space-md);
 }
@@ -501,7 +501,7 @@
   text-align: center;
   gap: var(--space-sm);
   background: var(--surface-1);
-  border: 1px dashed var(--border-strong);
+  border: 1px dashed var(--ds-hairline-strong);
   border-radius: var(--radius-lg);
   padding: var(--space-32) var(--space-lg);
 }
@@ -509,7 +509,7 @@
 .newsEmptyIcon {
   width: 34px;
   height: 34px;
-  color: var(--accent);
+  color: var(--ds-accent);
   opacity: 0.8;
 }
 
@@ -530,7 +530,7 @@
 
 .newsEmptyBtn {
   margin-top: var(--space-sm);
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: var(--text-label);
   letter-spacing: 0.06em;
   padding: 10px 20px;
@@ -538,12 +538,12 @@
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--text-bright);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--ds-hairline-strong);
   cursor: pointer;
 }
 
 .newsEmptyBtn:hover,
 .newsEmptyBtn:focus-visible {
   background: var(--surface-2);
-  border-color: var(--accent);
+  border-color: var(--ds-accent);
 }

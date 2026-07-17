@@ -16,9 +16,9 @@ interface Props {
 // Keyed by the confidence union so a new/renamed level is a compile error here
 // rather than silently falling through to a default colour.
 const CONFIDENCE_COLORS: Record<VisibilityExplanation['confidence'], string> = {
-  high: 'var(--good)',
-  medium: 'var(--accent)',
-  low: 'var(--warn)',
+  high: 'var(--ds-q-good)',
+  medium: 'var(--ds-accent)',
+  low: 'var(--ds-warn)',
 }
 
 /** Public-friendly "Why?" panel — a plain-English breakdown of what's
@@ -111,7 +111,7 @@ export const ForecastExplanation = memo(function ForecastExplanation({ day, days
 
       {trend && (
         <div className={styles.confidenceStrip}>
-          <span className={styles.confidenceLevel} style={{ color: 'var(--accent)' }}>Trend</span>
+          <span className={styles.confidenceLevel} style={{ color: 'var(--ds-accent)' }}>Trend</span>
           {trend}
         </div>
       )}

@@ -55,7 +55,7 @@ export function VisTrendChart({ days, selectedIndex, onSelect }: Props) {
           stroke="rgba(26,138,90,0.35)" strokeWidth={1} strokeDasharray="3 3"
         />
         {areaPath && <path d={areaPath} fill="rgba(0,201,255,0.08)" />}
-        {n > 1 && <path d={linePath} fill="none" stroke="var(--accent)" strokeWidth={1.5} />}
+        {n > 1 && <path d={linePath} fill="none" stroke="var(--ds-accent)" strokeWidth={1.5} />}
 
         {points.map(p => {
           const selected = p.i === selectedIndex

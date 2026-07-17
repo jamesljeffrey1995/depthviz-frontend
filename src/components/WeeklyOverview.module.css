@@ -11,14 +11,14 @@
 }
 
 .location {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 18px;
   letter-spacing: 0.1em;
   color: var(--text-bright);
 }
 
 .subtitle {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   color: var(--text);
   opacity: 0.6;
@@ -61,7 +61,7 @@
   align-items: center;
   gap: 4px;
   cursor: pointer;
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   position: relative;
   transition: border-color var(--transition-base), background var(--transition-base);
   scroll-snap-align: start;
@@ -73,7 +73,7 @@
 }
 
 .dayCard.selected {
-  border-color: var(--accent);
+  border-color: var(--ds-accent);
   background: rgba(0, 201, 255, 0.06);
 }
 
@@ -92,7 +92,7 @@
   top: -10px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 8px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   font-weight: 700;
   background: currentColor;
@@ -106,7 +106,7 @@
   position: absolute;
   top: 6px;
   right: 6px;
-  font-size: 8px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   opacity: 0.5;
   border: 1px solid currentColor;
@@ -116,7 +116,7 @@
 
 /* ── Date labels ── */
 .dayName {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   color: var(--text);
   text-transform: uppercase;
@@ -124,14 +124,14 @@
 }
 
 .dayDate {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   color: var(--text);
   opacity: 0.5;
 }
 
 /* ── Visibility ── */
 .vis {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 28px;
   letter-spacing: 0.04em;
   line-height: 1;
@@ -146,7 +146,7 @@
 
 /* ── Verdict ── */
 .verdict {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   font-weight: 600;
@@ -171,7 +171,7 @@
 }
 
 .metricLabel {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   color: var(--text);
   opacity: 0.5;
   text-transform: uppercase;
@@ -181,12 +181,12 @@
 }
 
 .metricLabel.algae {
-  color: var(--warn);
+  color: var(--ds-warn);
   opacity: 0.8;
 }
 
 .metricVal {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   color: var(--text-bright);
   min-width: 0;
   overflow: hidden;
@@ -209,12 +209,12 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   line-height: 1.2;
 }
 
 .windVal svg {
-  color: var(--accent);
+  color: var(--ds-accent);
 }
 
 .windSpeed {
@@ -240,31 +240,31 @@
 }
 
 /* ── Algae severity colors ── */
-.algaemoderate { color: var(--warn); }
-.algaehigh { color: var(--danger); }
+.algaemoderate { color: var(--ds-warn); }
+.algaehigh { color: var(--ds-danger); }
 
 /* ── Condition color classes (applied to .dayCard) ── */
 .excellent .vis,
-.excellent .verdict { color: var(--excellent); }
+.excellent .verdict { color: var(--ds-q-excellent); }
 
 .good .vis,
-.good .verdict { color: var(--good); }
+.good .verdict { color: var(--ds-q-good); }
 
 .decent .vis,
-.decent .verdict { color: #7fb87a; }
+.decent .verdict { color: var(--ds-q-workable); }
 
 .marginal .vis,
-.marginal .verdict { color: var(--warn); }
+.marginal .verdict { color: var(--ds-warn); }
 
 .poor .vis,
-.poor .verdict { color: var(--danger); }
+.poor .verdict { color: var(--ds-danger); }
 
 .blocked .vis,
-.blocked .verdict { color: #7a8a9a; }
+.blocked .verdict { color: var(--ds-q-blown); }
 
 /* ── Hint ── */
 .hint {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.08em;
   color: var(--text);
   opacity: 0.4;

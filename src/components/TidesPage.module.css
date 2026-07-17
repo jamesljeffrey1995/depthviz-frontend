@@ -12,7 +12,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  background: linear-gradient(90deg, transparent, var(--ds-accent), transparent);
   opacity: 0.3;
 }
 
@@ -26,7 +26,7 @@
 .headerLeft {}
 
 .locationLabel {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   opacity: 0.45;
@@ -34,7 +34,7 @@
 }
 
 .datumLabel {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   opacity: 0.3;
@@ -45,14 +45,14 @@
 }
 
 .currentBadge {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 28px;
   letter-spacing: 0.1em;
   line-height: 1;
 }
 
 .currentDirection {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   opacity: 0.5;
@@ -71,8 +71,8 @@
 .dateBtn {
   background: rgba(4, 30, 46, 0.6);
   border: 1px solid rgba(0, 201, 255, 0.15);
-  color: var(--accent);
-  font-family: var(--font-mono);
+  color: var(--ds-accent);
+  font-family: var(--ds-font-sans);
   font-size: 14px;
   padding: 6px 12px;
   cursor: pointer;
@@ -85,7 +85,7 @@
 }
 
 .dateLabel {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--text-bright);
@@ -95,7 +95,7 @@
 
 /* Section label */
 .sectionLabel {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.25em;
   text-transform: uppercase;
   opacity: 0.4;
@@ -128,7 +128,7 @@
 }
 
 .eventType {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.25em;
   text-transform: uppercase;
   font-weight: 700;
@@ -136,7 +136,7 @@
 }
 
 .eventHeight {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 28px;
   color: var(--text-bright);
   line-height: 1;
@@ -144,7 +144,7 @@
 }
 
 .eventTime {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   opacity: 0.5;
 }
@@ -160,14 +160,14 @@
 .rangeInfo {}
 
 .rangeValue {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 36px;
   color: var(--text-bright);
   line-height: 1;
 }
 
 .rangeBadge {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   font-weight: 700;
@@ -189,7 +189,7 @@
 .rangeScale {
   display: flex;
   justify-content: space-between;
-  font-size: 8px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   opacity: 0.3;
@@ -216,7 +216,7 @@
 }
 
 .loadingText {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.3em;
   text-transform: uppercase;
   opacity: 0.5;
@@ -231,7 +231,7 @@
 .errorState {
   text-align: center;
   padding: 32px;
-  font-size: 11px;
-  color: var(--danger);
+  font-size: var(--ds-text-label);
+  color: var(--ds-danger);
   letter-spacing: 0.1em;
 }

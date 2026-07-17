@@ -13,20 +13,20 @@
 
 .valueLabel {
   fill: var(--text-bright);
-  font-family: var(--font-display);
-  font-size: 11px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
 }
 
 .dayLabel {
   fill: rgba(255, 255, 255, 0.4);
-  font-size: 8px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .dayLabelSelected {
-  fill: var(--accent);
-  font-size: 8px;
+  fill: var(--ds-accent);
+  font-size: var(--ds-text-label);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }

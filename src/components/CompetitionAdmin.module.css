@@ -18,7 +18,7 @@
 }
 
 .title {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 32px;
   letter-spacing: 0.06em;
   color: var(--text-bright);
@@ -33,8 +33,8 @@
 }
 
 .privateNote {
-  font-size: 11px;
-  color: var(--warn);
+  font-size: var(--ds-text-label);
+  color: var(--ds-warn);
   border: 1px solid rgba(212, 133, 10, 0.4);
   background: rgba(212, 133, 10, 0.08);
   border-radius: var(--radius-md);
@@ -42,14 +42,14 @@
   margin: 0;
 }
 
-.error { color: var(--danger); font-size: 13px; }
+.error { color: var(--ds-danger); font-size: 13px; }
 .muted { color: var(--text); opacity: 0.6; font-size: 13px; }
 
 /* ── Buttons ── */
 .btnPrimary,
 .btnGhost,
 .btnDanger {
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 13px;
   letter-spacing: 0.04em;
   font-weight: 700;
@@ -59,10 +59,10 @@
   min-height: 44px;            /* comfortable tap target */
 }
 
-.btnPrimary { background: var(--accent); color: var(--ocean-deep); border: 1px solid var(--accent); }
+.btnPrimary { background: var(--ds-accent); color: var(--ocean-deep); border: 1px solid var(--ds-accent); }
 .btnPrimary:hover { box-shadow: var(--shadow-glow); }
 .btnGhost { background: transparent; color: var(--text); border: 1px solid rgba(0, 201, 255, 0.25); }
-.btnDanger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+.btnDanger { background: transparent; color: var(--ds-danger); border: 1px solid var(--ds-danger); }
 .btnPrimary:disabled, .btnGhost:disabled, .btnDanger:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ── Inputs ── */
@@ -74,7 +74,7 @@
   border: 1px solid rgba(0, 201, 255, 0.2);
   border-radius: var(--radius-md);
   color: var(--text-bright);
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 16px;             /* 16px avoids iOS zoom-on-focus */
   padding: 11px 12px;
   box-sizing: border-box;
@@ -99,7 +99,7 @@
 }
 .tab, .tabActive {
   flex: 0 0 auto;
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 13px;
   letter-spacing: 0.04em;
   padding: 10px 14px;
@@ -111,7 +111,7 @@
   white-space: nowrap;
   min-height: 40px;
 }
-.tabActive { background: var(--accent); color: var(--ocean-deep); border-color: var(--accent); font-weight: 700; }
+.tabActive { background: var(--ds-accent); color: var(--ocean-deep); border-color: var(--ds-accent); font-weight: 700; }
 
 /* ── Cards ── */
 .card {
@@ -126,7 +126,7 @@
 }
 .cardTitle { font-size: 16px; color: var(--text-bright); margin: 0; }
 .sectionTitle {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 22px;
   letter-spacing: 0.05em;
   color: var(--text-bright);
@@ -144,8 +144,8 @@
   .formGrid { grid-template-columns: 1fr 1fr; }
 }
 .field { display: flex; flex-direction: column; gap: 4px; }
-.field > span { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text); opacity: 0.7; }
-.field > span.fieldHint { text-transform: none; letter-spacing: 0; font-size: 11px; opacity: 0.6; }
+.field > span { font-size: var(--ds-text-label); letter-spacing: 0.06em; text-transform: uppercase; color: var(--text); opacity: 0.7; }
+.field > span.fieldHint { text-transform: none; letter-spacing: 0; font-size: var(--ds-text-label); opacity: 0.6; }
 .formActions { display: flex; justify-content: flex-end; gap: var(--space-sm); flex-wrap: wrap; }
 .checkRow { display: flex; gap: var(--space-md); flex-wrap: wrap; }
 .checkInline { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text); }
@@ -172,21 +172,21 @@
   border: 1px solid rgba(0, 201, 255, 0.15);
   background: rgba(4, 30, 46, 0.6);
 }
-.count strong { font-size: 24px; color: var(--text-bright); font-family: var(--font-display); }
-.count span { font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text); opacity: 0.7; }
-.countWater { border-color: var(--accent); }
-.countWater strong { color: var(--accent); }
-.countReturned { border-color: var(--good); }
-.countReturned strong { color: var(--excellent); }
-.countOverdue { border-color: var(--danger); background: rgba(192, 57, 43, 0.15); }
-.countOverdue strong { color: var(--danger); }
-.countWarn { border-color: var(--warn); }
-.countWarn strong { color: var(--warn); }
+.count strong { font-size: 24px; color: var(--text-bright); font-family: var(--ds-font-sans); }
+.count span { font-size: var(--ds-text-label); letter-spacing: 0.05em; text-transform: uppercase; color: var(--text); opacity: 0.7; }
+.countWater { border-color: var(--ds-accent); }
+.countWater strong { color: var(--ds-accent); }
+.countReturned { border-color: var(--ds-q-good); }
+.countReturned strong { color: var(--ds-q-excellent); }
+.countOverdue { border-color: var(--ds-danger); background: rgba(192, 57, 43, 0.15); }
+.countOverdue strong { color: var(--ds-danger); }
+.countWarn { border-color: var(--ds-warn); }
+.countWarn strong { color: var(--ds-warn); }
 
 /* ── Filter chips ── */
 .filterRow { display: flex; gap: var(--space-xs); flex-wrap: wrap; align-items: center; margin-bottom: var(--space-md); }
 .chip, .chipActive {
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 12px;
   padding: 8px 12px;
   border-radius: var(--radius-md);
@@ -196,12 +196,12 @@
   color: var(--text);
   min-height: 38px;
 }
-.chipActive { background: var(--accent); color: var(--ocean-deep); border-color: var(--accent); font-weight: 700; }
+.chipActive { background: var(--ds-accent); color: var(--ocean-deep); border-color: var(--ds-accent); font-weight: 700; }
 .refreshBtn {
   margin-left: auto;
   background: transparent;
   border: 1px solid rgba(0, 201, 255, 0.25);
-  color: var(--accent);
+  color: var(--ds-accent);
   border-radius: var(--radius-md);
   font-size: 16px;
   width: 38px; height: 38px;
@@ -210,7 +210,7 @@
 
 /* ── Status badges ── */
 .badge {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-weight: 700;
@@ -221,13 +221,13 @@
   border: 1px solid rgba(0, 201, 255, 0.3);
 }
 .badge_not_arrived { color: var(--text); border-color: rgba(139, 184, 204, 0.4); }
-.badge_registered { color: var(--accent); border-color: var(--accent); }
-.badge_in_water { color: var(--ocean-deep); background: var(--accent); border-color: var(--accent); }
-.badge_returned { color: var(--ocean-deep); background: var(--excellent); border-color: var(--excellent); }
-.badge_late { color: var(--ocean-deep); background: var(--warn); border-color: var(--warn); }
+.badge_registered { color: var(--ds-accent); border-color: var(--ds-accent); }
+.badge_in_water { color: var(--ocean-deep); background: var(--ds-accent); border-color: var(--ds-accent); }
+.badge_returned { color: var(--ocean-deep); background: var(--ds-q-excellent); border-color: var(--ds-q-excellent); }
+.badge_late { color: var(--ocean-deep); background: var(--ds-warn); border-color: var(--ds-warn); }
 .badge_withdrawn { color: var(--text); opacity: 0.7; border-color: rgba(139, 184, 204, 0.3); }
-.badgeOverdue { color: #fff; background: var(--danger); border-color: var(--danger); }
-.badgeWarn { color: var(--ocean-deep); background: var(--warn); border-color: var(--warn); }
+.badgeOverdue { color: #fff; background: var(--ds-danger); border-color: var(--ds-danger); }
+.badgeWarn { color: var(--ocean-deep); background: var(--ds-warn); border-color: var(--ds-warn); }
 
 /* ── Water board cards ── */
 .boardList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-sm); }
@@ -241,20 +241,20 @@
   flex-direction: column;
   gap: 6px;
 }
-.boardCardOverdue { border-color: var(--danger); border-left-color: var(--danger); background: rgba(192, 57, 43, 0.12); }
+.boardCardOverdue { border-color: var(--ds-danger); border-left-color: var(--ds-danger); background: rgba(192, 57, 43, 0.12); }
 .boardCardHead { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-sm); }
 .boardName { font-size: 16px; color: var(--text-bright); font-weight: 700; }
 .boardMeta { font-size: 12px; color: var(--text); opacity: 0.85; }
-.warnText { color: var(--warn); font-weight: 700; }
+.warnText { color: var(--ds-warn); font-weight: 700; }
 .boardTimes { display: flex; gap: var(--space-md); flex-wrap: wrap; font-size: 12px; color: var(--text); }
 .boardEmergency { font-size: 12px; color: var(--text); opacity: 0.85; }
-.callLink { color: var(--accent); text-decoration: none; font-weight: 700; }
+.callLink { color: var(--ds-accent); text-decoration: none; font-weight: 700; }
 .callLink:hover { text-decoration: underline; }
 
 /* ── Quick action buttons ── */
 .actionRow { display: flex; gap: var(--space-xs); flex-wrap: wrap; margin-top: 4px; }
 .actBtn, .actBtnGhost {
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 13px;
   font-weight: 700;
   padding: 10px 14px;
@@ -266,8 +266,8 @@
   color: var(--text-bright);
   flex: 1 1 auto;
 }
-.actWater { background: var(--accent); color: var(--ocean-deep); border-color: var(--accent); }
-.actReturn { background: var(--excellent); color: var(--ocean-deep); border-color: var(--excellent); }
+.actWater { background: var(--ds-accent); color: var(--ocean-deep); border-color: var(--ds-accent); }
+.actReturn { background: var(--ds-q-excellent); color: var(--ocean-deep); border-color: var(--ds-q-excellent); }
 .actBtnGhost { background: transparent; color: var(--text); }
 .actBtn:disabled, .actBtnGhost:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -283,30 +283,30 @@
 }
 .compCardHead { display: flex; justify-content: space-between; align-items: center; gap: var(--space-sm); }
 .compName { font-size: 15px; color: var(--text-bright); font-weight: 700; }
-.dqCard { border-color: var(--danger); }
+.dqCard { border-color: var(--ds-danger); }
 .tagRow { display: flex; gap: var(--space-xs); flex-wrap: wrap; }
 .tagOn, .tagOff {
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   padding: 6px 10px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   min-height: 34px;
 }
-.tagOn { background: var(--good); color: #fff; border: 1px solid var(--good); }
-.tagOff { background: transparent; color: var(--warn); border: 1px solid var(--warn); }
+.tagOn { background: var(--ds-q-good); color: #fff; border: 1px solid var(--ds-q-good); }
+.tagOff { background: transparent; color: var(--ds-warn); border: 1px solid var(--ds-warn); }
 
 .linkBtn, .linkBtnDanger {
   background: none;
   border: none;
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 13px;
   cursor: pointer;
   padding: 8px 4px;
   min-height: 38px;
 }
-.linkBtn { color: var(--accent); }
-.linkBtnDanger { color: var(--danger); }
+.linkBtn { color: var(--ds-accent); }
+.linkBtnDanger { color: var(--ds-danger); }
 .linkBtn:hover, .linkBtnDanger:hover { text-decoration: underline; }
 
 /* ── Weigh-in grid ── */
@@ -331,9 +331,9 @@
   padding: 10px var(--space-md);
 }
 .rank {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 22px;
-  color: var(--accent);
+  color: var(--ds-accent);
   min-width: 28px;
   text-align: center;
 }
@@ -355,24 +355,24 @@
   text-align: left;
   min-height: 56px;
   color: var(--text-bright);
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
 }
-.weighRow:hover { border-color: var(--accent); }
+.weighRow:hover { border-color: var(--ds-accent); }
 .weighRowName { flex: 1 1 auto; font-size: 15px; font-weight: 700; color: var(--text-bright); }
 .weighRowStats { display: flex; gap: var(--space-sm); align-items: center; flex-wrap: wrap; justify-content: flex-end; }
 .weighStat { font-size: 12px; color: var(--text); white-space: nowrap; }
 .weighPending {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   font-weight: 700;
   color: var(--ocean-deep);
-  background: var(--warn);
+  background: var(--ds-warn);
   padding: 3px 8px;
   border-radius: var(--radius-sm);
   white-space: nowrap;
 }
-.weighChevron { color: var(--accent); font-size: 22px; line-height: 1; }
+.weighChevron { color: var(--ds-accent); font-size: 22px; line-height: 1; }
 
 /* Tally list with +/- steppers */
 .tallyList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-xs); }
@@ -399,23 +399,23 @@
   justify-content: center;
 }
 .stepBtn { background: transparent; color: var(--text); border: 1px solid rgba(0, 201, 255, 0.3); }
-.stepBtnAdd { background: var(--accent); color: var(--ocean-deep); border: 1px solid var(--accent); }
+.stepBtnAdd { background: var(--ds-accent); color: var(--ocean-deep); border: 1px solid var(--ds-accent); }
 .stepBtn:disabled, .stepBtnAdd:disabled { opacity: 0.4; cursor: not-allowed; }
 .stepCount, .stepCountOn {
   min-width: 32px;
   text-align: center;
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 24px;
 }
 .stepCount { color: var(--text); opacity: 0.6; }
-.stepCountOn { color: var(--accent); }
+.stepCountOn { color: var(--ds-accent); }
 
 /* Per-fish weight/length fields */
 .weighFields { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-sm); }
 
 /* ── Competition organiser template ── */
 .sectionHeading {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 18px;
   letter-spacing: 0.04em;
   color: var(--text-bright);
@@ -442,7 +442,7 @@
 }
 .speciesTable th {
   color: var(--text-bright);
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -451,7 +451,7 @@
   border: 1px solid rgba(0, 201, 255, 0.2);
   border-radius: var(--radius-md);
   color: var(--text-bright);
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 14px;
   padding: 6px 10px;
   box-sizing: border-box;
@@ -516,7 +516,7 @@
 }
 .templateKicker {
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.18em;
   text-transform: uppercase;
   margin: 0 0 6px;
@@ -579,7 +579,7 @@
   border-top: 1px solid #ccc;
   padding-top: 12px;
   margin-top: 24px;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   color: #888;
 }
 .templatePre {
@@ -719,8 +719,8 @@
   align-items: center;
 }
 .iconBtn[data-danger] {
-  border-color: var(--danger);
-  color: var(--danger);
+  border-color: var(--ds-danger);
+  color: var(--ds-danger);
 }
 .iconBtn[data-danger]:not(:disabled):hover { background: rgba(192, 57, 43, 0.14); }
 .iconBtn {
@@ -755,23 +755,23 @@
   color: var(--text-bright);
   cursor: pointer;
   text-align: left;
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   min-height: 96px;
   transition: border-color 120ms ease, background 120ms ease;
 }
-.overviewCard:hover { border-color: var(--accent); }
-.overviewValue { font-family: var(--font-display); font-size: 34px; line-height: 1; color: var(--text-bright); }
+.overviewCard:hover { border-color: var(--ds-accent); }
+.overviewValue { font-family: var(--ds-font-sans); font-size: 34px; line-height: 1; color: var(--text-bright); }
 .overviewLabel { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text); opacity: 0.85; }
-.overviewDetail { font-size: 11px; color: var(--text); opacity: 0.7; }
+.overviewDetail { font-size: var(--ds-text-label); color: var(--text); opacity: 0.7; }
 .overviewCard_neutral {}
-.overviewCard_water { border-color: var(--accent); background: rgba(0, 201, 255, 0.08); }
-.overviewCard_water .overviewValue { color: var(--accent); }
-.overviewCard_returned { border-color: var(--good); background: rgba(46, 204, 113, 0.08); }
-.overviewCard_returned .overviewValue { color: var(--excellent); }
-.overviewCard_warning { border-color: var(--warn); background: rgba(212, 133, 10, 0.10); }
-.overviewCard_warning .overviewValue { color: var(--warn); }
-.overviewCard_critical { border-color: var(--danger); background: rgba(192, 57, 43, 0.15); }
-.overviewCard_critical .overviewValue { color: var(--danger); }
+.overviewCard_water { border-color: var(--ds-accent); background: rgba(0, 201, 255, 0.08); }
+.overviewCard_water .overviewValue { color: var(--ds-accent); }
+.overviewCard_returned { border-color: var(--ds-q-good); background: rgba(46, 204, 113, 0.08); }
+.overviewCard_returned .overviewValue { color: var(--ds-q-excellent); }
+.overviewCard_warning { border-color: var(--ds-warn); background: rgba(212, 133, 10, 0.10); }
+.overviewCard_warning .overviewValue { color: var(--ds-warn); }
+.overviewCard_critical { border-color: var(--ds-danger); background: rgba(192, 57, 43, 0.15); }
+.overviewCard_critical .overviewValue { color: var(--ds-danger); }
 
 /* Next-action banner */
 .recAction {
@@ -783,11 +783,11 @@
   border: 1px solid rgba(0, 201, 255, 0.25);
   background: rgba(4, 30, 46, 0.7);
 }
-.recActionInfo { border-color: var(--accent); background: rgba(0, 201, 255, 0.08); }
-.recActionWarning { border-color: var(--warn); background: rgba(212, 133, 10, 0.12); }
-.recActionCritical { border-color: var(--danger); background: rgba(192, 57, 43, 0.18); }
+.recActionInfo { border-color: var(--ds-accent); background: rgba(0, 201, 255, 0.08); }
+.recActionWarning { border-color: var(--ds-warn); background: rgba(212, 133, 10, 0.12); }
+.recActionCritical { border-color: var(--ds-danger); background: rgba(192, 57, 43, 0.18); }
 .recActionKicker {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   opacity: 0.75;
@@ -802,8 +802,8 @@
   border: 1px solid rgba(0, 201, 255, 0.15);
   background: rgba(4, 30, 46, 0.5);
 }
-.sampleCritical { border-color: var(--danger); background: rgba(192, 57, 43, 0.08); }
-.sampleWarning { border-color: var(--warn); background: rgba(212, 133, 10, 0.08); }
+.sampleCritical { border-color: var(--ds-danger); background: rgba(192, 57, 43, 0.08); }
+.sampleWarning { border-color: var(--ds-warn); background: rgba(212, 133, 10, 0.08); }
 .overviewSampleHead {
   font-size: 12px;
   letter-spacing: 0.06em;
@@ -839,7 +839,7 @@
   margin-bottom: 4px;
 }
 .wizardStepIndicator {
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 12px;
   letter-spacing: 0.06em;
   color: var(--text);
@@ -862,13 +862,13 @@
   border: 1px solid rgba(0, 201, 255, 0.2);
   background: transparent;
   color: var(--text);
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 12px;
   letter-spacing: 0.04em;
   cursor: pointer;
   min-height: 38px;
 }
-.wizardTabActive { background: var(--accent); color: var(--ocean-deep); border-color: var(--accent); font-weight: 700; }
+.wizardTabActive { background: var(--ds-accent); color: var(--ocean-deep); border-color: var(--ds-accent); font-weight: 700; }
 .wizardTabIndex {
   display: inline-flex;
   align-items: center;
@@ -878,13 +878,13 @@
   border-radius: 50%;
   background: rgba(0, 201, 255, 0.15);
   color: var(--text-bright);
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 12px;
 }
-.wizardTabActive .wizardTabIndex { background: var(--ocean-deep); color: var(--accent); }
+.wizardTabActive .wizardTabIndex { background: var(--ocean-deep); color: var(--ds-accent); }
 
 .warningBanner {
-  border: 1px solid var(--warn);
+  border: 1px solid var(--ds-warn);
   background: rgba(212, 133, 10, 0.12);
   color: var(--text-bright);
   border-radius: var(--radius-md);
@@ -897,7 +897,7 @@
 
 /* ── Board additions ── */
 .dueBackChip {
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 12px;
   color: var(--text);
   padding: 6px 10px;
@@ -909,7 +909,7 @@
 .actCall {
   background: rgba(0, 201, 255, 0.14);
   color: var(--text-bright);
-  border-color: var(--accent);
+  border-color: var(--ds-accent);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
@@ -942,18 +942,18 @@
   color: var(--text);
 }
 .rosterName { color: var(--text-bright); font-weight: 700; }
-.rosterMeta { font-size: 11px; color: var(--text); opacity: 0.8; }
+.rosterMeta { font-size: var(--ds-text-label); color: var(--text); opacity: 0.8; }
 
 /* ── Weigh-in additions ── */
 .tallyMeta {
   display: block;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   color: var(--text);
   opacity: 0.7;
   margin-top: 2px;
 }
 .warnCard {
-  border-color: var(--warn);
+  border-color: var(--ds-warn);
   background: rgba(212, 133, 10, 0.1);
 }
 .lockedCard {
@@ -1007,7 +1007,7 @@
   margin-right: 8px;
   vertical-align: middle;
 }
-.severityInfo { background: var(--accent); }
-.severityWarning { background: var(--warn); }
+.severityInfo { background: var(--ds-accent); }
+.severityWarning { background: var(--ds-warn); }
 .severityUrgent { background: #e67e22; }
-.severityCritical { background: var(--danger); box-shadow: 0 0 0 2px rgba(192, 57, 43, 0.25); }
+.severityCritical { background: var(--ds-danger); box-shadow: 0 0 0 2px rgba(192, 57, 43, 0.25); }

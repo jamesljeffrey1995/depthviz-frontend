@@ -5,7 +5,7 @@
 }
 
 .title {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 26px;
   letter-spacing: 0.12em;
   color: var(--text-bright);
@@ -13,7 +13,7 @@
 }
 
 .subtitle {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   opacity: 0.6;
@@ -34,14 +34,14 @@
   letter-spacing: 0.02em;
 }
 
-.safety strong { color: var(--warn); }
+.safety strong { color: var(--ds-warn); }
 
 .inlineLink {
   background: none;
   border: none;
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 11px;
+  color: var(--ds-accent);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   padding: 0;
   cursor: pointer;
   text-decoration: underline;
@@ -67,7 +67,7 @@
 
 .label {
   display: block;
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--text);
@@ -77,9 +77,9 @@
 
 .fieldError {
   margin: 6px 0 0;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   line-height: 1.5;
-  color: var(--warn);
+  color: var(--ds-warn);
 }
 
 .input, .select {
@@ -87,7 +87,7 @@
   background: rgba(10, 61, 92, 0.3);
   border: 1px solid rgba(0, 201, 255, 0.15);
   color: var(--text-bright);
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 13px;
   padding: 10px 14px;
   outline: none;
@@ -115,8 +115,8 @@
   background: transparent;
   border: none;
   color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 10px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   padding: 10px 8px;
@@ -141,15 +141,15 @@
 }
 
 .sliderValue {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 20px;
-  color: var(--accent);
+  color: var(--ds-accent);
   letter-spacing: 0.08em;
 }
 
 .slider {
   width: 100%;
-  accent-color: var(--accent);
+  accent-color: var(--ds-accent);
   margin: 4px 0 6px;
   /* A taller hit area makes the slider workable with wet or gloved thumbs. */
   height: 32px;
@@ -157,7 +157,7 @@
 }
 
 .sliderHint {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   line-height: 1.6;
   color: var(--text);
   opacity: 0.85;
@@ -174,7 +174,7 @@
 }
 
 .resultLabel {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.25em;
   text-transform: uppercase;
   opacity: 0.6;
@@ -182,7 +182,7 @@
 }
 
 .resultValue {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 54px;
   line-height: 1;
   color: var(--text-bright);
@@ -212,7 +212,7 @@
   max-width: 420px;
   font-size: 13px;
   line-height: 1.7;
-  color: var(--warn);
+  color: var(--ds-warn);
 }
 
 /* What the estimate assumed — shown as quiet chips under the breakdown. */
@@ -225,11 +225,11 @@
 }
 
 .assumptionChip {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text);
-  border: 1px solid var(--border);
+  border: 1px solid var(--ds-hairline);
   background: rgba(0, 201, 255, 0.05);
   border-radius: 999px;
   padding: 4px 10px;
@@ -245,7 +245,7 @@
 .breakdownRow {
   display: flex;
   justify-content: space-between;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.04em;
   opacity: 0.85;
   padding: 4px 0;
@@ -262,12 +262,12 @@
 }
 
 .howto h3 {
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--ds-accent);
   margin: 0 0 12px;
 }
 
@@ -290,7 +290,7 @@
   letter-spacing: 0.02em;
   color: var(--text);
   background: rgba(0, 201, 255, 0.04);
-  border: 1px solid var(--border);
+  border: 1px solid var(--ds-hairline);
   border-radius: var(--radius-md);
   padding: 10px 12px 10px 46px;
 }
@@ -305,10 +305,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 14px;
-  color: var(--accent);
-  border: 1px solid var(--border-strong);
+  color: var(--ds-accent);
+  border: 1px solid var(--ds-hairline-strong);
   border-radius: 50%;
 }
 
@@ -320,10 +320,10 @@
   margin: 0;
 }
 
-.howtoNote strong { color: var(--warn); }
+.howtoNote strong { color: var(--ds-warn); }
 
 .assumptions {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   line-height: 1.7;
   letter-spacing: 0.02em;
   color: var(--text);

@@ -6,7 +6,7 @@
 }
 
 .title {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   color: var(--text-bright);
   margin: 0 0 var(--space-xs);
 }
@@ -19,7 +19,7 @@
   margin: var(--space-sm) 0;
   padding: var(--space-sm);
   border-radius: var(--radius-sm);
-  border: 1px solid var(--danger);
+  border: 1px solid var(--ds-danger);
   background: rgba(192, 57, 43, 0.15);
   color: var(--text-bright);
 }
@@ -28,7 +28,7 @@
   margin: var(--space-sm) 0;
   padding: var(--space-sm);
   border-radius: var(--radius-sm);
-  border: 1px solid var(--good);
+  border: 1px solid var(--ds-q-good);
   background: rgba(39, 174, 96, 0.12);
   color: var(--text-bright);
 }
@@ -36,7 +36,7 @@
 .back {
   background: transparent;
   border: none;
-  color: var(--accent);
+  color: var(--ds-accent);
   cursor: pointer;
   padding: 0 0 var(--space-sm);
   font-size: 0.95rem;
@@ -57,8 +57,8 @@
   background: rgba(4, 30, 46, 0.6);
   color: var(--text);
 }
-.compCard:hover { border-color: var(--accent); box-shadow: var(--shadow-glow); }
-.compName { font-family: var(--font-display); color: var(--text-bright); font-size: 1.1rem; }
+.compCard:hover { border-color: var(--ds-accent); box-shadow: var(--shadow-glow); }
+.compName { font-family: var(--ds-font-sans); color: var(--text-bright); font-size: 1.1rem; }
 .compMeta { opacity: 0.75; font-size: 0.9rem; }
 
 .badge, .badgeOk {
@@ -69,7 +69,7 @@
   font-size: 0.8rem;
   border: 1px solid rgba(0, 201, 255, 0.3);
 }
-.badgeOk { border-color: var(--good); color: var(--good); }
+.badgeOk { border-color: var(--ds-q-good); color: var(--ds-q-good); }
 
 /* ── Form ── */
 .form, .panel { display: grid; gap: var(--space-sm); margin-top: var(--space-md); }
@@ -107,9 +107,9 @@
   border-radius: var(--radius-md);
   cursor: pointer;
   font-weight: 700;
-  background: var(--accent);
+  background: var(--ds-accent);
   color: var(--ocean-deep);
-  border: 1px solid var(--accent);
+  border: 1px solid var(--ds-accent);
 }
 .btnPrimary:hover { box-shadow: var(--shadow-glow); }
 .btnDanger {
@@ -117,8 +117,8 @@
   border-radius: var(--radius-md);
   cursor: pointer;
   background: transparent;
-  color: var(--danger);
-  border: 1px solid var(--danger);
+  color: var(--ds-danger);
+  border: 1px solid var(--ds-danger);
 }
 .btnPrimary:disabled, .btnDanger:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -131,13 +131,13 @@
   border: 1px solid rgba(0, 201, 255, 0.2);
   background: rgba(4, 30, 46, 0.6);
 }
-.buddyStatus.ok { border-color: var(--good); }
-.buddyStatus.pending { border-color: var(--accent); }
-.buddyStatus.warn { border-color: var(--warn); background: rgba(243, 156, 18, 0.1); }
+.buddyStatus.ok { border-color: var(--ds-q-good); }
+.buddyStatus.pending { border-color: var(--ds-accent); }
+.buddyStatus.warn { border-color: var(--ds-warn); background: rgba(243, 156, 18, 0.1); }
 
 /* ── My competitions (run-up + live day) ── */
 .sectionTitle {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   color: var(--text-bright);
   font-size: 1rem;
   margin: var(--space-lg) 0 var(--space-xs);
@@ -153,7 +153,7 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--ocean-deep);
-  background: var(--danger);
+  background: var(--ds-danger);
 }
 
 /* Live water-status banner on the diver's own card. */
@@ -167,9 +167,9 @@
   color: var(--text-bright);
 }
 .statusBanner strong { color: var(--text-bright); }
-.statusInWater { border-color: var(--accent); background: rgba(0, 201, 255, 0.1); }
-.statusReturned { border-color: var(--good); background: rgba(39, 174, 96, 0.12); }
-.statusWaiting { border-color: var(--warn); background: rgba(243, 156, 18, 0.08); }
+.statusInWater { border-color: var(--ds-accent); background: rgba(0, 201, 255, 0.1); }
+.statusReturned { border-color: var(--ds-q-good); background: rgba(39, 174, 96, 0.12); }
+.statusWaiting { border-color: var(--ds-warn); background: rgba(243, 156, 18, 0.08); }
 .statusHint { font-size: 0.8rem; opacity: 0.7; margin: 4px 0 0; }
 
 /* ── Day-of competition detail (where to meet, schedule, species, safety) ── */
@@ -188,7 +188,7 @@
 }
 .meetCard {
   border: 1px solid rgba(0, 201, 255, 0.3);
-  border-left: 4px solid var(--accent);
+  border-left: 4px solid var(--ds-accent);
   background: rgba(0, 201, 255, 0.07);
   border-radius: var(--radius-md);
   padding: var(--space-md);
@@ -201,7 +201,7 @@
 .mapLink {
   display: inline-block;
   margin-top: var(--space-xs);
-  color: var(--accent);
+  color: var(--ds-accent);
   font-size: 0.9rem;
   text-decoration: none;
 }
@@ -237,7 +237,7 @@
   font-family: var(--font-mono, monospace);
   font-weight: 700;
   font-size: 0.85rem;
-  color: var(--accent);
+  color: var(--ds-accent);
 }
 .timelineBody { display: flex; flex-direction: column; gap: 2px; color: var(--text-bright); }
 .timelineDetail { font-size: 0.85rem; color: var(--text); opacity: 0.8; }

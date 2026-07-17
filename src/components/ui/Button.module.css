@@ -48,7 +48,7 @@
 
 .danger {
   background: var(--ds-danger);
-  color: #fff;
+  color: var(--ds-on-accent);
 }
 .danger:hover { filter: brightness(1.08); }
 

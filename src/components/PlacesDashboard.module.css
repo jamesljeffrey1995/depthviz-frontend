@@ -3,7 +3,7 @@
 }
 
 .heading {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: var(--text-section);
   letter-spacing: 0.08em;
   color: var(--text-bright);
@@ -26,18 +26,18 @@
 
 .row {
   background: var(--surface-1);
-  border: 1px solid var(--border);
+  border: 1px solid var(--ds-hairline);
   border-radius: var(--radius-md);
   overflow: hidden;
   transition: border-color var(--transition-base), background var(--transition-base);
 }
 
 .row:hover {
-  border-color: var(--border-strong);
+  border-color: var(--ds-hairline-strong);
 }
 
 .rowOpen {
-  border-color: var(--border-strong);
+  border-color: var(--ds-hairline-strong);
   background: var(--surface-2);
   box-shadow: var(--elev-2);
 }
@@ -60,7 +60,7 @@
 
 /* Inset the focus ring so it isn't clipped by the row's overflow: hidden. */
 .rowHead:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ds-accent);
   outline-offset: -2px;
   border-radius: var(--radius-md);
 }
@@ -73,7 +73,7 @@
 }
 
 .placeName {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: var(--text-card);
   letter-spacing: 0.05em;
   color: var(--text-bright);
@@ -101,13 +101,13 @@
 
 .privateBadge {
   background: rgba(212, 133, 10, 0.2);
-  color: var(--warn);
+  color: var(--ds-warn);
   border: 1px solid rgba(212, 133, 10, 0.3);
 }
 
 .publicBadge {
   background: rgba(0, 201, 255, 0.1);
-  color: var(--accent);
+  color: var(--ds-accent);
   border: 1px solid rgba(0, 201, 255, 0.2);
 }
 
@@ -140,7 +140,7 @@
 }
 
 .visNum {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 28px;
   letter-spacing: 0.03em;
   line-height: 1;
@@ -156,8 +156,8 @@
   margin-left: 4px;
 }
 
-.trendUp   { color: var(--good); }
-.trendDown { color: var(--danger); }
+.trendUp   { color: var(--ds-q-good); }
+.trendDown { color: var(--ds-danger); }
 .trendFlat { color: var(--text-dim); }
 
 .visSkeleton {
@@ -175,7 +175,7 @@
 
 .chevronOpen {
   transform: rotate(90deg);
-  color: var(--accent);
+  color: var(--ds-accent);
 }
 
 /* ── Expanded detail ── */
@@ -195,10 +195,10 @@
 }
 
 /* ── Condition color classes ── */
-.excellent { color: var(--excellent); }
-.good      { color: var(--good); }
+.excellent { color: var(--ds-q-excellent); }
+.good      { color: var(--ds-q-good); }
 .decent    { color: #5ba87a; }
-.marginal  { color: var(--warn); }
+.marginal  { color: var(--ds-warn); }
 .poor      { color: #c0392b; }
 .blocked   { color: #666; }
 
@@ -223,7 +223,7 @@
   padding: var(--space-sm) 2px;
   border-radius: var(--radius-sm);
   background: rgba(255, 255, 255, 0.04);
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   position: relative;
 }
 
@@ -235,12 +235,12 @@
 .miniDayLabel {
   color: var(--text);
   opacity: 0.7;
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.05em;
 }
 
 .miniDayVis {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   font-weight: 600;
   margin-top: 1px;
 }
@@ -248,11 +248,11 @@
 /* ── View button ── */
 .viewBtn {
   background: rgba(0, 201, 255, 0.08);
-  border: 1px solid var(--border-strong);
-  color: var(--accent);
+  border: 1px solid var(--ds-hairline-strong);
+  color: var(--ds-accent);
   padding: 10px var(--space-md);
   border-radius: var(--radius-md);
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: var(--text-label);
   letter-spacing: 0.06em;
   cursor: pointer;
@@ -264,7 +264,7 @@
 
 .viewBtn:hover:not(:disabled) {
   background: rgba(0, 201, 255, 0.16);
-  border-color: var(--accent);
+  border-color: var(--ds-accent);
 }
 
 .viewBtn:disabled {

@@ -23,7 +23,7 @@
   color: var(--ds-text-strong);
 }
 
-.glyph { font-size: 11px; line-height: 1; }
+.glyph { font-size: var(--ds-text-label); line-height: 1; }
 .positive { color: var(--ds-success); }
 .neutral  { color: var(--ds-text-muted); }
 .negative { color: var(--ds-danger); }

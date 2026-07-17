@@ -3,7 +3,7 @@
 }
 
 .hint {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   line-height: 1.6;
   letter-spacing: 0.02em;
   color: var(--text);
@@ -33,7 +33,7 @@
 }
 
 .region {
-  stroke: var(--border-strong);
+  stroke: var(--ds-hairline-strong);
   stroke-width: 1.5;
   cursor: pointer;
   outline: none;
@@ -41,22 +41,22 @@
 }
 
 .region:hover {
-  stroke: var(--accent);
+  stroke: var(--ds-accent);
 }
 
 .region:focus-visible {
-  stroke: var(--accent);
+  stroke: var(--ds-accent);
   stroke-width: 2.5;
 }
 
 .regionSelected {
-  stroke: var(--accent);
+  stroke: var(--ds-accent);
   stroke-width: 2.5;
   filter: drop-shadow(0 0 6px rgba(0, 201, 255, 0.5));
 }
 
 .badge {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 15px;
   fill: var(--text-bright);
   pointer-events: none;
@@ -69,10 +69,10 @@
 }
 
 .controlsLabel {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--ds-accent);
   margin-bottom: 8px;
 }
 
@@ -87,7 +87,7 @@
   background: rgba(10, 61, 92, 0.3);
   border: 1px solid rgba(0, 201, 255, 0.15);
   color: var(--text);
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 13px;
   padding: 8px 10px;
   cursor: pointer;
@@ -100,12 +100,12 @@
 
 .choiceActive {
   background: rgba(0, 201, 255, 0.16);
-  border-color: var(--accent);
+  border-color: var(--ds-accent);
   color: var(--text-bright);
 }
 
 .mmUnit {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   opacity: 0.5;
@@ -129,7 +129,7 @@
   border: none;
   border-bottom: 1px solid rgba(0, 201, 255, 0.08);
   color: var(--text);
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 12px;
   letter-spacing: 0.04em;
   padding: 8px 4px;
@@ -142,7 +142,7 @@
 }
 
 .summaryActive button {
-  color: var(--accent);
+  color: var(--ds-accent);
 }
 
 .summaryMm {

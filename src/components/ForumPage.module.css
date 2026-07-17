@@ -9,7 +9,7 @@
 }
 
 .pageTitle {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 36px;
   letter-spacing: 0.06em;
   color: var(--text-bright);
@@ -36,8 +36,8 @@
   align-self: flex-start;
   background: none;
   border: none;
-  color: var(--accent);
-  font-family: var(--font-mono);
+  color: var(--ds-accent);
+  font-family: var(--ds-font-sans);
   font-size: 12px;
   letter-spacing: 0.06em;
   cursor: pointer;
@@ -46,14 +46,14 @@
 
 .back:hover { text-decoration: underline; }
 
-.error { color: var(--danger); font-size: 13px; }
+.error { color: var(--ds-danger); font-size: 13px; }
 .muted { color: var(--text); opacity: 0.6; font-size: 13px; }
 
 .primaryBtn {
-  background: var(--accent);
+  background: var(--ds-accent);
   color: var(--ocean-deep);
-  border: 1px solid var(--accent);
-  font-family: var(--font-mono);
+  border: 1px solid var(--ds-accent);
+  font-family: var(--ds-font-sans);
   font-size: 12px;
   letter-spacing: 0.08em;
   font-weight: 700;
@@ -69,7 +69,7 @@
   background: transparent;
   color: var(--text);
   border: 1px solid rgba(0, 201, 255, 0.2);
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 12px;
   padding: 9px 16px;
   border-radius: var(--radius-md);
@@ -124,16 +124,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 24px;
-  color: var(--accent);
+  color: var(--ds-accent);
   background: rgba(0, 201, 255, 0.08);
-  border: 1px solid var(--border);
+  border: 1px solid var(--ds-hairline);
   border-radius: var(--radius-md);
 }
 
 .catName {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 20px;
   letter-spacing: 0.04em;
   color: var(--text-bright);
@@ -150,8 +150,8 @@
 .catCount,
 .replyCount {
   flex-shrink: 0;
-  font-size: 11px;
-  color: var(--accent);
+  font-size: var(--ds-text-label);
+  color: var(--ds-accent);
   letter-spacing: 0.06em;
 }
 
@@ -162,10 +162,10 @@
 .catCta {
   flex-shrink: 0;
   align-self: center;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--ds-accent);
   opacity: 0.7;
   transition: opacity var(--transition-base);
 }
@@ -191,7 +191,7 @@
   gap: var(--space-sm);
   text-align: center;
   background: var(--surface-1);
-  border: 1px dashed var(--border-strong);
+  border: 1px dashed var(--ds-hairline-strong);
   border-radius: var(--radius-md);
   padding: var(--space-xl) var(--space-lg);
 }
@@ -231,7 +231,7 @@
   border: 1px solid rgba(0, 201, 255, 0.2);
   border-radius: var(--radius-md);
   color: var(--text-bright);
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 13px;
   padding: 10px 12px;
   box-sizing: border-box;
@@ -278,16 +278,16 @@
 .postDate {
   color: var(--text);
   opacity: 0.6;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
 }
 
 .deleteBtn {
   margin-left: auto;
   background: none;
   border: none;
-  color: var(--danger);
-  font-family: var(--font-mono);
-  font-size: 11px;
+  color: var(--ds-danger);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   cursor: pointer;
   padding: 0;
 }
@@ -303,12 +303,12 @@
 
 .pin,
 .lock {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   padding: 2px 6px;
   border-radius: var(--radius-sm);
 }
 
-.pin { color: var(--ocean-deep); background: var(--accent); }
-.lock { color: var(--warn); border: 1px solid var(--warn); }
+.pin { color: var(--ocean-deep); background: var(--ds-accent); }
+.lock { color: var(--ds-warn); border: 1px solid var(--ds-warn); }
