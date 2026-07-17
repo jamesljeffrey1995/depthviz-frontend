@@ -9,23 +9,23 @@ interface Props {
 }
 
 function formatDate(dateStr: string): string {
-  const [y, m, d] = dateStr.split('T')[0].split('-').map(Number)
-  return new Date(y, (m ?? 1) - 1, d ?? 1).toLocaleDateString('en-GB', {
+  const [y, m, d] = (dateStr.split('T')[0] ?? dateStr).split('-').map(Number)
+  return new Date(y ?? 1970, (m ?? 1) - 1, d ?? 1).toLocaleDateString('en-GB', {
     day: 'numeric', month: 'short',
   })
 }
 
 function daysAgo(dateStr: string): number {
-  const [y, m, d] = dateStr.split('T')[0].split('-').map(Number)
-  const t = new Date(y, (m ?? 1) - 1, d ?? 1).getTime()
+  const [y, m, d] = (dateStr.split('T')[0] ?? dateStr).split('-').map(Number)
+  const t = new Date(y ?? 1970, (m ?? 1) - 1, d ?? 1).getTime()
   return Math.round((Date.now() - t) / 86400000)
 }
 
 function deltaClass(delta: number): string {
   const abs = Math.abs(delta)
-  if (abs <= 1) return styles.deltaGood
-  if (abs <= 2.5) return styles.deltaBad
-  return styles.deltaVeryBad
+  if (abs <= 1) return styles.deltaGood ?? ''
+  if (abs <= 2.5) return styles.deltaBad ?? ''
+  return styles.deltaVeryBad ?? ''
 }
 
 /** Recent community reports for the currently selected spot. Renders a short

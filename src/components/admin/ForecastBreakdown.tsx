@@ -75,10 +75,10 @@ export function ForecastBreakdown({ debug, loading }: { debug: AdminForecastDebu
 
 function stepClass(kind: AdminForecastDebug['steps'][number]['kind']): string {
   switch (kind) {
-    case 'base':       return styles.stepBase
-    case 'penalty':    return styles.stepPenalty
-    case 'correction': return styles.stepCorrection
-    case 'final':      return styles.stepFinal
+    case 'base':       return styles.stepBase ?? ''
+    case 'penalty':    return styles.stepPenalty ?? ''
+    case 'correction': return styles.stepCorrection ?? ''
+    case 'final':      return styles.stepFinal ?? ''
     default:           return ''
   }
 }
@@ -91,7 +91,7 @@ function summarise(debug: AdminForecastDebug): string {
   )
   if (debug.main_negative_drivers && debug.main_negative_drivers.length > 0) {
     const top = debug.main_negative_drivers[0]
-    parts.push(`Biggest reduction: ${top.label.toLowerCase()} (${signedNum(top.value, 1, 'm')}).`)
+    if (top) parts.push(`Biggest reduction: ${top.label.toLowerCase()} (${signedNum(top.value, 1, 'm')}).`)
   }
   if (debug.reports_note) {
     parts.push(debug.reports_note)

@@ -143,7 +143,7 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
 
       {/* User card */}
       <div className={styles.userCard}>
-        <div className={styles.avatar}>{(profile?.display_name ?? user.email ?? '?')[0].toUpperCase()}</div>
+        <div className={styles.avatar}>{(profile?.display_name ?? user.email ?? '?').charAt(0).toUpperCase()}</div>
         <div className={styles.userInfo}>
           {editName ? (
             <div className={styles.nameEdit}>

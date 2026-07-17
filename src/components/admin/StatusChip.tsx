@@ -18,13 +18,13 @@ export function StatusChip({ status, dot = true }: { status: AdminStatusChip; do
 
 function classFor(status: AdminStatusChip): string {
   switch (status) {
-    case 'HEALTHY':        return styles.chipHealthy
-    case 'TRUSTED':        return styles.chipTrusted
-    case 'OK':             return styles.chipOk
-    case 'STALE':          return styles.chipStale
-    case 'DEGRADED':       return styles.chipDegraded
-    case 'LOW CONFIDENCE': return styles.chipLow
-    case 'FAILED':         return styles.chipFailed
-    default:               return styles.chipUnknown
+    case 'HEALTHY':        return styles.chipHealthy ?? ''
+    case 'TRUSTED':        return styles.chipTrusted ?? ''
+    case 'OK':             return styles.chipOk ?? ''
+    case 'STALE':          return styles.chipStale ?? ''
+    case 'DEGRADED':       return styles.chipDegraded ?? ''
+    case 'LOW CONFIDENCE': return styles.chipLow ?? ''
+    case 'FAILED':         return styles.chipFailed ?? ''
+    default:               return styles.chipUnknown ?? ''
   }
 }

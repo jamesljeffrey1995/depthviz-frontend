@@ -59,12 +59,13 @@ function buildChartPath(hourly: { time: string; height: number | null }[]): { pa
   }))
 
   // Smooth curve using cardinal spline
-  let path = `M${points[0].x},${points[0].y}`
+  let path = `M${points[0]?.x ?? 0},${points[0]?.y ?? 0}`
   for (let i = 0; i < points.length - 1; i++) {
     const p0 = points[Math.max(0, i - 1)]
     const p1 = points[i]
     const p2 = points[i + 1]
     const p3 = points[Math.min(points.length - 1, i + 2)]
+    if (!p0 || !p1 || !p2 || !p3) continue
     const cp1x = p1.x + (p2.x - p0.x) / 6
     const cp1y = p1.y + (p2.y - p0.y) / 6
     const cp2x = p2.x - (p3.x - p1.x) / 6
@@ -85,14 +86,14 @@ function findEventPositions(events: TideEvent[], chartPoints: { x: number; y: nu
     let closestIdx = 0
     let closestDiff = Infinity
     for (let i = 0; i < chartPoints.length; i++) {
-      const diff = Math.abs(new Date(chartPoints[i].time).getTime() - evTime)
+      const diff = Math.abs(new Date(chartPoints[i]?.time ?? '').getTime() - evTime)
       if (diff < closestDiff) { closestDiff = diff; closestIdx = i }
     }
     return {
       ...ev,
       height: ev.height as number,
-      x: chartPoints[closestIdx].x,
-      y: chartPoints[closestIdx].y,
+      x: chartPoints[closestIdx]?.x ?? 0,
+      y: chartPoints[closestIdx]?.y ?? 0,
     }
   })
 }
@@ -101,7 +102,7 @@ export function TidesPage({ lat, lon, locationName }: Props) {
   const [tides, setTides] = useState<TidesResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0])
+  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10))
 
   useEffect(() => {
     let cancelled = false
@@ -117,7 +118,7 @@ export function TidesPage({ lat, lon, locationName }: Props) {
   const handleDateChange = (offset: number) => {
     const d = new Date(selectedDate)
     d.setDate(d.getDate() + offset)
-    setSelectedDate(d.toISOString().split('T')[0])
+    setSelectedDate(d.toISOString().slice(0, 10))
   }
 
   if (loading) {
@@ -146,12 +147,12 @@ export function TidesPage({ lat, lon, locationName }: Props) {
 
   // Current time marker
   const now = new Date()
-  const todayStr = new Date().toISOString().split('T')[0]
+  const todayStr = new Date().toISOString().slice(0, 10)
   const isToday = selectedDate === todayStr
   let nowX: number | null = null
   if (isToday && points.length > 1) {
-    const startTime = new Date(points[0].time).getTime()
-    const endTime = new Date(points[points.length - 1].time).getTime()
+    const startTime = new Date(points[0]?.time ?? '').getTime()
+    const endTime = new Date(points[points.length - 1]?.time ?? '').getTime()
     const nowTime = now.getTime()
     if (nowTime >= startTime && nowTime <= endTime) {
       nowX = ((nowTime - startTime) / (endTime - startTime)) * 600

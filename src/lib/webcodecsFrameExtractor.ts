@@ -113,7 +113,7 @@ export async function extractFramesViaWebCodecs(
   const decoder = new VideoDecoder({
     output: (frame) => {
       try {
-        if (nextTargetIdx < targetsUs.length && frame.timestamp >= targetsUs[nextTargetIdx]) {
+        if (nextTargetIdx < targetsUs.length && frame.timestamp >= (targetsUs[nextTargetIdx] ?? Infinity)) {
           ctx.drawImage(frame, 0, 0, outW, outH)
           frames.push(ctx.getImageData(0, 0, outW, outH))
           opts.onProgress?.(frames.length, frameCount)

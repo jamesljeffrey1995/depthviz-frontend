@@ -40,8 +40,8 @@ const ANSWER_META = {
 }
 
 function formatDate(dateStr: string): string {
-  const [y, m, d] = dateStr.split('T')[0].split('-').map(Number)
-  return new Date(y, (m ?? 1) - 1, d ?? 1).toLocaleDateString('en-GB', {
+  const [y, m, d] = (dateStr.split('T')[0] ?? dateStr).split('-').map(Number)
+  return new Date(y ?? 1970, (m ?? 1) - 1, d ?? 1).toLocaleDateString('en-GB', {
     weekday: 'short', day: 'numeric', month: 'short',
   })
 }

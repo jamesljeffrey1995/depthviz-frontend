@@ -151,7 +151,10 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
     if (frames.length <= MAX_SPARK_BARS) return frames
     const step = frames.length / MAX_SPARK_BARS
     const out: typeof frames = []
-    for (let i = 0; i < MAX_SPARK_BARS; i++) out.push(frames[Math.floor(i * step)])
+    for (let i = 0; i < MAX_SPARK_BARS; i++) {
+      const f = frames[Math.floor(i * step)]
+      if (f) out.push(f)
+    }
     return out
   }, [report])
 

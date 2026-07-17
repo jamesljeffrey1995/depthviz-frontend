@@ -102,14 +102,14 @@ describe('competition API', () => {
     ].join('\n')
     const rows = parseCompetitorsCsv(csv)
     expect(rows).toHaveLength(2)
-    expect(rows[0].full_name).toBe('Jamie Diver')
-    expect(rows[0].phone).toBe('07000000000')
-    expect(rows[0].paid).toBe(true)
-    expect(rows[0].waiver_accepted).toBe(true)
-    expect(rows[1].full_name).toBe('Alex Spearo')
-    expect(rows[1].phone).toBe(null)
-    expect(rows[1].paid).toBe(false)
-    expect(rows[1].waiver_accepted).toBe(false)
+    expect(rows[0]!.full_name).toBe('Jamie Diver')
+    expect(rows[0]!.phone).toBe('07000000000')
+    expect(rows[0]!.paid).toBe(true)
+    expect(rows[0]!.waiver_accepted).toBe(true)
+    expect(rows[1]!.full_name).toBe('Alex Spearo')
+    expect(rows[1]!.phone).toBe(null)
+    expect(rows[1]!.paid).toBe(false)
+    expect(rows[1]!.waiver_accepted).toBe(false)
   })
 
   test('parseCompetitorsCsv handles quoted fields with commas', () => {
@@ -118,8 +118,8 @@ describe('competition API', () => {
       '"Diver, One","Loves cod, hates mackerel"',
     ].join('\n')
     const rows = parseCompetitorsCsv(csv)
-    expect(rows[0].full_name).toBe('Diver, One')
-    expect(rows[0].notes).toBe('Loves cod, hates mackerel')
+    expect(rows[0]!.full_name).toBe('Diver, One')
+    expect(rows[0]!.notes).toBe('Loves cod, hates mackerel')
   })
 
   test('parseCompetitorsCsv skips rows without a name', () => {

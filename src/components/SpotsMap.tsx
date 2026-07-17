@@ -307,11 +307,11 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
       }
       // Sync with server response
       setDbVoteCounts(prev => ({ ...prev, [locationId]: updated.vote_count }))
-      setDbUserVotes(prev => ({ ...prev, [locationId]: updated.user_vote }))
+      setDbUserVotes(prev => ({ ...prev, [locationId]: updated.user_vote ?? null }))
     } catch {
       // Rollback on failure and show brief error
       setDbVoteCounts(prev => ({ ...prev, [locationId]: prevCount }))
-      setDbUserVotes(prev => ({ ...prev, [locationId]: existing }))
+      setDbUserVotes(prev => ({ ...prev, [locationId]: existing ?? null }))
       setVoteError('Vote failed — please try again')
       if (voteErrorTimer.current) clearTimeout(voteErrorTimer.current)
       voteErrorTimer.current = setTimeout(() => setVoteError(null), 3000)

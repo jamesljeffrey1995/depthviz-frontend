@@ -115,7 +115,7 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
 
       {selSwell !== null && selWave !== null && (
         <div className={styles.annotPanel}>
-          <span className={styles.annotDay}>{weekdayShort(selDay.date)}</span>
+          <span className={styles.annotDay}>{weekdayShort(selDay?.date ?? '')}</span>
           <span className={styles.annotSep} />
           <span className={styles.annotItem}>
             <span className={styles.annotKey}>S</span>

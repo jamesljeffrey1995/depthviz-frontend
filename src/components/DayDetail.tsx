@@ -167,7 +167,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, modelConfi
   // window "improving toward X" / "today is in the best window" copy stays
   // correct regardless of which day the user has clicked into.
   const heroDays = trendDays ?? [day]
-  const todayISO = new Date().toISOString().split('T')[0]
+  const todayISO = new Date().toISOString().slice(0, 10)
   const todayIdx = (() => {
     const i = heroDays.findIndex((d) => d.date === todayISO)
     return i >= 0 ? i : Math.max(0, heroDays.findIndex((d) => d.date >= todayISO))
@@ -562,7 +562,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, modelConfi
                   {day.bias_attribution.similar_reports.map((r, i) => (
                     <div key={i} className={styles.debugTableRowDives}>
                       <span className={styles.debugStep} style={{ color: 'rgba(255,255,255,0.6)' }}>
-                        {(() => { const [y,m,d] = r.date.split('-').map(Number); return new Date(y, (m??1)-1, d??1).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) })()}
+                        {(() => { const [y,m,d] = r.date.split('-').map(Number); return new Date(y ?? 1970, (m??1)-1, d??1).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) })()}
                       </span>
                       <span className={styles.debugDetail}>{r.conditions}</span>
                       <span className={styles.debugDelta} style={{ color: '#4ecb8d' }}>

@@ -13,7 +13,7 @@ interface Props {
 }
 
 function formatDate(dateStr: string): { day: string; date: string } {
-  const todayStr = new Date().toISOString().split('T')[0]
+  const todayStr = new Date().toISOString().slice(0, 10)
   const d = new Date(dateStr + 'T00:00:00')
   const diff = Math.round((d.getTime() - new Date(todayStr + 'T00:00:00').getTime()) / 86400000)
   const dayLabel =
@@ -26,12 +26,14 @@ function formatDate(dateStr: string): { day: string; date: string } {
 }
 
 function bestFutureDayIndex(days: DayForecast[]): number {
-  const todayStr = new Date().toISOString().split('T')[0]
+  const todayStr = new Date().toISOString().slice(0, 10)
   let best = -1
   let bestVis = -1
   for (let i = 0; i < days.length; i++) {
-    if (!days[i].is_forecast && days[i].date < todayStr) continue
-    const vis = days[i].vis_corrected ?? days[i].vis_estimate
+    const d = days[i]
+    if (!d) continue
+    if (!d.is_forecast && d.date < todayStr) continue
+    const vis = d.vis_corrected ?? d.vis_estimate
     if (vis > bestVis) { bestVis = vis; best = i }
   }
   return best >= 0 ? best : 0

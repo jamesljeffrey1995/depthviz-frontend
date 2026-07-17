@@ -43,12 +43,12 @@ const RATINGS: DiveRatingInfo[] = [
 
 /** Bucket a visibility value (metres) into a NE-UK spearfishing rating. */
 export function getDiveRating(visM: number): DiveRatingInfo {
-  if (!Number.isFinite(visM) || visM < 1) return RATINGS[0]
-  if (visM < 2) return RATINGS[1]
-  if (visM < 3) return RATINGS[2]
-  if (visM < 4) return RATINGS[3]
-  if (visM < 6) return RATINGS[4]
-  return RATINGS[5]
+  if (!Number.isFinite(visM) || visM < 1) return RATINGS[0]!
+  if (visM < 2) return RATINGS[1]!
+  if (visM < 3) return RATINGS[2]!
+  if (visM < 4) return RATINGS[3]!
+  if (visM < 6) return RATINGS[4]!
+  return RATINGS[5]!
 }
 
 export type ConfidenceLevel = 'high' | 'medium' | 'low'
@@ -123,8 +123,9 @@ export interface BestWindow {
 }
 
 function longDay(dateStr: string): string {
-  const [y, m, d] = dateStr.split('T')[0].split('-').map(Number)
-  return new Date(y, (m ?? 1) - 1, d ?? 1).toLocaleDateString('en-GB', { weekday: 'long' })
+  const datePart = dateStr.split('T')[0] ?? dateStr
+  const [y, m, d] = datePart.split('-').map(Number)
+  return new Date(y ?? 1970, (m ?? 1) - 1, d ?? 1).toLocaleDateString('en-GB', { weekday: 'long' })
 }
 
 /** Find the best contiguous window of forecast days above a threshold rating.
@@ -138,10 +139,12 @@ export function findBestWindow(days: DayForecast[]): BestWindow | null {
     return { vis, rating: getDiveRating(vis) }
   })
 
-  const goodOrBetter = (i: number) =>
-    rated[i].rating.key === 'good' || rated[i].rating.key === 'excellent'
+  const goodOrBetter = (i: number) => {
+    const k = rated[i]?.rating.key
+    return k === 'good' || k === 'excellent'
+  }
   const workableOrBetter = (i: number) => {
-    const k = rated[i].rating.key
+    const k = rated[i]?.rating.key
     return k === 'workable' || k === 'good' || k === 'excellent'
   }
 
@@ -154,7 +157,8 @@ export function findBestWindow(days: DayForecast[]): BestWindow | null {
       let j = i
       let peak = -Infinity
       while (j < rated.length && predicate(j)) {
-        if (rated[j].vis > peak) peak = rated[j].vis
+        const rj = rated[j]
+        if (rj && rj.vis > peak) peak = rj.vis
         j++
       }
       const len = j - i
@@ -174,31 +178,44 @@ export function findBestWindow(days: DayForecast[]): BestWindow | null {
     // Nothing workable: report the single best day so users still see when it
     // peaks, even if that peak is only "marginal".
     let bestI = 0
-    for (let i = 1; i < rated.length; i++) if (rated[i].vis > rated[bestI].vis) bestI = i
+    for (let i = 1; i < rated.length; i++) {
+      const ri = rated[i]
+      const rb = rated[bestI]
+      if (ri && rb && ri.vis > rb.vis) bestI = i
+    }
     const day = days[bestI]
-    const info = rated[bestI].rating
+    const rb = rated[bestI]
+    if (!day || !rb) return null
     return {
       startIndex: bestI,
       endIndex: bestI,
       startDate: day.date,
       endDate: day.date,
-      bestVis: rated[bestI].vis,
-      bestRating: info,
+      bestVis: rb.vis,
+      bestRating: rb.rating,
       label: longDay(day.date),
     }
   }
 
   const [s, e] = run
-  let peak = rated[s].vis
-  for (let i = s + 1; i <= e; i++) if (rated[i].vis > peak) peak = rated[i].vis
+  const rs = rated[s]
+  let peak = rs ? rs.vis : 0
+  for (let i = s + 1; i <= e; i++) {
+    const ri = rated[i]
+    if (ri && ri.vis > peak) peak = ri.vis
+  }
   const bestRating = getDiveRating(peak)
-  const label = s === e ? longDay(days[s].date) : `${longDay(days[s].date)} – ${longDay(days[e].date)}`
+  const ds = days[s]
+  const de = days[e]
+  const sLabel = ds ? longDay(ds.date) : ''
+  const eLabel = de ? longDay(de.date) : ''
+  const label = s === e ? sLabel : `${sLabel} – ${eLabel}`
 
   return {
     startIndex: s,
     endIndex: e,
-    startDate: days[s].date,
-    endDate: days[e].date,
+    startDate: ds?.date ?? '',
+    endDate: de?.date ?? '',
     bestVis: peak,
     bestRating,
     label,

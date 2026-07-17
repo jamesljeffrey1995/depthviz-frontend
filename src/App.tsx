@@ -177,7 +177,7 @@ export default function App() {
 
   useEffect(() => {
     if (forecast) {
-      const today = new Date().toISOString().split('T')[0]
+      const today = new Date().toISOString().slice(0, 10)
       const todayIdx = forecast.days.findIndex(d => d.date === today)
       setSelectedDay(todayIdx >= 0 ? todayIdx : Math.max(0, forecast.days.length - 1))
     }
@@ -290,8 +290,8 @@ export default function App() {
   /** Returns false when nothing matched, so the SearchBar can say so inline. */
   const handleSearch = (query: string): boolean => {
     const results = getLocalSuggestions(query)
-    if (!results.length) return false
     const loc = results[0]
+    if (!loc) return false
     setCurrentLat(loc.latitude)
     setCurrentLon(loc.longitude)
     const name = formatLocationName(loc)
@@ -364,7 +364,7 @@ export default function App() {
     </>
   )
 
-  const todayIndex = forecast?.days.findIndex(d => d.date === new Date().toISOString().split('T')[0]) ?? -1
+  const todayIndex = forecast?.days.findIndex(d => d.date === new Date().toISOString().slice(0, 10)) ?? -1
 
   if (authLoading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
@@ -409,7 +409,7 @@ export default function App() {
           onClick={() => { if (user) navigate('/profile'); else setShowAuth(true) }}
           aria-label={user ? `View profile for ${user.email?.split('@')[0] ?? 'user'}` : 'Sign in to your account'}
         >
-          {user ? (user.email ?? 'U')[0].toUpperCase() : 'Sign in'}
+          {user ? (user.email ?? 'U').charAt(0).toUpperCase() : 'Sign in'}
         </button>
       </header>
 
@@ -879,7 +879,7 @@ export default function App() {
             user && forecast ? (
               <Suspense fallback={null}>
                 <ReportForm
-                  day={forecast.days[todayIndex] ?? forecast.days[selectedDay]}
+                  day={forecast.days[todayIndex] ?? forecast.days[selectedDay] ?? null}
                   allDays={forecast.days}
                   locations={locations}
                   onSubmitted={() => navigate('/forecast')}
