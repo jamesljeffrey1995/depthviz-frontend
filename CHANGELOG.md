@@ -1,3 +1,11 @@
+## [1.24.1](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.24.0...v1.24.1) (2026-07-17)
+
+
+### Bug Fixes
+
+* address Copilot review — compass wrap, hot-loop asserts, NaN date guard ([eb1a969](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/eb1a96909869f5c67cedc586ae8404809e6f5eaf)), closes [#261](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/261) [#162](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/162)
+* enable noUncheckedIndexedAccess and guard unchecked array access ([#162](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/162)) ([d0fbbae](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/d0fbbae9e51378b2d6ba04b449831e132846f3a2))
+
 # [1.24.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.23.1...v1.24.0) (2026-07-16)
 
 
