@@ -16,7 +16,7 @@
   margin-bottom: 4px;
 }
 .title {
-  font-family: var(--ds-font-sans);
+  font-family: var(--ds-font-display);
   font-size: var(--ds-text-h3);
   font-weight: var(--ds-fw-bold);
   line-height: var(--ds-lh-snug);

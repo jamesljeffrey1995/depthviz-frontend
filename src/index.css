@@ -26,11 +26,13 @@
   --border-strong: var(--ds-hairline-strong);
 
   /* ── Typography ──
-     One font family: Inter (§6.3). Bebas Neue / Space Mono are retired; these
-     legacy names now alias the Inter token so any remaining consumer converges
-     on it instead of loading a second family. */
+     Two families with distinct jobs (§4): Space Grotesk is the distinctive
+     display voice for headings, Inter is the body and tabular-figure
+     workhorse. Bebas Neue / Space Mono are retired. `--font-display` now
+     resolves to the display token; `--font-mono` keeps Inter for aligned
+     numerals in legacy consumers. */
   --font-mono: var(--ds-font-sans);
-  --font-display: var(--ds-font-sans);
+  --font-display: var(--ds-font-display);
 
   /* ── Spacing scale ──
      Base 8pt rhythm: 8 · 12 · 16 · 24 · 32 · 48. The legacy xs/xl/2xl
@@ -127,15 +129,23 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Animated ocean background ── */
+/* ── Atmospheric ocean background ──
+   Not a solid fill: a field of depth. Light enters from the top-right
+   surface, the mid-water carries the dominant deep-ocean body, and a vignette
+   sinks the corners toward the abyssal floor so content floats above real
+   space. Layers are driven by the `--ds-atmos-*` tokens so both themes and
+   any future retune stay in one place. */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 60% at 20% 80%, rgba(8, 48, 73, 0.55) 0%, transparent 70%),
-    radial-gradient(ellipse 60% 80% at 80% 15%, rgba(2, 16, 26, 0.95) 0%, transparent 60%),
-    linear-gradient(180deg, #02101a 0%, #052233 42%, #083049 72%, #052233 100%);
+    linear-gradient(168deg, var(--ds-atmos-shaft) 0%, transparent 34%),
+    linear-gradient(196deg, var(--ds-atmos-shaft) 0%, transparent 40%),
+    radial-gradient(ellipse 90% 55% at 78% -5%, var(--ds-atmos-surface) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 60% at 20% 80%, var(--ds-atmos-mid) 0%, transparent 70%),
+    radial-gradient(ellipse 120% 90% at 50% 120%, var(--ds-atmos-vignette) 0%, transparent 60%),
+    linear-gradient(178deg, var(--ds-atmos-deep) 0%, var(--ds-atmos-body) 55%, var(--ds-atmos-deep) 100%);
   z-index: 0;
   pointer-events: none;
 }
@@ -160,6 +170,16 @@ body::after {
 @keyframes caustics {
   0%   { transform: translate(0, 0) rotate(0deg); opacity: 0.5; }
   100% { transform: translate(30px, 20px) rotate(2deg); opacity: 1; }
+}
+
+/* ── Headings speak in the display voice ──
+   Space Grotesk gives every heading a distinctive, non-generic character while
+   body copy and figures stay on Inter. Slightly tightened tracking keeps the
+   grotesque feeling deliberate at large sizes. Components that need Inter for
+   a heading (e.g. tabular metrics) can still opt out with their own family. */
+h1, h2, h3, h4 {
+  font-family: var(--ds-font-display);
+  letter-spacing: var(--ds-tracking-tight, -0.02em);
 }
 
 /* ── Interactive element base styles ── */
@@ -245,6 +265,30 @@ input:focus-visible {
 /* Fade a block of content up as it mounts. */
 .dv-animate-in {
   animation: dv-fade-in-up 380ms var(--ease-spring) both;
+}
+
+/* ── Orchestrated page-load reveal ──
+   Motion budget is spent on one high-impact moment: the page arriving. A
+   container marked `.dv-reveal` cascades its direct children up and in, each
+   child delayed by its `--i` index times the stagger step. Set `--i` inline
+   per child (style={{ '--i': n }}) to order the cascade. This is a page-load
+   effect only — it plays once on mount and never loops. */
+@keyframes dv-reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--ds-reveal-shift, 16px));
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.dv-reveal > * {
+  animation: dv-reveal-in var(--ds-dur-reveal, 620ms) var(--ease-spring) both;
+  animation-delay: calc(var(--i, 0) * var(--ds-stagger-step, 80ms));
 }
 
 /* Pop a value/badge in — used for microinteractions such as a favourite
