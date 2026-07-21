@@ -74,9 +74,9 @@
 .typeMeta { min-width: 0; }
 .typeRole { font-size: var(--ds-text-body); font-weight: var(--ds-fw-semi); color: var(--ds-text-strong); }
 .typeSpec { font-family: var(--ds-font-num); font-size: var(--ds-text-label); color: var(--ds-text-faint); }
-.tHero  { font-size: var(--ds-text-h1); font-weight: 700; letter-spacing: var(--ds-tracking-tight); color: var(--ds-text-strong); }
-.tH2    { font-size: var(--ds-text-h2); font-weight: 700; color: var(--ds-text-strong); }
-.tH3    { font-size: var(--ds-text-h3); font-weight: 600; color: var(--ds-text-strong); }
+.tHero  { font-family: var(--ds-font-display); font-size: var(--ds-text-h1); font-weight: 700; letter-spacing: var(--ds-tracking-tight); color: var(--ds-text-strong); }
+.tH2    { font-family: var(--ds-font-display); font-size: var(--ds-text-h2); font-weight: 700; letter-spacing: var(--ds-tracking-tight); color: var(--ds-text-strong); }
+.tH3    { font-family: var(--ds-font-display); font-size: var(--ds-text-h3); font-weight: 600; color: var(--ds-text-strong); }
 .tBody  { font-size: var(--ds-text-body); font-weight: 400; line-height: var(--ds-lh-body); color: var(--ds-text-body); }
 .tMeta  { font-size: var(--ds-text-meta); font-weight: 500; color: var(--ds-text-muted); }
 .tLabel { font-size: var(--ds-text-label); font-weight: 600; letter-spacing: var(--ds-tracking-label); text-transform: uppercase; color: var(--ds-text-muted); }

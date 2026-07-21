@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import type { DayForecast } from '../types'
 import {
   Card, Button, Badge, SectionHeader, Meter, StatTile, DiveScore,
@@ -53,19 +53,20 @@ export function DesignSystemPage() {
   const [loading, setLoading] = useState(false)
 
   return (
-    <div className={styles.page}>
-      <header className={styles.masthead}>
+    <div className={`${styles.page} dv-reveal`}>
+      <header className={styles.masthead} style={{ '--i': 0 } as CSSProperties}>
         <div className={styles.eyebrow}>DepthViz Design System</div>
         <h1 className={styles.title}>Clarity, confidence, rapid decisions.</h1>
         <p className={styles.lede}>
-          A restrained, ocean-inspired system built to answer one question on every screen —
-          <strong> should I dive here today?</strong> These are the live components the product ships.
+          A deep, ocean-inspired system built to answer one question on every screen:
+          <strong> should I dive here today?</strong> These are the live components the product ships,
+          revealed in the same staggered page load the app uses.
         </p>
       </header>
 
       {/* Colour */}
-      <section className={styles.section} id="colour">
-        <SectionHeader eyebrow="Tokens" title="Dive quality scale" subtitle="Six luminance-stepped hues, each always paired with a label or glyph — never colour alone." />
+      <section className={styles.section} id="colour" style={{ '--i': 1 } as CSSProperties}>
+        <SectionHeader eyebrow="Tokens" title="Dive quality scale" subtitle="Six luminance-stepped hues, each always paired with a label or glyph, never colour alone. A dominant deep field carries the palette; one sharp accent does the pointing." />
         <div className={styles.swatchRow}>
           {QUALITY.map(q => (
             <div key={q.name} className={styles.swatch}>
@@ -86,8 +87,8 @@ export function DesignSystemPage() {
       </section>
 
       {/* Typography */}
-      <section className={styles.section} id="type">
-        <SectionHeader eyebrow="Tokens" title="Typography" subtitle="Inter, one type scale. Numbers use tabular figures for stable, scannable columns." />
+      <section className={styles.section} id="type" style={{ '--i': 2 } as CSSProperties}>
+        <SectionHeader eyebrow="Tokens" title="Typography" subtitle="Space Grotesk for the display voice, Inter for body and metrics. Numbers use tabular figures for stable, scannable columns." />
         <Card padding="lg" className={styles.typeCard}>
           {TYPE_SPECS.map(t => (
             <div key={t.role} className={styles.typeRow}>
@@ -102,7 +103,7 @@ export function DesignSystemPage() {
       </section>
 
       {/* Dive Score gauge */}
-      <section className={styles.section} id="score">
+      <section className={styles.section} id="score" style={{ '--i': 3 } as CSSProperties}>
         <SectionHeader eyebrow="Signature component" title="Dive Quality Score" subtitle="The single, prominent number that leads every location page." />
         <div className={styles.gaugeRow}>
           <div className={styles.gaugeCell}><DiveScore score={91} color="#17d1a6" label="Excellent" /></div>
@@ -114,7 +115,7 @@ export function DesignSystemPage() {
       </section>
 
       {/* Decision card */}
-      <section className={styles.section} id="decision">
+      <section className={styles.section} id="decision" style={{ '--i': 4 } as CSSProperties}>
         <SectionHeader eyebrow="Composition" title="Decision card" subtitle="Score + verdict + self-explaining factor breakdown + best-window shortcut." />
         <div className={styles.cardGrid}>
           <DiveScoreCard day={goodDay} locationName="St Abbs Head" units="m" forecast={{ report_count: 4, model_confidence: 'high' }} />
@@ -123,7 +124,7 @@ export function DesignSystemPage() {
       </section>
 
       {/* Buttons & controls */}
-      <section className={styles.section} id="controls">
+      <section className={styles.section} id="controls" style={{ '--i': 5 } as CSSProperties}>
         <SectionHeader eyebrow="Library" title="Buttons & controls" subtitle="Pill buttons with a 44px minimum touch target at every size." />
         <div className={styles.inlineRow}>
           <Button variant="primary" iconStart={<CheckIcon />}>Save this spot</Button>
@@ -149,10 +150,10 @@ export function DesignSystemPage() {
       </section>
 
       {/* Badges */}
-      <section className={styles.section} id="badges">
+      <section className={styles.section} id="badges" style={{ '--i': 6 } as CSSProperties}>
         <SectionHeader eyebrow="Library" title="Badges & verdicts" />
         <div className={styles.inlineRow}>
-          <Badge tone="success" dot>Yes — dive</Badge>
+          <Badge tone="success" dot>Yes, dive</Badge>
           <Badge tone="warn" dot>Maybe</Badge>
           <Badge tone="danger" dot>Not today</Badge>
           <Badge tone="accent" icon={<EyeIcon />}>High confidence</Badge>
@@ -161,7 +162,7 @@ export function DesignSystemPage() {
       </section>
 
       {/* Meters + stat tiles */}
-      <section className={styles.section} id="data">
+      <section className={styles.section} id="data" style={{ '--i': 7 } as CSSProperties}>
         <SectionHeader eyebrow="Library" title="Factor meters & stat tiles" subtitle="Each row is scannable in under two seconds and legible without colour." />
         <div className={styles.cardGrid}>
           <Card padding="lg" className={styles.stack}>
@@ -184,7 +185,7 @@ export function DesignSystemPage() {
       </section>
 
       {/* Loading */}
-      <section className={styles.section} id="loading">
+      <section className={styles.section} id="loading" style={{ '--i': 8 } as CSSProperties}>
         <SectionHeader
           eyebrow="Perceived performance"
           title="Skeleton states"
