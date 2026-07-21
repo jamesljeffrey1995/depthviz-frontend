@@ -1,3 +1,10 @@
+## [1.24.2](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.24.1...v1.24.2) (2026-07-21)
+
+
+### Bug Fixes
+
+* **design-system:** catch sub-8px sizes + tokenise remaining verdict colours (review) ([f9c4970](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/f9c4970e1eb491b2a3daf6652ca17dc71d10ab5e)), closes [#262](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/262) [#4a4a5](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/4a4a5) [a/#666](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/666) [#7fb87](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/7fb87) [a/#5ba87](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/5ba87) [#c0392](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/c0392) [#d4850](https://github.com/jamesljeffrey1995/depthviz-frontend/issues/d4850)
+
 ## [1.24.1](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.24.0...v1.24.1) (2026-07-17)
 
 
