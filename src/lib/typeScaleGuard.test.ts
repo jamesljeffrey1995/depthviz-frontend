@@ -23,9 +23,10 @@ function collectModuleCss(dir: string): string[] {
   return out
 }
 
-// Matches a font-size declaration below the 12px floor (8/9/10/11px). Anchored
-// on the unit so 100px / 110px etc. are not matched.
-const SUB_12PX = /font-size:\s*(?:8|9|10|11)px\b/g
+// Matches a font-size declaration below the 12px floor — any 1- or 2-digit px
+// value under 12 (…7px, 8px, …, 11px). Anchored on the unit so 12px+ and
+// 100px/110px etc. are not matched.
+const SUB_12PX = /font-size:\s*(?:[0-9]|1[01])px\b/g
 
 describe('component type scale never drops below the 12px readability floor', () => {
   const files = collectModuleCss(componentsDir)

@@ -197,10 +197,10 @@
 /* ── Condition color classes ── */
 .excellent { color: var(--ds-q-excellent); }
 .good      { color: var(--ds-q-good); }
-.decent    { color: #5ba87a; }
+.decent    { color: var(--ds-q-workable); }
 .marginal  { color: var(--ds-warn); }
-.poor      { color: #c0392b; }
-.blocked   { color: #666; }
+.poor      { color: var(--ds-danger); }
+.blocked   { color: var(--ds-q-blown); }
 
 .condError {
   font-size: var(--text-label);

@@ -48,7 +48,7 @@
   position: absolute;
   top: 4px;
   right: 4px;
-  font-size: 6px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   opacity: 0.35;
 }
@@ -71,7 +71,7 @@
   top: 4px;
   left: 4px;
   font-family: var(--ds-font-sans);
-  font-size: 7px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.18em;
   color: var(--ds-q-good);
   background: rgba(78, 203, 141, 0.14);
@@ -142,7 +142,7 @@
 .algaeHigh     { background: var(--ds-danger); }
 
 .driver {
-  font-size: 7px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   margin-top: 4px;

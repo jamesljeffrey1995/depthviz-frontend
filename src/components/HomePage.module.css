@@ -236,10 +236,10 @@
 /* Rating colour classes — mirror the shared visibility palette used on the
    Best Visibility page (BestVisibility.module.css) via the global tokens, so
    colours stay consistent and theme-safe across the app. */
-.blocked { color: #4a4a5a; }
+.blocked { color: var(--ds-q-blown); }
 .poor { color: var(--ds-danger); }
 .marginal { color: var(--ds-warn); }
-.decent { color: #7fb87a; }
+.decent { color: var(--ds-q-workable); }
 .good { color: var(--ds-q-good); }
 .excellent { color: var(--ds-q-excellent); }
 
