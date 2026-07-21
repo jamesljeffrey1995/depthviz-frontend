@@ -158,8 +158,10 @@
      These layers compose in index.css into a dived-into gradient with a
      light shaft from the surface and a deep vignette at the seabed. */
   --ds-atmos-surface: rgba(36, 198, 240, 0.10);  /* light entering from above */
-  --ds-atmos-mid:     rgba(8, 48, 73, 0.55);      /* mid-water body */
+  --ds-atmos-mid:     rgba(8, 48, 73, 0.55);      /* mid-water wash */
+  --ds-atmos-body:    #083049;                     /* base gradient mid-water body */
   --ds-atmos-deep:    #02101a;                     /* abyssal floor */
+  --ds-atmos-vignette:rgba(0, 0, 0, 0.55);         /* corner sink */
   --ds-atmos-shaft:   rgba(77, 255, 228, 0.05);    /* god-ray from the surface */
 
   /* Shadows — used only to establish hierarchy, never for decoration */
@@ -200,7 +202,9 @@
   /* Atmosphere for the light theme: a bright, shallow-water field. */
   --ds-atmos-surface: rgba(36, 198, 240, 0.14);
   --ds-atmos-mid:     rgba(196, 214, 225, 0.60);
+  --ds-atmos-body:    #dbe7f0;
   --ds-atmos-deep:    #eaf1f6;
+  --ds-atmos-vignette:rgba(16, 43, 63, 0.10);
   --ds-atmos-shaft:   rgba(6, 130, 173, 0.05);
 
   --ds-shadow-1: 0 1px 2px rgba(16, 43, 63, 0.08);

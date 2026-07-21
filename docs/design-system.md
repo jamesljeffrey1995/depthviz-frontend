@@ -14,9 +14,9 @@ never drift from the code.
 ## 1. Design principles
 
 We adopted the *principles* that make best-in-class conditions apps (e.g.
-Surfline) successful, decision-first hierarchy, progressive disclosure, a
-single confidence-building score, without copying any visual identity or
-assets. DepthViz owns a distinct identity rooted in **clarity, confidence and
+Surfline) successful: decision-first hierarchy, progressive disclosure, and a
+single confidence-building score. We do this without copying any visual
+identity or assets. DepthViz owns a distinct identity rooted in **clarity, confidence and
 rapid decision-making** for *underwater visibility*, which is a different
 problem from surf.
 
@@ -175,7 +175,7 @@ best-window shortcut.
 
 Logic: [`src/lib/diveScore.ts`](../src/lib/diveScore.ts) (unit-tested).
 
-A single **0–100** number is the product's centre of gravity, it turns a
+A single **0–100** number is the product's centre of gravity: it turns a
 scatter of oceanographic variables into one confident answer. It is a weighted
 blend of transparent sub-scores:
 

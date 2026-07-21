@@ -144,8 +144,8 @@ body::before {
     linear-gradient(196deg, var(--ds-atmos-shaft) 0%, transparent 40%),
     radial-gradient(ellipse 90% 55% at 78% -5%, var(--ds-atmos-surface) 0%, transparent 55%),
     radial-gradient(ellipse 80% 60% at 20% 80%, var(--ds-atmos-mid) 0%, transparent 70%),
-    radial-gradient(ellipse 120% 90% at 50% 120%, rgba(0, 0, 0, 0.55) 0%, transparent 60%),
-    linear-gradient(178deg, var(--ds-atmos-deep) 0%, #052233 40%, #083049 72%, #041a29 100%);
+    radial-gradient(ellipse 120% 90% at 50% 120%, var(--ds-atmos-vignette) 0%, transparent 60%),
+    linear-gradient(178deg, var(--ds-atmos-deep) 0%, var(--ds-atmos-body) 55%, var(--ds-atmos-deep) 100%);
   z-index: 0;
   pointer-events: none;
 }
