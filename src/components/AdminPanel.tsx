@@ -244,7 +244,7 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
           )}
           <span style={{ flex: 1 }} />
           {error && (
-            <span style={{ color: 'var(--danger)' }} role="alert">
+            <span style={{ color: 'var(--ds-danger)' }} role="alert">
               {error}
             </span>
           )}

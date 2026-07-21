@@ -81,7 +81,7 @@
   /* ── Typography ─────────────────────────────────────────────────────── */
   --ds-font-sans: 'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont,
                   'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --ds-font-num:  'Inter Variable', 'Inter', ui-monospace, 'Space Mono', monospace;
+  --ds-font-num:  'Inter Variable', 'Inter', ui-monospace, monospace;
 
   /* Type scale (size / line-height / weight handled per role in components) */
   --ds-text-hero:    clamp(36px, 7vw, 48px);

@@ -368,7 +368,7 @@ export default function App() {
 
   if (authLoading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-      <div style={{ color: 'var(--accent)', fontFamily: 'var(--font-display)', fontSize: '36px', letterSpacing: '0.2em' }}>DEPTHVIZ</div>
+      <div style={{ color: 'var(--ds-accent)', fontFamily: 'var(--ds-font-sans)', fontSize: '36px', letterSpacing: '0.2em' }}>DEPTHVIZ</div>
     </div>
   )
 

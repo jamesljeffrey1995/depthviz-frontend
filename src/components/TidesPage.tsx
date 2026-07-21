@@ -19,19 +19,19 @@ function formatDate(iso: string): string {
 
 function getCurrentStateColor(state: string): string {
   switch (state) {
-    case 'slack': return 'var(--good)'
-    case 'weak': return 'var(--good)'
-    case 'moderate': return 'var(--warn)'
-    case 'strong': return 'var(--danger)'
+    case 'slack': return 'var(--ds-q-good)'
+    case 'weak': return 'var(--ds-q-good)'
+    case 'moderate': return 'var(--ds-warn)'
+    case 'strong': return 'var(--ds-danger)'
     default: return 'var(--text)'
   }
 }
 
 function getRangeColor(category: string): string {
   switch (category) {
-    case 'micro': return 'var(--good)'
-    case 'meso': return 'var(--warn)'
-    case 'macro': return 'var(--danger)'
+    case 'micro': return 'var(--ds-q-good)'
+    case 'meso': return 'var(--ds-warn)'
+    case 'macro': return 'var(--ds-danger)'
     default: return 'var(--text)'
   }
 }
@@ -221,7 +221,7 @@ export function TidesPage({ lat, lon, locationName }: Props) {
               return (
                 <g key={v}>
                   <line x1="0" y1={y} x2="600" y2={y} stroke="rgba(0,201,255,0.06)" strokeWidth="1" />
-                  <text x="4" y={y - 4} fill="rgba(139,184,204,0.4)" fontSize="9" fontFamily="var(--font-mono)">{v.toFixed(1)}m</text>
+                  <text x="4" y={y - 4} fill="rgba(139,184,204,0.4)" fontSize="9" fontFamily="var(--ds-font-sans)">{v.toFixed(1)}m</text>
                 </g>
               )
             })}
@@ -230,7 +230,7 @@ export function TidesPage({ lat, lon, locationName }: Props) {
             {fillPath && <path d={fillPath} fill="url(#tideFill)" />}
 
             {/* Tide curve */}
-            {path && <path d={path} fill="none" stroke="var(--accent)" strokeWidth="2" />}
+            {path && <path d={path} fill="none" stroke="var(--ds-accent)" strokeWidth="2" />}
 
             {/* Now marker */}
             {nowX !== null && (
@@ -240,14 +240,14 @@ export function TidesPage({ lat, lon, locationName }: Props) {
             {/* High/low markers */}
             {eventPositions.map((ev, i) => (
               <g key={i}>
-                <circle cx={ev.x} cy={ev.y} r="4" fill={ev.type === 'high' ? 'var(--accent)' : 'var(--warn)'} />
+                <circle cx={ev.x} cy={ev.y} r="4" fill={ev.type === 'high' ? 'var(--ds-accent)' : 'var(--ds-warn)'} />
                 <text
                   x={ev.x}
                   y={ev.type === 'high' ? ev.y - 10 : ev.y + 16}
                   textAnchor="middle"
                   fill="var(--text-bright)"
                   fontSize="9"
-                  fontFamily="var(--font-mono)"
+                  fontFamily="var(--ds-font-sans)"
                 >
                   {ev.height != null ? `${ev.height.toFixed(1)}m` : ''}
                 </text>
@@ -256,7 +256,7 @@ export function TidesPage({ lat, lon, locationName }: Props) {
 
             {/* X-axis time labels */}
             {timeLabels.map((t, i) => (
-              <text key={i} x={t.x} y="195" textAnchor="middle" fill="rgba(139,184,204,0.4)" fontSize="9" fontFamily="var(--font-mono)">
+              <text key={i} x={t.x} y="195" textAnchor="middle" fill="rgba(139,184,204,0.4)" fontSize="9" fontFamily="var(--ds-font-sans)">
                 {t.label}
               </text>
             ))}
@@ -270,7 +270,7 @@ export function TidesPage({ lat, lon, locationName }: Props) {
         <div className={styles.eventsGrid}>
           {tides.events.map((ev, i) => (
             <div key={i} className={styles.eventCard}>
-              <div className={styles.eventType} style={{ color: ev.type === 'high' ? 'var(--accent)' : 'var(--warn)' }}>
+              <div className={styles.eventType} style={{ color: ev.type === 'high' ? 'var(--ds-accent)' : 'var(--ds-warn)' }}>
                 {ev.type === 'high' ? 'HIGH' : 'LOW'}
               </div>
               <div className={styles.eventHeight}>{ev.height != null ? `${ev.height.toFixed(2)}m` : 'N/A'}</div>

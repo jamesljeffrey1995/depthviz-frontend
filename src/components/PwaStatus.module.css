@@ -2,11 +2,11 @@
    but in the accent colour to read as informational rather than a warning. */
 .offlineBanner {
   background: rgba(0, 201, 255, 0.1);
-  border: 1px solid var(--accent);
+  border: 1px solid var(--ds-accent);
   border-radius: var(--radius-sm);
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 11px;
+  color: var(--ds-accent);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   letter-spacing: 0.08em;
   padding: var(--space-sm) var(--space-md);
   text-align: center;
@@ -32,10 +32,10 @@
   gap: var(--space-sm) var(--space-md);
   max-width: min(420px, calc(100vw - 2 * var(--space-md)));
   background: rgba(4, 21, 31, 0.97);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--ds-hairline-strong);
   border-radius: var(--radius-md);
   color: var(--text-bright);
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 12px;
   line-height: 1.5;
   letter-spacing: 0.03em;
@@ -54,9 +54,9 @@
 }
 
 .readyToast {
-  color: var(--accent);
+  color: var(--ds-accent);
   text-transform: uppercase;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.08em;
 }
 
@@ -68,8 +68,8 @@
 
 .reloadBtn,
 .dismissBtn {
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   min-height: 36px;
@@ -79,9 +79,9 @@
 }
 
 .reloadBtn {
-  background: var(--accent);
+  background: var(--ds-accent);
   color: #020d14;
-  border: 1px solid var(--accent);
+  border: 1px solid var(--ds-accent);
   font-weight: 700;
 }
 

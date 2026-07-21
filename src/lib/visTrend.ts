@@ -19,9 +19,9 @@ export function categoriseVis(vis: number): VisCategory {
 }
 
 export function categoryColor(cat: VisCategory): string {
-  if (cat === 'good') return 'var(--good)'
-  if (cat === 'marginal') return 'var(--warn)'
-  return 'var(--danger)'
+  if (cat === 'good') return 'var(--ds-q-good)'
+  if (cat === 'marginal') return 'var(--ds-warn)'
+  return 'var(--ds-danger)'
 }
 
 function shortDay(dateStr: string): string {

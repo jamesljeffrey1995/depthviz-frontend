@@ -10,9 +10,9 @@
 .back {
   background: none;
   border: none;
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 10px;
+  color: var(--ds-accent);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   cursor: pointer;
   padding: 0;
@@ -25,7 +25,7 @@
 }
 
 .title {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 28px;
   color: var(--text-bright);
   letter-spacing: 0.08em;
@@ -33,7 +33,7 @@
 }
 
 .updated {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   opacity: 0.35;
@@ -45,18 +45,18 @@
 }
 
 .section h3 {
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--ds-accent);
   margin: 0 0 10px;
 }
 
 .section p,
 .section li {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.05em;
   color: var(--text);
   line-height: 1.8;
@@ -79,7 +79,7 @@
 }
 
 .section a {
-  color: var(--accent);
+  color: var(--ds-accent);
   text-decoration: none;
 }
 
@@ -100,7 +100,7 @@
 }
 
 .contactCard p {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.05em;
   color: var(--text);
   line-height: 1.8;

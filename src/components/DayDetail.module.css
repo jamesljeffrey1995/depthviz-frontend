@@ -12,7 +12,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  background: linear-gradient(90deg, transparent, var(--ds-accent), transparent);
   opacity: 0.3;
 }
 
@@ -26,7 +26,7 @@
 .dateBlock {}
 
 .dateLine {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   opacity: 0.45;
@@ -35,11 +35,11 @@
 
 .forecastBadge {
   display: inline-block;
-  font-size: 8px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   border: 1px solid rgba(0, 201, 255, 0.3);
-  color: var(--accent);
+  color: var(--ds-accent);
   padding: 2px 6px;
   margin-top: 4px;
 }
@@ -49,22 +49,22 @@
 }
 
 .visNumber {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: clamp(56px, 16vw, 96px);
   line-height: 1;
   transition: color 0.4s;
 }
 
 .visUnit {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   opacity: 0.5;
 }
 
 .correctedNote {
-  font-family: var(--font-mono);
-  font-size: 10px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text-dim);
@@ -78,7 +78,7 @@
 }
 
 .verdict {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 24px;
   letter-spacing: 0.15em;
   margin-bottom: 20px;
@@ -91,7 +91,7 @@
   color: var(--text-bright);
   margin-bottom: 14px;
   padding-left: 10px;
-  border-left: 2px solid var(--accent);
+  border-left: 2px solid var(--ds-accent);
 }
 
 /* Conditions (secondary metrics) toggle */
@@ -106,7 +106,7 @@
   color: var(--text);
   padding: 10px 2px;
   margin-bottom: 12px;
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   cursor: pointer;
@@ -114,11 +114,11 @@
 }
 
 .toggleConditions:hover {
-  color: var(--accent);
+  color: var(--ds-accent);
 }
 
 .toggleConditions:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ds-accent);
   outline-offset: 2px;
 }
 
@@ -139,7 +139,7 @@
 }
 
 .metricChipLabel {
-  font-size: 7px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   opacity: 0.5;
@@ -148,13 +148,13 @@
 }
 
 .metricChipValue {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 18px;
   line-height: 1;
 }
 
 .metricChipNote {
-  font-size: 7px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   opacity: 0.85;
@@ -177,25 +177,25 @@
 }
 
 .algaeLabel {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   opacity: 0.4;
 }
 
 .algaeRisk {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   font-weight: 700;
 }
 
-.algaeLow      { color: var(--good); }
-.algaeModerate { color: var(--warn); }
-.algaeHigh     { color: var(--danger); }
+.algaeLow      { color: var(--ds-q-good); }
+.algaeModerate { color: var(--ds-warn); }
+.algaeHigh     { color: var(--ds-danger); }
 
 .algaeDrivers {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   opacity: 0.55;
   line-height: 1.8;
 }
@@ -210,7 +210,7 @@
 }
 
 .algaeMeasuredLabel {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   opacity: 0.6;
@@ -224,7 +224,7 @@
 .algaeContradiction {
   flex-basis: 100%;
   margin-top: 2px;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   font-style: italic;
   opacity: 0.75;
 }
@@ -244,7 +244,7 @@
 }
 
 .factorName {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.25em;
   text-transform: uppercase;
   opacity: 0.45;
@@ -252,21 +252,21 @@
 }
 
 .factorValue {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 20px;
   color: var(--text-bright);
   margin-bottom: 2px;
 }
 
 .factorNote {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.12em;
   opacity: 0.45;
   margin-bottom: 3px;
 }
 
 .factorImpact {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
@@ -279,12 +279,12 @@
 }
 
 /* Color classes */
-.blocked   { color: #4a4a5a; }
-.poor      { color: var(--danger); }
-.marginal  { color: var(--warn); }
-.decent    { color: #7fb87a; }
-.good      { color: var(--good); }
-.excellent { color: var(--excellent); }
+.blocked   { color: var(--ds-q-blown); }
+.poor      { color: var(--ds-danger); }
+.marginal  { color: var(--ds-warn); }
+.decent    { color: var(--ds-q-workable); }
+.good      { color: var(--ds-q-good); }
+.excellent { color: var(--ds-q-excellent); }
 
 /* Bar vis */
 .barContainer { margin-bottom: 20px; }
@@ -299,7 +299,7 @@
 .barLabels {
   display: flex;
   justify-content: space-between;
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   opacity: 0.35;
   margin-bottom: 6px;
@@ -315,12 +315,12 @@
   height: 100%;
   transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.bg_blocked   { background: #4a4a5a; }
-.bg_poor      { background: var(--danger); }
-.bg_marginal  { background: var(--warn); }
-.bg_decent    { background: #7fb87a; }
-.bg_good      { background: var(--good); }
-.bg_excellent { background: var(--excellent); }
+.bg_blocked   { background: var(--ds-q-blown); }
+.bg_poor      { background: var(--ds-danger); }
+.bg_marginal  { background: var(--ds-warn); }
+.bg_decent    { background: var(--ds-q-workable); }
+.bg_good      { background: var(--ds-q-good); }
+.bg_excellent { background: var(--ds-q-excellent); }
 
 .waterQualityCard {
   background: rgba(2, 13, 20, 0.4);
@@ -335,7 +335,7 @@
   margin-bottom: 8px;
 }
 .waterQualityLabelText {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   color: var(--text);
   opacity: 0.6;
@@ -356,13 +356,13 @@
   transition: width 0.3s ease;
 }
 .waterQualitySub {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   color: var(--text);
   opacity: 0.5;
   letter-spacing: 0.05em;
 }
 .waterQualityNote {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   margin-top: 6px;
   letter-spacing: 0.03em;
 }
@@ -371,16 +371,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   margin-top: 4px;
   letter-spacing: 0.04em;
 }
 
 .waterQualityPenalty {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 13px;
   font-weight: 700;
-  color: #c0392b;
+  color: var(--ds-danger);
 }
 
 /* Risk stats row (resuspension / river discharge) */
@@ -388,7 +388,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px 16px;
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.06em;
   color: var(--text);
   opacity: 0.55;
@@ -410,7 +410,7 @@
 }
 
 .clarityLabel {
-  font-size: 8px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   opacity: 0.4;
@@ -418,7 +418,7 @@
 }
 
 .clarityValue {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 16px;
   color: var(--text-bright);
 }
@@ -427,7 +427,7 @@
 .warningBanner {
   background: rgba(192, 57, 43, 0.1);
   border: 1px solid rgba(192, 57, 43, 0.3);
-  border-left: 3px solid #c0392b;
+  border-left: 3px solid var(--ds-danger);
   padding: 10px 14px;
   margin-bottom: 16px;
 }
@@ -449,10 +449,10 @@
   width: 100%;
   background: rgba(0, 201, 255, 0.06);
   border: 1px solid rgba(0, 201, 255, 0.15);
-  color: var(--accent);
+  color: var(--ds-accent);
   padding: 10px 16px;
   margin-bottom: 16px;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   cursor: pointer;
@@ -465,12 +465,12 @@
 }
 
 .toggleAdvanced:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ds-accent);
   outline-offset: 2px;
 }
 
 .toggleArrow {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
 }
 
 /* ── Admin debug trace panel ── */
@@ -489,7 +489,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  font-size: 8px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.3em;
   text-transform: uppercase;
   padding: 7px 14px;
@@ -521,7 +521,7 @@
 }
 
 .debugSectionTitle {
-  font-size: 7px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.35em;
   text-transform: uppercase;
   color: rgba(255, 100, 100, 0.45);
@@ -547,14 +547,14 @@
 }
 
 .debugLabel {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.03em;
   color: var(--text);
   opacity: 0.45;
 }
 
 .debugValue {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.05em;
   color: var(--text-bright);
 }
@@ -563,7 +563,7 @@
   display: grid;
   grid-template-columns: 1.8fr 1.4fr 48px 72px;
   gap: 4px;
-  font-size: 7px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.22);
@@ -592,14 +592,14 @@
 }
 
 .debugStep {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.02em;
   color: var(--text);
   opacity: 0.6;
 }
 
 .debugDetail {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.01em;
   color: var(--text);
   opacity: 0.3;
@@ -609,13 +609,13 @@
 }
 
 .debugDelta {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.03em;
   text-align: right;
 }
 
 .debugRunning {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.04em;
   color: var(--text-bright);
   text-align: right;
@@ -629,7 +629,7 @@
   display: grid;
   grid-template-columns: auto 1fr 56px minmax(90px, 1fr);
   gap: 4px;
-  font-size: 7px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.22);
@@ -652,7 +652,7 @@
 }
 
 .debugRunningDives {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.04em;
   color: var(--text-bright);
   text-align: right;
@@ -663,7 +663,7 @@
 .shallowNote {
   background: rgba(212, 133, 10, 0.08);
   border: 1px solid rgba(212, 133, 10, 0.25);
-  border-left: 3px solid #d4850a;
+  border-left: 3px solid var(--ds-warn);
   padding: 10px 14px;
   margin-bottom: 16px;
 }
@@ -677,11 +677,11 @@
 .shallowNoteHigh {
   background: rgba(192, 57, 43, 0.08);
   border-color: rgba(192, 57, 43, 0.3);
-  border-left-color: #c0392b;
+  border-left-color: var(--ds-danger);
 }
 
 .shallowNoteLabel {
-  font-size: 8px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.25em;
   text-transform: uppercase;
   color: var(--text);
@@ -690,9 +690,9 @@
 }
 
 .shallowNoteText {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.04em;
-  color: #d4850a;
+  color: var(--ds-warn);
   line-height: 1.55;
 }
 

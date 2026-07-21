@@ -7,8 +7,8 @@
 }
 
 .title {
-  font-family: var(--font-mono);
-  font-size: 10px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   letter-spacing: 0.25em;
   text-transform: uppercase;
   color: var(--text-dim);
@@ -18,7 +18,7 @@
 /* ── "At a glance" explainable-visibility summary ─────────────────────────── */
 .summary {
   background: var(--surface-2);
-  border: 1px solid var(--border);
+  border: 1px solid var(--ds-hairline);
   border-radius: var(--radius-md);
   padding: 12px 14px;
   margin-bottom: 16px;
@@ -40,7 +40,7 @@
 }
 
 .visValue {
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 30px;
   font-weight: 700;
   line-height: 1;
@@ -52,8 +52,8 @@
 }
 
 .confChip {
-  font-family: var(--font-mono);
-  font-size: 10px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -83,8 +83,8 @@
 }
 
 .summaryRow dt {
-  font-family: var(--font-mono);
-  font-size: 9px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--text-dim);
@@ -109,8 +109,8 @@
 }
 
 .column h4 {
-  font-family: var(--font-mono);
-  font-size: 9px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--text-dim);
@@ -144,8 +144,8 @@
   flex-shrink: 0;
 }
 
-.dotGood { background: var(--good); }
-.dotBad  { background: var(--warn); }
+.dotGood { background: var(--ds-q-good); }
+.dotBad  { background: var(--ds-warn); }
 
 .label {
   font-weight: 600;
@@ -163,7 +163,7 @@
 }
 
 .confidenceLevel {
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-weight: 700;
   letter-spacing: 0.15em;
   text-transform: uppercase;

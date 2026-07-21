@@ -8,7 +8,7 @@
 }
 
 .title {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 24px;
   letter-spacing: 0.1em;
   color: var(--text-bright);
@@ -37,7 +37,7 @@
 }
 
 .label {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--text);
@@ -45,7 +45,7 @@
 }
 
 .hint {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   color: var(--text);
   opacity: 0.5;
   font-style: italic;
@@ -57,7 +57,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-md);
   color: var(--text-bright);
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 14px;
   padding: 10px 12px;
   outline: none;
@@ -68,7 +68,7 @@
 
 .input:focus,
 .select:focus {
-  border-color: var(--accent);
+  border-color: var(--ds-accent);
 }
 
 .select option {
@@ -97,7 +97,7 @@
 
 .dropZone:hover,
 .dropZone:focus {
-  border-color: var(--accent);
+  border-color: var(--ds-accent);
   background: rgba(0, 201, 255, 0.04);
   outline: none;
 }
@@ -119,7 +119,7 @@
 }
 
 .dropSubtext {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   color: var(--text);
   opacity: 0.5;
   margin-top: 4px;
@@ -141,9 +141,9 @@
 .removeImage {
   background: none;
   border: none;
-  color: var(--danger);
-  font-family: var(--font-mono);
-  font-size: 11px;
+  color: var(--ds-danger);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   cursor: pointer;
   letter-spacing: 0.1em;
   text-decoration: underline;
@@ -156,7 +156,7 @@
   background: rgba(192, 57, 43, 0.12);
   border: 1px solid rgba(192, 57, 43, 0.3);
   border-radius: var(--radius-md);
-  color: var(--danger);
+  color: var(--ds-danger);
   font-size: 13px;
   padding: 10px 14px;
   letter-spacing: 0.04em;
@@ -173,7 +173,7 @@
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: var(--text);
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 12px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -188,10 +188,10 @@
 }
 
 .submitBtn {
-  background: var(--accent);
+  background: var(--ds-accent);
   border: none;
   color: var(--ocean-deep);
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -220,11 +220,11 @@
 
 .successIcon {
   font-size: 36px;
-  color: var(--excellent);
+  color: var(--ds-q-excellent);
 }
 
 .successTitle {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 22px;
   letter-spacing: 0.1em;
   color: var(--text-bright);
@@ -249,10 +249,10 @@
 }
 
 .aiTitle {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--ds-accent);
   opacity: 0.8;
   margin-bottom: 2px;
 }
@@ -277,8 +277,8 @@
 }
 
 .aiMatch {
-  font-size: 11px;
-  color: var(--excellent);
+  font-size: var(--ds-text-label);
+  color: var(--ds-q-excellent);
   letter-spacing: 0.06em;
   padding: 6px 10px;
   background: rgba(15, 179, 122, 0.08);
@@ -294,14 +294,14 @@
 }
 
 .statusPending {
-  color: var(--warn);
+  color: var(--ds-warn);
 }
 
 .closeBtn {
   background: transparent;
   border: 1px solid rgba(0, 201, 255, 0.3);
-  color: var(--accent);
-  font-family: var(--font-mono);
+  color: var(--ds-accent);
+  font-family: var(--ds-font-sans);
   font-size: 13px;
   letter-spacing: 0.1em;
   padding: 10px 24px;

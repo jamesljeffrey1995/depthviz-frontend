@@ -2,7 +2,7 @@
   margin-bottom: 16px;
   background: rgba(0, 201, 255, 0.05);
   border: 1px solid rgba(0, 201, 255, 0.2);
-  border-left: 3px solid var(--accent);
+  border-left: 3px solid var(--ds-accent);
 }
 
 .toggle {
@@ -14,24 +14,24 @@
   border: none;
   color: var(--text);
   padding: 10px 14px;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   cursor: pointer;
 }
 
 .toggle:hover {
-  color: var(--accent);
+  color: var(--ds-accent);
 }
 
 .toggle:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ds-accent);
   outline-offset: 2px;
 }
 
 .arrow {
   opacity: 0.6;
-  font-size: 9px;
+  font-size: var(--ds-text-label);
 }
 
 .body {
@@ -53,7 +53,7 @@
 }
 
 .fieldLabel {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text);
@@ -70,12 +70,12 @@
 }
 
 .input:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ds-accent);
   outline-offset: 1px;
 }
 
 .hint {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   line-height: 1.5;
   color: var(--text);
   opacity: 0.75;
@@ -83,19 +83,19 @@
 }
 
 .error {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   color: #ff6b6b;
   margin: 0 0 10px;
 }
 
 .ok {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   color: #4ecb8d;
   margin: 0 0 10px;
 }
 
 .save {
-  background: var(--accent);
+  background: var(--ds-accent);
   color: #00171f;
   border: none;
   border-radius: 4px;

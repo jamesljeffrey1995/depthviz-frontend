@@ -11,15 +11,15 @@
 }
 
 .chartTitle {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 13px;
-  color: var(--accent);
+  color: var(--ds-accent);
   letter-spacing: 0.1em;
   margin-bottom: 2px;
 }
 
 .chartSubtitle {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   opacity: 0.35;
   letter-spacing: 0.05em;
   margin-bottom: 10px;
@@ -50,7 +50,7 @@
   gap: 14px;
   justify-content: center;
   margin-top: 8px;
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   opacity: 0.5;
   letter-spacing: 0.05em;
 }
@@ -69,7 +69,7 @@
 }
 
 .loading {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   opacity: 0.4;
   letter-spacing: 0.1em;
   padding: 20px 0;
@@ -77,7 +77,7 @@
 }
 
 .empty {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   opacity: 0.4;
   letter-spacing: 0.1em;
   padding: 20px 0;

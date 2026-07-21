@@ -64,7 +64,7 @@
 
 .btnDive:focus-visible,
 .btnLocate:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ds-accent);
   outline-offset: 2px;
 }
 
@@ -76,7 +76,7 @@
 .btnDive,
 .btnLocate {
   flex: 1;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -97,13 +97,13 @@
   margin: 0;
   font-size: 12px;
   line-height: 1.5;
-  color: var(--warn);
+  color: var(--ds-warn);
 }
 
 .btnDive {
   background: rgba(0, 201, 255, 0.1);
   border: 1px solid rgba(0, 201, 255, 0.3);
-  color: var(--accent);
+  color: var(--ds-accent);
 }
 
 .btnDive:hover {
@@ -115,7 +115,7 @@
 .btnLocate {
   background: rgba(26, 106, 74, 0.2);
   border: 1px solid rgba(15, 179, 122, 0.3);
-  color: var(--excellent);
+  color: var(--ds-q-excellent);
 }
 
 .btnLocate:hover {

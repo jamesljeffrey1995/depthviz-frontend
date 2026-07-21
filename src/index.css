@@ -1,30 +1,36 @@
 :root {
-  /* ── Colour palette ── */
-  --ocean-deep: #02101a;
-  --ocean-mid: #052233;
-  --ocean-surface: #083049;
-  --brine: #0d4a6e;
-  --danger: #e0503f;
-  --warn: #f0a01f;
-  --good: #1fa468;
-  --excellent: #12d18c;
-  --text: #9ec4d6;
-  --text-bright: #e6f3fb;
-  --text-dim: #5f7d8e;
-  --accent: #00c9ff;
-  --accent-soft: rgba(0, 201, 255, 0.65);
+  /* ── Colour palette ──
+     The legacy semantic colours below are being retired (#258): they now
+     ALIAS the `--ds-*` design tokens (src/styles/tokens.css) so there is one
+     source of truth, no raw-hex drift, and both themes reach them. New work
+     must reference the `--ds-*` tokens directly, not these names. */
+  --ocean-deep: var(--ds-ink-950);
+  --ocean-mid: var(--ds-ink-900);
+  --ocean-surface: var(--ds-ink-800);
+  --brine: var(--ds-ocean-700);
+  --danger: var(--ds-danger);
+  --warn: var(--ds-warn);
+  --good: var(--ds-q-good);
+  --excellent: var(--ds-q-excellent);
+  --text: var(--ds-text-body);
+  --text-bright: var(--ds-text-strong);
+  --text-dim: var(--ds-text-muted);
+  --accent: var(--ds-accent);
+  --accent-soft: var(--ds-accent-strong);
 
   /* ── Surfaces & borders ──
-     Centralised so every card shares one definition instead of each
-     component re-deriving a slightly different rgba(...) by hand. */
-  --surface-1: rgba(8, 38, 58, 0.55);
-  --surface-2: rgba(12, 52, 80, 0.72);
-  --border: rgba(0, 201, 255, 0.14);
-  --border-strong: rgba(0, 201, 255, 0.38);
+     Aliased onto the design tokens (see above). */
+  --surface-1: var(--ds-surface);
+  --surface-2: var(--ds-surface-raised);
+  --border: var(--ds-hairline);
+  --border-strong: var(--ds-hairline-strong);
 
-  /* ── Typography ── */
-  --font-mono: 'Space Mono', monospace;
-  --font-display: 'Bebas Neue', sans-serif;
+  /* ── Typography ──
+     One font family: Inter (§6.3). Bebas Neue / Space Mono are retired; these
+     legacy names now alias the Inter token so any remaining consumer converges
+     on it instead of loading a second family. */
+  --font-mono: var(--ds-font-sans);
+  --font-display: var(--ds-font-sans);
 
   /* ── Spacing scale ──
      Base 8pt rhythm: 8 · 12 · 16 · 24 · 32 · 48. The legacy xs/xl/2xl
@@ -109,7 +115,7 @@ html, body, #root {
 body {
   background: var(--ocean-deep);
   color: var(--text);
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   overflow-x: hidden;
   /* Long unbreakable tokens (URLs, emails, coordinates, model names) must
      wrap inside their container instead of bleeding past the card edges.
@@ -159,26 +165,26 @@ body::after {
 /* ── Interactive element base styles ── */
 button {
   cursor: pointer;
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
 }
 
 button:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ds-accent);
   outline-offset: 2px;
 }
 
 a:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ds-accent);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
 
 input {
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
 }
 
 input:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ds-accent);
   outline-offset: 2px;
 }
 
@@ -189,9 +195,9 @@ input:focus-visible {
   left: var(--space-md);
   z-index: 9999;
   padding: var(--space-sm) var(--space-md);
-  background: var(--accent);
+  background: var(--ds-accent);
   color: var(--ocean-deep);
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.1em;

@@ -3,7 +3,7 @@
 }
 
 .label {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.25em;
   text-transform: uppercase;
   opacity: 0.4;
@@ -53,7 +53,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  background: linear-gradient(90deg, transparent, var(--ds-accent), transparent);
   opacity: 0.3;
   z-index: 1000;
   pointer-events: none;
@@ -84,7 +84,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text);
@@ -98,7 +98,7 @@
 }
 
 .hint {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   opacity: 0.45;
@@ -117,9 +117,9 @@
 .addSpotBtn {
   background: rgba(0, 201, 255, 0.08);
   border: 1px solid rgba(0, 201, 255, 0.25);
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 10px;
+  color: var(--ds-accent);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   padding: 8px 16px;
@@ -133,7 +133,7 @@
 }
 
 .userSpotsCount {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   opacity: 0.4;
@@ -149,15 +149,15 @@
 }
 
 .addFormTitle {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 18px;
   letter-spacing: 0.1em;
-  color: var(--accent);
+  color: var(--ds-accent);
   margin-bottom: 4px;
 }
 
 .addFormPrivacy {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.08em;
   opacity: 0.55;
   margin-bottom: 10px;
@@ -165,7 +165,7 @@
 }
 
 .addFormHint {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.08em;
   opacity: 0.6;
   margin-bottom: 12px;
@@ -178,7 +178,7 @@
 
 .addFormLabel {
   display: block;
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.25em;
   text-transform: uppercase;
   opacity: 0.45;
@@ -190,7 +190,7 @@
   background: rgba(10, 61, 92, 0.3);
   border: 1px solid rgba(0, 201, 255, 0.2);
   color: var(--text-bright);
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 13px;
   padding: 10px 14px;
   outline: none;
@@ -211,9 +211,9 @@
   flex: 1;
   background: rgba(0, 201, 255, 0.12);
   border: 1px solid rgba(0, 201, 255, 0.4);
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 10px;
+  color: var(--ds-accent);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -235,8 +235,8 @@
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 10px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   padding: 10px 18px;
@@ -250,13 +250,13 @@
 
 /* Popup styling */
 .popup {
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   min-width: 180px;
 }
 
 .popupUserBadge {
   display: inline-block;
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: #ffb800;
@@ -266,7 +266,7 @@
 }
 
 .popupName {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 20px;
   letter-spacing: 0.08em;
   color: var(--ocean-deep);
@@ -275,14 +275,14 @@
 }
 
 .popupDesc {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   color: #444;
   line-height: 1.5;
   margin-bottom: 10px;
 }
 
 .popupCreator {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   color: #888;
   margin-bottom: 8px;
@@ -293,9 +293,9 @@
   width: 100%;
   background: var(--ocean-mid);
   border: 1px solid rgba(0, 201, 255, 0.3);
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 10px;
+  color: var(--ds-accent);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   padding: 8px 12px;
@@ -316,8 +316,8 @@
   background: transparent;
   border: 1px solid rgba(255, 80, 80, 0.3);
   color: #ff5050;
-  font-family: var(--font-mono);
-  font-size: 9px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   padding: 6px 12px;
@@ -334,7 +334,7 @@
 /* Public spot badge */
 .popupPublicBadge {
   display: inline-block;
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: #2ecc71;
@@ -373,7 +373,7 @@
 }
 
 .voteCount {
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 12px;
   font-weight: 700;
   color: #333;
@@ -393,8 +393,8 @@
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 10px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   padding: 8px 10px;
   cursor: pointer;
@@ -423,7 +423,7 @@
 
 /* Proximity error */
 .addFormError {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.06em;
   color: #ff5050;
   background: rgba(255, 80, 80, 0.08);
