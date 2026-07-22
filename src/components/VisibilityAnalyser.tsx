@@ -29,6 +29,15 @@ function barColor(vis: number, max: number): string {
   return `rgb(${r},${g},60)`
 }
 
+/** Video-validation confidence → status token. Trust reads on the status
+ *  ramp (high trust = success, low = danger), and the banner derives its
+ *  border/background tints from this same token via color-mix. */
+function confidenceToken(confidence: number): string {
+  if (confidence >= 0.7) return 'var(--ds-success)'
+  if (confidence >= 0.3) return 'var(--ds-warn)'
+  return 'var(--ds-danger)'
+}
+
 // A dive clip can be thousands of frames; rendering one DOM node each makes the
 // sparkline enormous. Cap the drawn bars and evenly downsample past this.
 const MAX_SPARK_BARS = 240
@@ -188,7 +197,7 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
             <>
               <p
                 style={{
-                  color: '#ef4444',
+                  color: 'var(--ds-danger)',
                   fontSize: '0.8rem',
                   marginTop: '0.75rem',
                   textAlign: 'center',
@@ -246,26 +255,12 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
             <div
               className={styles.validationBanner}
               style={{
-                borderColor: report.validation.confidence >= 0.7
-                  ? 'rgba(15, 179, 122, 0.4)'
-                  : report.validation.confidence >= 0.3
-                    ? 'rgba(212, 133, 10, 0.4)'
-                    : 'rgba(192, 57, 43, 0.4)',
-                background: report.validation.confidence >= 0.7
-                  ? 'rgba(15, 179, 122, 0.08)'
-                  : report.validation.confidence >= 0.3
-                    ? 'rgba(212, 133, 10, 0.08)'
-                    : 'rgba(192, 57, 43, 0.08)',
+                borderColor: `color-mix(in srgb, ${confidenceToken(report.validation.confidence)} 40%, transparent)`,
+                background: `color-mix(in srgb, ${confidenceToken(report.validation.confidence)} 8%, transparent)`,
               }}
             >
               <div className={styles.validationScore}>
-                <span style={{
-                  color: report.validation.confidence >= 0.7
-                    ? '#0fb37a'
-                    : report.validation.confidence >= 0.3
-                      ? '#d4850a'
-                      : '#c0392b',
-                }}>
+                <span style={{ color: confidenceToken(report.validation.confidence) }}>
                   {report.validation.confidence >= 0.7
                     ? 'Underwater footage confirmed'
                     : report.validation.confidence >= 0.3

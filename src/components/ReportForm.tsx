@@ -216,7 +216,7 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
         {videoReport && (
           <div className={styles.hint} style={
             videoReport.validation && !videoReport.validation.is_valid
-              ? { color: '#c0392b' }
+              ? { color: 'var(--ds-danger)' }
               : undefined
           }>
             {videoReport.validation && !videoReport.validation.is_valid

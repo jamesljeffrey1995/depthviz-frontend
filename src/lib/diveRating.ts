@@ -27,18 +27,19 @@ export interface DiveRatingInfo {
   short: string
   /** Legacy color_class bucket used by existing CSS (blocked/poor/marginal/decent/good/excellent). */
   colorClass: 'blocked' | 'poor' | 'marginal' | 'decent' | 'good' | 'excellent'
-  /** Hex color for chips/markers. */
+  /** Design-token reference (e.g. `var(--ds-q-good)`) for chips/markers —
+   *  usable in any CSS/inline-SVG context, but not a hex to parse or suffix. */
   color: string
   description: string
 }
 
 const RATINGS: DiveRatingInfo[] = [
-  { key: 'blown_out', label: 'Blown out',  short: 'Blown out',  colorClass: 'blocked',   color: '#7a8a9a', description: 'Under 1m — not worth getting wet.' },
-  { key: 'poor',      label: 'Poor',       short: 'Poor',       colorClass: 'poor',      color: '#c0392b', description: '1–2m — very murky, only worthwhile for local knowledge.' },
-  { key: 'marginal',  label: 'Marginal',   short: 'Marginal',   colorClass: 'marginal',  color: '#d4850a', description: '2–3m — patchy visibility, doable for experienced local divers.' },
-  { key: 'workable',  label: 'Workable',   short: 'Workable',   colorClass: 'decent',    color: '#7fb87a', description: '3–4m — usable for spearos who know the ground.' },
-  { key: 'good',      label: 'Good',       short: 'Good',       colorClass: 'good',      color: '#4ecb8d', description: '4–6m — a proper North East good day.' },
-  { key: 'excellent', label: 'Excellent',  short: 'Excellent',  colorClass: 'excellent', color: '#00c9ff', description: '6m+ — rare and worth dropping everything for.' },
+  { key: 'blown_out', label: 'Blown out',  short: 'Blown out',  colorClass: 'blocked',   color: 'var(--ds-q-blown)',     description: 'Under 1m — not worth getting wet.' },
+  { key: 'poor',      label: 'Poor',       short: 'Poor',       colorClass: 'poor',      color: 'var(--ds-q-poor)',      description: '1–2m — very murky, only worthwhile for local knowledge.' },
+  { key: 'marginal',  label: 'Marginal',   short: 'Marginal',   colorClass: 'marginal',  color: 'var(--ds-q-marginal)',  description: '2–3m — patchy visibility, doable for experienced local divers.' },
+  { key: 'workable',  label: 'Workable',   short: 'Workable',   colorClass: 'decent',    color: 'var(--ds-q-workable)',  description: '3–4m — usable for spearos who know the ground.' },
+  { key: 'good',      label: 'Good',       short: 'Good',       colorClass: 'good',      color: 'var(--ds-q-good)',      description: '4–6m — a proper North East good day.' },
+  { key: 'excellent', label: 'Excellent',  short: 'Excellent',  colorClass: 'excellent', color: 'var(--ds-q-excellent)', description: '6m+ — rare and worth dropping everything for.' },
 ]
 
 /** Bucket a visibility value (metres) into a NE-UK spearfishing rating. */
@@ -61,10 +62,12 @@ export interface ConfidenceInfo {
   reasons: string[]
 }
 
+// Confidence is a trust signal, not a risk grade, so it reads on the status
+// ramp directly: high trust = success, low trust = danger.
 const CONF_COLORS: Record<ConfidenceLevel, string> = {
-  high: '#4ecb8d',
-  medium: '#d4850a',
-  low: '#c0392b',
+  high: 'var(--ds-success)',
+  medium: 'var(--ds-warn)',
+  low: 'var(--ds-danger)',
 }
 
 /** Confidence blend — starts from the API's model_confidence and softens it

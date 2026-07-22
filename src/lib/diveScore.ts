@@ -155,16 +155,18 @@ function impactOf(sub: number): ScoreImpact {
 }
 
 /* ── Score bands ─────────────────────────────────────────────────────────
-   Colours mirror the water-clarity dive-quality tokens (--ds-q-*): murky
-   slate for blown-out water climbing to gin-clear aquamarine, never a
-   red–amber–green traffic light. Keep these hexes in sync with tokens.css. */
+   Colours reference the water-clarity dive-quality tokens (--ds-q-*) directly:
+   murky slate for blown-out water climbing to gin-clear aquamarine, never a
+   red–amber–green traffic light. Referencing the tokens (rather than copying
+   their hexes) keeps the signature score gauge in sync with the theme and
+   removes a second source of truth. */
 const BANDS: ScoreBand[] = [
-  { key: 'excellent', label: 'Excellent', color: '#7fffd4', answer: 'go',    headline: 'Prime conditions — go' },
-  { key: 'good',      label: 'Good',      color: '#1ca3ec', answer: 'go',    headline: 'A good day to dive' },
-  { key: 'fair',      label: 'Fair',      color: '#2e8b99', answer: 'maybe', headline: 'Diveable if you know the spot' },
-  { key: 'marginal',  label: 'Marginal',  color: '#2e7c8c', answer: 'maybe', headline: 'Marginal — manage expectations' },
-  { key: 'poor',      label: 'Poor',      color: '#35586f', answer: 'skip',  headline: 'Poor — consider waiting' },
-  { key: 'blown',     label: 'Blown out', color: '#31556b', answer: 'skip',  headline: 'Blown out — sit this one out' },
+  { key: 'excellent', label: 'Excellent', color: 'var(--ds-q-excellent)', answer: 'go',    headline: 'Prime conditions — go' },
+  { key: 'good',      label: 'Good',      color: 'var(--ds-q-good)',      answer: 'go',    headline: 'A good day to dive' },
+  { key: 'fair',      label: 'Fair',      color: 'var(--ds-q-workable)',  answer: 'maybe', headline: 'Diveable if you know the spot' },
+  { key: 'marginal',  label: 'Marginal',  color: 'var(--ds-q-marginal)',  answer: 'maybe', headline: 'Marginal — manage expectations' },
+  { key: 'poor',      label: 'Poor',      color: 'var(--ds-q-poor)',      answer: 'skip',  headline: 'Poor — consider waiting' },
+  { key: 'blown',     label: 'Blown out', color: 'var(--ds-q-blown)',     answer: 'skip',  headline: 'Blown out — sit this one out' },
 ]
 
 export function bandForScore(score: number): ScoreBand {
