@@ -1,11 +1,16 @@
 .banner {
   position: fixed;
-  bottom: 0;
+  /* Sit above the fixed bottom navigation (min-height 56px) so the
+     Accept/Decline buttons aren't hidden behind it on mobile. */
+  bottom: calc(56px + env(safe-area-inset-bottom, 0px));
   left: 0;
   right: 0;
-  z-index: 200;
+  /* Above the bottom nav (z-index 1100) but below modal overlays such as
+     AuthModal (z-index 1200), which render earlier in the DOM. */
+  z-index: 1101;
   background: rgba(4, 30, 46, 0.95);
   border-top: 1px solid rgba(0, 201, 255, 0.2);
+  border-bottom: 1px solid rgba(0, 201, 255, 0.2);
   backdrop-filter: blur(12px);
   padding: 16px 20px;
   animation: slideUp 0.3s ease-out;
@@ -27,7 +32,7 @@
 
 .text {
   flex: 1;
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   color: var(--text);
   line-height: 1.6;
@@ -35,7 +40,7 @@
 }
 
 .text a {
-  color: var(--accent);
+  color: var(--ds-accent);
   text-decoration: none;
 }
 
@@ -51,9 +56,9 @@
 .accept {
   background: rgba(0, 201, 255, 0.12);
   border: 1px solid rgba(0, 201, 255, 0.3);
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 9px;
+  color: var(--ds-accent);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -65,22 +70,4 @@
 .accept:hover {
   background: rgba(0, 201, 255, 0.2);
   border-color: rgba(0, 201, 255, 0.6);
-}
-
-.decline {
-  background: transparent;
-  border: 1px solid rgba(139, 184, 204, 0.15);
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  padding: 8px 16px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.decline:hover {
-  border-color: rgba(139, 184, 204, 0.3);
-  color: var(--text-bright);
 }

@@ -1,0 +1,316 @@
+.container {
+  padding: var(--space-md) 0 var(--space-xl);
+}
+
+/* ── Header ── */
+.header {
+  margin-bottom: var(--space-lg);
+}
+
+.title {
+  font-family: var(--ds-font-sans);
+  font-size: 24px;
+  letter-spacing: 0.1em;
+  color: var(--text-bright);
+  margin-bottom: var(--space-sm);
+}
+
+.subtitle {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text);
+  opacity: 0.75;
+  letter-spacing: 0.04em;
+}
+
+/* ── Form ── */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.label {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text);
+  opacity: 0.8;
+}
+
+.hint {
+  font-size: var(--ds-text-label);
+  color: var(--text);
+  opacity: 0.5;
+  font-style: italic;
+}
+
+.input,
+.select {
+  background: var(--ocean-mid);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  color: var(--text-bright);
+  font-family: var(--ds-font-sans);
+  font-size: 14px;
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color var(--transition-base);
+  width: 100%;
+  appearance: none;
+}
+
+.input:focus,
+.select:focus {
+  border-color: var(--ds-accent);
+}
+
+.select option {
+  background: var(--ocean-mid);
+}
+
+.valueRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+/* ── Image upload ── */
+.dropZone {
+  border: 2px dashed rgba(0, 201, 255, 0.25);
+  border-radius: var(--radius-lg);
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color var(--transition-base), background var(--transition-base);
+  overflow: hidden;
+  position: relative;
+}
+
+.dropZone:hover,
+.dropZone:focus {
+  border-color: var(--ds-accent);
+  background: rgba(0, 201, 255, 0.04);
+  outline: none;
+}
+
+.dropZoneInner {
+  text-align: center;
+  padding: var(--space-lg);
+}
+
+.dropIcon {
+  font-size: 32px;
+  margin-bottom: var(--space-sm);
+}
+
+.dropText {
+  font-size: 13px;
+  color: var(--text-bright);
+  letter-spacing: 0.06em;
+}
+
+.dropSubtext {
+  font-size: var(--ds-text-label);
+  color: var(--text);
+  opacity: 0.5;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.preview {
+  width: 100%;
+  max-height: 280px;
+  object-fit: contain;
+  display: block;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.removeImage {
+  background: none;
+  border: none;
+  color: var(--ds-danger);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  text-decoration: underline;
+  padding: 0;
+  align-self: flex-start;
+}
+
+/* ── Error ── */
+.error {
+  background: rgba(192, 57, 43, 0.12);
+  border: 1px solid rgba(192, 57, 43, 0.3);
+  border-radius: var(--radius-md);
+  color: var(--ds-danger);
+  font-size: 13px;
+  padding: 10px 14px;
+  letter-spacing: 0.04em;
+}
+
+/* ── Actions ── */
+.actions {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: flex-end;
+}
+
+.cancelBtn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text);
+  font-family: var(--ds-font-sans);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color var(--transition-base);
+}
+
+.cancelBtn:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.submitBtn {
+  background: var(--ds-accent);
+  border: none;
+  color: var(--ocean-deep);
+  font-family: var(--ds-font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 10px 24px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: opacity var(--transition-base);
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Success state ── */
+.successCard {
+  background: var(--ocean-mid);
+  border: 1px solid rgba(0, 201, 255, 0.15);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.successIcon {
+  font-size: 36px;
+  color: var(--ds-q-excellent);
+}
+
+.successTitle {
+  font-family: var(--ds-font-sans);
+  font-size: 22px;
+  letter-spacing: 0.1em;
+  color: var(--text-bright);
+}
+
+.successText {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text);
+  letter-spacing: 0.04em;
+}
+
+/* ── AI result ── */
+.aiResult {
+  background: rgba(0, 201, 255, 0.05);
+  border: 1px solid rgba(0, 201, 255, 0.15);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.aiTitle {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ds-accent);
+  opacity: 0.8;
+  margin-bottom: 2px;
+}
+
+.aiRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.aiRow strong {
+  color: var(--text-bright);
+}
+
+.aiNotes {
+  font-size: 12px;
+  color: var(--text);
+  opacity: 0.7;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.aiMatch {
+  font-size: var(--ds-text-label);
+  color: var(--ds-q-excellent);
+  letter-spacing: 0.06em;
+  padding: 6px 10px;
+  background: rgba(15, 179, 122, 0.08);
+  border-radius: var(--radius-sm);
+}
+
+.disputeSummary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: var(--space-md);
+}
+
+.statusPending {
+  color: var(--ds-warn);
+}
+
+.closeBtn {
+  background: transparent;
+  border: 1px solid rgba(0, 201, 255, 0.3);
+  color: var(--ds-accent);
+  font-family: var(--ds-font-sans);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  padding: 10px 24px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  align-self: flex-end;
+  transition: background var(--transition-base);
+}
+
+.closeBtn:hover {
+  background: rgba(0, 201, 255, 0.08);
+}

@@ -1,8 +1,10 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import type { DayForecast, Location } from '../types'
 import type { VisibilityReport } from '../lib/underwaterVisibility'
 import { submitReport } from '../lib/api'
+import { feetToMetres } from '../lib/units'
 import VisibilityAnalyser from './VisibilityAnalyser'
+import { KelpVisibilityNote } from './KelpVisibilityNote'
 import styles from './ReportForm.module.css'
 
 interface Props {
@@ -11,6 +13,10 @@ interface Props {
   locations: Location[]
   onSubmitted: () => void
   initialLocationId?: number | null
+  /** Unit the forecast was fetched in. Wave/swell heights on `day` are in
+   *  this unit and must be normalised back to metres before being persisted
+   *  so dive logs are comparable across users with different unit prefs. */
+  units?: 'ft' | 'm'
 }
 
 function buildDateOptions(): { value: string; label: string }[] {
@@ -19,7 +25,7 @@ function buildDateOptions(): { value: string; label: string }[] {
   for (let i = 0; i <= 7; i++) {
     const d = new Date(today)
     d.setDate(today.getDate() - i)
-    const value = d.toISOString().split('T')[0]
+    const value = d.toISOString().slice(0, 10)
     const label = i === 0 ? 'Today' : i === 1 ? 'Yesterday' :
       d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })
     options.push({ value, label })
@@ -27,8 +33,8 @@ function buildDateOptions(): { value: string; label: string }[] {
   return options
 }
 
-export function ReportForm({ day, allDays, locations, onSubmitted, initialLocationId }: Props) {
-  const todayStr = new Date().toISOString().split('T')[0]
+export function ReportForm({ day, allDays, locations, onSubmitted, initialLocationId, units = 'm' }: Props) {
+  const todayStr = new Date().toISOString().slice(0, 10)
   const [selectedDate, setSelectedDate] = useState(day?.date ?? todayStr)
   const [locationId, setLocationId] = useState<number | ''>(initialLocationId ?? '')
   const [actualVis, setActualVis] = useState('')
@@ -37,6 +43,18 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
+
+  // After the success state shows, hand control back to the parent (which
+  // usually navigates away). Store the timer so an unmount before it fires
+  // clears it instead of invoking onSubmitted on a dead component. Read
+  // onSubmitted from a ref so a parent re-render doesn't reset the countdown.
+  const onSubmittedRef = useRef(onSubmitted)
+  onSubmittedRef.current = onSubmitted
+  useEffect(() => {
+    if (!done) return
+    const timer = setTimeout(() => onSubmittedRef.current(), 2500)
+    return () => clearTimeout(timer)
+  }, [done])
 
   const onVideoResult = useCallback((report: VisibilityReport) => {
     setVideoReport(report)
@@ -51,6 +69,17 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
     () => allDays.find(d => d.date === selectedDate) ?? day,
     [allDays, selectedDate, day]
   )
+
+  // Surface the kelp-bed explainer when the user reports poor visibility near
+  // kelp against a forecast that was meaningfully better — the classic
+  // "clear offshore, murky in the canopy" case that isn't a forecast error.
+  const showKelpNote = useMemo(() => {
+    if (!/\b(kelp|seaweed|weeds?|fronds?|canopy)\b/i.test(notes)) return false
+    const actual = parseFloat(actualVis)
+    if (isNaN(actual) || !activeDay) return false
+    const predicted = activeDay.vis_corrected ?? activeDay.vis_estimate
+    return predicted - actual >= 2
+  }, [notes, actualVis, activeDay])
 
   const handleSubmit = async () => {
     if (!locationId) {
@@ -73,19 +102,23 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
     setSubmitting(true)
     setError('')
     try {
+      const heightToMetres = (v: number) => units === 'ft' ? feetToMetres(v) : v
       await submitReport({
         location_id: Number(locationId),
         report_date: selectedDate,
         actual_vis: vis,
         predicted_vis: activeDay.vis_estimate,
-        wave_height: activeDay.wave_height,
-        swell_height: activeDay.swell_height,
+        wave_height: heightToMetres(activeDay.wave_height),
+        swell_height: heightToMetres(activeDay.swell_height),
         wind_speed: activeDay.wind_speed,
         wind_dir: activeDay.wind_dir,
         precipitation: activeDay.precipitation,
         air_temp: activeDay.air_temp,
         sea_temp: activeDay.sea_temp,
         algae_risk: activeDay.algae.risk,
+        // Satellite water clarity the forecast showed — measured algae signal.
+        chlorophyll: activeDay.water_quality?.erddap_chlorophyll ?? undefined,
+        kd490: activeDay.water_quality?.erddap_kd490 ?? undefined,
         notes: notes.slice(0, 500) || undefined,
         // Attach video DCP analysis only if validation passed
         ...(videoReport && (!videoReport.validation || videoReport.validation.is_valid) ? {
@@ -97,7 +130,6 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
         } : {}),
       })
       setDone(true)
-      setTimeout(onSubmitted, 2500)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to submit')
     } finally {
@@ -176,13 +208,15 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
         />
       </div>
 
+      {showKelpNote && <KelpVisibilityNote defaultOpen />}
+
       <div className={styles.field}>
         <label className={styles.label}>Dive video analysis (optional)</label>
         <VisibilityAnalyser onResult={onVideoResult} />
         {videoReport && (
           <div className={styles.hint} style={
             videoReport.validation && !videoReport.validation.is_valid
-              ? { color: '#c0392b' }
+              ? { color: 'var(--ds-danger)' }
               : undefined
           }>
             {videoReport.validation && !videoReport.validation.is_valid

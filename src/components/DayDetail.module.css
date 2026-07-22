@@ -1,6 +1,6 @@
 .card {
-  background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(0, 201, 255, 0.1);
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-hairline);
   padding: 28px;
   margin-bottom: 16px;
   position: relative;
@@ -12,7 +12,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  background: linear-gradient(90deg, transparent, var(--ds-accent), transparent);
   opacity: 0.3;
 }
 
@@ -26,7 +26,7 @@
 .dateBlock {}
 
 .dateLine {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   opacity: 0.45;
@@ -35,11 +35,11 @@
 
 .forecastBadge {
   display: inline-block;
-  font-size: 8px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  border: 1px solid rgba(0, 201, 255, 0.3);
-  color: var(--accent);
+  border: 1px solid var(--ds-hairline-strong);
+  color: var(--ds-accent);
   padding: 2px 6px;
   margin-top: 4px;
 }
@@ -49,31 +49,77 @@
 }
 
 .visNumber {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: clamp(56px, 16vw, 96px);
   line-height: 1;
   transition: color 0.4s;
 }
 
 .visUnit {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   opacity: 0.5;
 }
 
 .correctedNote {
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  opacity: 0.5;
-  margin-top: 2px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  opacity: 0.75;
+  margin: -6px 0 16px;
+}
+
+.correctedOffset {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
 }
 
 .verdict {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 24px;
   letter-spacing: 0.15em;
   margin-bottom: 20px;
+}
+
+/* Plain-language visibility-trend summary */
+.summaryLine {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-bright);
+  margin-bottom: 14px;
+  padding-left: 10px;
+  border-left: 2px solid var(--ds-accent);
+}
+
+/* Conditions (secondary metrics) toggle */
+.toggleConditions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-top: 1px solid var(--ds-hairline);
+  color: var(--text);
+  padding: 10px 2px;
+  margin-bottom: 12px;
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.toggleConditions:hover {
+  color: var(--ds-accent);
+}
+
+.toggleConditions:focus-visible {
+  outline: 2px solid var(--ds-accent);
+  outline-offset: 2px;
 }
 
 /* Metrics top bar */
@@ -86,14 +132,21 @@
 }
 
 .metricChip {
-  background: rgba(2, 13, 20, 0.4);
-  border: 1px solid;
+  background: var(--ds-surface-sunken);
+  border: 1px solid var(--ds-hairline);
   padding: 6px 10px;
   flex: 1;
 }
 
+/* Neutral data chips (wave/swell/wind/rain) read in the info accent; severity
+   chips (air/sea/humidity) tint their value + border from a status token. */
+.metricChipNeutral .metricChipValue,
+.metricChipNeutral .metricChipNote {
+  color: var(--ds-info);
+}
+
 .metricChipLabel {
-  font-size: 7px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   opacity: 0.5;
@@ -102,13 +155,13 @@
 }
 
 .metricChipValue {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 18px;
   line-height: 1;
 }
 
 .metricChipNote {
-  font-size: 7px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   opacity: 0.85;
@@ -117,8 +170,8 @@
 
 /* Algae */
 .algaeCard {
-  background: rgba(2, 13, 20, 0.4);
-  border: 1px solid rgba(0, 201, 255, 0.06);
+  background: var(--ds-surface-sunken);
+  border: 1px solid var(--ds-hairline);
   padding: 14px 16px;
   margin-bottom: 20px;
 }
@@ -131,27 +184,56 @@
 }
 
 .algaeLabel {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   opacity: 0.4;
 }
 
 .algaeRisk {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   font-weight: 700;
 }
 
-.algaeLow      { color: var(--good); }
-.algaeModerate { color: var(--warn); }
-.algaeHigh     { color: var(--danger); }
+.algaeLow      { color: var(--ds-q-good); }
+.algaeModerate { color: var(--ds-warn); }
+.algaeHigh     { color: var(--ds-danger); }
 
 .algaeDrivers {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   opacity: 0.55;
   line-height: 1.8;
+}
+
+/* Measured chlorophyll-a surfaced in the algae card (issue #121) */
+.algaeMeasured {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.algaeMeasuredLabel {
+  font-size: var(--ds-text-label);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.6;
+}
+
+.algaeMeasuredValue {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.algaeContradiction {
+  flex-basis: 100%;
+  margin-top: 2px;
+  font-size: var(--ds-text-label);
+  font-style: italic;
+  opacity: 0.75;
 }
 
 /* Factors */
@@ -162,14 +244,14 @@
 }
 
 .factorCard {
-  background: rgba(2, 13, 20, 0.5);
-  border: 1px solid rgba(0, 201, 255, 0.07);
+  background: var(--ds-surface-sunken);
+  border: 1px solid var(--ds-hairline);
   padding: 14px;
   position: relative;
 }
 
 .factorName {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.25em;
   text-transform: uppercase;
   opacity: 0.45;
@@ -177,21 +259,21 @@
 }
 
 .factorValue {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 20px;
   color: var(--text-bright);
   margin-bottom: 2px;
 }
 
 .factorNote {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.12em;
   opacity: 0.45;
   margin-bottom: 3px;
 }
 
 .factorImpact {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
@@ -204,12 +286,12 @@
 }
 
 /* Color classes */
-.blocked   { color: #4a4a5a; }
-.poor      { color: var(--danger); }
-.marginal  { color: var(--warn); }
-.decent    { color: #7fb87a; }
-.good      { color: var(--good); }
-.excellent { color: var(--excellent); }
+.blocked   { color: var(--ds-q-blown); }
+.poor      { color: var(--ds-danger); }
+.marginal  { color: var(--ds-warn); }
+.decent    { color: var(--ds-q-workable); }
+.good      { color: var(--ds-q-good); }
+.excellent { color: var(--ds-q-excellent); }
 
 /* Bar vis */
 .barContainer { margin-bottom: 20px; }
@@ -219,12 +301,12 @@
   justify-content: center;
   padding: 12px 0 16px;
   margin-bottom: 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid var(--ds-hairline);
 }
 .barLabels {
   display: flex;
   justify-content: space-between;
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   opacity: 0.35;
   margin-bottom: 6px;
@@ -232,24 +314,24 @@
 }
 .barTrack {
   height: 6px;
-  background: rgba(0,0,0,0.4);
-  border: 1px solid rgba(255,255,255,0.04);
+  background: var(--ds-surface-sunken);
+  border: 1px solid var(--ds-hairline);
   overflow: hidden;
 }
 .barFill {
   height: 100%;
   transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.bg_blocked   { background: #4a4a5a; }
-.bg_poor      { background: var(--danger); }
-.bg_marginal  { background: var(--warn); }
-.bg_decent    { background: #7fb87a; }
-.bg_good      { background: var(--good); }
-.bg_excellent { background: var(--excellent); }
+.bg_blocked   { background: var(--ds-q-blown); }
+.bg_poor      { background: var(--ds-danger); }
+.bg_marginal  { background: var(--ds-warn); }
+.bg_decent    { background: var(--ds-q-workable); }
+.bg_good      { background: var(--ds-q-good); }
+.bg_excellent { background: var(--ds-q-excellent); }
 
 .waterQualityCard {
-  background: rgba(2, 13, 20, 0.4);
-  border: 1px solid rgba(0, 201, 255, 0.08);
+  background: var(--ds-surface-sunken);
+  border: 1px solid var(--ds-hairline);
   padding: 12px 16px;
   margin-bottom: 12px;
 }
@@ -260,7 +342,7 @@
   margin-bottom: 8px;
 }
 .waterQualityLabelText {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   color: var(--text);
   opacity: 0.6;
@@ -273,7 +355,7 @@
 }
 .waterQualityBar {
   height: 3px;
-  background: rgba(0, 201, 255, 0.1);
+  background: var(--ds-hairline-strong);
   margin-bottom: 8px;
 }
 .waterQualityFill {
@@ -281,13 +363,13 @@
   transition: width 0.3s ease;
 }
 .waterQualitySub {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   color: var(--text);
   opacity: 0.5;
   letter-spacing: 0.05em;
 }
 .waterQualityNote {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   margin-top: 6px;
   letter-spacing: 0.03em;
 }
@@ -296,16 +378,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   margin-top: 4px;
   letter-spacing: 0.04em;
 }
 
 .waterQualityPenalty {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 13px;
   font-weight: 700;
-  color: #c0392b;
+  color: var(--ds-danger);
 }
 
 /* Risk stats row (resuspension / river discharge) */
@@ -313,7 +395,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px 16px;
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.06em;
   color: var(--text);
   opacity: 0.55;
@@ -329,13 +411,13 @@
 }
 
 .clarityStat {
-  background: rgba(2, 13, 20, 0.4);
-  border: 1px solid rgba(0, 201, 255, 0.06);
+  background: var(--ds-surface-sunken);
+  border: 1px solid var(--ds-hairline);
   padding: 8px 10px;
 }
 
 .clarityLabel {
-  font-size: 8px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   opacity: 0.4;
@@ -343,16 +425,16 @@
 }
 
 .clarityValue {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 16px;
   color: var(--text-bright);
 }
 
 /* Warning banner for elevated risks (promoted to simple view) */
 .warningBanner {
-  background: rgba(192, 57, 43, 0.1);
-  border: 1px solid rgba(192, 57, 43, 0.3);
-  border-left: 3px solid #c0392b;
+  background: color-mix(in srgb, var(--ds-danger) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-danger) 32%, transparent);
+  border-left: 3px solid var(--ds-danger);
   padding: 10px 14px;
   margin-bottom: 16px;
 }
@@ -360,7 +442,7 @@
 .warningItem {
   font-size: 12px;
   letter-spacing: 0.08em;
-  color: #e06c00;
+  color: var(--ds-caution);
   line-height: 1.6;
 }
 
@@ -372,12 +454,12 @@
 .toggleAdvanced {
   display: block;
   width: 100%;
-  background: rgba(0, 201, 255, 0.06);
-  border: 1px solid rgba(0, 201, 255, 0.15);
-  color: var(--accent);
+  background: var(--ds-accent-wash);
+  border: 1px solid var(--ds-hairline-strong);
+  color: var(--ds-accent);
   padding: 10px 16px;
   margin-bottom: 16px;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   cursor: pointer;
@@ -386,14 +468,240 @@
 }
 
 .toggleAdvanced:hover {
-  background: rgba(0, 201, 255, 0.12);
+  background: color-mix(in srgb, var(--ds-accent) 22%, transparent);
 }
 
 .toggleAdvanced:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ds-accent);
   outline-offset: 2px;
 }
 
 .toggleArrow {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
 }
+
+/* ── Admin debug trace panel ── */
+.debugPanel {
+  background: var(--ds-surface-sunken);
+  border: 1px solid color-mix(in srgb, var(--ds-danger) 26%, transparent);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.debugPanelTitle {
+  background: color-mix(in srgb, var(--ds-danger) 8%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--ds-danger) 18%, transparent);
+  color: var(--ds-danger);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  padding: 7px 14px;
+}
+
+.debugPanelTitleMain {
+  display: inline-flex;
+  align-items: center;
+}
+
+.debugPanelTitleMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.debugPanelTitleMeta::before {
+  content: '-';
+  opacity: 0.55;
+}
+
+.debugSection {
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--ds-hairline);
+}
+
+.debugSection:last-child {
+  border-bottom: none;
+}
+
+.debugSectionTitle {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ds-danger) 65%, transparent);
+  margin-bottom: 5px;
+}
+
+.debugRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--ds-hairline);
+}
+
+.debugRow:last-child {
+  border-bottom: none;
+}
+
+.debugRowTotal {
+  border-top: 1px solid var(--ds-hairline-strong);
+  margin-top: 4px;
+  padding-top: 5px;
+}
+
+.debugLabel {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.03em;
+  color: var(--text);
+  opacity: 0.45;
+}
+
+.debugValue {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.05em;
+  color: var(--text-bright);
+}
+
+.debugTableHeader {
+  display: grid;
+  grid-template-columns: 1.8fr 1.4fr 48px 72px;
+  gap: 4px;
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ds-text-faint);
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--ds-hairline);
+  margin-bottom: 2px;
+}
+
+.debugTableRow {
+  display: grid;
+  grid-template-columns: 1.8fr 1.4fr 48px 72px;
+  gap: 4px;
+  align-items: center;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--ds-hairline);
+}
+
+.debugTableRow:last-child {
+  border-bottom: none;
+}
+
+.debugTableRowTotal {
+  border-top: 1px solid var(--ds-hairline-strong);
+  margin-top: 3px;
+  padding-top: 5px;
+}
+
+.debugStep {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.02em;
+  color: var(--text);
+  opacity: 0.6;
+}
+
+.debugDetail {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.01em;
+  color: var(--text);
+  opacity: 0.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.debugDelta {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.03em;
+  text-align: right;
+}
+
+.debugRunning {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.04em;
+  color: var(--text-bright);
+  text-align: right;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Similar Past Dives table — wider last column to fit "X.Xm (+Y.Y)" */
+.debugTableHeaderDives {
+  display: grid;
+  grid-template-columns: auto 1fr 56px minmax(90px, 1fr);
+  gap: 4px;
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ds-text-faint);
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--ds-hairline);
+  margin-bottom: 2px;
+}
+
+.debugTableRowDives {
+  display: grid;
+  grid-template-columns: auto 1fr 56px minmax(90px, 1fr);
+  gap: 4px;
+  align-items: center;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--ds-hairline);
+}
+
+.debugTableRowDives:last-child {
+  border-bottom: none;
+}
+
+.debugRunningDives {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.04em;
+  color: var(--text-bright);
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ── Shallow-water depth advisory ── */
+.shallowNote {
+  background: color-mix(in srgb, var(--ds-warn) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-warn) 28%, transparent);
+  border-left: 3px solid var(--ds-warn);
+  padding: 10px 14px;
+  margin-bottom: 16px;
+}
+
+.shallowNoteMod {
+  background: color-mix(in srgb, var(--ds-caution) 10%, transparent);
+  border-color: color-mix(in srgb, var(--ds-caution) 32%, transparent);
+  border-left-color: var(--ds-caution);
+}
+
+.shallowNoteHigh {
+  background: color-mix(in srgb, var(--ds-danger) 10%, transparent);
+  border-color: color-mix(in srgb, var(--ds-danger) 32%, transparent);
+  border-left-color: var(--ds-danger);
+}
+
+.shallowNoteLabel {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--text);
+  opacity: 0.55;
+  margin-bottom: 4px;
+}
+
+.shallowNoteText {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.04em;
+  color: var(--ds-warn);
+  line-height: 1.55;
+}
+
+.shallowNoteTextMod { color: var(--ds-caution); }
+.shallowNoteTextHigh { color: var(--ds-danger); }

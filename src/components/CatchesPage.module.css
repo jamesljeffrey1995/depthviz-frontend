@@ -2,11 +2,13 @@
   background: rgba(4, 30, 46, 0.6);
   border: 1px solid rgba(0, 201, 255, 0.1);
   padding: 20px;
-  margin-bottom: 16px;
+  /* Keep a readable measure inside the wide desktop shell. */
+  max-width: 860px;
+  margin: 0 auto 16px;
 }
 
 .title {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 22px;
   letter-spacing: 0.12em;
   color: var(--text-bright);
@@ -14,7 +16,7 @@
 }
 
 .subtitle {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   opacity: 0.4;
@@ -22,13 +24,13 @@
 }
 
 /* Tabs */
-.tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
 .tab {
-  flex: 1; background: rgba(4, 30, 46, 0.6); border: 1px solid rgba(0, 201, 255, 0.08);
-  color: var(--text); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.2em;
-  text-transform: uppercase; padding: 8px; cursor: pointer;
+  flex: 1; min-width: 0; background: rgba(4, 30, 46, 0.6); border: 1px solid rgba(0, 201, 255, 0.08);
+  color: var(--text); font-family: var(--ds-font-sans); font-size: var(--ds-text-label); letter-spacing: 0.2em;
+  text-transform: uppercase; padding: 8px; cursor: pointer; overflow-wrap: anywhere;
 }
-.tab.tabActive { border-color: rgba(0, 201, 255, 0.35); color: var(--accent); background: rgba(0, 201, 255, 0.08); }
+.tab.tabActive { border-color: rgba(0, 201, 255, 0.35); color: var(--ds-accent); background: rgba(0, 201, 255, 0.08); }
 
 /* Catch cards */
 .catchList { display: flex; flex-direction: column; gap: 6px; }
@@ -36,13 +38,13 @@
 .catchCard {
   display: flex; align-items: flex-start; gap: 12px;
   background: rgba(2, 13, 20, 0.4); border: 1px solid rgba(0, 201, 255, 0.05);
-  padding: 12px 14px; font-size: 11px;
+  padding: 12px 14px; font-size: var(--ds-text-label);
 }
 
 .catchInfo { flex: 1; min-width: 0; }
 
 .catchSpecies {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 17px;
   color: var(--text-bright);
   letter-spacing: 0.06em;
@@ -50,19 +52,19 @@
 }
 
 .catchMeta {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   opacity: 0.4;
   letter-spacing: 0.08em;
   margin-bottom: 6px;
 }
 
 .catchUser {
-  color: var(--accent);
+  color: var(--ds-accent);
   opacity: 0.7;
 }
 
 .catchDetail {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   color: var(--text);
   opacity: 0.65;
   letter-spacing: 0.05em;
@@ -78,7 +80,7 @@
 }
 
 .statGrid span {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   opacity: 0.5;
   letter-spacing: 0.05em;
 }
@@ -96,8 +98,8 @@
   background: rgba(10, 61, 92, 0.3);
   border: 1px solid rgba(0, 201, 255, 0.15);
   color: var(--text-bright);
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   padding: 8px 12px;
   outline: none;
 }
@@ -116,7 +118,7 @@
 
 .label {
   display: block;
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.25em;
   text-transform: uppercase;
   opacity: 0.5;
@@ -128,7 +130,7 @@
   background: rgba(10, 61, 92, 0.3);
   border: 1px solid rgba(0, 201, 255, 0.15);
   color: var(--text-bright);
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 13px;
   padding: 12px 16px;
   outline: none;
@@ -148,9 +150,9 @@
   width: 100%;
   background: rgba(0, 201, 255, 0.1);
   border: 1px solid rgba(0, 201, 255, 0.3);
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 11px;
+  color: var(--ds-accent);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -172,9 +174,9 @@
 .btnDanger {
   background: none;
   border: 1px solid rgba(192, 57, 43, 0.3);
-  color: var(--danger);
-  font-family: var(--font-mono);
-  font-size: 9px;
+  color: var(--ds-danger);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   padding: 5px 10px;
@@ -189,9 +191,9 @@
 .authBtn {
   background: rgba(0, 201, 255, 0.1);
   border: 1px solid rgba(0, 201, 255, 0.3);
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 10px;
+  color: var(--ds-accent);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   padding: 10px 20px;
@@ -205,7 +207,7 @@
 
 /* States */
 .empty {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   opacity: 0.4;
   letter-spacing: 0.1em;
   padding: 20px 0;
@@ -218,7 +220,7 @@
 }
 
 .authPrompt p {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   opacity: 0.4;
   letter-spacing: 0.1em;
   margin-bottom: 14px;
@@ -226,21 +228,21 @@
 
 .successMsg {
   font-size: 13px;
-  color: var(--excellent);
+  color: var(--ds-q-excellent);
   letter-spacing: 0.1em;
   padding: 20px 0;
   text-align: center;
 }
 
 .error {
-  font-size: 11px;
-  color: var(--danger);
+  font-size: var(--ds-text-label);
+  color: var(--ds-danger);
   margin-bottom: 12px;
   letter-spacing: 0.08em;
 }
 
 .loading {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   opacity: 0.35;
   letter-spacing: 0.15em;
   text-transform: uppercase;

@@ -1,0 +1,265 @@
+.wrap {
+  padding: 20px 16px 80px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.title {
+  font-family: var(--ds-font-sans);
+  font-size: 26px;
+  letter-spacing: 0.12em;
+  color: var(--text-bright);
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.4;
+  margin-bottom: 24px;
+}
+
+.card {
+  background: rgba(4, 30, 46, 0.6);
+  border: 1px solid rgba(0, 201, 255, 0.1);
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.field { margin-bottom: 18px; }
+
+.label {
+  display: block;
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  margin-bottom: 8px;
+}
+
+.input, .select, .textarea {
+  width: 100%;
+  background: rgba(10, 61, 92, 0.3);
+  border: 1px solid rgba(0, 201, 255, 0.15);
+  color: var(--text-bright);
+  font-family: var(--ds-font-sans);
+  font-size: 13px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input:focus, .select:focus, .textarea:focus {
+  border-color: rgba(0, 201, 255, 0.4);
+}
+
+.textarea { resize: vertical; min-height: 60px; }
+
+.select option { background: var(--ocean-mid); }
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.checkbox input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--ds-accent);
+}
+
+.cyclesHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.cyclesHeader .label { margin-bottom: 0; }
+
+.preset {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.presetBtn {
+  background: rgba(0, 201, 255, 0.06);
+  border: 1px solid rgba(0, 201, 255, 0.2);
+  color: var(--text);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.presetBtn:hover {
+  background: rgba(0, 201, 255, 0.15);
+  color: var(--text-bright);
+}
+
+.cycleList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cycleRow {
+  display: grid;
+  grid-template-columns: 36px 1fr 1fr 32px;
+  gap: 10px;
+  align-items: center;
+}
+
+.cycleIdx {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.15em;
+  opacity: 0.5;
+  text-align: center;
+}
+
+.cycleField {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cycleField label {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
+.cycleInput {
+  flex: 1;
+  background: rgba(10, 61, 92, 0.3);
+  border: 1px solid rgba(0, 201, 255, 0.15);
+  color: var(--text-bright);
+  font-family: var(--ds-font-sans);
+  font-size: 12px;
+  padding: 6px 8px;
+  outline: none;
+}
+
+.cycleInput:focus { border-color: rgba(0, 201, 255, 0.4); }
+
+.removeBtn {
+  background: transparent;
+  border: 1px solid rgba(192, 57, 43, 0.4);
+  color: var(--ds-danger);
+  font-family: var(--ds-font-sans);
+  font-size: 14px;
+  padding: 4px 8px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.removeBtn:hover {
+  background: rgba(192, 57, 43, 0.15);
+}
+
+.addBtn {
+  margin-top: 10px;
+  background: transparent;
+  border: 1px dashed rgba(0, 201, 255, 0.3);
+  color: var(--ds-accent);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.addBtn:hover {
+  background: rgba(0, 201, 255, 0.08);
+  border-color: rgba(0, 201, 255, 0.5);
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.btn {
+  flex: 1;
+  background: rgba(0, 201, 255, 0.1);
+  border: 1px solid rgba(0, 201, 255, 0.3);
+  color: var(--ds-accent);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn:hover:not(:disabled) {
+  background: rgba(0, 201, 255, 0.2);
+  border-color: rgba(0, 201, 255, 0.6);
+}
+
+.btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.btnSecondary {
+  background: transparent;
+  border-color: rgba(139, 184, 204, 0.3);
+  color: var(--text);
+}
+
+.btnSecondary:hover:not(:disabled) {
+  background: rgba(139, 184, 204, 0.1);
+  border-color: rgba(139, 184, 204, 0.5);
+}
+
+.btnDanger {
+  background: transparent;
+  border-color: rgba(192, 57, 43, 0.4);
+  color: var(--ds-danger);
+  flex: 0 0 auto;
+  padding: 14px 18px;
+}
+
+.btnDanger:hover:not(:disabled) {
+  background: rgba(192, 57, 43, 0.12);
+}
+
+.error {
+  background: rgba(192, 57, 43, 0.1);
+  border: 1px solid rgba(192, 57, 43, 0.3);
+  color: var(--ds-danger);
+  padding: 12px;
+  margin-bottom: 12px;
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.05em;
+}
+
+.totalNote {
+  text-align: right;
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.1em;
+  opacity: 0.5;
+  margin-top: 8px;
+}

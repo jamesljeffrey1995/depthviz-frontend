@@ -1,0 +1,88 @@
+.topNav {
+  margin: 0 0 var(--space-lg);
+  border-top: 1px solid var(--ds-hairline);
+  border-bottom: 1px solid var(--ds-hairline);
+  background: linear-gradient(180deg, rgba(0, 201, 255, 0.04), transparent);
+}
+
+.list {
+  display: flex;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  /* One tidy row that scrolls sideways when it doesn't fit, instead of
+     wrapping into a ragged second line. */
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.list::-webkit-scrollbar {
+  display: none;
+}
+
+.list li {
+  flex-shrink: 0;
+}
+
+/* Centre the row when it fits without clipping it when it overflows —
+   auto margins collapse to 0 inside a scroll container, unlike
+   `justify-content: center`, and work in every browser (no reliance on
+   the `safe` keyword). */
+.list li:first-child {
+  margin-inline-start: auto;
+}
+
+.list li:last-child {
+  margin-inline-end: auto;
+}
+
+.link {
+  position: relative;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: var(--ds-font-sans);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  min-height: 40px;
+  padding: 8px 14px;
+  white-space: nowrap;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: color var(--transition-base), background var(--transition-base);
+}
+
+.link:hover {
+  color: var(--text-bright);
+  background: rgba(0, 201, 255, 0.06);
+}
+
+.active {
+  color: var(--ds-accent);
+  background: rgba(0, 201, 255, 0.1);
+}
+
+/* Underline marker so the current section reads at a glance, not just by a
+   faint background tint. */
+.active::after {
+  content: '';
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 2px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--ds-accent);
+  box-shadow: 0 0 8px rgba(0, 201, 255, 0.6);
+}
+
+/* On narrow mobile the bottom tab bar is the primary navigation, so hide the
+   website-style top nav to avoid duplicating it. */
+@media (max-width: 480px) {
+  .topNav {
+    display: none;
+  }
+}

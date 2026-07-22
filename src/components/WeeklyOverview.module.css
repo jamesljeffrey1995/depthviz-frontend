@@ -1,0 +1,274 @@
+.container {
+  padding: var(--space-md) 0;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
+}
+
+.location {
+  font-family: var(--ds-font-sans);
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  color: var(--text-bright);
+}
+
+.subtitle {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.1em;
+  color: var(--text);
+  opacity: 0.6;
+  margin-left: 0;
+}
+
+/* ── Grid: horizontal scroll on small screens, 7-col on wide ── */
+.grid {
+  display: flex;
+  gap: var(--space-sm);
+  overflow-x: auto;
+  padding-bottom: var(--space-sm);
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.grid::-webkit-scrollbar {
+  height: 4px;
+}
+
+.grid::-webkit-scrollbar-track {
+  background: var(--ocean-mid);
+}
+
+.grid::-webkit-scrollbar-thumb {
+  background: rgba(0, 201, 255, 0.2);
+  border-radius: 2px;
+}
+
+/* ── Day card ── */
+.dayCard {
+  flex: 0 0 calc(14.28% - 6px);
+  min-width: 90px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-lg);
+  padding: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  font-family: var(--ds-font-sans);
+  position: relative;
+  transition: border-color var(--transition-base), background var(--transition-base);
+  scroll-snap-align: start;
+  text-align: center;
+}
+
+.dayCard:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.dayCard.selected {
+  border-color: var(--ds-accent);
+  background: rgba(0, 201, 255, 0.06);
+}
+
+.dayCard.historical {
+  opacity: 0.7;
+}
+
+/* ── Best day highlight ── */
+.dayCard.best {
+  border-color: currentColor;
+  border-width: 2px;
+}
+
+.bestBadge {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.15em;
+  font-weight: 700;
+  background: currentColor;
+  color: var(--ocean-deep);
+  padding: 1px 6px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+.histBadge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.1em;
+  opacity: 0.5;
+  border: 1px solid currentColor;
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+
+/* ── Date labels ── */
+.dayName {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.1em;
+  color: var(--text);
+  text-transform: uppercase;
+  margin-top: var(--space-sm);
+}
+
+.dayDate {
+  font-size: var(--ds-text-label);
+  color: var(--text);
+  opacity: 0.5;
+}
+
+/* ── Visibility ── */
+.vis {
+  font-family: var(--ds-font-sans);
+  font-size: 28px;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  margin-top: var(--space-xs);
+}
+
+.visUnit {
+  font-size: 13px;
+  opacity: 0.7;
+  margin-left: 1px;
+}
+
+/* ── Verdict ── */
+.verdict {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+/* ── Metrics ── */
+.metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  margin-top: var(--space-xs);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: var(--space-xs);
+}
+
+.metric {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.metricLabel {
+  font-size: var(--ds-text-label);
+  color: var(--text);
+  opacity: 0.5;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.metricLabel.algae {
+  color: var(--ds-warn);
+  opacity: 0.8;
+}
+
+.metricVal {
+  font-size: var(--ds-text-label);
+  color: var(--text-bright);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Wind block (arrow + speed/gust + direction), full card width ── */
+.windRow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+}
+
+.windVal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: var(--ds-text-label);
+  line-height: 1.2;
+}
+
+.windVal svg {
+  color: var(--ds-accent);
+}
+
+.windSpeed {
+  color: var(--text-bright);
+  white-space: nowrap;
+}
+
+.windUnit {
+  opacity: 0.7;
+  margin-left: 1px;
+}
+
+.gust {
+  color: var(--text);
+  opacity: 0.75;
+}
+
+.windDirLabel {
+  color: var(--text);
+  opacity: 0.55;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+/* ── Algae severity colors ── */
+.algaemoderate { color: var(--ds-warn); }
+.algaehigh { color: var(--ds-danger); }
+
+/* ── Condition color classes (applied to .dayCard) ── */
+.excellent .vis,
+.excellent .verdict { color: var(--ds-q-excellent); }
+
+.good .vis,
+.good .verdict { color: var(--ds-q-good); }
+
+.decent .vis,
+.decent .verdict { color: var(--ds-q-workable); }
+
+.marginal .vis,
+.marginal .verdict { color: var(--ds-warn); }
+
+.poor .vis,
+.poor .verdict { color: var(--ds-danger); }
+
+.blocked .vis,
+.blocked .verdict { color: var(--ds-q-blown); }
+
+/* ── Hint ── */
+.hint {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.08em;
+  color: var(--text);
+  opacity: 0.4;
+  text-align: center;
+  margin-top: var(--space-md);
+  text-transform: uppercase;
+}

@@ -1,0 +1,304 @@
+.wrap {
+  padding: 20px 16px 80px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.titleBlock {
+  flex: 1;
+}
+
+.title {
+  font-family: var(--ds-font-sans);
+  font-size: 26px;
+  letter-spacing: 0.12em;
+  color: var(--text-bright);
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.1em;
+  opacity: 0.6;
+  margin-bottom: 6px;
+}
+
+.badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.badge {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.badgeBeginner { color: var(--ds-q-good); border-color: rgba(26, 138, 90, 0.5); }
+.badgeIntermediate { color: var(--ds-warn); border-color: rgba(212, 133, 10, 0.5); }
+.badgeExpert { color: var(--ds-danger); border-color: rgba(192, 57, 43, 0.5); }
+.badgeType { color: var(--ds-accent); border-color: rgba(0, 201, 255, 0.4); }
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.iconBtn {
+  background: transparent;
+  border: 1px solid rgba(139, 184, 204, 0.3);
+  color: var(--text);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.iconBtn:hover {
+  background: rgba(139, 184, 204, 0.08);
+  color: var(--text-bright);
+}
+
+.iconBtnAccent {
+  border-color: rgba(0, 201, 255, 0.4);
+  color: var(--ds-accent);
+}
+.iconBtnAccent:hover { background: rgba(0, 201, 255, 0.1); }
+
+.warning {
+  background: rgba(192, 57, 43, 0.12);
+  border: 1px solid rgba(192, 57, 43, 0.35);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  font-size: var(--ds-text-label);
+  line-height: 1.5;
+  color: #f0c0b8;
+}
+
+.warning strong {
+  color: var(--ds-danger);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: var(--ds-text-label);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.runnerCard {
+  background: rgba(4, 30, 46, 0.75);
+  border: 1px solid rgba(0, 201, 255, 0.2);
+  padding: 32px 24px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.phaseLabel {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin-bottom: 8px;
+}
+
+.phaseHold .phaseLabel { color: var(--ds-accent); opacity: 1; }
+.phaseRest .phaseLabel { color: var(--ds-q-good); opacity: 1; }
+.phasePrep .phaseLabel { color: var(--ds-warn); opacity: 1; }
+.phaseDone .phaseLabel { color: var(--ds-q-excellent); opacity: 1; }
+
+.bigTime {
+  font-family: var(--ds-font-sans);
+  font-size: 80px;
+  letter-spacing: 0.06em;
+  color: var(--text-bright);
+  margin: 8px 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.phaseHold .bigTime { color: var(--ds-accent); text-shadow: 0 0 20px rgba(0, 201, 255, 0.4); }
+.phaseRest .bigTime { color: var(--ds-q-good); }
+.phaseDone .bigTime { color: var(--ds-q-excellent); }
+
+.roundInfo {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.15em;
+  opacity: 0.6;
+  margin-top: 6px;
+}
+
+.progress {
+  height: 4px;
+  background: rgba(10, 61, 92, 0.5);
+  margin: 20px 0;
+  overflow: hidden;
+}
+
+.progressBar {
+  height: 100%;
+  background: var(--ds-accent);
+  transition: width 0.2s linear;
+}
+
+.phaseHold .progressBar { background: var(--ds-accent); }
+.phaseRest .progressBar { background: var(--ds-q-good); }
+.phasePrep .progressBar { background: var(--ds-warn); }
+
+.controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.btn {
+  background: rgba(0, 201, 255, 0.1);
+  border: 1px solid rgba(0, 201, 255, 0.4);
+  color: var(--ds-accent);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn:hover {
+  background: rgba(0, 201, 255, 0.2);
+  border-color: rgba(0, 201, 255, 0.7);
+}
+
+.btnSecondary {
+  background: transparent;
+  border-color: rgba(139, 184, 204, 0.3);
+  color: var(--text);
+}
+
+.btnSecondary:hover {
+  background: rgba(139, 184, 204, 0.1);
+}
+
+.btnDanger {
+  background: transparent;
+  border-color: rgba(192, 57, 43, 0.4);
+  color: var(--ds-danger);
+}
+
+.btnDanger:hover {
+  background: rgba(192, 57, 43, 0.12);
+}
+
+.cyclesTable {
+  background: rgba(4, 30, 46, 0.6);
+  border: 1px solid rgba(0, 201, 255, 0.1);
+  padding: 20px 24px;
+}
+
+.cyclesTitle {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  margin-bottom: 14px;
+}
+
+.tableHeader {
+  display: grid;
+  grid-template-columns: 40px 1fr 1fr 80px;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.4;
+  border-bottom: 1px solid rgba(0, 201, 255, 0.1);
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: 40px 1fr 1fr 80px;
+  gap: 10px;
+  padding: 10px 0;
+  font-size: 13px;
+  font-family: var(--ds-font-sans);
+  border-bottom: 1px solid rgba(0, 201, 255, 0.05);
+}
+
+.tableRow:last-child { border-bottom: none; }
+
+.tableRow.active {
+  background: rgba(0, 201, 255, 0.08);
+  margin: 0 -12px;
+  padding: 10px 12px;
+}
+
+.tableRow.done {
+  opacity: 0.4;
+}
+
+.idx {
+  opacity: 0.5;
+  font-size: var(--ds-text-label);
+}
+
+.statusCol {
+  text-align: right;
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
+.tableRow.active .statusCol {
+  color: var(--ds-accent);
+  opacity: 1;
+}
+
+.tableRow.done .statusCol {
+  color: var(--ds-q-good);
+}
+
+.audioToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--ds-text-label);
+  margin-bottom: 12px;
+  color: var(--text);
+}
+
+.audioToggle input {
+  accent-color: var(--ds-accent);
+}
+
+.error {
+  background: rgba(192, 57, 43, 0.1);
+  border: 1px solid rgba(192, 57, 43, 0.3);
+  color: var(--ds-danger);
+  padding: 12px;
+  margin-bottom: 16px;
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.05em;
+}
+
+@media (max-width: 480px) {
+  .bigTime { font-size: 64px; }
+  .runnerCard { padding: 24px 16px; }
+}

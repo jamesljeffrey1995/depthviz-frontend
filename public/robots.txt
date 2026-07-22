@@ -5,4 +5,4 @@ Allow: /
 Disallow: /@vite/
 Disallow: /@fs/
 
-Sitemap: https://depthviz.com/sitemap.xml
+Sitemap: https://depthviz.uk/sitemap.xml

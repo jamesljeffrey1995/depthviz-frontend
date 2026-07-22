@@ -1,0 +1,32 @@
+.wrap {
+  margin: 0 0 16px;
+  background: rgba(2, 13, 20, 0.4);
+  border: 1px solid rgba(0, 201, 255, 0.08);
+  padding: 6px 10px;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.valueLabel {
+  fill: var(--text-bright);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
+}
+
+.dayLabel {
+  fill: rgba(255, 255, 255, 0.4);
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dayLabelSelected {
+  fill: var(--ds-accent);
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}

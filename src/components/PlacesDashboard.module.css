@@ -1,0 +1,292 @@
+.dashboard {
+  padding: var(--space-md) 0;
+}
+
+.heading {
+  font-family: var(--ds-font-sans);
+  font-size: var(--text-section);
+  letter-spacing: 0.08em;
+  color: var(--text-bright);
+  margin-bottom: var(--space-md);
+}
+
+/* ── Compact row list ──
+   Each saved place is a single tappable row showing the essentials
+   (name, condition, visibility, trend). Tapping expands the 7-day strip,
+   detailed conditions and the forecast link — roughly halving the height of
+   the old card grid while keeping every place glanceable. */
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.row {
+  background: var(--surface-1);
+  border: 1px solid var(--ds-hairline);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color var(--transition-base), background var(--transition-base);
+}
+
+.row:hover {
+  border-color: var(--ds-hairline-strong);
+}
+
+.rowOpen {
+  border-color: var(--ds-hairline-strong);
+  background: var(--surface-2);
+  box-shadow: var(--elev-2);
+}
+
+/* ── Collapsed head (toggle) ── */
+.rowHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  width: 100%;
+  min-height: 60px;
+  padding: var(--space-12) var(--space-md);
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Inset the focus ring so it isn't clipped by the row's overflow: hidden. */
+.rowHead:focus-visible {
+  outline: 2px solid var(--ds-accent);
+  outline-offset: -2px;
+  border-radius: var(--radius-md);
+}
+
+.rowMain {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.placeName {
+  font-family: var(--ds-font-sans);
+  font-size: var(--text-card);
+  letter-spacing: 0.05em;
+  color: var(--text-bright);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rowSub {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.privateBadge,
+.publicBadge {
+  font-size: var(--text-meta);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+}
+
+.privateBadge {
+  background: rgba(212, 133, 10, 0.2);
+  color: var(--ds-warn);
+  border: 1px solid rgba(212, 133, 10, 0.3);
+}
+
+.publicBadge {
+  background: rgba(0, 201, 255, 0.1);
+  color: var(--ds-accent);
+  border: 1px solid rgba(0, 201, 255, 0.2);
+}
+
+.verdict {
+  font-size: var(--text-meta);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.subDim {
+  font-size: var(--text-meta);
+  color: var(--text);
+  opacity: 0.5;
+  font-style: italic;
+}
+
+/* ── Right cluster: visibility number + trend + chevron ── */
+.rowRight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+.visWrap {
+  display: flex;
+  align-items: baseline;
+  gap: 1px;
+}
+
+.visNum {
+  font-family: var(--ds-font-sans);
+  font-size: 28px;
+  letter-spacing: 0.03em;
+  line-height: 1;
+}
+
+.visUnit {
+  font-size: var(--text-label);
+  opacity: 0.7;
+}
+
+.trend {
+  font-size: var(--text-label);
+  margin-left: 4px;
+}
+
+.trendUp   { color: var(--ds-q-good); }
+.trendDown { color: var(--ds-danger); }
+.trendFlat { color: var(--text-dim); }
+
+.visSkeleton {
+  display: inline-block;
+  width: 54px;
+  height: 26px;
+}
+
+.chevron {
+  font-size: 24px;
+  color: var(--text-dim);
+  line-height: 1;
+  transition: transform var(--transition-slow);
+}
+
+.chevronOpen {
+  transform: rotate(90deg);
+  color: var(--ds-accent);
+}
+
+/* ── Expanded detail ── */
+.rowDetail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  padding: 0 var(--space-md) var(--space-md);
+}
+
+.detailMeta {
+  display: flex;
+  gap: var(--space-md);
+  font-size: var(--text-label);
+  color: var(--text);
+  flex-wrap: wrap;
+}
+
+/* ── Condition color classes ── */
+.excellent { color: var(--ds-q-excellent); }
+.good      { color: var(--ds-q-good); }
+.decent    { color: var(--ds-q-workable); }
+.marginal  { color: var(--ds-warn); }
+.poor      { color: var(--ds-danger); }
+.blocked   { color: var(--ds-q-blown); }
+
+.condError {
+  font-size: var(--text-label);
+  color: var(--text);
+  opacity: 0.5;
+  font-style: italic;
+}
+
+/* ── Mini 7-day strip ── */
+.miniStrip {
+  display: flex;
+  gap: 3px;
+}
+
+.miniDay {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-sm) 2px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: var(--ds-text-label);
+  position: relative;
+}
+
+.miniDayBest {
+  outline: 1px solid currentColor;
+  outline-offset: 1px;
+}
+
+.miniDayLabel {
+  color: var(--text);
+  opacity: 0.7;
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.05em;
+}
+
+.miniDayVis {
+  font-size: var(--ds-text-label);
+  font-weight: 600;
+  margin-top: 1px;
+}
+
+/* ── View button ── */
+.viewBtn {
+  background: rgba(0, 201, 255, 0.08);
+  border: 1px solid var(--ds-hairline-strong);
+  color: var(--ds-accent);
+  padding: 10px var(--space-md);
+  border-radius: var(--radius-md);
+  font-family: var(--ds-font-sans);
+  font-size: var(--text-label);
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: background var(--transition-base), border-color var(--transition-base);
+  text-align: center;
+  width: 100%;
+  min-height: 44px;
+}
+
+.viewBtn:hover:not(:disabled) {
+  background: rgba(0, 201, 255, 0.16);
+  border-color: var(--ds-accent);
+}
+
+.viewBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Empty state ── */
+.empty {
+  text-align: center;
+  padding: var(--space-xl) var(--space-md);
+}
+
+.emptyIcon {
+  font-size: 40px;
+  margin-bottom: var(--space-md);
+}
+
+.emptyText {
+  color: var(--text);
+  opacity: 0.6;
+  font-size: var(--text-body);
+  line-height: 1.6;
+  letter-spacing: 0.05em;
+}

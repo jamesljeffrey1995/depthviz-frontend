@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
 }
 
 .inputRow {
@@ -13,13 +13,17 @@
 .input {
   width: 100%;
   background: rgba(10, 61, 92, 0.3);
-  border: 1px solid rgba(0, 201, 255, 0.15);
+  border: 1px solid rgba(0, 201, 255, 0.18);
+  border-radius: var(--radius-md);
   color: var(--text-bright);
-  font-size: 13px;
-  padding: 14px 18px;
+  font-size: 14px;
+  /* 16px minimum font would stop iOS zoom-on-focus, but 14 + generous padding
+     keeps the technical look; min-height keeps the target beach-glove friendly. */
+  min-height: 48px;
+  padding: 12px 18px;
   outline: none;
   transition: border-color 0.2s, background 0.2s;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
 }
 
 .input::placeholder {
@@ -60,7 +64,7 @@
 
 .btnDive:focus-visible,
 .btnLocate:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ds-accent);
   outline-offset: 2px;
 }
 
@@ -72,19 +76,34 @@
 .btnDive,
 .btnLocate {
   flex: 1;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   font-weight: 700;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  padding: 14px 22px;
+  min-height: 48px;
+  padding: 12px 18px;
   border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
   transition: all 0.2s;
+}
+
+.btnLocate:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.inlineError {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ds-warn);
 }
 
 .btnDive {
   background: rgba(0, 201, 255, 0.1);
   border: 1px solid rgba(0, 201, 255, 0.3);
-  color: var(--accent);
+  color: var(--ds-accent);
 }
 
 .btnDive:hover {
@@ -96,7 +115,7 @@
 .btnLocate {
   background: rgba(26, 106, 74, 0.2);
   border: 1px solid rgba(15, 179, 122, 0.3);
-  color: var(--excellent);
+  color: var(--ds-q-excellent);
 }
 
 .btnLocate:hover {

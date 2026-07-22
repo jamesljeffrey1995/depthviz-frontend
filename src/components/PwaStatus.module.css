@@ -1,0 +1,92 @@
+/* Offline indicator — mirrors the .outageBanner treatment in App.module.css
+   but in the accent colour to read as informational rather than a warning. */
+.offlineBanner {
+  background: rgba(0, 201, 255, 0.1);
+  border: 1px solid var(--ds-accent);
+  border-radius: var(--radius-sm);
+  color: var(--ds-accent);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.08em;
+  padding: var(--space-sm) var(--space-md);
+  text-align: center;
+  text-transform: uppercase;
+  margin-bottom: var(--space-md);
+}
+
+/* Service-worker update + offline-ready toasts.
+   Mobile: compact, centred just above the bottom tab bar so it never covers
+   forms, calculator results or map controls mid-screen.
+   Desktop (no bottom bar): docked bottom-right, out of the content column. */
+.updateToast,
+.readyToast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-sm) var(--space-md);
+  max-width: min(420px, calc(100vw - 2 * var(--space-md)));
+  background: rgba(4, 21, 31, 0.97);
+  border: 1px solid var(--ds-hairline-strong);
+  border-radius: var(--radius-md);
+  color: var(--text-bright);
+  font-family: var(--ds-font-sans);
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 0.03em;
+  padding: var(--space-sm) var(--space-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+@media (min-width: 481px) {
+  .updateToast,
+  .readyToast {
+    left: auto;
+    right: var(--space-md);
+    bottom: var(--space-md);
+    transform: none;
+  }
+}
+
+.readyToast {
+  color: var(--ds-accent);
+  text-transform: uppercase;
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.08em;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+.reloadBtn,
+.dismissBtn {
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  min-height: 36px;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.reloadBtn {
+  background: var(--ds-accent);
+  color: #020d14;
+  border: 1px solid var(--ds-accent);
+  font-weight: 700;
+}
+
+.dismissBtn {
+  background: transparent;
+  color: var(--text-dim, #8aa);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.15));
+}

@@ -1,0 +1,314 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  /* Discussion threads read best at a comfortable measure in the wide shell. */
+  width: 100%;
+  max-width: 900px;
+  margin-inline: auto;
+}
+
+.pageTitle {
+  font-family: var(--ds-font-sans);
+  font-size: 36px;
+  letter-spacing: 0.06em;
+  color: var(--text-bright);
+  margin: 0;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.intro {
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0;
+  opacity: 0.85;
+}
+
+.back {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: var(--ds-accent);
+  font-family: var(--ds-font-sans);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  padding: 0;
+}
+
+.back:hover { text-decoration: underline; }
+
+.error { color: var(--ds-danger); font-size: 13px; }
+.muted { color: var(--text); opacity: 0.6; font-size: 13px; }
+
+.primaryBtn {
+  background: var(--ds-accent);
+  color: var(--ocean-deep);
+  border: 1px solid var(--ds-accent);
+  font-family: var(--ds-font-sans);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  min-height: 44px;
+  padding: 9px 16px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+.primaryBtn:hover { box-shadow: var(--shadow-glow); }
+.primaryBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.ghostBtn {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid rgba(0, 201, 255, 0.2);
+  font-family: var(--ds-font-sans);
+  font-size: 12px;
+  padding: 9px 16px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+/* ── Category list ── */
+.catList,
+.threadList,
+.postList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.catItem,
+.threadItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  width: 100%;
+  text-align: left;
+  background: rgba(4, 30, 46, 0.5);
+  border: 1px solid rgba(0, 201, 255, 0.12);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  cursor: pointer;
+  transition: border-color var(--transition-base);
+}
+
+.catItem:hover,
+.threadItem:hover { border-color: rgba(0, 201, 255, 0.35); }
+
+.catMain,
+.threadMain {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+/* Square initial tile — a subtle visual marker per category. */
+.catGlyph {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--ds-font-sans);
+  font-size: 24px;
+  color: var(--ds-accent);
+  background: rgba(0, 201, 255, 0.08);
+  border: 1px solid var(--ds-hairline);
+  border-radius: var(--radius-md);
+}
+
+.catName {
+  font-family: var(--ds-font-sans);
+  font-size: 20px;
+  letter-spacing: 0.04em;
+  color: var(--text-bright);
+}
+
+.catDesc,
+.threadMeta {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text);
+  opacity: 0.85;
+}
+
+.catCount,
+.replyCount {
+  flex-shrink: 0;
+  font-size: var(--ds-text-label);
+  color: var(--ds-accent);
+  letter-spacing: 0.06em;
+}
+
+.catCount {
+  margin-top: 2px;
+}
+
+.catCta {
+  flex-shrink: 0;
+  align-self: center;
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ds-accent);
+  opacity: 0.7;
+  transition: opacity var(--transition-base);
+}
+
+.catItem:hover .catCta,
+.catItem:focus-visible .catCta {
+  opacity: 1;
+}
+
+.startHint {
+  margin: 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text);
+  opacity: 0.85;
+}
+
+/* ── Empty state ── */
+.emptyBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  text-align: center;
+  background: var(--surface-1);
+  border: 1px dashed var(--ds-hairline-strong);
+  border-radius: var(--radius-md);
+  padding: var(--space-xl) var(--space-lg);
+}
+
+.emptyTitle {
+  margin: 0;
+  color: var(--text-bright);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.threadTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--text-bright);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* ── Composer / reply ── */
+.composer,
+.replyBox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  background: rgba(4, 30, 46, 0.6);
+  border: 1px solid rgba(0, 201, 255, 0.18);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+}
+
+.input,
+.textarea {
+  width: 100%;
+  background: var(--ocean-deep);
+  border: 1px solid rgba(0, 201, 255, 0.2);
+  border-radius: var(--radius-md);
+  color: var(--text-bright);
+  font-family: var(--ds-font-sans);
+  font-size: 13px;
+  padding: 10px 12px;
+  box-sizing: border-box;
+}
+
+.textarea { resize: vertical; line-height: 1.6; }
+
+.composerActions {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: flex-end;
+}
+
+/* ── Thread / posts ── */
+.threadHeading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  font-size: 22px;
+  color: var(--text-bright);
+  margin: 0;
+}
+
+.post {
+  background: rgba(4, 30, 46, 0.5);
+  border: 1px solid rgba(0, 201, 255, 0.12);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+}
+
+.postHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.postAuthor {
+  color: var(--text-bright);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.postDate {
+  color: var(--text);
+  opacity: 0.6;
+  font-size: var(--ds-text-label);
+}
+
+.deleteBtn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--ds-danger);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
+  cursor: pointer;
+  padding: 0;
+}
+.deleteBtn:hover { text-decoration: underline; }
+
+.postBody {
+  margin: var(--space-sm) 0 0;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.pin,
+.lock {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.pin { color: var(--ocean-deep); background: var(--ds-accent); }
+.lock { color: var(--ds-warn); border: 1px solid var(--ds-warn); }

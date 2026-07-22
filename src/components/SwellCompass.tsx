@@ -3,13 +3,20 @@ import type { SwellComponent } from '../types'
 interface Props {
   components: SwellComponent[]
   windDir: number
+  /** Display unit for component heights — must match the unit the API was
+   *  asked to return (`/forecast?units=ft|m`). Defaults to 'm' for backwards
+   *  compatibility with callers that haven't been updated. */
+  units?: 'ft' | 'm'
 }
 
+// Swell component type → categorical token (hue distinguishes the component,
+// not its size). Paired with the legend below so colour is never the only cue.
 const COLORS: Record<string, string> = {
-  primary: '#00c9ff',
-  secondary: '#ff9f43',
-  wind_wave: '#a29bfe',
+  primary: 'var(--ds-cat-1)',
+  secondary: 'var(--ds-cat-3)',
+  wind_wave: 'var(--ds-cat-4)',
 }
+const DEFAULT_COMPONENT_COLOR = 'var(--ds-cat-1)'
 
 const SIZE = 160
 const CX = SIZE / 2
@@ -33,7 +40,7 @@ function arrowPath(length: number): string {
   return `M0,${baseY} L-${halfW},${baseY + 8} L0,${tipY} L${halfW},${baseY + 8} Z`
 }
 
-export function SwellCompass({ components, windDir }: Props) {
+export function SwellCompass({ components, windDir, units = 'm' }: Props) {
   // Find max height to scale arrows
   const maxHeight = Math.max(...components.map(c => c.height), 0.5)
 
@@ -46,8 +53,8 @@ export function SwellCompass({ components, windDir }: Props) {
         style={{ overflow: 'visible' }}
       >
         {/* Background circle */}
-        <circle cx={CX} cy={CY} r={RING_R} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-        <circle cx={CX} cy={CY} r={RING_R * 0.5} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" strokeDasharray="2 3" />
+        <circle cx={CX} cy={CY} r={RING_R} fill="none" stroke="var(--ds-hairline)" strokeWidth="1" />
+        <circle cx={CX} cy={CY} r={RING_R * 0.5} fill="none" stroke="var(--ds-hairline)" strokeWidth="1" strokeDasharray="2 3" />
 
         {/* Cardinal ticks + labels */}
         {CARDINALS.map(({ label, deg }) => {
@@ -60,12 +67,12 @@ export function SwellCompass({ components, windDir }: Props) {
           const ly = CY + LABEL_R * Math.sin(rad)
           return (
             <g key={label}>
-              <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(255,255,255,0.3)" strokeWidth="1" />
+              <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="var(--ds-hairline-strong)" strokeWidth="1" />
               <text
                 x={lx} y={ly}
                 textAnchor="middle"
                 dominantBaseline="central"
-                fill="rgba(255,255,255,0.5)"
+                fill="var(--ds-text-muted)"
                 fontSize="10"
                 fontFamily="monospace"
               >
@@ -82,16 +89,16 @@ export function SwellCompass({ components, windDir }: Props) {
           const y1 = CY + (TICK_INNER + 2) * Math.sin(rad)
           const x2 = CX + TICK_OUTER * Math.cos(rad)
           const y2 = CY + TICK_OUTER * Math.sin(rad)
-          return <line key={deg} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+          return <line key={deg} x1={x1} y1={y1} x2={x2} y2={y2} stroke="var(--ds-hairline)" strokeWidth="1" />
         })}
 
         {/* Wind direction indicator (thin dashed line) */}
         <g transform={`translate(${CX},${CY}) rotate(${windDir})`}>
-          <line x1="0" y1="0" x2="0" y2={-RING_R + 5} stroke="rgba(255,255,255,0.2)" strokeWidth="1" strokeDasharray="3 3" />
+          <line x1="0" y1="0" x2="0" y2={-RING_R + 5} stroke="var(--ds-hairline-strong)" strokeWidth="1" strokeDasharray="3 3" />
           <text
             x="0" y={-RING_R + 14}
             textAnchor="middle"
-            fill="rgba(255,255,255,0.35)"
+            fill="var(--ds-text-faint)"
             fontSize="7"
             fontFamily="monospace"
           >
@@ -102,7 +109,7 @@ export function SwellCompass({ components, windDir }: Props) {
         {/* Swell component arrows */}
         {components.map((c) => {
           if (c.direction == null) return null
-          const color = COLORS[c.type] ?? '#00c9ff'
+          const color = COLORS[c.type] ?? DEFAULT_COMPONENT_COLOR
           const lengthPct = Math.max(0.3, c.height / maxHeight)
           const arrowLen = 12 + lengthPct * 36
 
@@ -120,19 +127,19 @@ export function SwellCompass({ components, windDir }: Props) {
         })}
 
         {/* Centre dot */}
-        <circle cx={CX} cy={CY} r="2" fill="rgba(255,255,255,0.4)" />
+        <circle cx={CX} cy={CY} r="2" fill="var(--ds-text-faint)" />
       </svg>
 
       {/* Legend */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '11px', fontFamily: 'monospace' }}>
         {components.map(c => {
-          const color = COLORS[c.type] ?? '#00c9ff'
+          const color = COLORS[c.type] ?? DEFAULT_COMPONENT_COLOR
           return (
             <div key={c.type} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ width: '10px', height: '10px', background: color, borderRadius: '2px', display: 'inline-block', flexShrink: 0 }} />
-              <span style={{ color: 'rgba(255,255,255,0.7)' }}>
-                {c.label}: <span style={{ color }}>{c.height.toFixed(1)}m</span>
-                {c.dir_label && <span style={{ color: 'rgba(255,255,255,0.4)' }}> {c.dir_label} {Math.round(c.direction!)}°</span>}
+              <span style={{ color: 'var(--ds-text-body)' }}>
+                {c.label}: <span style={{ color }}>{c.height.toFixed(1)}{units}</span>
+                {c.dir_label && <span style={{ color: 'var(--ds-text-faint)' }}> {c.dir_label} {Math.round(c.direction!)}°</span>}
               </span>
             </div>
           )

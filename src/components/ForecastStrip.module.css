@@ -12,32 +12,35 @@
 }
 
 .day {
-  background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(0, 201, 255, 0.08);
+  background: var(--surface-1);
+  border: 1px solid var(--ds-hairline);
+  border-radius: var(--radius-md);
   padding: 12px 10px;
   width: 72px;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s, box-shadow 0.15s;
   position: relative;
   flex-shrink: 0;
   text-align: left;
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
 
 }
 
 .day:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ds-accent);
   outline-offset: 2px;
 }
 
 .day:hover {
-  border-color: rgba(0, 201, 255, 0.25);
-  background: rgba(4, 30, 46, 0.9);
+  border-color: var(--ds-hairline-strong);
+  background: var(--surface-2);
+  transform: translateY(-2px);
 }
 
 .day.active {
-  border-color: rgba(0, 201, 255, 0.5);
-  background: rgba(7, 40, 64, 0.9);
+  border-color: var(--ds-hairline-strong);
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px rgba(0, 201, 255, 0.2), 0 4px 18px rgba(0, 0, 0, 0.4), 0 0 18px rgba(0, 201, 255, 0.12);
 }
 
 .day.forecast::after {
@@ -45,36 +48,78 @@
   position: absolute;
   top: 4px;
   right: 4px;
-  font-size: 6px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   opacity: 0.35;
 }
 
+/* Highlight the days sitting in the best-window run. */
+.day.best {
+  border-color: rgba(78, 203, 141, 0.55);
+  box-shadow: 0 0 0 1px rgba(78, 203, 141, 0.18), 0 4px 14px rgba(78, 203, 141, 0.08);
+}
+
+.day.best.active {
+  box-shadow:
+    inset 0 0 0 1px rgba(78, 203, 141, 0.35),
+    0 4px 18px rgba(0, 0, 0, 0.4),
+    0 0 22px rgba(78, 203, 141, 0.18);
+}
+
+.bestPip {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.18em;
+  color: var(--ds-q-good);
+  background: rgba(78, 203, 141, 0.14);
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+
+/* Ring around today so the "current" day always stands out. */
+.day.today {
+  outline: 1px solid rgba(0, 201, 255, 0.35);
+  outline-offset: -1px;
+}
+
+.trend {
+  font-size: 12px;
+  margin-left: 4px;
+  opacity: 0.75;
+}
+
 .dateLabel {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   opacity: 1;
   margin-bottom: 6px;
-  color: rgba(58, 212, 255, 0.25);
+  color: var(--text-dim);
+}
+
+.day.active .dateLabel {
+  color: var(--accent-soft);
 }
 
 .vis {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 28px;
   line-height: 1;
   margin-bottom: 2px;
 }
 
 .unit {
-  font-size: 8px;
+  font-size: var(--ds-text-label);
   opacity: 1;
   letter-spacing: 0.1em;
-  color: rgba(0, 201, 255, 0.25);
+  color: var(--text-dim);
 }
 
 .verdict {
-  font-size: 8px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   margin-top: 6px;
@@ -93,12 +138,24 @@
 }
 
 .algaeLow      { background: transparent; }
-.algaeModerate { background: #d4850a; }
-.algaeHigh     { background: #c0392b; }
+.algaeModerate { background: var(--ds-warn); }
+.algaeHigh     { background: var(--ds-danger); }
 
-.blocked  { color: #7a8a9a; }
-.poor     { color: var(--danger); }
-.marginal { color: var(--warn); }
-.decent   { color: #7fb87a; }
-.good     { color: var(--good); }
-.excellent { color: var(--excellent); }
+.driver {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-top: 4px;
+  color: rgba(0, 201, 255, 0.45);
+  line-height: 1.2;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.blocked  { color: var(--ds-q-blown); }
+.poor     { color: var(--ds-danger); }
+.marginal { color: var(--ds-warn); }
+.decent   { color: var(--ds-q-workable); }
+.good     { color: var(--ds-q-good); }
+.excellent { color: var(--ds-q-excellent); }

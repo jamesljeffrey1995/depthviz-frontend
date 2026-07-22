@@ -3,28 +3,112 @@
   z-index: 1;
   max-width: 680px;
   margin: 0 auto;
-  padding: var(--space-xl) var(--space-md) 100px;
+  padding: var(--space-lg) var(--space-md) 100px;
+}
+
+/* ── Adaptive layout (medium / expanded window classes) ──────────────────
+   Compact (<600px): single column, unchanged.
+   Medium (600–899px): a slightly wider shell for denser card grids.
+   Expanded (>=900px, map route group only): list-detail split view. */
+@media (min-width: 600px) {
+  .container {
+    max-width: 800px;
+  }
+}
+
+/* Desktop: give every page a proper shell instead of a narrow centred column.
+   Text-led pages (news, forum…) re-cap their own reading measure internally,
+   so widening the shell never produces uncomfortably long lines. */
+@media (min-width: 1000px) {
+  .container {
+    max-width: 1140px;
+  }
+}
+
+/* The map route group opts into an even wider shell for the split layout. */
+@media (min-width: 900px) {
+  .containerWide {
+    max-width: 1240px;
+  }
+}
+
+@media (min-width: 1400px) {
+  .containerWide {
+    max-width: 1360px;
+  }
+}
+
+/* Keep text-led chrome at a comfortable measure even when the shell is wide,
+   so the search field doesn't stretch across the full split width. No-op at
+   narrower widths where the container is already <= this cap. */
+.searchWrap {
+  max-width: 680px;
+  margin-inline: auto;
+}
+
+/* List-detail: persistent map pane on the left, routed detail on the right.
+   minmax(0, …) on the detail column lets charts/tables shrink instead of
+   forcing horizontal overflow. */
+.splitView {
+  display: grid;
+  grid-template-columns: minmax(300px, 1fr) minmax(0, 1.4fr);
+  gap: var(--space-lg);
+  align-items: start;
+}
+
+.mapPane {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  position: sticky;
+  top: var(--space-md);
+  max-height: calc(100vh - var(--space-xl));
+  overflow-y: auto;
+}
+
+.sidebarBlock {
+  /* Community reports sit under the map in the sticky sidebar. Reset the
+     panel's default margin so the flex gap controls spacing. */
+}
+.sidebarBlock > * { margin-bottom: 0; }
+
+.detailPane {
+  min-width: 0;
+}
+
+.detailPane:focus {
+  outline: none;
 }
 
 /* ── Header ── */
 .header {
   text-align: center;
-  margin-bottom: var(--space-xl);
+  margin-bottom: var(--space-md);
   /* Provide positioning context for absolute authBtn */
   position: relative;
 }
+/* Admin screens: shrink the header so the operational UI gets the space. */
+.headerCompact {
+  margin-bottom: var(--space-sm);
+}
+.headerCompact .logo {
+  font-size: clamp(28px, 5vw, 40px);
+  letter-spacing: 0.06em;
+  text-shadow: none;
+}
+.headerCompact .logo span { text-shadow: none; }
 
 .logo {
-  font-family: var(--font-display);
-  font-size: clamp(52px, 12vw, 88px);
+  font-family: var(--ds-font-sans);
+  font-size: clamp(44px, 9vw, 64px);
   letter-spacing: 0.08em;
   color: var(--text-bright);
   line-height: 0.9;
-  text-shadow: 0 0 40px rgba(0, 201, 255, 0.15);
+  text-shadow: 0 0 48px rgba(0, 201, 255, 0.28);
 }
 
 .logo span {
-  color: var(--accent);
+  color: var(--ds-accent);
   text-shadow: 0 0 30px rgba(0, 201, 255, 0.5);
 }
 
@@ -33,7 +117,7 @@
   letter-spacing: 0.25em;
   text-transform: uppercase;
   color: var(--text);
-  margin-top: var(--space-sm);
+  margin-top: var(--space-xs);
   opacity: 0.85;
 }
 
@@ -42,16 +126,177 @@
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--text);
-  opacity: 0.5;
+  color: var(--text-dim);
   margin-top: var(--space-xs);
   line-height: 1.6;
+}
+
+/* ── Forecast controls (unit toggle + depth select) ── */
+.forecastControls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+/* ── Unit toggle (ft / m) ── */
+.unitToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.unitLabel {
+  background: none;
+  border: none;
+  /* WCAG 2.2 SC 2.5.8 — keep the tap target at least 24×24 CSS px. The label
+     text is small, so padding carries the hit area without changing layout. */
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 6px;
+  font-family: var(--ds-font-sans);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text);
+  opacity: 0.4;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.25s ease, opacity 0.25s ease;
+}
+
+.unitLabel:hover {
+  opacity: 0.7;
+}
+
+.unitLabel:focus-visible {
+  outline: 2px solid var(--ds-accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.unitLabelActive {
+  color: var(--ds-accent);
+  opacity: 1;
+}
+
+.toggleSwitch {
+  position: relative;
+  display: inline-block;
+  width: 42px;
+  /* WCAG 2.2 SC 2.5.8 — 24 CSS px minimum target height. */
+  height: 24px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.toggleSwitch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.toggleSlider {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 201, 255, 0.08);
+  border: 1px solid rgba(0, 201, 255, 0.25);
+  border-radius: 12px;
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+.toggleSlider::before {
+  content: '';
+  position: absolute;
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--ds-accent);
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(0, 201, 255, 0.5);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggleSwitch input:checked + .toggleSlider::before {
+  transform: translateY(-50%) translateX(20px);
+}
+
+.toggleSwitch input:focus-visible + .toggleSlider {
+  outline: 2px solid var(--ds-accent);
+  outline-offset: 2px;
+}
+
+/* ── Depth select ── */
+.depthSelect {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.depthSelectLabel {
+  font-family: var(--ds-font-sans);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text);
+  opacity: 0.4;
+}
+
+.depthSelectInput {
+  background: rgba(0, 201, 255, 0.06);
+  border: 1px solid rgba(0, 201, 255, 0.2);
+  color: var(--ds-accent);
+  font-family: var(--ds-font-sans);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  padding: 4px 8px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 28px;
+  min-width: 52px;
+  text-align: center;
+}
+
+.depthSelectInput:hover {
+  border-color: rgba(0, 201, 255, 0.4);
+}
+
+.depthSelectInput:focus-visible {
+  outline: 2px solid var(--ds-accent);
+  outline-offset: 2px;
+}
+
+.depthSelectInput option {
+  background: rgb(4, 20, 30);
+  color: var(--text-bright);
+}
+
+/* ── Outage Banner ── */
+.outageBanner {
+  background: rgba(212, 133, 10, 0.12);
+  border: 1px solid var(--ds-warn);
+  border-radius: var(--radius-sm);
+  color: var(--ds-warn);
+  font-family: var(--ds-font-sans);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  padding: var(--space-sm) var(--space-md);
+  text-align: center;
+  text-transform: uppercase;
+  margin-bottom: var(--space-md);
 }
 
 /* ── Error ── */
 .error {
   font-size: 11px;
-  color: var(--danger);
+  color: var(--ds-danger);
   letter-spacing: 0.1em;
   margin-bottom: var(--space-md);
 }
@@ -121,67 +366,143 @@
   font-size: 12px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  opacity: 0.6;
+  opacity: 0.7;
   line-height: 2;
 }
 
-/* ── Footer ── */
+/* ── "Pick a spot" placeholder panel (split-view detail pane) ──
+   When no spot is selected the right-hand pane explains what a forecast
+   includes and how to get one, instead of sitting empty. */
+.placeholderPanel {
+  background: var(--surface-1);
+  border: 1px solid var(--ds-hairline);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl) var(--space-lg);
+  text-align: center;
+}
+
+.placeholderTitle {
+  font-family: var(--ds-font-sans);
+  font-size: 30px;
+  letter-spacing: 0.06em;
+  color: var(--text-bright);
+  margin: 0 0 var(--space-xs);
+}
+
+.placeholderSub {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text);
+  margin: 0 auto var(--space-lg);
+  max-width: 420px;
+}
+
+.placeholderList {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-sm);
+  margin: 0 0 var(--space-lg);
+  padding: 0;
+}
+
+.placeholderList li {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+  border: 1px solid var(--ds-hairline);
+  background: rgba(0, 201, 255, 0.05);
+  border-radius: 999px;
+  padding: 6px 12px;
+}
+
+.placeholderHint {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text);
+  margin: 0 auto;
+  max-width: 420px;
+}
+
+.placeholderSafety {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  margin: var(--space-lg) auto 0;
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--ds-hairline);
+  max-width: 420px;
+}
+
+/* ── Footer ──
+   Deliberately quiet: a hairline divider, one attribution line, the legal
+   links, and small print. It should never compete with page content. */
 .footer {
   text-align: center;
   font-size: 10px;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  opacity: 0.6;
-  margin-top: var(--space-xl);
-  line-height: 2;
-  padding-bottom: 20px;
+  opacity: 0.55;
+  margin-top: var(--space-2xl);
+  border-top: 1px solid var(--ds-hairline);
+  padding: var(--space-lg) 0 var(--space-md);
+  line-height: 1.8;
+  transition: opacity var(--transition-base);
+}
+
+.footer:hover,
+.footer:focus-within {
+  opacity: 0.85;
 }
 
 .footerAttribution {
+  color: var(--text-dim);
   margin-bottom: 2px;
 }
 
 .footerDisclaimer {
-  opacity: 0.8;
+  color: var(--text);
 }
 
 .copyright {
-  margin-top: 10px;
-  font-size: 10px;
-  opacity: 0.5;
+  margin-top: var(--space-sm);
+  font-size: 9px;
+  opacity: 0.6;
 }
 
 .footerLinks {
   display: flex;
   justify-content: center;
-  gap: 4px;
+  gap: 0 4px;
   flex-wrap: wrap;
-  margin-top: var(--space-sm);
+  margin-top: var(--space-xs);
 }
 
 .footerLink {
   background: none;
   border: none;
   color: var(--text);
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 10px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
   padding: 4px 6px;
-  /* Ensure minimum 44px touch target height via line-height */
-  min-height: 44px;
+  /* Keep a comfortable touch target without inflating the footer visually */
+  min-height: 36px;
   display: inline-flex;
   align-items: center;
   transition: color var(--transition-base);
 }
 
 .footerLink:hover {
-  color: var(--accent);
+  color: var(--ds-accent);
 }
 
 .footerLink:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ds-accent);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
@@ -193,29 +514,27 @@
   opacity: 0.3;
 }
 
+/* Support link — present but understated; plain text link, not a button. */
 .bmcLink {
   display: inline-block;
-  margin-top: 10px;
-  font-family: var(--font-mono);
+  margin-top: var(--space-xs);
+  font-family: var(--ds-font-sans);
   font-size: 10px;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--accent);
-  text-decoration: none;
-  padding: 5px 12px;
-  border: 1px solid rgba(0, 201, 255, 0.2);
-  background: rgba(0, 201, 255, 0.06);
-  border-radius: var(--radius-sm);
-  transition: all var(--transition-base);
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: 6px 8px;
+  transition: color var(--transition-base);
 }
 
 .bmcLink:hover {
-  background: rgba(0, 201, 255, 0.12);
-  border-color: rgba(0, 201, 255, 0.4);
+  color: var(--ds-accent);
 }
 
 .bmcLink:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ds-accent);
   outline-offset: 2px;
 }
 
@@ -224,7 +543,7 @@
   font-size: 10px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--ds-accent);
   opacity: 0.7;
   margin-bottom: var(--space-sm);
   animation: pulse 1.5s ease-in-out infinite;
@@ -234,62 +553,111 @@
 .nav {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 6px;
   margin-bottom: 20px;
 }
 
 .navBtn {
-  background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(0, 201, 255, 0.1);
+  background: var(--surface-1);
+  border: 1px solid var(--ds-hairline);
   color: var(--text);
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 10px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   /* WCAG 2.5.5 — minimum 44×44 px touch target */
   min-height: 44px;
   padding: 0 16px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition: all var(--transition-base);
 }
 
 .navBtn:hover {
-  border-color: rgba(0, 201, 255, 0.3);
+  border-color: var(--ds-hairline-strong);
+  background: var(--surface-2);
   color: var(--text-bright);
 }
 
 .navBtn:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ds-accent);
   outline-offset: 2px;
 }
 
 .navActive {
-  background: rgba(0, 201, 255, 0.1);
-  border-color: rgba(0, 201, 255, 0.4);
-  color: var(--accent);
+  background: rgba(0, 201, 255, 0.12);
+  border-color: var(--ds-hairline-strong);
+  color: var(--ds-accent);
+  box-shadow: inset 0 0 0 1px rgba(0, 201, 255, 0.15), 0 0 16px rgba(0, 201, 255, 0.1);
 }
 
 .biasNote {
   font-size: 9px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--excellent);
+  color: var(--ds-q-excellent);
   opacity: 0.7;
   margin-bottom: 12px;
+}
+
+/* Secondary spot-utility buttons — save, private, week, dive logs, flag. */
+.utilityRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.utilityBtn {
+  background: transparent;
+  border: 1px solid var(--ds-hairline);
+  color: var(--text-dim);
+  font-family: var(--ds-font-sans);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  min-height: 32px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.utilityBtn:hover:not(:disabled) {
+  color: var(--ds-accent);
+  border-color: rgba(0, 201, 255, 0.4);
+  background: rgba(0, 201, 255, 0.05);
+}
+
+.utilityBtn:focus-visible {
+  outline: 2px solid var(--ds-accent);
+  outline-offset: 2px;
+}
+
+.utilityBtn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.utilityBtnActive {
+  color: var(--ds-accent);
+  border-color: rgba(0, 201, 255, 0.5);
+  background: rgba(0, 201, 255, 0.08);
 }
 
 /* ── Auth button ── */
 .authBtn {
   position: absolute;
   /* Center vertically with the logo (line-height: 0.9 of clamp font-size, minus button height / 2) */
-  top: calc((clamp(52px, 12vw, 88px) * 0.9 - 44px) / 2);
+  top: calc((clamp(44px, 9vw, 64px) * 0.9 - 44px) / 2);
   right: 0;
   background: rgba(0, 201, 255, 0.08);
   border: 1px solid rgba(0, 201, 255, 0.2);
   border-radius: var(--radius-sm);
-  color: var(--accent);
-  font-family: var(--font-mono);
+  color: var(--ds-accent);
+  font-family: var(--ds-font-sans);
   font-size: 11px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -309,7 +677,7 @@
 }
 
 .authBtn:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ds-accent);
   outline-offset: 2px;
 }
 
@@ -317,15 +685,15 @@
 .authBtnAvatar {
   position: absolute;
   /* Center vertically with the logo (line-height: 0.9 of clamp font-size, minus avatar height / 2) */
-  top: calc((clamp(52px, 12vw, 88px) * 0.9 - 44px) / 2);
+  top: calc((clamp(44px, 9vw, 64px) * 0.9 - 44px) / 2);
   right: 0;
   width: 44px;
   height: 44px;
   border-radius: 50%;
   background: rgba(0, 201, 255, 0.12);
   border: 1px solid rgba(0, 201, 255, 0.35);
-  color: var(--accent);
-  font-family: var(--font-display);
+  color: var(--ds-accent);
+  font-family: var(--ds-font-sans);
   font-size: 18px;
   font-weight: 700;
   display: flex;
@@ -342,7 +710,7 @@
 }
 
 .authBtnAvatar:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ds-accent);
   outline-offset: 2px;
 }
 
@@ -359,55 +727,106 @@
   right: 0;
   display: flex;
   justify-content: space-around;
-  align-items: center;
-  background: rgba(2, 13, 20, 0.95);
-  border-top: 1px solid rgba(0, 201, 255, 0.12);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  align-items: stretch;
+  background: rgba(2, 13, 20, 0.92);
+  border-top: 1px solid rgba(0, 201, 255, 0.14);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
   padding: 0 0 env(safe-area-inset-bottom, 0);
   z-index: 1100;
 }
 
 .bottomNavBtn {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 4px;
   background: none;
   border: none;
   color: var(--text);
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 9px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  /* WCAG 2.5.5 — 44px minimum touch target */
-  min-height: 56px;
-  padding: 0 12px;
+  letter-spacing: 0.08em;
+  /* Lower-case labels read as an app, not a warning strip. */
+  text-transform: none;
+  /* WCAG 2.5.5 — comfortable 44px+ touch target */
+  min-height: 60px;
+  padding: 6px 10px 4px;
   cursor: pointer;
-  opacity: 0.5;
-  transition: opacity var(--transition-base), color var(--transition-base);
+  color: var(--text-dim);
+  transition: color var(--transition-base);
   flex: 1;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Animated active indicator — a soft cyan pill that sits behind the icon. */
+.bottomNavBtn::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  width: 44px;
+  height: 30px;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 201, 255, 0.12);
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity var(--transition-base), transform var(--transition-slow);
+  pointer-events: none;
 }
 
 .bottomNavBtn:hover {
-  opacity: 0.8;
+  color: var(--text);
+}
+
+.bottomNavBtn:active .bottomNavIcon {
+  transform: scale(0.88);
 }
 
 .bottomNavBtn:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ds-accent);
   outline-offset: -2px;
+  border-radius: var(--radius-md);
 }
 
 .bottomNavActive {
-  color: var(--accent);
+  color: var(--ds-accent);
+}
+
+.bottomNavActive::before {
   opacity: 1;
+  transform: scale(1);
+}
+
+.bottomNavActive .bottomNavIcon {
+  filter: drop-shadow(0 0 6px rgba(0, 201, 255, 0.55));
+}
+
+.bottomNavActive span {
+  color: var(--ds-accent);
+  font-weight: 700;
 }
 
 .bottomNavIcon {
-  width: 22px;
-  height: 22px;
+  position: relative;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
+  transition: transform var(--transition-base), filter var(--transition-base);
+}
+
+/* On wider screens the website-style top nav is the primary navigation, so the
+   mobile bottom tab bar is hidden to avoid duplicating it. The extra bottom
+   padding that reserved space for the fixed bar is reclaimed too. */
+@media (min-width: 481px) {
+  .bottomNav {
+    display: none;
+  }
+
+  .container {
+    padding-bottom: var(--space-xl);
+  }
 }
 
 /* ── Responsive ── */
@@ -426,16 +845,24 @@
     max-width: 110px;
     font-size: 10px;
     padding: 0 8px;
-    top: 20px;
+    /* Align with the (now smaller) logo row so it clears the tagline below. */
+    top: 0;
+    min-height: 40px;
   }
 
   .bottomNavBtn {
-    padding: 0 6px;
+    padding: 6px 4px 4px;
     font-size: 8px;
+    gap: 3px;
+  }
+
+  .bottomNavBtn::before {
+    width: 38px;
+    height: 28px;
   }
 
   .bottomNavIcon {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
   }
 }

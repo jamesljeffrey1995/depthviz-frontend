@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
-import { getMLPredictions, getFeatureImportance } from '../lib/api'
-import type { MLPredictionPoint, MLTrainingLogEntry, FeatureImportance } from '../types'
+import { getMLPredictions, getFeatureImportance, quarantineReport } from '../lib/api'
+import type {
+  MLPredictionPoint, MLTrainingLogEntry, FeatureImportance,
+  MLResidual, MLResidualSummary,
+} from '../types'
 import styles from './MLCharts.module.css'
 
 // ── Shared constants ─────────────────────────────────────────────────────────
@@ -115,7 +118,8 @@ function ErrorHistogram({ points }: HistogramProps) {
   }
   for (const p of points) {
     const idx = Math.floor((p.error - minBin) / binWidth)
-    if (idx >= 0 && idx < bins.length) bins[idx].count++
+    const bin = bins[idx]
+    if (idx >= 0 && idx < bins.length && bin) bin.count++
   }
 
   const maxCount = Math.max(...bins.map(b => b.count), 1)
@@ -219,14 +223,14 @@ function MetricsTimeline({ trainingLog }: MetricsTimelineProps) {
             }))
             const d = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ')
             // Fill path
-            const fillD = `${d} L${pts[pts.length - 1].x},${PAD.top + CH} L${pts[0].x},${PAD.top + CH} Z`
+            const fillD = `${d} L${pts[pts.length - 1]?.x ?? 0},${PAD.top + CH} L${pts[0]?.x ?? 0},${PAD.top + CH} Z`
             return (
               <>
                 <path d={fillD} fill="rgba(0,201,255,0.08)" />
-                <path d={d} fill="none" stroke="var(--accent)" strokeWidth="2" />
+                <path d={d} fill="none" stroke="var(--ds-accent)" strokeWidth="2" />
                 {pts.map((p, i) => (
-                  <circle key={i} cx={p.x} cy={p.y} r="3" fill="var(--accent)" stroke="rgba(2,13,20,0.8)" strokeWidth="1.5">
-                    <title>Run {i + 1}: MAE={entries[i].global_mae?.toFixed(3)}, {entries[i].sample_count} samples ({entries[i].trigger})</title>
+                  <circle key={i} cx={p.x} cy={p.y} r="3" fill="var(--ds-accent)" stroke="rgba(2,13,20,0.8)" strokeWidth="1.5">
+                    <title>Run {i + 1}: MAE={entries[i]?.global_mae?.toFixed(3)}, {entries[i]?.sample_count} samples ({entries[i]?.trigger})</title>
                   </circle>
                 ))}
               </>
@@ -244,7 +248,7 @@ function MetricsTimeline({ trainingLog }: MetricsTimelineProps) {
               })
             : [0, Math.floor(entries.length / 2), entries.length - 1].map(i => {
                 const x = PAD.left + (i / (entries.length - 1)) * CW
-                const label = new Date(entries[i].created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
+                const label = new Date(entries[i]?.created_at ?? '').toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
                 return (
                   <text key={i} x={x} y={H - PAD.bottom + 14} textAnchor="middle" fill="rgba(139,184,204,0.4)" fontSize="8" fontFamily="monospace">{label}</text>
                 )
@@ -341,6 +345,99 @@ function FeatureImportanceChart({ features }: FeatureImportanceChartProps) {
   )
 }
 
+// ── Largest Residuals: outlier diagnostic ────────────────────────────────────
+
+interface ResidualTableProps {
+  residuals: MLResidual[]
+  summary: MLResidualSummary | null
+  quarantined: Set<number>
+  onQuarantine: (id: number) => void
+}
+
+function ResidualTable({ residuals, summary, quarantined, onQuarantine }: ResidualTableProps) {
+  if (residuals.length === 0) return <div className={styles.empty}>No residual data</div>
+
+  const share = summary?.top3_sse_share ?? null
+  const concentrated = share !== null && share > 0.5
+
+  return (
+    <div className={styles.chartCard}>
+      <div className={styles.chartTitle}>Largest Residuals</div>
+      <div className={styles.chartSubtitle}>
+        {share !== null ? (
+          <>
+            Top 3 reports account for{' '}
+            <strong style={{ color: concentrated ? 'var(--ds-danger)' : 'var(--text-bright)' }}>
+              {(share * 100).toFixed(0)}%
+            </strong>{' '}
+            of squared error
+            {concentrated ? ' — a few outliers dominate; consider quarantining them' : ''}
+          </>
+        ) : 'Worst-fitting reports first'}
+      </div>
+      <div className={styles.tableScroll}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: 'monospace' }}>
+          <thead>
+            <tr style={{ textAlign: 'left', color: 'var(--text-dim, #8bb8cc)' }}>
+              <th style={{ padding: '4px 5px' }}>Date</th>
+              <th style={{ padding: '4px 5px' }}>Location</th>
+              <th style={{ padding: '4px 5px', textAlign: 'right' }}>Actual</th>
+              <th style={{ padding: '4px 5px', textAlign: 'right' }}>Pred</th>
+              <th style={{ padding: '4px 5px', textAlign: 'right' }}>Error</th>
+              <th style={{ padding: '4px 5px', textAlign: 'right' }}>Conf</th>
+              <th style={{ padding: '4px 5px', textAlign: 'center' }} scope="col">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {residuals.map(r => {
+              const isQ = quarantined.has(r.id)
+              return (
+                <tr key={r.id} style={{ borderTop: '1px solid rgba(139,184,204,0.15)', opacity: isQ ? 0.4 : 1 }}>
+                  <td style={{ padding: '4px 5px' }}>{r.date}</td>
+                  <td style={{ padding: '4px 5px' }}>{r.location}</td>
+                  <td style={{ padding: '4px 5px', textAlign: 'right' }}>{r.actual.toFixed(1)}</td>
+                  <td style={{ padding: '4px 5px', textAlign: 'right' }}>{r.predicted.toFixed(1)}</td>
+                  <td style={{ padding: '4px 5px', textAlign: 'right',
+                               color: Math.abs(r.error) > 2 ? 'var(--ds-danger)' : 'var(--text-bright)' }}>
+                    {r.error > 0 ? '+' : ''}{r.error.toFixed(1)}m
+                  </td>
+                  <td style={{ padding: '4px 5px', textAlign: 'right' }}>
+                    {r.video_confidence !== null ? r.video_confidence.toFixed(2) : '—'}
+                  </td>
+                  <td style={{ padding: '4px 5px' }}>
+                    {isQ ? (
+                      <span style={{ color: 'var(--text-dim, #8bb8cc)', fontSize: 10 }}>quarantined</span>
+                    ) : (
+                      <button
+                        onClick={() => onQuarantine(r.id)}
+                        title="Quarantine this report"
+                        aria-label={`Quarantine report ${r.id}`}
+                        style={{
+                          background: 'rgba(192,57,43,0.12)',
+                          border: '1px solid rgba(192,57,43,0.35)',
+                          color: 'rgba(192,57,43,0.85)',
+                          borderRadius: 3,
+                          padding: '1px 6px',
+                          fontSize: 10,
+                          cursor: 'pointer',
+                          fontFamily: 'monospace',
+                          lineHeight: '16px',
+                        }}
+                      >
+                        Q
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
 // ── Exported Combined Component ──────────────────────────────────────────────
 
 interface MLChartsProps {
@@ -349,8 +446,11 @@ interface MLChartsProps {
 
 export function MLCharts({ trainingLog }: MLChartsProps) {
   const [predictions, setPredictions] = useState<MLPredictionPoint[]>([])
+  const [residuals, setResiduals] = useState<MLResidual[]>([])
+  const [summary, setSummary] = useState<MLResidualSummary | null>(null)
   const [features, setFeatures] = useState<FeatureImportance[]>([])
   const [loading, setLoading] = useState(true)
+  const [quarantinedIds, setQuarantinedIds] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     let cancelled = false
@@ -358,7 +458,11 @@ export function MLCharts({ trainingLog }: MLChartsProps) {
     Promise.all([
       getMLPredictions()
         .then(data => {
-          if (!cancelled) setPredictions(data.points)
+          if (!cancelled) {
+            setPredictions(data.points)
+            setResiduals(data.residuals ?? [])
+            setSummary(data.summary ?? null)
+          }
         })
         .catch(() => {}),
       getFeatureImportance()
@@ -375,12 +479,31 @@ export function MLCharts({ trainingLog }: MLChartsProps) {
     }
   }, [])
 
+  async function handleQuarantine(id: number) {
+    setQuarantinedIds(prev => new Set([...prev, id]))
+    try {
+      await quarantineReport(id)
+    } catch {
+      setQuarantinedIds(prev => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
+    }
+  }
+
   if (loading) return <div className={styles.loading}>Loading chart data...</div>
 
   return (
     <div className={styles.chartsContainer}>
       <ScatterPlot points={predictions} />
       <ErrorHistogram points={predictions} />
+      <ResidualTable
+        residuals={residuals}
+        summary={summary}
+        quarantined={quarantinedIds}
+        onQuarantine={handleQuarantine}
+      />
       <FeatureImportanceChart features={features} />
       <MetricsTimeline trainingLog={trainingLog} />
     </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { getFeed } from '../lib/api'
 import type { FeedItem } from '../types'
@@ -34,45 +34,68 @@ export function FeedPage({ user }: Props) {
   const [filterType, setFilterType] = useState<FilterType>('all')
   const [items, setItems] = useState<FeedItem[]>([])
   const [total, setTotal] = useState(0)
-  const [offset, setOffset] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // The current pagination offset lives in a ref, not state, so the fetch
+  // closure always reads the latest value rather than a stale snapshot captured
+  // when the effect last ran.
+  const offsetRef = useRef(0)
+  // Monotonic request id. Only the most-recent request may commit its results,
+  // so a slow "Load More" can't append items from a previous scope/filter after
+  // the user switches, and out-of-order responses can't double-count the offset
+  // or cross-contaminate the list.
+  const requestSeq = useRef(0)
+
   const fetchFeed = useCallback(async (reset: boolean) => {
+    const requestId = ++requestSeq.current
     setLoading(true)
     setError('')
-    const newOffset = reset ? 0 : offset
+    const startOffset = reset ? 0 : offsetRef.current
     try {
       const data: FeedResponse = await getFeed({
         scope,
         filter_type: filterType,
         limit: LIMIT,
-        offset: newOffset,
+        offset: startOffset,
       })
-      if (reset) {
-        setItems(data.items)
-      } else {
-        setItems(prev => [...prev, ...data.items])
-      }
+      if (requestId !== requestSeq.current) return  // superseded — discard
+      setItems(prev => (reset ? data.items : [...prev, ...data.items]))
       setTotal(data.total)
-      setOffset(newOffset + data.items.length)
+      offsetRef.current = startOffset + data.items.length
     } catch (err) {
+      if (requestId !== requestSeq.current) return
       setError(err instanceof Error ? err.message : 'Failed to load feed')
     } finally {
-      setLoading(false)
+      if (requestId === requestSeq.current) setLoading(false)
     }
-  }, [scope, filterType, offset])
+  }, [scope, filterType])
 
   useEffect(() => {
     fetchFeed(true)
-  }, [scope, filterType])
+  }, [fetchFeed])
+
+  // Switching scope/filter resets pagination and supersedes any in-flight
+  // request synchronously (not just in the post-paint reload effect), so a
+  // "Load More" click in the window before the reload runs can't read the old
+  // offset and append the new scope's page onto the previous list.
+  function resetForReload() {
+    requestSeq.current++
+    offsetRef.current = 0
+    setItems([])
+    setTotal(0)
+  }
 
   function handleScopeChange(newScope: Scope) {
     if (newScope === 'friends' && !user) return
+    if (newScope === scope) return
+    resetForReload()
     setScope(newScope)
   }
 
   function handleFilterChange(newFilter: FilterType) {
+    if (newFilter === filterType) return
+    resetForReload()
     setFilterType(newFilter)
   }
 

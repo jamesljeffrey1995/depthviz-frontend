@@ -1,11 +1,24 @@
 import { supabase } from './supabase'
-import { cacheGet, cacheSet, cacheDelete } from './cache'
+import { cacheGet, cacheSet, cacheDelete, cacheDeleteByPrefix } from './cache'
 import type {
   AdminStats,
+  Announcement,
+  AnnouncementInput,
+  ForumCategory,
+  ForumCategoryView,
+  ForumPost,
+  ForumThreadDetail,
+  ApneaDifficulty,
+  ApneaTable,
+  ApneaTableCreate,
+  ApneaTableType,
+  ApneaTableUpdate,
   BestVisResponse,
   CatchCreate,
   CatchRead,
   CleaningResult,
+  DataDispute,
+  DataDisputeCreate,
   FeedItem,
   ForecastResponse,
   GeocodingResult,
@@ -16,8 +29,11 @@ import type {
   QuarantinedListResponse,
   ReportCreate,
   ReportRead,
+  SatelliteImagery,
+  SeabedClass,
   TidesResponse,
   UserProfile,
+  ProfileDiverDetails,
 } from '../types'
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '/api'
@@ -40,16 +56,53 @@ export class AuthError extends ApiError {
 }
 
 export class RateLimitError extends ApiError {
-  constructor(message: string) {
+  /** Seconds the server asked us to wait, parsed from the `Retry-After`
+   *  header (numeric seconds or an HTTP-date). `null` when absent/unparseable. */
+  retryAfterSeconds: number | null
+  constructor(message: string, retryAfterSeconds: number | null = null) {
     super(429, message)
     this.name = 'RateLimitError'
+    this.retryAfterSeconds = retryAfterSeconds
   }
+}
+
+/** Parse a `Retry-After` header value (delta-seconds or HTTP-date) into a
+ *  non-negative number of seconds, or `null` if it can't be interpreted. */
+export function parseRetryAfter(value: string | null): number | null {
+  if (!value) return null
+  const trimmed = value.trim()
+  if (/^\d+$/.test(trimmed)) return Number(trimmed)
+  const when = Date.parse(trimmed)
+  if (!Number.isNaN(when)) return Math.max(0, Math.round((when - Date.now()) / 1000))
+  return null
 }
 
 export class ServerError extends ApiError {
   constructor(status: number, message: string) {
     super(status, message)
     this.name = 'ServerError'
+  }
+}
+
+// Parse FastAPI-style `{"detail": "..."}` error bodies into a clean message.
+// Falls back to the raw body if it isn't JSON or has no usable detail field.
+export function parseErrorBody(body: string): string {
+  if (!body) return ''
+  const trimmed = body.trim()
+  if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) return body
+  try {
+    const parsed = JSON.parse(trimmed)
+    const detail = parsed?.detail
+    if (typeof detail === 'string') return detail
+    // FastAPI validation errors return detail as an array of {msg, loc, ...}.
+    if (Array.isArray(detail) && detail.length > 0) {
+      const first = detail[0]
+      if (first && typeof first.msg === 'string') return first.msg
+    }
+    if (typeof parsed?.message === 'string') return parsed.message
+    return body
+  } catch {
+    return body
   }
 }
 
@@ -70,15 +123,26 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const method = options?.method ?? 'GET'
   const isRead = method === 'GET'
 
-  // Deduplicate identical in-flight GET requests
-  const dedupeKey = isRead ? `${method}:${path}` : ''
+  // Deduplicate identical in-flight GET requests. The key MUST include the
+  // caller's identity: two reads to the same path can straddle a sign-in/out
+  // boundary, and a key of method+path alone would hand the second caller the
+  // response fetched under the previous identity.
+  const identity = session?.user?.id ?? 'anon'
+  const dedupeKey = isRead ? `${identity}:${method}:${path}` : ''
   if (isRead && pendingRequests.has(dedupeKey)) {
     return pendingRequests.get(dedupeKey) as Promise<T>
   }
 
+  // Exponential backoff with full jitter, so retrying clients don't all fire at
+  // exactly the same instant (thundering herd).
+  const backoffMs = (attempt: number): number => {
+    const base = 1000 * 2 ** attempt
+    return base / 2 + Math.random() * (base / 2)
+  }
+
   const doFetch = async (): Promise<T> => {
     let lastError: Error | null = null
-    const maxAttempts = isRead ? 2 : 1 // Retry reads once on server/network error
+    const maxAttempts = isRead ? 3 : 1 // Retry reads on server/network error
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
@@ -86,27 +150,37 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 
         if (!res.ok) {
           const body = await res.text()
-          if (res.status === 401) throw new AuthError(body || 'Not authenticated')
-          if (res.status === 429) throw new RateLimitError('Too many requests — please wait a moment')
+          const message = parseErrorBody(body)
+          if (res.status === 401) throw new AuthError(message || 'Not authenticated')
+          if (res.status === 429) {
+            const retryAfter = parseRetryAfter(res.headers.get('Retry-After'))
+            // Honour a short server-supplied Retry-After on reads, then retry
+            // once more; otherwise surface the delay to the caller.
+            if (isRead && retryAfter !== null && retryAfter <= 5 && attempt < maxAttempts - 1) {
+              await new Promise(r => setTimeout(r, retryAfter * 1000))
+              continue
+            }
+            throw new RateLimitError(message || 'Too many requests — please wait a moment', retryAfter)
+          }
           if (res.status >= 500) {
-            lastError = new ServerError(res.status, body || 'Server error')
+            lastError = new ServerError(res.status, message || 'Server error')
             if (attempt < maxAttempts - 1) {
-              await new Promise(r => setTimeout(r, 1000))
+              await new Promise(r => setTimeout(r, backoffMs(attempt)))
               continue
             }
             throw lastError
           }
-          throw new ApiError(res.status, body || `Request failed (${res.status})`)
+          throw new ApiError(res.status, message || `Request failed (${res.status})`)
         }
 
         if (res.status === 204) return undefined as T
         return res.json()
       } catch (e) {
         if (e instanceof ApiError) throw e
-        // Network error — retry reads
+        // Network error — retry reads with backoff + jitter
         lastError = e instanceof Error ? e : new Error('Network error')
         if (attempt < maxAttempts - 1) {
-          await new Promise(r => setTimeout(r, 1000))
+          await new Promise(r => setTimeout(r, backoffMs(attempt)))
           continue
         }
         throw lastError
@@ -133,6 +207,7 @@ const TTL = {
   HISTORY: 5 * 60 * 1000,       // 5 min
   STATS: 2 * 60 * 1000,         // 2 min   – community data changes often
   LEADERBOARD: 5 * 60 * 1000,   // 5 min
+  SATELLITE: 60 * 60 * 1000,    // 1 hour  – satellite imagery updates ~daily
 }
 
 // Geocoding
@@ -143,25 +218,45 @@ export async function geocode(query: string): Promise<GeocodingResult[]> {
 
   const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=en&format=json`
   const res = await fetch(url)
+  if (!res.ok) {
+    throw new ApiError(res.status, `Geocoding failed (${res.status})`)
+  }
   const data = await res.json()
   const results = (data.results ?? []) as GeocodingResult[]
-  cacheSet(key, results, TTL.GEOCODE)
+  // Don't cache an empty result for the full hour — a transient upstream blip
+  // would otherwise suppress valid matches for that query until the TTL lapses.
+  if (results.length > 0) {
+    cacheSet(key, results, TTL.GEOCODE)
+  }
   return results
 }
 
 // Forecast
-export async function getForecast(lat: number, lon: number, name: string, locationId?: number): Promise<ForecastResponse> {
-  const key = `forecast:${lat}:${lon}:${locationId ?? ''}`
+export async function getForecast(lat: number, lon: number, name: string, units: 'ft' | 'm' = 'ft', locationId?: number): Promise<ForecastResponse> {
+  const key = `forecast:${lat}:${lon}:${locationId ?? ''}:${units}`
   const cached = cacheGet<ForecastResponse>(key)
   if (cached) return cached
 
   const params = new URLSearchParams({
-    lat: String(lat), lon: String(lon), name,
+    lat: String(lat), lon: String(lon), name, units,
     ...(locationId ? { location_id: String(locationId) } : {}),
   })
   const result = await apiFetch<ForecastResponse>(`/forecast?${params}`)
   cacheSet(key, result, TTL.FORECAST)
   return result
+}
+
+// Spot key sync
+export async function getSpotKeyMaterial(): Promise<string | null> {
+  const data = await apiFetch<{ key_material: string | null }>('/profile/me/spot-key')
+  return data.key_material
+}
+
+export async function saveSpotKeyMaterial(keyMaterial: string): Promise<void> {
+  await apiFetch('/profile/me/spot-key', {
+    method: 'PUT',
+    body: JSON.stringify({ key_material: keyMaterial }),
+  })
 }
 
 // Locations
@@ -196,6 +291,27 @@ export async function createLocation(
 export async function deleteLocation(id: number): Promise<void> {
   await apiFetch(`/locations/${id}`, { method: 'DELETE' })
   cacheDelete('locations')
+}
+
+/**
+ * Update per-site bathymetry/substrate used by the seabed-resuspension model
+ * (issue #155). Only the spot's creator may edit it. PATCH semantics: omit a
+ * field to leave it unchanged; send `null` to clear it.
+ */
+export async function updateLocation(
+  id: number,
+  params: { depth_m?: number | null; seabed_class?: SeabedClass | null },
+): Promise<Location> {
+  const result = await apiFetch<Location>(`/locations/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(params),
+  })
+  cacheDelete('locations')
+  // Depth/seabed feed the resuspension model, so cached forecasts are now stale.
+  // Match the full `forecast:` key namespace (see getForecast) so we don't wipe
+  // unrelated keys that merely start with "forecast".
+  cacheDeleteByPrefix('forecast:')
+  return result
 }
 
 export async function voteLocation(id: number, direction: 'up' | 'down'): Promise<Location> {
@@ -242,10 +358,35 @@ export async function getMyProfile(): Promise<UserProfile> {
 }
 
 export async function updateProfile(displayName: string) {
-  return apiFetch('/profile/me', {
+  return apiFetch<UserProfile>('/profile/me', {
     method: 'PATCH',
     body: JSON.stringify({ display_name: displayName }),
   })
+}
+
+// Save the diver-detail fields reused to pre-fill competition registration.
+// Only the fields provided are changed; a field sent as '' clears it.
+export async function updateProfileDetails(details: ProfileDiverDetails) {
+  return apiFetch<UserProfile>('/profile/me', {
+    method: 'PATCH',
+    body: JSON.stringify(details),
+  })
+}
+
+// UK GDPR right of access: download everything held for the account as JSON.
+export async function exportMyData(): Promise<unknown> {
+  return apiFetch<unknown>('/profile/me/export')
+}
+
+export interface AccountDeletionResult {
+  status: string
+  auth_login_removed: boolean
+  deleted: Record<string, number>
+}
+
+// UK GDPR right to erasure: permanently delete the account and its data.
+export async function deleteMyAccount(): Promise<AccountDeletionResult> {
+  return apiFetch<AccountDeletionResult>('/profile/me', { method: 'DELETE' })
 }
 
 export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
@@ -270,6 +411,21 @@ export async function getTides(lat: number, lon: number, name: string, date?: st
   })
   const result = await apiFetch<TidesResponse>(`/tides?${params}`)
   cacheSet(key, result, TTL.TIDES)
+  return result
+}
+
+// Satellite imagery (true-colour + chlorophyll) for a location/date
+export async function getSatelliteImagery(lat: number, lon: number, date?: string): Promise<SatelliteImagery> {
+  const key = `satellite:${lat}:${lon}:${date ?? 'today'}`
+  const cached = cacheGet<SatelliteImagery>(key)
+  if (cached) return cached
+
+  const params = new URLSearchParams({
+    lat: String(lat), lon: String(lon),
+    ...(date ? { date } : {}),
+  })
+  const result = await apiFetch<SatelliteImagery>(`/satellite/imagery?${params}`)
+  cacheSet(key, result, TTL.SATELLITE)
   return result
 }
 
@@ -300,15 +456,20 @@ export async function getAdminStats(): Promise<AdminStats> {
   return apiFetch<AdminStats>('/admin/stats')
 }
 
+export async function getDataOverview(): Promise<import('../types').DataOverview> {
+  return apiFetch('/admin/data-overview')
+}
+
 export async function getOutlierPreview(): Promise<OutlierPreview> {
   return apiFetch<OutlierPreview>('/admin/outliers/preview')
 }
 
 export async function runOutlierCleaning(): Promise<CleaningResult> {
   const result = await apiFetch<CleaningResult>('/admin/outliers/clean', { method: 'POST' })
-  // Outlier cleaning changes report quarantine state; invalidate related cached views
-  cacheDelete('stats:')
-  cacheDelete('history:')
+  // Outlier cleaning changes report quarantine state across many locations;
+  // invalidate every cached stats/history view plus the leaderboard.
+  cacheDeleteByPrefix('stats:')
+  cacheDeleteByPrefix('history:')
   cacheDelete('leaderboard')
   return result
 }
@@ -323,9 +484,9 @@ export async function getQuarantinedReports(locationId?: number): Promise<Quaran
 export async function restoreReport(reportId: number): Promise<void> {
   await apiFetch(`/admin/outliers/restore/${reportId}`, { method: 'POST' })
   // Restoring a report can affect stats, history, and leaderboard views.
-  // Invalidate relevant cached entries so subsequent reads are fresh.
-  cacheDelete('stats:')
-  cacheDelete('history:')
+  // Invalidate every cached stats/history view so subsequent reads are fresh.
+  cacheDeleteByPrefix('stats:')
+  cacheDeleteByPrefix('history:')
   cacheDelete('leaderboard')
 }
 
@@ -350,6 +511,146 @@ export async function getFeatureImportance(): Promise<import('../types').Feature
   return apiFetch('/admin/ml/feature-importance')
 }
 
+// ── Admin operational console ────────────────────────────────────────────
+export async function getAdminHealth(): Promise<import('../types').AdminHealth> {
+  return apiFetch('/admin/health')
+}
+
+export async function getAdminSites(): Promise<import('../types').AdminSitesResponse> {
+  return apiFetch('/admin/sites')
+}
+
+export async function getAdminForecastDebug(locationId: number): Promise<import('../types').AdminForecastDebug> {
+  return apiFetch(`/admin/forecast-debug/${locationId}`)
+}
+
+// ── Security & Traffic Analytics (admin-only) ────────────────────────────────
+import type {
+  TrafficOverview,
+  TrafficTopUser,
+  TrafficTopIp,
+  TrafficEndpointRow,
+  TrafficLocationRow,
+  TrafficLiveEvent,
+  TrafficSubjectDetail,
+  SecurityAlertRow,
+  RateLimitConfig,
+} from '../types'
+
+export async function getTrafficOverview(hours = 24, buckets = 48): Promise<TrafficOverview> {
+  return apiFetch(`/admin/analytics/overview?hours=${hours}&buckets=${buckets}`)
+}
+
+export async function getTrafficTopUsers(
+  hours = 24, sort = 'requests', desc = true, limit = 50,
+): Promise<{ count: number; hours: number; users: TrafficTopUser[] }> {
+  return apiFetch(`/admin/analytics/top-users?hours=${hours}&sort=${sort}&desc=${desc}&limit=${limit}`)
+}
+
+export async function getTrafficTopIps(
+  hours = 24, limit = 50,
+): Promise<{ count: number; hours: number; ips: TrafficTopIp[] }> {
+  return apiFetch(`/admin/analytics/top-ips?hours=${hours}&limit=${limit}`)
+}
+
+export async function getTrafficEndpoints(
+  hours = 24,
+): Promise<{ count: number; hours: number; endpoints: TrafficEndpointRow[] }> {
+  return apiFetch(`/admin/analytics/endpoints?hours=${hours}`)
+}
+
+export async function getTrafficLocations(
+  hours = 24,
+): Promise<{ count: number; hours: number; locations: TrafficLocationRow[] }> {
+  return apiFetch(`/admin/analytics/locations?hours=${hours}`)
+}
+
+export async function getTrafficLive(
+  filters: Partial<Record<'user_id' | 'ip' | 'endpoint' | 'location' | 'status' | 'bots_only', string>> = {},
+  limit = 100,
+): Promise<{ count: number; events: TrafficLiveEvent[] }> {
+  const params = new URLSearchParams({ limit: String(limit) })
+  for (const [k, v] of Object.entries(filters)) {
+    if (v !== undefined && v !== '') params.set(k, String(v))
+  }
+  return apiFetch(`/admin/analytics/live?${params}`)
+}
+
+export async function getTrafficSubject(
+  subjectType: 'user' | 'ip', subject: string, hours = 24,
+): Promise<TrafficSubjectDetail> {
+  return apiFetch(`/admin/analytics/subject/${subjectType}/${encodeURIComponent(subject)}?hours=${hours}`)
+}
+
+export async function getSecurityAlerts(
+  includeDismissed = false,
+): Promise<{ count: number; active: number; alerts: SecurityAlertRow[] }> {
+  return apiFetch(`/admin/analytics/alerts?include_dismissed=${includeDismissed}`)
+}
+
+export async function dismissSecurityAlert(alertId: number): Promise<void> {
+  await apiFetch(`/admin/analytics/alerts/${alertId}/dismiss`, { method: 'POST' })
+}
+
+export async function runSecuritySweep(): Promise<{ alerts_raised: number }> {
+  return apiFetch('/admin/analytics/alerts/sweep', { method: 'POST' })
+}
+
+export async function getRateLimitConfig(): Promise<RateLimitConfig> {
+  return apiFetch('/admin/analytics/rate-limit')
+}
+
+export async function updateRateLimitConfig(cfg: Partial<RateLimitConfig>): Promise<RateLimitConfig> {
+  return apiFetch('/admin/analytics/rate-limit', { method: 'PUT', body: JSON.stringify(cfg) })
+}
+
+/**
+ * Download an analytics export (CSV or JSON) as a file. Fetches with the auth
+ * header, then triggers a browser download of the blob so the admin gets the
+ * raw file rather than JSON parsed into memory.
+ */
+export async function downloadTrafficExport(
+  dataset: 'traffic' | 'suspicious-users' | 'top-ips' | 'endpoints' | 'locations',
+  format: 'csv' | 'json' = 'csv',
+  hours = 24,
+): Promise<void> {
+  const { data: { session } } = await supabase.auth.getSession()
+  const headers: Record<string, string> = {}
+  if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`
+  const res = await fetch(`${API_BASE}/admin/analytics/export/${dataset}?format=${format}&hours=${hours}`, { headers })
+  if (!res.ok) {
+    // Mirror apiFetch's error mapping so the admin sees the FastAPI `detail`
+    // message and 401/429 route through the existing typed-error flows.
+    const message = parseErrorBody(await res.text().catch(() => ''))
+    if (res.status === 401) throw new AuthError(message || 'Not authenticated')
+    if (res.status === 429) throw new RateLimitError(message || 'Too many requests — please wait a moment')
+    if (res.status >= 500) throw new ServerError(res.status, message || 'Server error')
+    throw new ApiError(res.status, message || `Export failed (${res.status})`)
+  }
+  const blob = await res.blob()
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `depthviz-${dataset}-${new Date().toISOString().slice(0, 10)}.${format}`
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+}
+
+export async function refreshAdminForecast(locationId?: number): Promise<{ invalidated: number; location_id: number | null }> {
+  // Guard on `!= null` (not truthy) so ``locationId === 0`` still routes to
+  // the scoped invalidation path — the signature allows it and future site
+  // IDs could conceivably start at zero.
+  const qs = locationId != null ? `?location_id=${locationId}` : ''
+  const result = await apiFetch<{ invalidated: number; location_id: number | null }>(`/admin/forecast/refresh${qs}`, {
+    method: 'POST',
+  })
+  // Cached forecasts on the client are now stale too.
+  cacheDeleteByPrefix('forecast:')
+  return result
+}
+
 // ML Weights (public, cached)
 export interface ModelWeights {
   swell_multiplier: number
@@ -358,21 +659,16 @@ export interface ModelWeights {
   updated_at: string | null
 }
 
-let _cachedWeights: ModelWeights | null = null
-
 export async function getModelWeights(): Promise<ModelWeights> {
-  if (_cachedWeights) return _cachedWeights
-
+  // Rely solely on the TTL cache. A previous module-level memo short-circuited
+  // before the TTL check, so a server-side weights update was never picked up
+  // for the tab's lifetime (the 5-min TTL was effectively infinite).
   const key = 'ml-weights'
   const cached = cacheGet<ModelWeights>(key)
-  if (cached) {
-    _cachedWeights = cached
-    return cached
-  }
+  if (cached) return cached
 
   const result = await apiFetch<ModelWeights>('/forecast/weights')
   cacheSet(key, result, TTL.FORECAST)
-  _cachedWeights = result
   return result
 }
 
@@ -436,6 +732,61 @@ export async function searchUsers(q: string): Promise<import('../types').UserSea
 }
 
 // Activity Feed
+// Service Status
+export type ServiceHealth = { status: 'up' | 'down'; checked_at: string }
+export interface ServiceStatusResponse {
+  open_meteo?: ServiceHealth
+  copernicus?: ServiceHealth
+  erddap?: ServiceHealth
+}
+
+export async function getServiceStatus(): Promise<ServiceStatusResponse> {
+  return apiFetch<ServiceStatusResponse>('/status')
+}
+
+// Apnea training tables
+export interface ApneaListParams {
+  scope?: 'all' | 'mine' | 'public' | 'system'
+  difficulty?: ApneaDifficulty
+  table_type?: ApneaTableType
+}
+
+export async function getApneaTables(params: ApneaListParams = {}): Promise<ApneaTable[]> {
+  const qs = new URLSearchParams()
+  if (params.scope) qs.set('scope', params.scope)
+  if (params.difficulty) qs.set('difficulty', params.difficulty)
+  if (params.table_type) qs.set('table_type', params.table_type)
+  const path = qs.toString() ? `/apnea/tables?${qs}` : '/apnea/tables'
+  return apiFetch<ApneaTable[]>(path)
+}
+
+export async function getApneaTable(id: number): Promise<ApneaTable> {
+  return apiFetch<ApneaTable>(`/apnea/tables/${id}`)
+}
+
+export async function createApneaTable(data: ApneaTableCreate): Promise<ApneaTable> {
+  return apiFetch<ApneaTable>('/apnea/tables', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function updateApneaTable(id: number, data: ApneaTableUpdate): Promise<ApneaTable> {
+  return apiFetch<ApneaTable>(`/apnea/tables/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function deleteApneaTable(id: number): Promise<void> {
+  await apiFetch(`/apnea/tables/${id}`, { method: 'DELETE' })
+}
+
+export async function copyApneaTable(id: number): Promise<ApneaTable> {
+  return apiFetch<ApneaTable>(`/apnea/tables/${id}/copy`, { method: 'POST' })
+}
+
+// Activity Feed
 export async function getFeed(params: {
   scope: 'all' | 'friends'
   filter_type: 'all' | 'reports' | 'catches'
@@ -449,4 +800,451 @@ export async function getFeed(params: {
     offset: String(params.offset),
   }).toString()
   return apiFetch(`/feed?${qs}`)
+}
+
+// Data Disputes
+export async function submitDispute(data: DataDisputeCreate): Promise<DataDispute> {
+  return apiFetch<DataDispute>('/disputes', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function getMyDisputes(): Promise<DataDispute[]> {
+  return apiFetch<DataDispute[]>('/disputes/mine')
+}
+
+export async function listDisputes(status?: string): Promise<DataDispute[]> {
+  const qs = status ? `?status=${encodeURIComponent(status)}` : ''
+  return apiFetch<DataDispute[]>(`/disputes${qs}`)
+}
+
+export async function reviewDispute(
+  id: number,
+  body: { status: 'accepted' | 'rejected'; admin_notes?: string },
+): Promise<DataDispute> {
+  return apiFetch<DataDispute>(`/disputes/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  })
+}
+
+// ── News / Announcements ──────────────────────────────────────────────────
+export async function getNews(opts?: { includeUnpublished?: boolean; limit?: number; category?: string }): Promise<Announcement[]> {
+  const qs = new URLSearchParams()
+  if (opts?.includeUnpublished) qs.set('include_unpublished', 'true')
+  if (opts?.limit) qs.set('limit', String(opts.limit))
+  if (opts?.category) qs.set('category', opts.category)
+  const q = qs.toString()
+  const data = await apiFetch<{ items: Announcement[] }>(`/news${q ? `?${q}` : ''}`)
+  return data.items
+}
+
+export async function createNews(input: AnnouncementInput): Promise<Announcement> {
+  return apiFetch<Announcement>('/news', { method: 'POST', body: JSON.stringify(input) })
+}
+
+export async function updateNews(id: number, input: Partial<AnnouncementInput>): Promise<Announcement> {
+  return apiFetch<Announcement>(`/news/${id}`, { method: 'PUT', body: JSON.stringify(input) })
+}
+
+export async function deleteNews(id: number): Promise<void> {
+  await apiFetch(`/news/${id}`, { method: 'DELETE' })
+}
+
+// ── Discussion forum ──────────────────────────────────────────────────────
+export async function getForumCategories(): Promise<ForumCategory[]> {
+  const data = await apiFetch<{ categories: ForumCategory[] }>('/forum/categories')
+  return data.categories
+}
+
+export async function getForumCategory(slug: string, opts?: { limit?: number; offset?: number }): Promise<ForumCategoryView> {
+  const qs = new URLSearchParams()
+  if (opts?.limit) qs.set('limit', String(opts.limit))
+  if (opts?.offset) qs.set('offset', String(opts.offset))
+  const q = qs.toString()
+  return apiFetch<ForumCategoryView>(`/forum/categories/${encodeURIComponent(slug)}${q ? `?${q}` : ''}`)
+}
+
+export async function getForumThread(id: number): Promise<ForumThreadDetail> {
+  return apiFetch<ForumThreadDetail>(`/forum/threads/${id}`)
+}
+
+export async function createForumThread(slug: string, title: string, body: string): Promise<{ id: number; title: string; slug: string }> {
+  return apiFetch(`/forum/categories/${encodeURIComponent(slug)}/threads`, {
+    method: 'POST',
+    body: JSON.stringify({ title, body }),
+  })
+}
+
+export async function createForumPost(threadId: number, body: string): Promise<ForumPost> {
+  return apiFetch<ForumPost>(`/forum/threads/${threadId}/posts`, {
+    method: 'POST',
+    body: JSON.stringify({ body }),
+  })
+}
+
+export async function deleteForumPost(postId: number): Promise<void> {
+  await apiFetch(`/forum/posts/${postId}`, { method: 'DELETE' })
+}
+
+// ── Competition operations (admin-only) ────────────────────────────────────
+// Every call hits /admin/competition, which the backend guards with
+// require_admin (401 unauthenticated, 403 non-admin). The UI is additionally
+// hidden behind the server-verified is_admin flag.
+import type {
+  Competition,
+  CompetitionInput,
+  CompetitionTeam,
+  CompetitionTeamInput,
+  Competitor,
+  CompetitorInput,
+  WaterStatusBoard,
+  CompetitorStatus,
+  FishEntry,
+  FishEntryInput,
+  FishEntryPatch,
+  CompetitionIncident,
+  IncidentInput,
+  ScoringRule,
+  ScoringRuleInput,
+  CompetitionResults,
+  OpenCompetition,
+  MyCompetition,
+  MyRegistration,
+  RegistrationInput,
+  NotificationStatus,
+  TestAlertResult,
+  AutoPairResult,
+  CompetitionOverview,
+  PublicResults,
+} from '../types'
+
+const COMP_BASE = '/admin/competition'
+
+export async function listCompetitions(): Promise<Competition[]> {
+  const data = await apiFetch<{ items: Competition[] }>(COMP_BASE)
+  return data.items
+}
+
+export async function getCompetition(id: number): Promise<Competition> {
+  return apiFetch<Competition>(`${COMP_BASE}/${id}`)
+}
+
+export async function createCompetition(input: CompetitionInput): Promise<Competition> {
+  return apiFetch<Competition>(COMP_BASE, { method: 'POST', body: JSON.stringify(input) })
+}
+
+export async function updateCompetition(id: number, input: Partial<CompetitionInput>): Promise<Competition> {
+  return apiFetch<Competition>(`${COMP_BASE}/${id}`, { method: 'PUT', body: JSON.stringify(input) })
+}
+
+export async function deleteCompetition(id: number): Promise<void> {
+  await apiFetch(`${COMP_BASE}/${id}`, { method: 'DELETE' })
+}
+
+// Teams / buddies
+export async function listTeams(cid: number): Promise<CompetitionTeam[]> {
+  const data = await apiFetch<{ items: CompetitionTeam[] }>(`${COMP_BASE}/${cid}/teams`)
+  return data.items
+}
+
+export async function createTeam(cid: number, input: CompetitionTeamInput): Promise<CompetitionTeam> {
+  return apiFetch<CompetitionTeam>(`${COMP_BASE}/${cid}/teams`, { method: 'POST', body: JSON.stringify(input) })
+}
+
+export async function updateTeam(cid: number, teamId: number, input: Partial<CompetitionTeamInput>): Promise<CompetitionTeam> {
+  return apiFetch<CompetitionTeam>(`${COMP_BASE}/${cid}/teams/${teamId}`, { method: 'PUT', body: JSON.stringify(input) })
+}
+
+export async function deleteTeam(cid: number, teamId: number): Promise<void> {
+  await apiFetch(`${COMP_BASE}/${cid}/teams/${teamId}`, { method: 'DELETE' })
+}
+
+// Competitors
+export interface CompetitorFilters {
+  status?: CompetitorStatus
+  q?: string
+  unpaid?: boolean
+  no_team?: boolean
+}
+
+export async function listCompetitors(cid: number, filters?: CompetitorFilters): Promise<Competitor[]> {
+  const qs = new URLSearchParams()
+  if (filters?.status) qs.set('status', filters.status)
+  if (filters?.q) qs.set('q', filters.q)
+  if (filters?.unpaid) qs.set('unpaid', 'true')
+  if (filters?.no_team) qs.set('no_team', 'true')
+  const q = qs.toString()
+  const data = await apiFetch<{ items: Competitor[] }>(`${COMP_BASE}/${cid}/competitors${q ? `?${q}` : ''}`)
+  return data.items
+}
+
+export async function createCompetitor(cid: number, input: CompetitorInput): Promise<Competitor> {
+  return apiFetch<Competitor>(`${COMP_BASE}/${cid}/competitors`, { method: 'POST', body: JSON.stringify(input) })
+}
+
+export async function updateCompetitor(cid: number, competitorId: number, input: Partial<CompetitorInput>): Promise<Competitor> {
+  return apiFetch<Competitor>(`${COMP_BASE}/${cid}/competitors/${competitorId}`, { method: 'PUT', body: JSON.stringify(input) })
+}
+
+export async function deleteCompetitor(cid: number, competitorId: number): Promise<void> {
+  await apiFetch(`${COMP_BASE}/${cid}/competitors/${competitorId}`, { method: 'DELETE' })
+}
+
+// Water status board
+export async function getBoard(cid: number): Promise<WaterStatusBoard> {
+  return apiFetch<WaterStatusBoard>(`${COMP_BASE}/${cid}/board`)
+}
+
+export async function getOverdue(cid: number): Promise<WaterStatusBoard> {
+  return apiFetch<WaterStatusBoard>(`${COMP_BASE}/${cid}/overdue`)
+}
+
+export async function setWaterStatus(
+  cid: number,
+  competitorId: number,
+  status: CompetitorStatus,
+  note?: string,
+): Promise<Competitor> {
+  return apiFetch<Competitor>(`${COMP_BASE}/${cid}/competitors/${competitorId}/status`, {
+    method: 'POST',
+    body: JSON.stringify({ status, note: note ?? null }),
+  })
+}
+
+// Fish weigh-in
+export async function listFish(
+  cid: number,
+  filters?: { competitor_id?: number; team_id?: number; species?: string },
+): Promise<FishEntry[]> {
+  const qs = new URLSearchParams()
+  if (filters?.competitor_id) qs.set('competitor_id', String(filters.competitor_id))
+  if (filters?.team_id) qs.set('team_id', String(filters.team_id))
+  if (filters?.species) qs.set('species', filters.species)
+  const q = qs.toString()
+  const data = await apiFetch<{ items: FishEntry[] }>(`${COMP_BASE}/${cid}/fish${q ? `?${q}` : ''}`)
+  return data.items
+}
+
+export async function getSpeciesList(cid: number): Promise<string[]> {
+  const data = await apiFetch<{ species: string[] }>(`${COMP_BASE}/${cid}/species`)
+  return data.species
+}
+
+export async function createFish(cid: number, input: FishEntryInput): Promise<FishEntry> {
+  return apiFetch<FishEntry>(`${COMP_BASE}/${cid}/fish`, { method: 'POST', body: JSON.stringify(input) })
+}
+
+export async function updateFish(cid: number, fishId: number, input: FishEntryPatch): Promise<FishEntry> {
+  return apiFetch<FishEntry>(`${COMP_BASE}/${cid}/fish/${fishId}`, { method: 'PUT', body: JSON.stringify(input) })
+}
+
+export async function deleteFish(cid: number, fishId: number): Promise<void> {
+  await apiFetch(`${COMP_BASE}/${cid}/fish/${fishId}`, { method: 'DELETE' })
+}
+
+// Incidents
+export async function listIncidents(cid: number, resolved?: boolean): Promise<CompetitionIncident[]> {
+  const qs = resolved === undefined ? '' : `?resolved=${resolved}`
+  const data = await apiFetch<{ items: CompetitionIncident[] }>(`${COMP_BASE}/${cid}/incidents${qs}`)
+  return data.items
+}
+
+export async function createIncident(cid: number, input: IncidentInput): Promise<CompetitionIncident> {
+  return apiFetch<CompetitionIncident>(`${COMP_BASE}/${cid}/incidents`, { method: 'POST', body: JSON.stringify(input) })
+}
+
+export async function updateIncident(cid: number, incidentId: number, input: Partial<IncidentInput>): Promise<CompetitionIncident> {
+  return apiFetch<CompetitionIncident>(`${COMP_BASE}/${cid}/incidents/${incidentId}`, { method: 'PUT', body: JSON.stringify(input) })
+}
+
+// Scoring & results
+export async function getScoringRule(cid: number): Promise<ScoringRule> {
+  return apiFetch<ScoringRule>(`${COMP_BASE}/${cid}/scoring-rule`)
+}
+
+export async function updateScoringRule(cid: number, input: ScoringRuleInput): Promise<ScoringRule> {
+  return apiFetch<ScoringRule>(`${COMP_BASE}/${cid}/scoring-rule`, { method: 'PUT', body: JSON.stringify(input) })
+}
+
+export async function getResults(cid: number): Promise<CompetitionResults> {
+  return apiFetch<CompetitionResults>(`${COMP_BASE}/${cid}/results`)
+}
+
+export async function getOverview(cid: number): Promise<CompetitionOverview> {
+  return apiFetch<CompetitionOverview>(`${COMP_BASE}/${cid}/overview`)
+}
+
+export async function lockResults(cid: number): Promise<Competition> {
+  return apiFetch<Competition>(`${COMP_BASE}/${cid}/results/lock`, { method: 'POST' })
+}
+
+export async function unlockResults(cid: number): Promise<Competition> {
+  return apiFetch<Competition>(`${COMP_BASE}/${cid}/results/unlock`, { method: 'POST' })
+}
+
+// Public shareable results (any logged-in diver, when visibility === 'released').
+// The public register router owns this path — auth is still required, but the
+// caller doesn't need to be an admin.
+export async function getPublicResults(cid: number): Promise<PublicResults> {
+  return apiFetch<PublicResults>(`/competition/${cid}/public-results`)
+}
+
+// CSV export. apiFetch always parses JSON, so CSV downloads use a dedicated
+// authenticated fetch that streams the response into a browser download. `kind`
+// maps to the export endpoints: competitors | teams | water-log | fish | results.
+export type CsvExportKind = 'competitors' | 'teams' | 'water-log' | 'fish' | 'results'
+
+// Parses a plain competitor-list CSV client-side (header row + one row per
+// competitor) into a list of ``CompetitorInput`` values the admin UI can POST
+// individually. Kept small — the day-of use case is a club sheet with a
+// couple of dozen names, not a bulk import — so the parsing is deliberately
+// forgiving: unknown columns are ignored, and only ``full_name`` is required.
+// The exact set of experience levels the backend accepts. Anything else in a
+// CSV column is dropped to null so a stray "Expert" or trailing space doesn't
+// cause a 422 mid-import.
+const EXPERIENCE_LEVELS = ['beginner', 'intermediate', 'experienced'] as const
+
+function normaliseExperienceLevel(raw: string | null | undefined): CompetitorInput['experience_level'] {
+  if (!raw) return null
+  const s = raw.trim().toLowerCase()
+  return (EXPERIENCE_LEVELS as readonly string[]).includes(s)
+    ? (s as CompetitorInput['experience_level'])
+    : null
+}
+
+export function parseCompetitorsCsv(text: string): CompetitorInput[] {
+  const rows = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean)
+  if (rows.length < 2) return []
+  const header = splitCsvRow(rows[0] ?? '').map(h => h.trim().toLowerCase())
+  const idx = (name: string) => header.indexOf(name)
+  const out: CompetitorInput[] = []
+  const NAME = idx('full_name') !== -1 ? idx('full_name') : idx('name')
+  if (NAME === -1) return []
+  for (let i = 1; i < rows.length; i++) {
+    const cells = splitCsvRow(rows[i] ?? '')
+    const name = (cells[NAME] ?? '').trim()
+    if (!name) continue
+    const yes = (v?: string) => /^(y|yes|true|1)$/i.test((v ?? '').trim())
+    const val = (col: string) => {
+      const j = idx(col)
+      return j === -1 ? undefined : (cells[j] ?? '').trim() || null
+    }
+    out.push({
+      full_name: name,
+      phone: val('phone') ?? null,
+      email: val('email') ?? null,
+      emergency_contact_name: val('emergency_contact_name') ?? val('emergency_contact') ?? null,
+      emergency_contact_phone: val('emergency_contact_phone') ?? val('emergency_phone') ?? null,
+      vehicle_reg: val('vehicle_reg') ?? val('reg') ?? null,
+      float_colour: val('float_colour') ?? val('float') ?? null,
+      experience_level: normaliseExperienceLevel(val('experience_level')),
+      paid: yes(val('paid') ?? ''),
+      waiver_accepted: yes(val('waiver_accepted') ?? val('waiver') ?? ''),
+      notes: val('notes') ?? null,
+    })
+  }
+  return out
+}
+
+// Minimal CSV row splitter with support for double-quoted fields. Doesn't need
+// to be RFC-4180-perfect — the club sheets we import are simple.
+function splitCsvRow(row: string): string[] {
+  const out: string[] = []
+  let cur = ''
+  let inQuotes = false
+  for (let i = 0; i < row.length; i++) {
+    const ch = row[i]
+    if (inQuotes) {
+      if (ch === '"' && row[i + 1] === '"') { cur += '"'; i++ }
+      else if (ch === '"') inQuotes = false
+      else cur += ch
+    } else if (ch === '"') {
+      inQuotes = true
+    } else if (ch === ',') {
+      out.push(cur); cur = ''
+    } else {
+      cur += ch
+    }
+  }
+  out.push(cur)
+  return out
+}
+
+export async function downloadCompetitionCsv(cid: number, kind: CsvExportKind): Promise<void> {
+  const { data: { session } } = await supabase.auth.getSession()
+  const headers: Record<string, string> = {}
+  if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`
+  const res = await fetch(`${API_BASE}${COMP_BASE}/${cid}/export/${kind}.csv`, { headers })
+  if (!res.ok) {
+    const body = await res.text()
+    throw new ApiError(res.status, parseErrorBody(body) || `Export failed (${res.status})`)
+  }
+  const blob = await res.blob()
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${kind}_competition_${cid}.csv`
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+}
+
+// Dive-day: randomly pair every competitor still without a buddy (admin-only).
+export async function autoPairBuddies(cid: number): Promise<AutoPairResult> {
+  return apiFetch<AutoPairResult>(`${COMP_BASE}/${cid}/auto-pair-buddies`, { method: 'POST' })
+}
+
+// Overdue safety notifications (admin-only).
+// Whether Slack/email are configured at the deployment level + escalation cadence.
+export async function getNotificationStatus(): Promise<NotificationStatus> {
+  return apiFetch<NotificationStatus>(`${COMP_BASE}/notifications/status`)
+}
+
+// Fire a harmless test alert on this competition's enabled channels.
+export async function sendTestAlert(
+  cid: number,
+  channel: 'slack' | 'email' | 'both' = 'both',
+): Promise<TestAlertResult> {
+  return apiFetch<TestAlertResult>(`${COMP_BASE}/${cid}/test-alert?channel=${channel}`, { method: 'POST' })
+}
+
+// ── Self-service competition registration (logged-in divers) ────────────────
+// Hits /competition (get_current_user, any account — not admin). Lets a diver
+// browse open competitions, register themselves, nominate a buddy by email, and
+// manage or withdraw their own registration.
+const REG_BASE = '/competition'
+
+export async function listOpenCompetitions(): Promise<OpenCompetition[]> {
+  const data = await apiFetch<{ items: OpenCompetition[] }>(`${REG_BASE}/open`)
+  return data.items
+}
+
+// Competitions the current diver is registered for (run-up + live day), each
+// with their own water status. Keeps the event visible after sign-ups close.
+export async function listMyCompetitions(): Promise<MyCompetition[]> {
+  const data = await apiFetch<{ items: MyCompetition[] }>(`${REG_BASE}/mine`)
+  return data.items
+}
+
+export async function getOpenCompetition(cid: number): Promise<OpenCompetition> {
+  return apiFetch<OpenCompetition>(`${REG_BASE}/${cid}`)
+}
+
+export async function registerForCompetition(cid: number, input: RegistrationInput): Promise<MyRegistration> {
+  return apiFetch<MyRegistration>(`${REG_BASE}/${cid}/register`, { method: 'POST', body: JSON.stringify(input) })
+}
+
+export async function getMyRegistration(cid: number): Promise<MyRegistration> {
+  return apiFetch<MyRegistration>(`${REG_BASE}/${cid}/registration`)
+}
+
+export async function updateMyRegistration(cid: number, input: Partial<RegistrationInput>): Promise<MyRegistration> {
+  return apiFetch<MyRegistration>(`${REG_BASE}/${cid}/registration`, { method: 'PUT', body: JSON.stringify(input) })
+}
+
+export async function withdrawRegistration(cid: number): Promise<void> {
+  await apiFetch(`${REG_BASE}/${cid}/registration`, { method: 'DELETE' })
 }

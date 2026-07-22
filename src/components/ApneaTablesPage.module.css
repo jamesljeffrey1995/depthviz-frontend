@@ -1,0 +1,316 @@
+.wrap {
+  padding: 20px 16px 80px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.title {
+  font-family: var(--ds-font-sans);
+  font-size: 28px;
+  letter-spacing: 0.12em;
+  color: var(--text-bright);
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin-bottom: 24px;
+}
+
+.warning {
+  background: rgba(192, 57, 43, 0.14);
+  border: 1px solid rgba(224, 80, 63, 0.5);
+  border-left-width: 3px;
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #f4cdc6;
+  letter-spacing: 0.02em;
+}
+
+.warning strong {
+  color: var(--ds-danger);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-size: var(--ds-text-label);
+  display: block;
+  margin-bottom: 8px;
+}
+
+.warningList {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(0, 201, 255, 0.15);
+}
+
+.tab {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.tab:hover { color: var(--text-bright); }
+
+.tabActive {
+  color: var(--ds-accent);
+  border-bottom-color: var(--ds-accent);
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.chip {
+  background: rgba(10, 61, 92, 0.4);
+  border: 1px solid rgba(0, 201, 255, 0.15);
+  color: var(--text);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.chipActive {
+  background: rgba(0, 201, 255, 0.15);
+  border-color: rgba(0, 201, 255, 0.5);
+  color: var(--ds-accent);
+}
+
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+.newBtn {
+  background: rgba(0, 201, 255, 0.1);
+  border: 1px solid rgba(0, 201, 255, 0.4);
+  color: var(--ds-accent);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+.newBtn:hover {
+  background: rgba(0, 201, 255, 0.2);
+}
+
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  opacity: 0.6;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+}
+
+/* Richer empty state for "My Tables" — explains the next action. */
+.emptyBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  background: var(--surface-1);
+  border: 1px dashed var(--ds-hairline-strong);
+  border-radius: var(--radius-md);
+  padding: 40px 20px;
+}
+
+.emptyTitle {
+  margin: 0;
+  color: var(--text-bright);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text);
+  max-width: 380px;
+}
+
+.emptyActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.ghostBtn {
+  background: transparent;
+  border: 1px solid var(--ds-hairline);
+  color: var(--text);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+.ghostBtn:hover {
+  border-color: var(--ds-hairline-strong);
+  color: var(--text-bright);
+}
+
+.groupHeading {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  margin: 20px 0 10px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card {
+  background: rgba(4, 30, 46, 0.6);
+  border: 1px solid rgba(0, 201, 255, 0.12);
+  padding: 16px 18px;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.card:hover {
+  border-color: rgba(0, 201, 255, 0.35);
+  transform: translateY(-1px);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.cardName {
+  font-family: var(--ds-font-sans);
+  font-size: 18px;
+  letter-spacing: 0.08em;
+  color: var(--text-bright);
+}
+
+.badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.badgeBeginner { color: var(--ds-q-good); border-color: rgba(26, 138, 90, 0.5); }
+.badgeIntermediate { color: var(--ds-warn); border-color: rgba(212, 133, 10, 0.5); }
+.badgeExpert { color: var(--ds-danger); border-color: rgba(192, 57, 43, 0.5); }
+.badgeType { color: var(--ds-accent); border-color: rgba(0, 201, 255, 0.4); }
+.badgeSystem { color: var(--text); border-color: rgba(139, 184, 204, 0.4); }
+.badgePublic { color: var(--ds-q-excellent); border-color: rgba(15, 179, 122, 0.5); }
+.badgePrivate { color: var(--text); border-color: rgba(139, 184, 204, 0.3); }
+
+.cardDesc {
+  font-size: 12.5px;
+  opacity: 0.85;
+  margin-bottom: 10px;
+  line-height: 1.55;
+}
+
+.cardMeta {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.08em;
+  opacity: 0.8;
+}
+
+.cardGo {
+  margin-left: auto;
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ds-accent);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.card:hover .cardGo,
+.card:focus-visible .cardGo {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .cardGo {
+    opacity: 0.8;
+  }
+}
+
+.cardMeta span strong {
+  color: var(--text-bright);
+  font-weight: 700;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  opacity: 0.4;
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.error {
+  background: rgba(192, 57, 43, 0.1);
+  border: 1px solid rgba(192, 57, 43, 0.3);
+  color: var(--ds-danger);
+  padding: 12px;
+  margin-bottom: 16px;
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.05em;
+}

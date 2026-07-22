@@ -18,7 +18,7 @@
          NOTE: frame-ancestors is omitted here because <meta> CSP does not
          support it; X-Frame-Options: DENY in _headers covers that instead. -->
     <meta http-equiv="Content-Security-Policy"
-          content="default-src 'self'; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.tile.openstreetmap.org; connect-src 'self' https://*.supabase.co https://geocoding-api.open-meteo.com; font-src 'self'; worker-src 'self' blob:" />
+          content="default-src 'self'; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://gibs.earthdata.nasa.gov https://coastwatch.noaa.gov https://tiles.maps.eox.at; connect-src 'self' https://*.supabase.co https://geocoding-api.open-meteo.com; font-src 'self'; media-src 'self' blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'" />
 
     <!-- Theme / PWA -->
     <meta name="theme-color" content="#020d14" />
@@ -45,8 +45,12 @@
     <!-- Favicon (inline SVG) -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23020d14'/%3E%3Ctext x='1' y='24' font-family='sans-serif' font-weight='900' font-size='19' fill='%2300c9ff'%3EDV%3C/text%3E%3C/svg%3E" />
 
+    <!-- Apple touch icon (iOS home-screen). Android/desktop use the web app
+         manifest icons injected by vite-plugin-pwa. -->
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+
     <!-- Canonical URL -->
-    <link rel="canonical" href="https://depthviz.com/" />
+    <link rel="canonical" href="https://depthviz.uk/" />
 
     <!-- OpenCV.js is bundled locally and dynamically imported on demand
          (see src/lib/underwaterVisibility.ts). No external CDN needed. -->
@@ -57,7 +61,7 @@
       "@context": "https://schema.org",
       "@type": "WebApplication",
       "name": "DepthViz",
-      "url": "https://depthviz.com",
+      "url": "https://depthviz.uk",
       "description": "Real-time underwater visibility forecasts for spearfishers and freedivers, powered by weather, swell, and ocean data with AI calibration and community dive reports.",
       "applicationCategory": "SportsApplication",
       "operatingSystem": "Any",
@@ -70,10 +74,10 @@
       "publisher": {
         "@type": "Organization",
         "name": "DepthViz",
-        "url": "https://depthviz.com",
+        "url": "https://depthviz.uk",
         "contactPoint": {
           "@type": "ContactPoint",
-          "email": "hello@depthviz.com",
+          "email": "hello@depthviz.uk",
           "contactType": "customer support"
         }
       }

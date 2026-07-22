@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { getCatches, getMyCatches, logCatch, deleteCatch, getCatchSpecies } from '../lib/api'
 import type { CatchRead, Location } from '../types'
@@ -28,7 +28,7 @@ function buildDateOptions(): { value: string; label: string }[] {
   for (let i = 0; i <= 7; i++) {
     const d = new Date(today)
     d.setDate(today.getDate() - i)
-    const value = d.toISOString().split('T')[0]
+    const value = d.toISOString().slice(0, 10)
     const label = i === 0 ? 'Today' : i === 1 ? 'Yesterday' :
       d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })
     options.push({ value, label })
@@ -51,9 +51,16 @@ export function CatchesPage({ user, locations, onShowAuth }: CatchesPageProps) {
   const [error, setError] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
 
+  // The post-submit success timer must be cleared if the component unmounts
+  // first, otherwise it calls setState/setTab on a dead component.
+  const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => () => {
+    if (successTimerRef.current) clearTimeout(successTimerRef.current)
+  }, [])
+
   // Form state
   const [formLocationId, setFormLocationId] = useState<number | ''>('')
-  const [formDate, setFormDate] = useState(() => new Date().toISOString().split('T')[0])
+  const [formDate, setFormDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [formSpecies, setFormSpecies] = useState('')
   const [formWeight, setFormWeight] = useState('')
   const [formLength, setFormLength] = useState('')
@@ -112,7 +119,7 @@ export function CatchesPage({ user, locations, onShowAuth }: CatchesPageProps) {
 
   const resetForm = () => {
     setFormLocationId('')
-    setFormDate(new Date().toISOString().split('T')[0])
+    setFormDate(new Date().toISOString().slice(0, 10))
     setFormSpecies('')
     setFormWeight('')
     setFormLength('')
@@ -144,7 +151,8 @@ export function CatchesPage({ user, locations, onShowAuth }: CatchesPageProps) {
       })
       resetForm()
       setSuccessMsg('Catch logged successfully!')
-      setTimeout(() => {
+      if (successTimerRef.current) clearTimeout(successTimerRef.current)
+      successTimerRef.current = setTimeout(() => {
         setSuccessMsg('')
         setTab('mine')
       }, 1500)
