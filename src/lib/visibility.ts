@@ -7,6 +7,7 @@ import type {
   VerdictLabel,
   ImpactLevel,
 } from '../types'
+import { SEVERITY_TOKEN } from './severity'
 
 // ── Decay weights by days ago (index 0 = today) ──
 const SWELL_DECAY = [1.0, 0.7, 0.5, 0.35, 0.2, 0.1, 0.05]
@@ -46,12 +47,12 @@ export function degToCompass(deg: number): string {
 }
 
 export function getImpact(penalty: number, maxPenalty: number): { label: ImpactLevel; color: string } {
-  if (maxPenalty === 0 || penalty === 0) return { label: 'NO IMPACT', color: '#1a8a5a' }
+  if (maxPenalty === 0 || penalty === 0) return { label: 'NO IMPACT', color: SEVERITY_TOKEN.safe }
   const ratio = Math.abs(penalty) / maxPenalty
-  if (ratio < 0.3)   return { label: 'LOW IMPACT',  color: '#d4850a' }
-  if (ratio < 0.6)   return { label: 'MODERATE',    color: '#e06c00' }
-  if (ratio < 0.85)  return { label: 'HIGH IMPACT', color: '#c0392b' }
-  return               { label: 'SEVERE',            color: '#c0392b' }
+  if (ratio < 0.3)   return { label: 'LOW IMPACT',  color: SEVERITY_TOKEN.low }
+  if (ratio < 0.6)   return { label: 'MODERATE',    color: SEVERITY_TOKEN.moderate }
+  if (ratio < 0.85)  return { label: 'HIGH IMPACT', color: SEVERITY_TOKEN.high }
+  return               { label: 'SEVERE',            color: SEVERITY_TOKEN.high }
 }
 
 export function getVerdict(vis: number): Verdict {

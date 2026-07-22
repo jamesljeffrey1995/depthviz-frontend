@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { VisibilityResult } from '../types'
 import { getImpact } from '../lib/visibility'
+import { impactToken } from '../lib/severity'
 import styles from './VisibilityDisplay.module.css'
 
 interface VisibilityDisplayProps {
@@ -80,7 +81,7 @@ export function FactorGrid({ factors }: FactorGridProps) {
         const { label: impactLabel, color: impactColor } = getImpact(f.penalty, f.max_penalty)
         const barPct = Math.min(100, (Math.abs(f.penalty) / f.max_penalty) * 100)
         const ratio = Math.abs(f.penalty) / f.max_penalty
-        const barColor = ratio === 0 ? '#1a6b4a' : ratio < 0.4 ? '#d4850a' : ratio < 0.75 ? '#e06c00' : '#c0392b'
+        const barColor = impactToken(ratio)
 
         return (
           <div key={f.name} className={styles.factorCard}>

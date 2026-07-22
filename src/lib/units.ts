@@ -8,6 +8,8 @@
  * against in tests/units.test.ts.
  */
 
+import { SEVERITY_TOKEN } from './severity'
+
 export type Units = 'ft' | 'm'
 
 /** Metres → feet conversion factor (matches services/visibility.py:_M_TO_FT). */
@@ -35,8 +37,8 @@ export interface WaterQuality {
  * caller is using.
  */
 export function getWaterQuality(factor: number): WaterQuality {
-  if (factor < 0.3) return { label: 'Nutrient-poor',      color: '#1a8a5a', description: 'Oligotrophic — algae blooms rare' }
-  if (factor < 0.6) return { label: 'Moderate nutrients', color: '#d4850a', description: 'Some bloom potential in warm conditions' }
-  if (factor < 0.8) return { label: 'Nutrient-rich',      color: '#e06c00', description: 'Eutrophic — elevated bloom risk when warm' }
-  return              { label: 'Highly eutrophic',         color: '#c0392b', description: 'High nutrient load — bloom penalty fully applied' }
+  if (factor < 0.3) return { label: 'Nutrient-poor',      color: SEVERITY_TOKEN.safe,     description: 'Oligotrophic — algae blooms rare' }
+  if (factor < 0.6) return { label: 'Moderate nutrients', color: SEVERITY_TOKEN.low,      description: 'Some bloom potential in warm conditions' }
+  if (factor < 0.8) return { label: 'Nutrient-rich',      color: SEVERITY_TOKEN.moderate, description: 'Eutrophic — elevated bloom risk when warm' }
+  return              { label: 'Highly eutrophic',         color: SEVERITY_TOKEN.high,      description: 'High nutrient load — bloom penalty fully applied' }
 }
