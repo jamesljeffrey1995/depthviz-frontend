@@ -6,8 +6,6 @@ import styles from './DayDetail.module.css'
 
 interface Props {
   day: DayForecast
-  locationName: string
-  reportCount: number
 }
 
 function getWaterQuality(factor: number): { label: string; color: string; description: string } {
@@ -74,10 +72,10 @@ function getElevatedWarnings(day: DayForecast): string[] {
     warnings.push(`${day.resuspension.risk_level === 'high' ? 'High' : 'Moderate'} seabed resuspension`)
   if (day.river_discharge && (day.river_discharge.risk_level === 'high' || day.river_discharge.risk_level === 'moderate'))
     warnings.push(`${day.river_discharge.risk_level === 'high' ? 'High' : 'Moderate'} river discharge`)
-  return [...new Set(warnings)]
+  return warnings
 }
 
-export function DayDetail({ day, locationName: _locationName, reportCount: _reportCount }: Props) {
+export function DayDetail({ day }: Props) {
   const [showAdvanced, setShowAdvanced] = useState(false)
   const vis = day.vis_corrected ?? day.vis_estimate
   const pct = (vis / 15) * 100

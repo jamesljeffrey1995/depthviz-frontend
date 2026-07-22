@@ -385,8 +385,6 @@ export default function App() {
                   {forecast.days[selectedDay] && (
                     <DayDetail
                       day={forecast.days[selectedDay]}
-                      locationName={forecast.location_name}
-                      reportCount={forecast.report_count}
                     />
                   )}
                 </>
