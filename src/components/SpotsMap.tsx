@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css'
 import type { User } from '@supabase/supabase-js'
 import styles from './SpotsMap.module.css'
 import { createLocation, voteLocation, removeVote } from '../lib/api'
+import { resolveCssVar } from '../lib/cssVar'
 import type { Location } from '../types'
 
 /** Shape of a private user spot stored in localStorage. */
@@ -42,57 +43,46 @@ function haversineMetres(
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
-// Predefined spot marker (cyan)
-const predefinedIcon = new L.Icon({
-  iconUrl: 'data:image/svg+xml,' + encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="36" viewBox="0 0 24 36">' +
-    '<path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#00c9ff"/>' +
-    '<circle cx="12" cy="12" r="5" fill="#020d14"/>' +
-    '</svg>'
-  ),
-  iconSize: [24, 36],
-  iconAnchor: [12, 36],
-  popupAnchor: [0, -36],
-})
+/**
+ * Marker categories → categorical palette tokens. Leaflet bakes each icon into
+ * an SVG `data:` URI, where CSS `var()` can't resolve, so the fill is read from
+ * the token at mount via `resolveCssVar`. The fallbacks mirror the palette for
+ * the pre-CSS/SSR path, which for a client-only Leaflet map is unreachable in
+ * practice — the token stays the source of truth (see tokens.css `--ds-cat-*`). */
+const PIN_TOKENS = {
+  predefined: { token: '--ds-cat-1', fallback: '#1ca3ec', opacity: 1 },    // featured dive spot (blue)
+  public:     { token: '--ds-cat-6', fallback: '#22b573', opacity: 1 },    // community spot (green)
+  private:    { token: '--ds-cat-3', fallback: '#f0a01f', opacity: 1 },    // your private spot (amber)
+  pending:    { token: '--ds-cat-5', fallback: '#ff6b6b', opacity: 0.85 }, // dropped/pending position (coral)
+} as const
 
-// User-added private spot marker (amber)
-const privateSpotIcon = new L.Icon({
-  iconUrl: 'data:image/svg+xml,' + encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="36" viewBox="0 0 24 36">' +
-    '<path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#ffb800"/>' +
-    '<circle cx="12" cy="12" r="5" fill="#020d14"/>' +
-    '</svg>'
-  ),
-  iconSize: [24, 36],
-  iconAnchor: [12, 36],
-  popupAnchor: [0, -36],
-})
+function makePinIcon(fill: string, hole: string, opacity: number): L.Icon {
+  return new L.Icon({
+    iconUrl: 'data:image/svg+xml,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="36" viewBox="0 0 24 36">' +
+      `<path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="${fill}" opacity="${opacity}"/>` +
+      `<circle cx="12" cy="12" r="5" fill="${hole}"/>` +
+      '</svg>'
+    ),
+    iconSize: [24, 36],
+    iconAnchor: [12, 36],
+    popupAnchor: [0, -36],
+  })
+}
 
-// Public spot marker (green)
-const publicSpotIcon = new L.Icon({
-  iconUrl: 'data:image/svg+xml,' + encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="36" viewBox="0 0 24 36">' +
-    '<path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#2ecc71"/>' +
-    '<circle cx="12" cy="12" r="5" fill="#020d14"/>' +
-    '</svg>'
-  ),
-  iconSize: [24, 36],
-  iconAnchor: [12, 36],
-  popupAnchor: [0, -36],
-})
-
-// Pending position marker (orange)
-const pendingIcon = new L.Icon({
-  iconUrl: 'data:image/svg+xml,' + encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="36" viewBox="0 0 24 36">' +
-    '<path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#ff6b35" opacity="0.85"/>' +
-    '<circle cx="12" cy="12" r="5" fill="#020d14"/>' +
-    '</svg>'
-  ),
-  iconSize: [24, 36],
-  iconAnchor: [12, 36],
-  popupAnchor: [0, -36],
-})
+/** Build the marker icons from resolved token values. Call at mount (via
+ *  useMemo) so the stylesheet has applied and the tokens read back concrete. */
+function buildPinIcons() {
+  const hole = resolveCssVar('--ds-ink-950', '#001f3f')
+  const make = (p: { token: string; fallback: string; opacity: number }) =>
+    makePinIcon(resolveCssVar(p.token, p.fallback), hole, p.opacity)
+  return {
+    predefined: make(PIN_TOKENS.predefined),
+    public: make(PIN_TOKENS.public),
+    private: make(PIN_TOKENS.private),
+    pending: make(PIN_TOKENS.pending),
+  }
+}
 
 // Centre of UK
 const UK_CENTER: [number, number] = [54.5, -3.5]
@@ -135,6 +125,10 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
   const [isPublic, setIsPublic] = useState(false)
   const [proximityError, setProximityError] = useState('')
   const [syncWarning, setSyncWarning] = useState('')
+
+  // Marker icons, resolved from the categorical palette tokens once at mount
+  // (Leaflet data-URI SVGs can't read CSS var() directly — see buildPinIcons).
+  const pinIcons = useMemo(buildPinIcons, [])
 
   // DB-backed vote state: keyed by location.id
   const makeDbVoteCounts = (locs: Location[]): Record<number, number> => {
@@ -340,7 +334,7 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
           {dbLocations.map(loc => {
             const voteCount = dbVoteCounts[loc.id] ?? 0
             const userVote = dbUserVotes[loc.id]
-            const icon = loc.is_predefined ? predefinedIcon : publicSpotIcon
+            const icon = loc.is_predefined ? pinIcons.predefined : pinIcons.public
             return (
               <Marker
                 key={`db-${loc.id}`}
@@ -397,7 +391,7 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
             <Marker
               key={spot.id ?? `priv-${spot.name}-${spot.lat}-${spot.lon}`}
               position={[spot.lat, spot.lon]}
-              icon={privateSpotIcon}
+              icon={pinIcons.private}
             >
               <Popup>
                 <div className={styles.popup}>
@@ -421,7 +415,7 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
             </Marker>
           ))}
           {pendingPos && (
-            <Marker position={[pendingPos.lat, pendingPos.lon]} icon={pendingIcon}>
+            <Marker position={[pendingPos.lat, pendingPos.lon]} icon={pinIcons.pending}>
               <Popup>
                 <div className={styles.popup}>
                   <div className={styles.popupDesc}>
@@ -544,13 +538,13 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
 
       <div className={styles.legend} aria-label="Map marker key">
         <span className={styles.legendItem}>
-          <span className={styles.legendDot} style={{ background: '#00c9ff' }} aria-hidden="true" /> Featured spot
+          <span className={styles.legendDot} style={{ background: 'var(--ds-cat-1)' }} aria-hidden="true" /> Featured spot
         </span>
         <span className={styles.legendItem}>
-          <span className={styles.legendDot} style={{ background: '#2ecc71' }} aria-hidden="true" /> Community spot
+          <span className={styles.legendDot} style={{ background: 'var(--ds-cat-6)' }} aria-hidden="true" /> Community spot
         </span>
         <span className={styles.legendItem}>
-          <span className={styles.legendDot} style={{ background: '#ffb800' }} aria-hidden="true" /> Your private spot
+          <span className={styles.legendDot} style={{ background: 'var(--ds-cat-3)' }} aria-hidden="true" /> Your private spot
         </span>
       </div>
       <div className={styles.hint}>Tap a marker to view forecasts for that spot</div>
