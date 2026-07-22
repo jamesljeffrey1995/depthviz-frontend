@@ -80,6 +80,7 @@
 .tBody  { font-size: var(--ds-text-body); font-weight: 400; line-height: var(--ds-lh-body); color: var(--ds-text-body); }
 .tMeta  { font-size: var(--ds-text-meta); font-weight: 500; color: var(--ds-text-muted); }
 .tLabel { font-size: var(--ds-text-label); font-weight: 600; letter-spacing: var(--ds-tracking-label); text-transform: uppercase; color: var(--ds-text-muted); }
+.tMono  { font-family: var(--ds-font-mono); font-size: var(--ds-text-meta); font-weight: 500; color: var(--ds-text-body); letter-spacing: 0.01em; }
 
 /* gauges */
 .gaugeRow {

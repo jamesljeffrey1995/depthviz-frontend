@@ -155,14 +155,16 @@ function impactOf(sub: number): ScoreImpact {
 }
 
 /* ── Score bands ─────────────────────────────────────────────────────────
-   Colours mirror the dive-quality tokens (--ds-q-*). */
+   Colours mirror the water-clarity dive-quality tokens (--ds-q-*): murky
+   slate for blown-out water climbing to gin-clear aquamarine, never a
+   red–amber–green traffic light. Keep these hexes in sync with tokens.css. */
 const BANDS: ScoreBand[] = [
-  { key: 'excellent', label: 'Excellent', color: '#17d1a6', answer: 'go',    headline: 'Prime conditions — go' },
-  { key: 'good',      label: 'Good',      color: '#22b573', answer: 'go',    headline: 'A good day to dive' },
-  { key: 'fair',      label: 'Fair',      color: '#7cc47a', answer: 'maybe', headline: 'Diveable if you know the spot' },
-  { key: 'marginal',  label: 'Marginal',  color: '#f0a01f', answer: 'maybe', headline: 'Marginal — manage expectations' },
-  { key: 'poor',      label: 'Poor',      color: '#e5533d', answer: 'skip',  headline: 'Poor — consider waiting' },
-  { key: 'blown',     label: 'Blown out', color: '#64788c', answer: 'skip',  headline: 'Blown out — sit this one out' },
+  { key: 'excellent', label: 'Excellent', color: '#7fffd4', answer: 'go',    headline: 'Prime conditions — go' },
+  { key: 'good',      label: 'Good',      color: '#1ca3ec', answer: 'go',    headline: 'A good day to dive' },
+  { key: 'fair',      label: 'Fair',      color: '#2e8b99', answer: 'maybe', headline: 'Diveable if you know the spot' },
+  { key: 'marginal',  label: 'Marginal',  color: '#2e7c8c', answer: 'maybe', headline: 'Marginal — manage expectations' },
+  { key: 'poor',      label: 'Poor',      color: '#35586f', answer: 'skip',  headline: 'Poor — consider waiting' },
+  { key: 'blown',     label: 'Blown out', color: '#31556b', answer: 'skip',  headline: 'Blown out — sit this one out' },
 ]
 
 export function bandForScore(score: number): ScoreBand {

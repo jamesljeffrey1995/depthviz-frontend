@@ -26,12 +26,14 @@
   --border-strong: var(--ds-hairline-strong);
 
   /* ── Typography ──
-     Two families with distinct jobs (§4): Space Grotesk is the distinctive
-     display voice for headings, Inter is the body and tabular-figure
-     workhorse. Bebas Neue / Space Mono are retired. `--font-display` now
-     resolves to the display token; `--font-mono` keeps Inter for aligned
-     numerals in legacy consumers. */
-  --font-mono: var(--ds-font-sans);
+     Three families with distinct jobs (§Typography): Space Grotesk is the
+     distinctive display voice for headings, Inter is the body and
+     tabular-figure workhorse, and IBM Plex Mono carries technical readouts —
+     coordinates, buoy IDs, timestamps, sensor payloads — so instrument data
+     reads visibly distinct from decision metrics. `--font-mono` now resolves
+     to that mono token; aligned numerals in stat cards stay on Inter via
+     `--ds-font-num`. */
+  --font-mono: var(--ds-font-mono);
   --font-display: var(--ds-font-display);
 
   /* ── Spacing scale ──
