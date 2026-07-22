@@ -19,9 +19,11 @@ export function categoriseVis(vis: number): VisCategory {
 }
 
 export function categoryColor(cat: VisCategory): string {
+  // Water-clarity ramp, not a traffic light: clear water reads brighter/aqua,
+  // murky water reads as a darker, subdued tone (design doc §Colour system).
   if (cat === 'good') return 'var(--ds-q-good)'
-  if (cat === 'marginal') return 'var(--ds-warn)'
-  return 'var(--ds-danger)'
+  if (cat === 'marginal') return 'var(--ds-q-marginal)'
+  return 'var(--ds-q-poor)'
 }
 
 function shortDay(dateStr: string): string {

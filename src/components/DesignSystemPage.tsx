@@ -12,12 +12,12 @@ import styles from './DesignSystemPage.module.css'
    the product ships, so the documentation can never drift from the code. */
 
 const QUALITY = [
-  { name: 'Excellent', token: '--ds-q-excellent', hex: '#17d1a6' },
-  { name: 'Good', token: '--ds-q-good', hex: '#22b573' },
-  { name: 'Workable', token: '--ds-q-workable', hex: '#7cc47a' },
-  { name: 'Marginal', token: '--ds-q-marginal', hex: '#f0a01f' },
-  { name: 'Poor', token: '--ds-q-poor', hex: '#e5533d' },
-  { name: 'Blown out', token: '--ds-q-blown', hex: '#64788c' },
+  { name: 'Excellent', token: '--ds-q-excellent', hex: '#7fffd4' },
+  { name: 'Good', token: '--ds-q-good', hex: '#1ca3ec' },
+  { name: 'Workable', token: '--ds-q-workable', hex: '#2e8b99' },
+  { name: 'Marginal', token: '--ds-q-marginal', hex: '#2e7c8c' },
+  { name: 'Poor', token: '--ds-q-poor', hex: '#35586f' },
+  { name: 'Blown out', token: '--ds-q-blown', hex: '#31556b' },
 ]
 
 const NEUTRALS = ['950', '900', '850', '800', '700', '600', '500', '400', '300', '200', '100', '050']
@@ -29,6 +29,7 @@ const TYPE_SPECS = [
   { role: 'Body', cls: styles.tBody, spec: '15 / 400 · 1.55', sample: 'Calm seas and clear water are carrying the score today.' },
   { role: 'Metadata', cls: styles.tMeta, spec: '13 / 500', sample: '4 diver reports · updated 20 min ago' },
   { role: 'Label', cls: styles.tLabel, spec: '12 / 600 · uppercase', sample: 'Visibility' },
+  { role: 'Mono readout', cls: styles.tMono, spec: 'IBM Plex Mono · 13 / 500', sample: '55.9042° N, 2.1318° W · buoy 62145' },
 ]
 
 function mockDay(overrides: Partial<DayForecast>): DayForecast {
@@ -66,7 +67,7 @@ export function DesignSystemPage() {
 
       {/* Colour */}
       <section className={styles.section} id="colour" style={{ '--i': 1 } as CSSProperties}>
-        <SectionHeader eyebrow="Tokens" title="Dive quality scale" subtitle="Six luminance-stepped hues, each always paired with a label or glyph, never colour alone. A dominant deep field carries the palette; one sharp accent does the pointing." />
+        <SectionHeader eyebrow="Tokens" title="Dive quality scale" subtitle="A water-clarity ramp, not a red–amber–green traffic light: murky water reads as darker, subdued tones and clear water as brighter aqua. Six luminance-stepped hues, each always paired with a label or glyph, never colour alone." />
         <div className={styles.swatchRow}>
           {QUALITY.map(q => (
             <div key={q.name} className={styles.swatch}>
@@ -88,7 +89,7 @@ export function DesignSystemPage() {
 
       {/* Typography */}
       <section className={styles.section} id="type" style={{ '--i': 2 } as CSSProperties}>
-        <SectionHeader eyebrow="Tokens" title="Typography" subtitle="Space Grotesk for the display voice, Inter for body and metrics. Numbers use tabular figures for stable, scannable columns." />
+        <SectionHeader eyebrow="Tokens" title="Typography" subtitle="Space Grotesk for the display voice, Inter for body and metrics, IBM Plex Mono for coordinates, buoy IDs and timestamps. Numbers use tabular figures for stable, scannable columns." />
         <Card padding="lg" className={styles.typeCard}>
           {TYPE_SPECS.map(t => (
             <div key={t.role} className={styles.typeRow}>
@@ -106,11 +107,11 @@ export function DesignSystemPage() {
       <section className={styles.section} id="score" style={{ '--i': 3 } as CSSProperties}>
         <SectionHeader eyebrow="Signature component" title="Dive Quality Score" subtitle="The single, prominent number that leads every location page." />
         <div className={styles.gaugeRow}>
-          <div className={styles.gaugeCell}><DiveScore score={91} color="#17d1a6" label="Excellent" /></div>
-          <div className={styles.gaugeCell}><DiveScore score={72} color="#22b573" label="Good" /></div>
-          <div className={styles.gaugeCell}><DiveScore score={54} color="#7cc47a" label="Fair" /></div>
-          <div className={styles.gaugeCell}><DiveScore score={36} color="#f0a01f" label="Marginal" /></div>
-          <div className={styles.gaugeCell}><DiveScore score={12} color="#e5533d" label="Poor" /></div>
+          <div className={styles.gaugeCell}><DiveScore score={91} color="#7fffd4" label="Excellent" /></div>
+          <div className={styles.gaugeCell}><DiveScore score={72} color="#1ca3ec" label="Good" /></div>
+          <div className={styles.gaugeCell}><DiveScore score={54} color="#2e8b99" label="Fair" /></div>
+          <div className={styles.gaugeCell}><DiveScore score={36} color="#2e7c8c" label="Marginal" /></div>
+          <div className={styles.gaugeCell}><DiveScore score={12} color="#35586f" label="Poor" /></div>
         </div>
       </section>
 
