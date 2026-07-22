@@ -1,15 +1,18 @@
 import type { SuspicionBand } from '../../types'
 import styles from './TrafficAnalytics.module.css'
 
-// Brand palette, matched to the existing admin console / MLCharts.
+// Design-token palette. Series hues come from the categorical ramp (--ds-cat-*);
+// ok/warning/danger are genuine status; grid/axis and text use the chart and
+// neutral tokens so the charts theme correctly. All are consumed in inline SVG
+// or inline styles where var() resolves.
 export const COLORS = {
-  accent: '#00c9ff',
-  ok: '#0fb37a',
-  warning: '#f1a325',
-  danger: '#c0392b',
-  purple: '#9b7dff',
-  grid: 'rgba(0,201,255,0.06)',
-  axis: 'rgba(139,184,204,0.4)',
+  accent: 'var(--ds-cat-1)',
+  ok: 'var(--ds-success)',
+  warning: 'var(--ds-warn)',
+  danger: 'var(--ds-danger)',
+  purple: 'var(--ds-cat-4)',
+  grid: 'var(--ds-chart-grid)',
+  axis: 'var(--ds-chart-axis)',
 }
 
 // ── Suspicion chip ───────────────────────────────────────────────────────────
@@ -148,13 +151,13 @@ export function BarList({
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       {rows.map(r => (
         <div key={r.label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ width: 90, fontFamily: 'monospace', fontSize: 11, color: 'rgba(139,184,204,0.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={r.label}>
+          <span style={{ width: 90, fontFamily: 'monospace', fontSize: 11, color: 'var(--ds-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={r.label}>
             {r.label}
           </span>
-          <div style={{ flex: 1, height: 10, background: 'rgba(2,13,20,0.6)', borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{ flex: 1, height: 10, background: 'var(--ds-surface-sunken)', borderRadius: 2, overflow: 'hidden' }}>
             <div style={{ width: `${(r.value / max) * 100}%`, height: '100%', background: color, opacity: 0.75 }} />
           </div>
-          <span style={{ width: 56, textAlign: 'right', fontFamily: 'monospace', fontSize: 11, color: '#cfe8f4' }}>
+          <span style={{ width: 56, textAlign: 'right', fontFamily: 'monospace', fontSize: 11, color: 'var(--ds-text-strong)' }}>
             {fmtCompact(r.value)}{valueSuffix}
           </span>
         </div>

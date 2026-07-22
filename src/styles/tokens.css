@@ -87,6 +87,22 @@
   --ds-success: #22b573;
   --ds-info:    #1ca3ec;
 
+  /* Categorical (qualitative) palette. For series and map markers where hue
+     distinguishes a *category* — not a magnitude, quality or alert. Ordered
+     for maximum separation (blue → teal → amber → violet → coral → green) so
+     adjacent categories stay distinguishable, including for the common
+     colour-vision deficiencies; each is always paired with a legend label.
+     Deliberately direct hex, not theme-mapped: a qualitative key must stay the
+     same colour in both themes, and — unlike var() references — a flat hex is
+     resolvable via getComputedStyle for contexts that can't read a CSS
+     variable (SVG data-URI markers, canvas). See src/lib/cssVar.ts. */
+  --ds-cat-1: #1ca3ec;  /* blue   — Shallow Blue (brand-adjacent) */
+  --ds-cat-2: #17d1a6;  /* teal   — aquamarine green */
+  --ds-cat-3: #f0a01f;  /* amber  */
+  --ds-cat-4: #9b7dff;  /* violet */
+  --ds-cat-5: #ff6b6b;  /* coral  */
+  --ds-cat-6: #22b573;  /* green  */
+
   /* ── 2. Spacing — strict 8px system (4 is the only sub-step) ─────────── */
   --ds-space-1:  4px;
   --ds-space-2:  8px;

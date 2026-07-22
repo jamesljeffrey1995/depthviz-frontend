@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { getLocations } from '../lib/api'
+import { resolveCssVar } from '../lib/cssVar'
 import type { Location } from '../types'
 import styles from './CompetitionLocationPicker.module.css'
 
@@ -25,11 +26,12 @@ interface Props {
 const UK_CENTER: [number, number] = [54.5, -3.5]
 
 function pin(color: string, opacity = 1): L.Icon {
+  const hole = resolveCssVar('--ds-ink-950', '#001f3f')
   return new L.Icon({
     iconUrl: 'data:image/svg+xml,' + encodeURIComponent(
       '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="36" viewBox="0 0 24 36">' +
       `<path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="${color}" opacity="${opacity}"/>` +
-      '<circle cx="12" cy="12" r="5" fill="#020d14"/>' +
+      `<circle cx="12" cy="12" r="5" fill="${hole}"/>` +
       '</svg>',
     ),
     iconSize: [24, 36],
@@ -38,11 +40,20 @@ function pin(color: string, opacity = 1): L.Icon {
   })
 }
 
-// Same palette as the visibility/spots map so organisers recognise the pins.
-const predefinedIcon = pin('#00c9ff')   // predefined dive spots (cyan)
-const publicIcon = pin('#2ecc71')       // user-created public spots (green)
-const selectedCyanIcon = pin('#00c9ff') // selected = dive area
-const selectedRedIcon = pin('#ff4d6d')  // selected = meeting point
+/**
+ * Marker icons in the same categorical palette as the spots map so organisers
+ * recognise the pins. Leaflet serialises each into an SVG `data:` URI where CSS
+ * `var()` can't resolve, so the fills are read from the tokens at mount (via
+ * useMemo) — see buildPickerIcons and tokens.css `--ds-cat-*`. Fallbacks mirror
+ * the palette for the (client-only, effectively unreachable) pre-CSS path. */
+function buildPickerIcons() {
+  return {
+    predefined: pin(resolveCssVar('--ds-cat-1', '#1ca3ec')), // predefined dive spots (blue)
+    public:     pin(resolveCssVar('--ds-cat-6', '#22b573')), // user-created public spots (green)
+    selectedCyan: pin(resolveCssVar('--ds-cat-1', '#1ca3ec')), // selected = dive area (blue)
+    selectedRed:  pin(resolveCssVar('--ds-cat-5', '#ff6b6b')), // selected = meeting point (coral)
+  }
+}
 
 function ClickHandler({ onClick }: { onClick: (lat: number, lon: number) => void }) {
   useMapEvents({
@@ -64,10 +75,13 @@ export function CompetitionLocationPicker({ value, onChange, accent = 'cyan', la
     getLocations().then(setLocations).catch(() => setLoadErr('Could not load saved spots.'))
   }, [])
 
+  // Icons resolved from the categorical palette tokens once at mount.
+  const icons = useMemo(buildPickerIcons, [])
+
   const selected = value.lat != null && value.lon != null
     ? { lat: value.lat, lon: value.lon, name: value.name ?? '' }
     : null
-  const selectedIcon = accent === 'red' ? selectedRedIcon : selectedCyanIcon
+  const selectedIcon = accent === 'red' ? icons.selectedRed : icons.selectedCyan
   const center: [number, number] = selected ? [selected.lat, selected.lon] : UK_CENTER
 
   return (
@@ -90,7 +104,7 @@ export function CompetitionLocationPicker({ value, onChange, accent = 'cyan', la
             <Marker
               key={`loc-${loc.id}`}
               position={[loc.lat, loc.lon]}
-              icon={loc.is_predefined ? predefinedIcon : publicIcon}
+              icon={loc.is_predefined ? icons.predefined : icons.public}
             >
               <Popup>
                 <div className={styles.popup}>
