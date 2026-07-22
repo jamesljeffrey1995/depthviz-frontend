@@ -26,7 +26,7 @@
 .tab {
   flex: 1; position: relative;
   background: rgba(4, 30, 46, 0.6); border: 1px solid rgba(0, 201, 255, 0.08);
-  color: var(--text); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.2em;
+  color: var(--text); font-family: var(--font-mono); font-size: var(--ds-text-label); letter-spacing: 0.2em;
   text-transform: uppercase; padding: 8px; cursor: pointer;
 }
 .tab.tabActive {
@@ -38,7 +38,7 @@
 .requestBadge {
   position: absolute; top: -6px; right: -6px;
   background: var(--accent); color: var(--paper);
-  font-family: var(--font-mono); font-size: 9px; font-weight: 700;
+  font-family: var(--font-mono); font-size: var(--ds-text-label); font-weight: 700;
   min-width: 16px; height: 16px;
   border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
@@ -71,11 +71,11 @@
 }
 
 .friendStats {
-  font-size: 9px; opacity: 0.45; letter-spacing: 0.1em;
+  font-size: var(--ds-text-label); opacity: 0.45; letter-spacing: 0.1em;
 }
 
 .accuracyBadge {
-  font-size: 9px; color: var(--excellent); opacity: 0.7;
+  font-size: var(--ds-text-label); color: var(--excellent); opacity: 0.7;
   margin-left: 6px;
 }
 
@@ -99,7 +99,7 @@
 /* Action buttons */
 .btnAccept {
   background: rgba(15, 179, 122, 0.12); border: 1px solid rgba(15, 179, 122, 0.35);
-  color: var(--excellent); font-family: var(--font-mono); font-size: 9px;
+  color: var(--excellent); font-family: var(--font-mono); font-size: var(--ds-text-label);
   letter-spacing: 0.1em; text-transform: uppercase;
   padding: 5px 10px; cursor: pointer;
   transition: background 0.15s;
@@ -108,7 +108,7 @@
 
 .btnDecline {
   background: none; border: 1px solid rgba(192, 57, 43, 0.3);
-  color: var(--danger); font-family: var(--font-mono); font-size: 9px;
+  color: var(--danger); font-family: var(--font-mono); font-size: var(--ds-text-label);
   letter-spacing: 0.1em; text-transform: uppercase;
   padding: 5px 10px; cursor: pointer; opacity: 0.7;
   transition: opacity 0.15s;
@@ -117,7 +117,7 @@
 
 .btnRemove {
   background: none; border: 1px solid rgba(192, 57, 43, 0.3);
-  color: var(--danger); font-family: var(--font-mono); font-size: 9px;
+  color: var(--danger); font-family: var(--font-mono); font-size: var(--ds-text-label);
   letter-spacing: 0.1em; text-transform: uppercase;
   padding: 5px 10px; cursor: pointer; opacity: 0.7;
   transition: opacity 0.15s; flex-shrink: 0;
@@ -126,7 +126,7 @@
 
 .btnAdd {
   background: rgba(0, 201, 255, 0.1); border: 1px solid rgba(0, 201, 255, 0.3);
-  color: var(--accent); font-family: var(--font-mono); font-size: 9px;
+  color: var(--accent); font-family: var(--font-mono); font-size: var(--ds-text-label);
   letter-spacing: 0.1em; text-transform: uppercase;
   padding: 5px 10px; cursor: pointer; flex-shrink: 0;
   transition: background 0.15s;
@@ -141,7 +141,7 @@
 
 /* Empty state */
 .empty {
-  font-size: 11px; opacity: 0.4; letter-spacing: 0.1em;
+  font-size: var(--ds-text-label); opacity: 0.4; letter-spacing: 0.1em;
   padding: 20px 0; text-align: center;
 }
 
@@ -151,5 +151,5 @@
   .friendCard, .userResult { padding: 8px 10px; gap: 8px; }
   .friendAvatar { width: 30px; height: 30px; font-size: 15px; }
   .tabs { gap: 4px; }
-  .tab { font-size: 8px; padding: 6px 4px; letter-spacing: 0.12em; }
+  .tab { font-size: var(--ds-text-label); padding: 6px 4px; letter-spacing: 0.12em; }
 }

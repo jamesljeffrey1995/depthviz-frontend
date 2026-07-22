@@ -22,7 +22,7 @@
 .stationMeta {}
 
 .stationLabel {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.3em;
   text-transform: uppercase;
   color: var(--ink-faint);
@@ -38,7 +38,7 @@
 }
 
 .stationDate {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text);
@@ -47,7 +47,7 @@
 
 .forecastBadge {
   display: inline-block;
-  font-size: 8px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   border: 1px solid var(--accent);
@@ -76,7 +76,7 @@
 }
 
 .visUnit {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--text);
@@ -84,7 +84,7 @@
 }
 
 .correctedNote {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   color: var(--text);
   opacity: 0.7;
@@ -153,7 +153,7 @@
   color: var(--text);
   padding: 10px 2px;
   margin-bottom: 12px;
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   cursor: pointer;
@@ -186,7 +186,7 @@
 }
 
 .metricChipLabel {
-  font-size: 7px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--ink-faint);
@@ -201,7 +201,7 @@
 }
 
 .metricChipNote {
-  font-size: 7px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   opacity: 0.85;
@@ -224,14 +224,14 @@
 }
 
 .algaeLabel {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--ink-faint);
 }
 
 .algaeRisk {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   font-weight: 700;
@@ -242,7 +242,7 @@
 .algaeHigh     { color: var(--danger); }
 
 .algaeDrivers {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   color: var(--text);
   opacity: 0.75;
   line-height: 1.8;
@@ -263,7 +263,7 @@
 }
 
 .factorName {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.25em;
   text-transform: uppercase;
   color: var(--ink-faint);
@@ -278,14 +278,14 @@
 }
 
 .factorNote {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.12em;
   color: var(--ink-faint);
   margin-bottom: 3px;
 }
 
 .factorImpact {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
@@ -318,7 +318,7 @@
 .barLabels {
   display: flex;
   justify-content: space-between;
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   color: var(--ink-faint);
   margin-bottom: 6px;
@@ -354,7 +354,7 @@
   margin-bottom: 8px;
 }
 .waterQualityLabelText {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   color: var(--text);
   opacity: 0.8;
@@ -375,13 +375,13 @@
   transition: width 0.3s ease;
 }
 .waterQualitySub {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   color: var(--text);
   opacity: 0.7;
   letter-spacing: 0.05em;
 }
 .waterQualityNote {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   margin-top: 6px;
   letter-spacing: 0.03em;
 }
@@ -390,7 +390,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   margin-top: 4px;
   letter-spacing: 0.04em;
 }
@@ -407,7 +407,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px 16px;
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.06em;
   color: var(--text);
   opacity: 0.75;
@@ -429,7 +429,7 @@
 }
 
 .clarityLabel {
-  font-size: 8px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--ink-faint);
@@ -471,7 +471,7 @@
   color: var(--accent);
   padding: 10px 16px;
   margin-bottom: 16px;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   cursor: pointer;
@@ -489,7 +489,7 @@
 }
 
 .toggleArrow {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
 }
 
 /* ── Admin debug trace panel — deliberately kept dark, like a photostat
@@ -509,7 +509,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  font-size: 8px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.3em;
   text-transform: uppercase;
   padding: 7px 14px;
@@ -541,7 +541,7 @@
 }
 
 .debugSectionTitle {
-  font-size: 7px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.35em;
   text-transform: uppercase;
   color: rgba(255, 130, 130, 0.5);
@@ -567,13 +567,13 @@
 }
 
 .debugLabel {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.03em;
   color: rgba(240, 235, 225, 0.55);
 }
 
 .debugValue {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.05em;
   color: rgba(250, 246, 234, 0.92);
 }
@@ -582,7 +582,7 @@
   display: grid;
   grid-template-columns: 1.8fr 1.4fr 48px 72px;
   gap: 4px;
-  font-size: 7px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.25);
@@ -611,13 +611,13 @@
 }
 
 .debugStep {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.02em;
   color: rgba(240, 235, 225, 0.65);
 }
 
 .debugDetail {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.01em;
   color: rgba(240, 235, 225, 0.35);
   overflow: hidden;
@@ -626,13 +626,13 @@
 }
 
 .debugDelta {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.03em;
   text-align: right;
 }
 
 .debugRunning {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.04em;
   color: rgba(250, 246, 234, 0.92);
   text-align: right;
@@ -646,7 +646,7 @@
   display: grid;
   grid-template-columns: auto 1fr 56px minmax(90px, 1fr);
   gap: 4px;
-  font-size: 7px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.25);
@@ -669,7 +669,7 @@
 }
 
 .debugRunningDives {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.04em;
   color: rgba(250, 246, 234, 0.92);
   text-align: right;
@@ -698,7 +698,7 @@
 }
 
 .shallowNoteLabel {
-  font-size: 8px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.25em;
   text-transform: uppercase;
   color: var(--text);
@@ -707,7 +707,7 @@
 }
 
 .shallowNoteText {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.04em;
   color: var(--warn);
   line-height: 1.55;
