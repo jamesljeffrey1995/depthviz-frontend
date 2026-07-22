@@ -78,6 +78,11 @@
      actions, stale/warning banners — NOT for grading dive conditions, which
      use the water-clarity ramp above. */
   --ds-danger:  #e5533d;
+  --ds-caution: #e06c00;  /* elevated alert — the "moderate" step between warn
+                             and danger. Used for moderate risk levels (algae,
+                             turbidity, resuspension, river discharge) where the
+                             two-step warn/danger scale would flatten a real
+                             safety distinction. Always paired with a text label. */
   --ds-warn:    #f0a01f;
   --ds-success: #22b573;
   --ds-info:    #1ca3ec;

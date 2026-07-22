@@ -80,6 +80,15 @@ and, in meters, an impact glyph (▲ / ● / ▼).
 Semantic roles (`--ds-accent`, `--ds-surface`, `--ds-text-strong`, …) are
 theme-aware with dark (default) and light overrides plus a `system` mode.
 
+**Status hues** are a separate, four-step ramp reserved for *genuine alert
+semantics* — never for grading dive conditions, which use the quality scale
+above. They climb `--ds-success` → `--ds-warn` → `--ds-caution` → `--ds-danger`;
+`--ds-caution` is the "moderate" step, added so a moderate risk (algae,
+turbidity, seabed resuspension, river discharge) keeps a distinct, meaningful
+colour rather than collapsing into `--ds-warn`. Consumers map to these through
+`src/lib/severity.ts` (`SEVERITY_TOKEN`, `impactToken`, `riskToken`) so no
+component reintroduces a raw hex, and every use is paired with a text label.
+
 ### Spacing: strict 8px system
 
 `4 · 8 · 12 · 16 · 24 · 32 · 48 · 64` → `--ds-space-1 … --ds-space-8`. 4px is the
