@@ -378,7 +378,7 @@ function ResidualTable({ residuals, summary, quarantined, onQuarantine }: Residu
       <div className={styles.tableScroll}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: 'monospace' }}>
           <thead>
-            <tr style={{ textAlign: 'left', color: 'var(--text-dim, #8bb8cc)' }}>
+            <tr style={{ textAlign: 'left', color: 'var(--text-dim, #5c5344)' }}>
               <th style={{ padding: '4px 5px' }}>Date</th>
               <th style={{ padding: '4px 5px' }}>Location</th>
               <th style={{ padding: '4px 5px', textAlign: 'right' }}>Actual</th>
@@ -406,7 +406,7 @@ function ResidualTable({ residuals, summary, quarantined, onQuarantine }: Residu
                   </td>
                   <td style={{ padding: '4px 5px' }}>
                     {isQ ? (
-                      <span style={{ color: 'var(--text-dim, #8bb8cc)', fontSize: 10 }}>quarantined</span>
+                      <span style={{ color: 'var(--text-dim, #5c5344)', fontSize: 10 }}>quarantined</span>
                     ) : (
                       <button
                         onClick={() => onQuarantine(r.id)}

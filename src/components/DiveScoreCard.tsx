@@ -57,6 +57,8 @@ export const DiveScoreCard = memo(function DiveScoreCard({
 }: Props) {
   const result = computeDiveScore(day, units)
   const confidence = computeConfidence(day, forecast, units)
+  const visUnitLabel = units === 'ft' ? 'feet' : 'metres'
+  const visUnitShort = units === 'ft' ? 'ft' : 'm'
   const answer = ANSWER_META[result.answer]
   // Progressive disclosure: the score, verdict and key-driver line answer the
   // question at a glance; the full factor breakdown is one tap away.
@@ -134,7 +136,7 @@ export const DiveScoreCard = memo(function DiveScoreCard({
           className={`${styles.bestWindow} dv-pressable`}
           onClick={onJumpToBestWindow ? () => onJumpToBestWindow(best.startIndex) : undefined}
           disabled={!onJumpToBestWindow}
-          aria-label={`Best upcoming window: ${best.label}, peaking around ${best.bestVis.toFixed(1)} metres`}
+          aria-label={`Best upcoming window: ${best.label}, peaking around ${best.bestVis.toFixed(1)} ${visUnitLabel}`}
         >
           <span className={styles.bestLeft}>
             <ClockIcon aria-hidden="true" />
@@ -144,7 +146,7 @@ export const DiveScoreCard = memo(function DiveScoreCard({
             </span>
           </span>
           <span className={styles.bestRight} style={{ color: best.bestRating.color }}>
-            {best.bestVis.toFixed(1)}m · {best.bestRating.label}
+            {best.bestVis.toFixed(1)}{visUnitShort} · {best.bestRating.label}
           </span>
         </button>
       )}

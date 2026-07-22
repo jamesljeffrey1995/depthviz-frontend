@@ -30,8 +30,8 @@ export class ErrorBoundary extends Component<Props, State> {
           justifyContent: 'center',
           minHeight: '100vh',
           gap: '16px',
-          fontFamily: 'var(--ds-font-sans)',
-          color: 'var(--text-bright, #d4eaf5)',
+          fontFamily: 'var(--font-mono)',
+          color: 'var(--text-bright, #2a251e)',
         }}>
           <div style={{ fontSize: '24px', fontFamily: 'var(--font-display, sans-serif)', letterSpacing: '0.2em' }}>
             SOMETHING WENT WRONG
@@ -47,8 +47,8 @@ export class ErrorBoundary extends Component<Props, State> {
             style={{
               marginTop: '8px',
               padding: '10px 24px',
-              background: 'var(--accent, #00c9ff)',
-              color: '#020d14',
+              background: 'var(--accent, #a83b0c)',
+              color: 'var(--paper, #f2ecdd)',
               border: 'none',
               cursor: 'pointer',
               fontFamily: 'var(--font-display, sans-serif)',

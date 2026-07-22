@@ -11,36 +11,37 @@
   padding-bottom: 4px;
 }
 
+/* Each day reads as an index tab clipped to a station log — squared off,
+   ruled border, a bit of "clipped-to-the-page" overlap via negative margin
+   would fight the scroll strip, so we keep them separate but tab-like. */
 .day {
-  background: var(--surface-1);
-  border: 1px solid var(--ds-hairline);
-  border-radius: var(--radius-md);
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-bottom: 2px solid var(--rule);
   padding: 12px 10px;
   width: 72px;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, transform 0.15s, box-shadow 0.15s;
+  transition: border-color 0.15s, background 0.15s;
   position: relative;
   flex-shrink: 0;
   text-align: left;
-  font-family: var(--ds-font-sans);
-
+  font-family: var(--font-mono);
 }
 
 .day:focus-visible {
-  outline: 2px solid var(--ds-accent);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
 .day:hover {
-  border-color: var(--ds-hairline-strong);
-  background: var(--surface-2);
-  transform: translateY(-2px);
+  border-color: var(--rule-strong);
+  background: var(--paper);
 }
 
 .day.active {
-  border-color: var(--ds-hairline-strong);
-  background: var(--surface-2);
-  box-shadow: inset 0 0 0 1px rgba(0, 201, 255, 0.2), 0 4px 18px rgba(0, 0, 0, 0.4), 0 0 18px rgba(0, 201, 255, 0.12);
+  border-color: var(--rule-strong);
+  border-bottom: 2px solid var(--accent);
+  background: var(--paper);
 }
 
 .day.forecast::after {
@@ -48,84 +49,39 @@
   position: absolute;
   top: 4px;
   right: 4px;
-  font-size: var(--ds-text-label);
+  font-size: 6px;
   letter-spacing: 0.1em;
-  opacity: 0.35;
-}
-
-/* Highlight the days sitting in the best-window run. */
-.day.best {
-  border-color: rgba(78, 203, 141, 0.55);
-  box-shadow: 0 0 0 1px rgba(78, 203, 141, 0.18), 0 4px 14px rgba(78, 203, 141, 0.08);
-}
-
-.day.best.active {
-  box-shadow:
-    inset 0 0 0 1px rgba(78, 203, 141, 0.35),
-    0 4px 18px rgba(0, 0, 0, 0.4),
-    0 0 22px rgba(78, 203, 141, 0.18);
-}
-
-.bestPip {
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  font-family: var(--ds-font-sans);
-  font-size: var(--ds-text-label);
-  letter-spacing: 0.18em;
-  color: var(--ds-q-good);
-  background: rgba(78, 203, 141, 0.14);
-  padding: 1px 4px;
-  border-radius: 2px;
-}
-
-/* Ring around today so the "current" day always stands out. */
-.day.today {
-  outline: 1px solid rgba(0, 201, 255, 0.35);
-  outline-offset: -1px;
-}
-
-.trend {
-  font-size: 12px;
-  margin-left: 4px;
-  opacity: 0.75;
+  color: var(--ink-faint);
 }
 
 .dateLabel {
-  font-size: var(--ds-text-label);
+  font-size: 9px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  opacity: 1;
   margin-bottom: 6px;
-  color: var(--text-dim);
-}
-
-.day.active .dateLabel {
-  color: var(--accent-soft);
+  color: var(--ink-faint);
 }
 
 .vis {
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-display);
   font-size: 28px;
   line-height: 1;
   margin-bottom: 2px;
 }
 
 .unit {
-  font-size: var(--ds-text-label);
-  opacity: 1;
+  font-size: 8px;
   letter-spacing: 0.1em;
-  color: var(--text-dim);
+  color: var(--ink-faint);
 }
 
 .verdict {
-  font-size: var(--ds-text-label);
+  font-size: 8px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   margin-top: 6px;
-  opacity: 1;
   line-height: 1.3;
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .algaePip {
@@ -138,24 +94,25 @@
 }
 
 .algaeLow      { background: transparent; }
-.algaeModerate { background: var(--ds-warn); }
-.algaeHigh     { background: var(--ds-danger); }
+.algaeModerate { background: var(--warn); }
+.algaeHigh     { background: var(--danger); }
 
 .driver {
-  font-size: var(--ds-text-label);
+  font-size: 7px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   margin-top: 4px;
-  color: rgba(0, 201, 255, 0.45);
+  color: var(--accent);
+  opacity: 0.7;
   line-height: 1.2;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
-.blocked  { color: var(--ds-q-blown); }
-.poor     { color: var(--ds-danger); }
-.marginal { color: var(--ds-warn); }
-.decent   { color: var(--ds-q-workable); }
-.good     { color: var(--ds-q-good); }
-.excellent { color: var(--ds-q-excellent); }
+.blocked   { color: var(--blocked); }
+.poor      { color: var(--danger); }
+.marginal  { color: var(--warn); }
+.decent    { color: var(--decent); }
+.good      { color: var(--good); }
+.excellent { color: var(--excellent); }

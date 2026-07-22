@@ -1,40 +1,63 @@
-:root {
-  /* ── Colour palette ──
-     The legacy semantic colours below are being retired (#258): they now
-     ALIAS the `--ds-*` design tokens (src/styles/tokens.css) so there is one
-     source of truth, no raw-hex drift, and both themes reach them. New work
-     must reference the `--ds-*` tokens directly, not these names. */
-  --ocean-deep: var(--ds-ink-950);
-  --ocean-mid: var(--ds-ink-900);
-  --ocean-surface: var(--ds-ink-800);
-  --brine: var(--ds-ocean-700);
-  --danger: var(--ds-danger);
-  --warn: var(--ds-warn);
-  --good: var(--ds-q-good);
-  --excellent: var(--ds-q-excellent);
-  --text: var(--ds-text-body);
-  --text-bright: var(--ds-text-strong);
-  --text-dim: var(--ds-text-muted);
-  --accent: var(--ds-accent);
-  --accent-soft: var(--ds-accent-strong);
+/* ── Stamped stencil face — self-hosted (see DESIGN.md); the
+   @fontsource registry package couldn't be installed in this
+   environment, so the font is bundled directly. Single weight —
+   Allerta Stencil ships regular only, which is what a rubber
+   stamp/crate-marking face would look like anyway. ── */
+@font-face {
+  font-family: 'Allerta Stencil';
+  src: url('./assets/fonts/AllertaStencil-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
-  /* ── Surfaces & borders ──
-     Aliased onto the design tokens (see above). */
-  --surface-1: var(--ds-surface);
-  --surface-2: var(--ds-surface-raised);
-  --border: var(--ds-hairline);
-  --border-strong: var(--ds-hairline-strong);
+:root {
+  /* ── Colour palette — oceanographic field-log ──
+     Survey-paper ground + graphite ink + one safety-orange working ink.
+     Verdict/impact inks form a small functional signal set (not decoration):
+     good/excellent (field green), warn/moderate (ochre/burnt umber),
+     danger (oxblood red) — see DESIGN.md for the full rationale. */
+  --paper: #f2ecdd;
+  --paper-raised: #faf6ea;
+  --paper-dim: #e6dcc3;
+  --ink: #2a251e;
+  --ink-dim: #5c5344;
+  --ink-faint: #a89c84;
+  --rule: #c7bb9c;
+  --rule-strong: #8c8064;
+
+  --accent: #a83b0c;
+  --danger: #a4321f;
+  --danger-deep: #7a2415;
+  --warn: #8f5f08;
+  --moderate: #96470f;
+  --good: #2f6b46;
+  --excellent: #1f5138;
+  --decent: #4f6b3a;
+  --blocked: #675e4e;
+
+  /* Legacy dark-theme token names — kept alive so pages not yet migrated to
+     the field-log system (see DESIGN.md "Rollout") still render sensibly;
+     retire each alias as its page gets its own pass. */
+  --ocean-deep: var(--ink);
+  --ocean-mid: var(--paper-dim);
+  --ocean-surface: var(--paper-raised);
+  --brine: var(--rule-strong);
+  --text: var(--ink-dim);
+  --text-bright: var(--ink);
+  --text-dim: var(--ds-text-muted);
+  --accent-soft: #c55a2b;
+  --surface-1: var(--paper-raised);
+  --surface-2: var(--paper);
+  --border: var(--rule);
+  --border-strong: var(--rule-strong);
 
   /* ── Typography ──
-     Three families with distinct jobs (§Typography): Space Grotesk is the
-     distinctive display voice for headings, Inter is the body and
-     tabular-figure workhorse, and IBM Plex Mono carries technical readouts —
-     coordinates, buoy IDs, timestamps, sensor payloads — so instrument data
-     reads visibly distinct from decision metrics. `--font-mono` now resolves
-     to that mono token; aligned numerals in stat cards stay on Inter via
-     `--ds-font-num`. */
-  --font-mono: var(--ds-font-mono);
-  --font-display: var(--ds-font-display);
+     Inter remains available from the shared token sheet for body copy in
+     components that want it, but the field-log refresh keeps the mono +
+     stencil pairing as its primary voice. */
+  --font-mono: 'Space Mono', monospace;
+  --font-display: 'Allerta Stencil', sans-serif;
 
   /* ── Spacing scale ──
      Base 8pt rhythm: 8 · 12 · 16 · 24 · 32 · 48. The legacy xs/xl/2xl
@@ -50,11 +73,10 @@
   --space-48:  48px;
   --space-2xl: 64px;
 
-  /* ── Border radius ──
-     Softer corners for the redesign; pill for chips/segmented controls. */
-  --radius-sm:  4px;
-  --radius-md:  8px;
-  --radius-lg:  14px;
+  /* ── Border radius — a ruled page has corners, not rounded cards ── */
+  --radius-sm: 1px;
+  --radius-md: 2px;
+  --radius-lg: 3px;
   --radius-xl:  20px;
   --radius-pill: 999px;
 
@@ -81,9 +103,9 @@
   --transition-base: 150ms ease;
   --transition-slow: 320ms cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
-  --shadow-glow:    0 0 24px rgba(0, 201, 255, 0.18);
-  --shadow-glow-sm: 0 0 12px rgba(0, 201, 255, 0.28);
-  --shadow-card:    0 6px 24px rgba(0, 0, 0, 0.45);
+  --shadow-glow:    0 1px 0 rgba(42, 37, 30, 0.06);
+  --shadow-glow-sm: 0 1px 2px rgba(42, 37, 30, 0.08);
+  --shadow-card:    0 1px 3px rgba(42, 37, 30, 0.14);
 }
 
 /* ── Reset ── */
@@ -117,9 +139,9 @@ html, body, #root {
 }
 
 body {
-  background: var(--ocean-deep);
+  background: var(--paper);
   color: var(--text);
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-mono);
   overflow-x: hidden;
   /* Long unbreakable tokens (URLs, emails, coordinates, model names) must
      wrap inside their container instead of bleeding past the card edges.
@@ -131,23 +153,35 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Atmospheric ocean background ──
-   Not a solid fill: a field of depth. Light enters from the top-right
-   surface, the mid-water carries the dominant deep-ocean body, and a vignette
-   sinks the corners toward the abyssal floor so content floats above real
-   space. Layers are driven by the `--ds-atmos-*` tokens so both themes and
-   any future retune stay in one place. */
+/* ── Ruled grid-paper ground — static, not animated; a survey sheet
+   doesn't shimmer. Two hairline grids (fine + a heavier "margin" rule
+   every 5th line) plus a faint paper-fibre speckle. ── */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background:
-    linear-gradient(168deg, var(--ds-atmos-shaft) 0%, transparent 34%),
-    linear-gradient(196deg, var(--ds-atmos-shaft) 0%, transparent 40%),
-    radial-gradient(ellipse 90% 55% at 78% -5%, var(--ds-atmos-surface) 0%, transparent 55%),
-    radial-gradient(ellipse 80% 60% at 20% 80%, var(--ds-atmos-mid) 0%, transparent 70%),
-    radial-gradient(ellipse 120% 90% at 50% 120%, var(--ds-atmos-vignette) 0%, transparent 60%),
-    linear-gradient(178deg, var(--ds-atmos-deep) 0%, var(--ds-atmos-body) 55%, var(--ds-atmos-deep) 100%);
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(140, 128, 100, 0.07) 0,
+      rgba(140, 128, 100, 0.07) 1px,
+      transparent 1px,
+      transparent 32px
+    ),
+    repeating-linear-gradient(
+      to right,
+      rgba(140, 128, 100, 0.05) 0,
+      rgba(140, 128, 100, 0.05) 1px,
+      transparent 1px,
+      transparent 32px
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      rgba(140, 128, 100, 0.12) 0,
+      rgba(140, 128, 100, 0.12) 1px,
+      transparent 1px,
+      transparent 160px
+    );
   z-index: 0;
   pointer-events: none;
 }
@@ -155,58 +189,47 @@ body::before {
 body::after {
   content: '';
   position: fixed;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
+  inset: 0;
   background-image:
-    radial-gradient(ellipse 3px 8px at 20% 15%, rgba(0, 201, 255, 0.03) 0%, transparent 100%),
-    radial-gradient(ellipse 8px 3px at 60% 35%, rgba(0, 201, 255, 0.04) 0%, transparent 100%),
-    radial-gradient(ellipse 4px 10px at 80% 20%, rgba(0, 201, 255, 0.02) 0%, transparent 100%),
-    radial-gradient(ellipse 6px 4px at 35% 60%, rgba(0, 201, 255, 0.03) 0%, transparent 100%);
-  animation: caustics 8s ease-in-out infinite alternate;
+    radial-gradient(ellipse 1px 1px at 12% 22%, rgba(42, 37, 30, 0.06) 0%, transparent 100%),
+    radial-gradient(ellipse 1px 1px at 68% 8%, rgba(42, 37, 30, 0.05) 0%, transparent 100%),
+    radial-gradient(ellipse 1px 1px at 40% 65%, rgba(42, 37, 30, 0.06) 0%, transparent 100%),
+    radial-gradient(ellipse 1px 1px at 85% 78%, rgba(42, 37, 30, 0.04) 0%, transparent 100%),
+    radial-gradient(ellipse 1px 1px at 22% 90%, rgba(42, 37, 30, 0.05) 0%, transparent 100%);
+  background-size: 240px 240px;
   z-index: 0;
   pointer-events: none;
 }
 
-@keyframes caustics {
-  0%   { transform: translate(0, 0) rotate(0deg); opacity: 0.5; }
-  100% { transform: translate(30px, 20px) rotate(2deg); opacity: 1; }
-}
-
 /* ── Headings speak in the display voice ──
-   Space Grotesk gives every heading a distinctive, non-generic character while
-   body copy and figures stay on Inter. Slightly tightened tracking keeps the
-   grotesque feeling deliberate at large sizes. Components that need Inter for
-   a heading (e.g. tabular metrics) can still opt out with their own family. */
+   The stencil face stays reserved for structural headings and log labels. */
 h1, h2, h3, h4 {
-  font-family: var(--ds-font-display);
-  letter-spacing: var(--ds-tracking-tight, -0.02em);
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
 }
-
 /* ── Interactive element base styles ── */
 button {
   cursor: pointer;
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-mono);
 }
 
 button:focus-visible {
-  outline: 2px solid var(--ds-accent);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
 a:focus-visible {
-  outline: 2px solid var(--ds-accent);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
 
 input {
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-mono);
 }
 
 input:focus-visible {
-  outline: 2px solid var(--ds-accent);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -217,9 +240,9 @@ input:focus-visible {
   left: var(--space-md);
   z-index: 9999;
   padding: var(--space-sm) var(--space-md);
-  background: var(--ds-accent);
-  color: var(--ocean-deep);
-  font-family: var(--ds-font-sans);
+  background: var(--accent);
+  color: var(--paper);
+  font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -235,8 +258,8 @@ input:focus-visible {
 
 /* ── Text selection ── */
 ::selection {
-  background: rgba(0, 201, 255, 0.25);
-  color: var(--text-bright);
+  background: rgba(168, 59, 12, 0.22);
+  color: var(--ink);
 }
 
 /* ── Motion primitives ──
@@ -325,9 +348,6 @@ input:focus-visible {
 
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
-  body::after {
-    animation: none;
-  }
   * {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
