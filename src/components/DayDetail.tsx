@@ -63,15 +63,21 @@ function hasAdvancedData(day: DayForecast): boolean {
 }
 
 /** Check if any risks are elevated (moderate or high) — these get promoted to the simple view */
-function getElevatedWarnings(day: DayForecast): string[] {
-  const warnings: string[] = []
-  if (day.algae.risk === 'high') warnings.push('High algae bloom risk')
-  else if (day.algae.risk === 'moderate') warnings.push('Moderate algae bloom risk')
-  if (day.turbidity_penalty != null && day.turbidity_penalty >= 2.0) warnings.push('High turbidity')
+function getElevatedWarnings(day: DayForecast): Array<{ key: string; text: string }> {
+  const warnings: Array<{ key: string; text: string }> = []
+  if (day.algae.risk === 'high') warnings.push({ key: 'algae-high', text: 'High algae bloom risk' })
+  else if (day.algae.risk === 'moderate') warnings.push({ key: 'algae-moderate', text: 'Moderate algae bloom risk' })
+  if (day.turbidity_penalty != null && day.turbidity_penalty >= 2.0) warnings.push({ key: 'turbidity-high', text: 'High turbidity' })
   if (day.resuspension && (day.resuspension.risk_level === 'high' || day.resuspension.risk_level === 'moderate'))
-    warnings.push(`${day.resuspension.risk_level === 'high' ? 'High' : 'Moderate'} seabed resuspension`)
+    warnings.push({
+      key: `resuspension-${day.resuspension.risk_level}`,
+      text: `${day.resuspension.risk_level === 'high' ? 'High' : 'Moderate'} seabed resuspension`,
+    })
   if (day.river_discharge && (day.river_discharge.risk_level === 'high' || day.river_discharge.risk_level === 'moderate'))
-    warnings.push(`${day.river_discharge.risk_level === 'high' ? 'High' : 'Moderate'} river discharge`)
+    warnings.push({
+      key: `river-${day.river_discharge.risk_level}`,
+      text: `${day.river_discharge.risk_level === 'high' ? 'High' : 'Moderate'} river discharge`,
+    })
   return warnings
 }
 
@@ -103,7 +109,7 @@ export function DayDetail({ day }: Props) {
       {elevatedWarnings.length > 0 && (
         <div className={styles.warningBanner}>
           {elevatedWarnings.map((w) => (
-            <div key={w} className={styles.warningItem}>{w}</div>
+            <div key={w.key} className={styles.warningItem}>{w.text}</div>
           ))}
         </div>
       )}
