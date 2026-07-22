@@ -97,20 +97,59 @@ export function DayDetail({ day, locationName, reportCount }: Props) {
 
   return (
     <div className={styles.card}>
-      <div className={styles.header}>
-        <div className={styles.dateBlock}>
-          <div className={styles.dateLine}>{locationName}</div>
-          <div className={styles.dateLine}>{dateLabel}</div>
-          {day.is_forecast && <div className={styles.forecastBadge}>Forecast</div>}
+      {/* Decision hero — the single, prominent Dive Quality Score that answers
+          "should I dive this spot today?" before any scrolling. Supersedes the
+          legacy ForecastHeroCard, folding in the best-window shortcut. */}
+      <DiveScoreCard
+        day={day}
+        locationName={locationName}
+        forecast={{ report_count: reportCount, model_confidence: modelConfidence }}
+        units={units}
+        days={heroDays}
+        todayIndex={todayIdx}
+        onJumpToBestWindow={onSelectDay}
+      />
+
+      {/* Safety-relevant caveats — promoted directly under the verdict, ahead
+          of any chart or collapsible section, per Constitution §1: warnings
+          are never hidden behind disclosure or buried below the fold. These
+          were previously rendered after the (mobile-collapsed) Conditions
+          panel and the trend charts; moved here so a diver sees them before
+          any scrolling, not one tap or one scroll down. */}
+      {elevatedWarnings.length > 0 && (
+        <div className={styles.warningBanner}>
+          {elevatedWarnings.map((w, i) => (
+            <div key={i} className={styles.warningItem}>{w}</div>
+          ))}
         </div>
-        <div className={styles.visBlock}>
-          <div className={`${styles.visNumber} ${styles[day.color_class]}`}>{vis.toFixed(1)}</div>
-          <div className={styles.visUnit}>metres</div>
-          {day.vis_corrected !== null && (
-            <div className={styles.correctedNote}>AI-corrected ({reportCount} reports)</div>
-          )}
+      )}
+
+      {shallowWarning && (
+        <div className={[
+          styles.shallowNote,
+          shallowWarning.severity === 'moderate' ? styles.shallowNoteMod : '',
+          shallowWarning.severity === 'high' ? styles.shallowNoteHigh : '',
+        ].filter(Boolean).join(' ')}>
+          <div className={styles.shallowNoteLabel}>
+            Shallow-water advisory · max {maxDiveDepth}m
+          </div>
+          <div className={[
+            styles.shallowNoteText,
+            shallowWarning.severity === 'moderate' ? styles.shallowNoteTextMod : '',
+            shallowWarning.severity === 'high' ? styles.shallowNoteTextHigh : '',
+          ].filter(Boolean).join(' ')}>
+            {shallowNote}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Plain-English "why" panel */}
+      <ForecastExplanation
+        day={day}
+        days={heroDays}
+        forecast={{ report_count: reportCount, model_confidence: modelConfidence }}
+        units={units}
+      />
 
       {/* Metrics top bar */}
       <div className={styles.metricsBar}>
@@ -161,14 +200,9 @@ export function DayDetail({ day, locationName, reportCount }: Props) {
         </div>
       )}
 
-      {/* Elevated warnings promoted to simple view */}
-      {elevatedWarnings.length > 0 && (
-        <div className={styles.warningBanner}>
-          {elevatedWarnings.map((w, i) => (
-            <div key={i} className={styles.warningItem}>{w}</div>
-          ))}
-        </div>
-      )}
+      {/* Local-microenvironment caveat: clear offshore vs murky inside kelp.
+          Collapsed by default — educational, not data-driven. */}
+      <KelpVisibilityNote />
 
       {/* Algae bloom risk — always visible when present */}
       {(day.algae.risk !== 'low' || day.algae.drivers.length > 0) && (
