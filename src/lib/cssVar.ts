@@ -22,14 +22,21 @@ export function resolveCssVar(name: string, fallback = ''): string {
   return value || fallback
 }
 
-/** Resolve several tokens at once into a `{ key: value }` map. */
+/**
+ * Resolve several tokens at once into a `{ key: value }` map. Reads the
+ * computed style of `:root` once and reuses it across every entry, and only
+ * walks the object's own keys.
+ */
 export function resolveCssVars<K extends string>(
   entries: Record<K, string>,
   fallback = '',
 ): Record<K, string> {
+  const root = typeof document !== 'undefined' && typeof window !== 'undefined'
+    ? getComputedStyle(document.documentElement)
+    : null
   const out = {} as Record<K, string>
-  for (const key in entries) {
-    out[key] = resolveCssVar(entries[key], fallback)
+  for (const key of Object.keys(entries) as K[]) {
+    out[key] = (root?.getPropertyValue(entries[key]).trim() || fallback)
   }
   return out
 }
