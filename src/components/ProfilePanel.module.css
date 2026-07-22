@@ -2,7 +2,9 @@
   background: rgba(4, 30, 46, 0.6);
   border: 1px solid rgba(0, 201, 255, 0.1);
   padding: 20px;
-  margin-bottom: 16px;
+  /* Keep a readable measure inside the wide desktop shell. */
+  max-width: 860px;
+  margin: 0 auto 16px;
 }
 
 .userCard {
@@ -13,8 +15,8 @@
   width: 44px; height: 44px; flex-shrink: 0;
   background: rgba(0, 201, 255, 0.12);
   border: 1px solid rgba(0, 201, 255, 0.25);
-  font-family: var(--font-display); font-size: 22px;
-  color: var(--accent);
+  font-family: var(--ds-font-sans); font-size: 22px;
+  color: var(--ds-accent);
   display: flex; align-items: center; justify-content: center;
 }
 
@@ -24,23 +26,23 @@
   font-size: 13px; color: var(--text-bright); letter-spacing: 0.05em;
   cursor: pointer; margin-bottom: 3px;
 }
-.editHint { opacity: .4; font-size: 11px; }
+.editHint { opacity: .4; font-size: var(--ds-text-label); }
 
 .nameEdit { display: flex; gap: 6px; margin-bottom: 3px; }
 .nameInput {
   flex: 1; background: rgba(10,61,92,0.3); border: 1px solid rgba(0,201,255,0.2);
-  color: var(--text-bright); font-family: var(--font-mono); font-size: 12px; padding: 5px 8px; outline: none;
+  color: var(--text-bright); font-family: var(--ds-font-sans); font-size: 12px; padding: 5px 8px; outline: none;
 }
 .nameSave {
   background: rgba(0,201,255,0.1); border: 1px solid rgba(0,201,255,0.3);
-  color: var(--accent); font-family: var(--font-mono); font-size: 10px; padding: 4px 10px; cursor: pointer;
+  color: var(--ds-accent); font-family: var(--ds-font-sans); font-size: var(--ds-text-label); padding: 4px 10px; cursor: pointer;
 }
 
-.email { font-size: 9px; opacity: .35; letter-spacing: 0.1em; }
+.email { font-size: var(--ds-text-label); opacity: .35; letter-spacing: 0.1em; }
 
 .signOut {
   background: none; border: 1px solid rgba(192,57,43,0.3);
-  color: var(--danger); font-family: var(--font-mono); font-size: 9px;
+  color: var(--ds-danger); font-family: var(--ds-font-sans); font-size: var(--ds-text-label);
   letter-spacing: 0.15em; text-transform: uppercase; padding: 7px 12px; cursor: pointer; flex-shrink: 0;
   opacity: .7; transition: opacity 0.15s;
 }
@@ -52,58 +54,110 @@
 .stat {
   flex: 1; background: rgba(2,13,20,0.4); border: 1px solid rgba(0,201,255,0.06); padding: 12px 10px; text-align: center;
 }
-.statVal { font-family: var(--font-display); font-size: 20px; color: var(--text-bright); margin-bottom: 3px; }
-.statLbl { font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; opacity: .4; }
+.statVal { font-family: var(--ds-font-sans); font-size: 20px; color: var(--text-bright); margin-bottom: 3px; }
+.statLbl { font-size: var(--ds-text-label); letter-spacing: 0.2em; text-transform: uppercase; opacity: .4; }
 
 .friendsBtn {
   width: 100%;
   display: flex; align-items: center; justify-content: center; gap: 8px;
   background: rgba(0,201,255,0.06); border: 1px solid rgba(0,201,255,0.18);
-  color: var(--accent); font-family: var(--font-mono); font-size: 10px;
+  color: var(--ds-accent); font-family: var(--ds-font-sans); font-size: var(--ds-text-label);
   letter-spacing: 0.2em; text-transform: uppercase; padding: 11px; cursor: pointer;
   margin-bottom: 14px; transition: background 0.15s;
 }
 .friendsBtn:hover { background: rgba(0,201,255,0.12); }
 .friendsBtn svg { width: 15px; height: 15px; flex-shrink: 0; }
 
-.tabs { display: flex; gap: 6px; margin-bottom: 14px; }
-.tab {
-  flex: 1; background: rgba(4,30,46,0.6); border: 1px solid rgba(0,201,255,0.08);
-  color: var(--text); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.2em;
-  text-transform: uppercase; padding: 8px; cursor: pointer;
+/* Diver details — saved once, reused to pre-fill competition registration. */
+.details {
+  background: rgba(2,13,20,0.4); border: 1px solid rgba(0,201,255,0.08);
+  padding: 14px; margin-bottom: 14px;
 }
-.tab.tabActive { border-color: rgba(0,201,255,0.35); color: var(--accent); background: rgba(0,201,255,0.08); }
+.detailsHead {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  background: none; border: none; cursor: pointer; padding: 0;
+  color: var(--ds-accent); font-family: var(--ds-font-sans); font-size: var(--ds-text-label);
+  letter-spacing: 0.2em; text-transform: uppercase;
+}
+.detailsHint { font-size: var(--ds-text-label); opacity: .45; margin: 8px 0 12px; line-height: 1.5; }
+.detailsGrid { display: flex; flex-direction: column; gap: 10px; }
+.detailField { display: flex; flex-direction: column; gap: 4px; }
+.detailField > span {
+  font-size: var(--ds-text-label); letter-spacing: 0.15em; text-transform: uppercase; opacity: .55;
+}
+.detailInput, .detailSelect, .detailTextarea {
+  background: rgba(10,61,92,0.3); border: 1px solid rgba(0,201,255,0.2);
+  color: var(--text-bright); font-family: var(--ds-font-sans); font-size: 12px;
+  padding: 7px 9px; outline: none; width: 100%;
+}
+.detailTextarea { resize: vertical; min-height: 54px; }
+.detailInput:focus, .detailSelect:focus, .detailTextarea:focus { border-color: rgba(0,201,255,0.45); }
+.detailsActions { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+.detailsSave {
+  background: rgba(0,201,255,0.1); border: 1px solid rgba(0,201,255,0.3);
+  color: var(--ds-accent); font-family: var(--ds-font-sans); font-size: var(--ds-text-label);
+  letter-spacing: 0.15em; text-transform: uppercase; padding: 8px 16px; cursor: pointer;
+}
+.detailsSave:disabled { opacity: .5; cursor: default; }
+.detailsSaved { font-size: var(--ds-text-label); color: var(--ds-q-excellent); letter-spacing: 0.1em; }
+
+/* Privacy & your data (GDPR export / erasure) */
+.privacyBody { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+.privacyNote { font-size: var(--ds-text-label); opacity: .55; line-height: 1.5; margin: 0; }
+.dangerZone {
+  margin-top: 6px; padding-top: 12px; border-top: 1px solid rgba(192,57,43,0.3);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.dangerLabel {
+  font-size: var(--ds-text-label); letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--ds-danger); margin: 0;
+}
+.deleteBtn {
+  background: rgba(192,57,43,0.1); border: 1px solid rgba(192,57,43,0.45);
+  color: var(--ds-danger); font-family: var(--ds-font-sans); font-size: var(--ds-text-label);
+  letter-spacing: 0.15em; text-transform: uppercase; padding: 8px 16px; cursor: pointer;
+}
+.deleteBtn:disabled { opacity: .45; cursor: default; }
+.dataError { font-size: var(--ds-text-label); color: var(--ds-danger); margin: 0; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.tab {
+  flex: 1; min-width: 0; background: rgba(4,30,46,0.6); border: 1px solid rgba(0,201,255,0.08);
+  color: var(--text); font-family: var(--ds-font-sans); font-size: var(--ds-text-label); letter-spacing: 0.2em;
+  text-transform: uppercase; padding: 8px; cursor: pointer; overflow-wrap: anywhere;
+}
+.tab.tabActive { border-color: rgba(0,201,255,0.35); color: var(--ds-accent); background: rgba(0,201,255,0.08); }
 
 .reportList { display: flex; flex-direction: column; gap: 6px; }
 .reportRow {
   display: flex; align-items: center; gap: 8px;
   background: rgba(2,13,20,0.4); border: 1px solid rgba(0,201,255,0.05); padding: 10px 12px;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
 }
 .reportRow.quarantined { opacity: .45; }
-.reportDate { opacity: .4; font-size: 10px; letter-spacing: 0.1em; flex-shrink: 0; }
-.reportVis { color: var(--text-bright); font-family: var(--font-display); font-size: 15px; }
-.reportPred { opacity: .35; font-size: 10px; flex: 1; }
+.reportDate { opacity: .4; font-size: var(--ds-text-label); letter-spacing: 0.1em; flex-shrink: 0; }
+.reportVis { color: var(--text-bright); font-family: var(--ds-font-sans); font-size: 15px; }
+.reportPred { opacity: .35; font-size: var(--ds-text-label); flex: 1; }
 .qTag {
-  font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase;
-  border: 1px solid rgba(192,57,43,0.4); color: var(--danger); padding: 2px 6px;
+  font-size: var(--ds-text-label); letter-spacing: 0.1em; text-transform: uppercase;
+  border: 1px solid rgba(192,57,43,0.4); color: var(--ds-danger); padding: 2px 6px;
   flex-shrink: 0; white-space: nowrap;
 }
 
-.rank { font-family: var(--font-display); font-size: 18px; color: var(--accent); opacity: .5; width: 32px; flex-shrink: 0; }
+.rank { font-family: var(--ds-font-sans); font-size: 18px; color: var(--ds-accent); opacity: .5; width: 32px; flex-shrink: 0; }
 .boardName { flex: 1; font-size: 12px; color: var(--text-bright); }
-.trustedBadge { color: var(--excellent); margin-left: 5px; font-size: 11px; }
-.boardReports { font-size: 10px; opacity: .45; }
-.boardAcc { font-size: 10px; color: var(--excellent); opacity: .7; min-width: 50px; text-align: right; }
+.trustedBadge { color: var(--ds-q-excellent); margin-left: 5px; font-size: var(--ds-text-label); }
+.boardReports { font-size: var(--ds-text-label); opacity: .45; }
+.boardAcc { font-size: var(--ds-text-label); color: var(--ds-q-excellent); opacity: .7; min-width: 50px; text-align: right; }
 
-.empty { font-size: 11px; opacity: .4; letter-spacing: 0.1em; padding: 20px 0; text-align: center; }
+.empty { font-size: var(--ds-text-label); opacity: .4; letter-spacing: 0.1em; padding: 20px 0; text-align: center; }
 
 .locationRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 10px 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--ds-hairline);
 }
 
 .locationName {
@@ -113,7 +167,7 @@
 }
 
 .locationCoords {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   color: var(--text-muted);
   letter-spacing: 0.05em;
   margin-top: 2px;
@@ -126,7 +180,7 @@
 
 .deleteBtn {
   background: none;
-  border: 1px solid var(--border);
+  border: 1px solid var(--ds-hairline);
   color: var(--text-muted);
   cursor: pointer;
   padding: 4px 8px;
@@ -141,8 +195,8 @@
 .backBtn {
   background: none;
   border: none;
-  color: var(--accent);
-  font-family: var(--font-display);
+  color: var(--ds-accent);
+  font-family: var(--ds-font-sans);
   font-size: 12px;
   letter-spacing: 0.1em;
   cursor: pointer;

@@ -17,6 +17,13 @@ values ('dispute-evidence', 'dispute-evidence', false)
 on conflict (id) do update set public = false;
 
 -- 2. Replace any prior policies for this bucket so the state is deterministic.
+--    This includes the insecure legacy names that were live in production
+--    ("dispute-evidence public read" granted SELECT to the public/anon role).
+--    NOTE: this configuration is now also enforced automatically by the API
+--    migration runner (depthviz-api/migrations/046_lock_dispute_evidence_bucket.sql),
+--    so it no longer depends on this file being run by hand.
+drop policy if exists "dispute-evidence public read" on storage.objects;
+drop policy if exists "dispute-evidence upload own folder" on storage.objects;
 drop policy if exists "dispute-evidence: owner can upload" on storage.objects;
 drop policy if exists "dispute-evidence: owner can read" on storage.objects;
 drop policy if exists "dispute-evidence: owner can delete" on storage.objects;

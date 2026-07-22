@@ -118,7 +118,8 @@ function ErrorHistogram({ points }: HistogramProps) {
   }
   for (const p of points) {
     const idx = Math.floor((p.error - minBin) / binWidth)
-    if (idx >= 0 && idx < bins.length) bins[idx].count++
+    const bin = bins[idx]
+    if (idx >= 0 && idx < bins.length && bin) bin.count++
   }
 
   const maxCount = Math.max(...bins.map(b => b.count), 1)
@@ -222,14 +223,14 @@ function MetricsTimeline({ trainingLog }: MetricsTimelineProps) {
             }))
             const d = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ')
             // Fill path
-            const fillD = `${d} L${pts[pts.length - 1].x},${PAD.top + CH} L${pts[0].x},${PAD.top + CH} Z`
+            const fillD = `${d} L${pts[pts.length - 1]?.x ?? 0},${PAD.top + CH} L${pts[0]?.x ?? 0},${PAD.top + CH} Z`
             return (
               <>
                 <path d={fillD} fill="rgba(0,201,255,0.08)" />
-                <path d={d} fill="none" stroke="var(--accent)" strokeWidth="2" />
+                <path d={d} fill="none" stroke="var(--ds-accent)" strokeWidth="2" />
                 {pts.map((p, i) => (
-                  <circle key={i} cx={p.x} cy={p.y} r="3" fill="var(--accent)" stroke="rgba(2,13,20,0.8)" strokeWidth="1.5">
-                    <title>Run {i + 1}: MAE={entries[i].global_mae?.toFixed(3)}, {entries[i].sample_count} samples ({entries[i].trigger})</title>
+                  <circle key={i} cx={p.x} cy={p.y} r="3" fill="var(--ds-accent)" stroke="rgba(2,13,20,0.8)" strokeWidth="1.5">
+                    <title>Run {i + 1}: MAE={entries[i]?.global_mae?.toFixed(3)}, {entries[i]?.sample_count} samples ({entries[i]?.trigger})</title>
                   </circle>
                 ))}
               </>
@@ -247,7 +248,7 @@ function MetricsTimeline({ trainingLog }: MetricsTimelineProps) {
               })
             : [0, Math.floor(entries.length / 2), entries.length - 1].map(i => {
                 const x = PAD.left + (i / (entries.length - 1)) * CW
-                const label = new Date(entries[i].created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
+                const label = new Date(entries[i]?.created_at ?? '').toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
                 return (
                   <text key={i} x={x} y={H - PAD.bottom + 14} textAnchor="middle" fill="rgba(139,184,204,0.4)" fontSize="8" fontFamily="monospace">{label}</text>
                 )
@@ -366,7 +367,7 @@ function ResidualTable({ residuals, summary, quarantined, onQuarantine }: Residu
         {share !== null ? (
           <>
             Top 3 reports account for{' '}
-            <strong style={{ color: concentrated ? 'var(--danger)' : 'var(--text-bright)' }}>
+            <strong style={{ color: concentrated ? 'var(--ds-danger)' : 'var(--text-bright)' }}>
               {(share * 100).toFixed(0)}%
             </strong>{' '}
             of squared error
@@ -397,7 +398,7 @@ function ResidualTable({ residuals, summary, quarantined, onQuarantine }: Residu
                   <td style={{ padding: '4px 5px', textAlign: 'right' }}>{r.actual.toFixed(1)}</td>
                   <td style={{ padding: '4px 5px', textAlign: 'right' }}>{r.predicted.toFixed(1)}</td>
                   <td style={{ padding: '4px 5px', textAlign: 'right',
-                               color: Math.abs(r.error) > 2 ? 'var(--danger)' : 'var(--text-bright)' }}>
+                               color: Math.abs(r.error) > 2 ? 'var(--ds-danger)' : 'var(--text-bright)' }}>
                     {r.error > 0 ? '+' : ''}{r.error.toFixed(1)}m
                   </td>
                   <td style={{ padding: '4px 5px', textAlign: 'right' }}>

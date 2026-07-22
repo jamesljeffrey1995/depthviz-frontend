@@ -8,47 +8,82 @@ web
 
 ## Users
 
-Primary users are spearfishers and freedivers; the broader dive community (scuba divers, snorkelers) also uses the product. It serves both moments of use: same-day go/no-go decisions (checking conditions the morning of a dive) and advance trip planning (checking a multi-day forecast ahead of time).
+Spearfishers and freedivers deciding whether — and where — to dive. Primary geography is
+the UK / North Sea (50–62°N), matching the visibility model's regional baseline, the
+Seaton Sluice sensor deployment, and the competition partnership below; not yet a global
+audience. Secondary users: competition organisers/admins running an event, and community
+members contributing reports, catches, and dive-table training data.
 
 ## Product Purpose
 
-Turns standard marine/weather data into an estimated underwater visibility-in-metres forecast for a chosen coastal location, so users can decide whether a location is worth diving without interpreting raw swell/wind/precipitation numbers themselves. Users can also log real dive visibility — via on-device video analysis and manual reports — to compare against the forecast.
+A decision-support platform, not a weather app: help people make better decisions before
+entering the water. Every screen must answer its core decision (e.g. Forecast: "Should I
+dive here, today?") within five seconds, for a first-time user, on a mid-range phone, in
+sunlight, over a weak signal. Success is a person acting with justified confidence, not
+just accurate numbers on screen.
 
 ## Positioning
 
-The differentiated mechanism is the visibility-specific forecast model: it translates swell, wind (speed + direction), precipitation, and humidity into a single visibility-in-metres estimate, with a 7-day historical decay applied to swell/rain/wind so a rough preceding week still depresses today's score even if the surface looks calm. A generic marine-weather app surfaces the raw inputs; DepthViz's model is the thing a competitor would need to independently build, not just copy.
+Two obligations override every other product value, including delight and growth:
+
+1. Never manufacture false confidence — a confident-looking green verdict on thin or stale
+   data is more dangerous than an honest "we're not sure." Uncertainty is always visible.
+2. Never hide a safety-relevant caveat behind disclosure — warnings (rip current, offshore
+   wind, reports contradicting the model) appear on the first screen, never one tap down.
+
+This is the mechanism a neighbouring conditions/weather app could not truthfully copy
+without adopting the same safety-first, decision-first constraints.
 
 ## Operating Context
 
-- Users search or select a coastal location (map, saved places, location history) and view a multi-day forecast strip with per-day detail (factor breakdown: swell, wind, precipitation, humidity).
-- Units (ft/m) and dive depth are persistent, app-wide preferences that affect forecast requests.
-- Beyond the forecast, users can log catches, submit dive-video visibility reports, run/create/share apnea (breath-hold) training tables, read a news feed, participate in a forum, manage friends, and dispute forecast or report data.
-- Admin-only tooling (ML charts, seabed editor, admin panel) exists alongside the regular user experience; it's gated client-side but the server is the actual authority.
-- Auth is magic-link email OTP via Supabase; nearly everything else flows through a separate backend REST API.
-- Ships as an installable PWA with offline-resilient caching of the last location/forecast for instant first paint.
+Used on-site, pre-dive, on mobile — often in sunlight and over a weak signal (PWA,
+installable, offline-capable). Core workflows: check today's forecast and decide whether
+to dive; log/read community dive reports and catches; browse a spot map; run apnea-table
+training; participate in or administer a spearfishing competition (registration, live
+leaderboard, safety check-ins); manage a profile and friends list.
 
 ## Capabilities and Constraints
 
-- This repo is frontend-only. All business data and the forecast model itself live in a separate backend REST API; Supabase is used only for auth.
-- On-device dive-video visibility analysis (OpenCV.js dark-channel/Beer-Lambert estimation, run in a web worker) is a distinct client-side estimation feature, separate from the server-computed forecast — the two must not be conflated.
-- Admin status and every `/admin/*` request are re-checked server-side; the client-side admin flag is a UI hint only, never a security boundary.
-- Private saved locations encrypt coordinates client-side before the server ever sees plaintext coordinates.
+- React 19 + TypeScript PWA (Vite 7); CSS Modules styled from `--ds-*` tokens.
+- Forecast model, calibration, and persistence live in a separate `depthviz-api` (FastAPI)
+  backend; this client mirrors a lightweight penalty model client-side for instant local
+  estimates, kept aligned with the API's source of truth.
+- Supabase for auth/session; admin access is re-verified server-side on every request, not
+  an env flag.
+- On-device dive-video visibility analysis via OpenCV.js + mp4box, run in a web worker
+  (requires `'unsafe-eval'`/`'wasm-unsafe-eval'` in CSP — documented in README/nginx.conf).
+- Free/personal project currently; no monetisation plan established (open decision).
 
 ## Brand Commitments
 
-"DepthViz" is the fixed, committed product name — not open for renaming or rebranding.
+Existing "DepthViz" name and an established design-token system (`src/styles/tokens.css`,
+documented in `docs/design-system.md`): Abyssal Navy / Prussian / Classic Ocean / Shallow
+Blue / Teal Seawater / Aquamarine palette. The 6-step dive-quality scale deliberately does
+not use a red-amber-green traffic light — poor conditions read as darker/murkier, good as
+brighter/clearer aqua, monotonic in luminance so it stays colourblind-safe; colour is
+always paired with a label, bar count, and numeric score. A project constitution
+(`docs/CONSTITUTION.md`) governs product, design, and engineering decisions and takes
+precedence over convenience.
 
 ## Evidence on Hand
 
-No real user testimonials, case studies, or press exist yet. Future design work must not fabricate any.
+DepthViz served as the official visibility-forecast partner for a spearfishing
+competition — real proof point, safe to reference. No other testimonials, case studies,
+or press exist yet; do not fabricate them.
 
 ## Product Principles
 
-- Translate raw marine data into a single actionable decision (a visibility number plus its factor breakdown), not raw meteorological readings.
-- Serve same-day go/no-go checks and advance trip planning equally — neither use case should be designed away in favor of the other.
-- Treat user-submitted observation (video analysis, reports) as a check against the forecast, not a replacement for it.
-- Client-side gates (admin flag, unit toggle, cached forecast) are UX conveniences only; the backend remains the authority on data and permissions.
+- Decision first: verdict → explanation → raw data, never reversed, on any screen.
+- Progressive disclosure for detail, never for danger — safety-relevant caveats are never
+  hidden behind a toggle.
+- Every element earns its place: teach, guide, inform, confirm, delight, or protect
+  (safety). Nothing is purely decorative.
+- Reduce thinking: the product compares, converts, and highlights deltas so the user never
+  does mental arithmetic to reach a decision.
+- Consistency: the same idea looks and behaves the same way on every screen.
 
 ## Accessibility & Inclusion
 
-No product-specific accessibility requirement has been established yet; treat as undecided.
+WCAG AA contrast is verified for every accent/quality-scale pairing. Colour is never the
+sole signal (label + icon/bar count accompany every colour-coded state). No further
+product-specific accessibility requirement has been established beyond this.

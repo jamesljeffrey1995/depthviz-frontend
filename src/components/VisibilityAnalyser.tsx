@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   analyseVideo,
   subscribeOpenCVLog,
@@ -14,6 +14,33 @@ interface Props {
 }
 
 type Phase = 'idle' | 'extracting' | 'analysing' | 'done' | 'error'
+
+// ── Sparkbar colour: red→yellow→green by visibility ──
+// Module-scope pure function so it isn't reallocated on every render.
+function barColor(vis: number, max: number): string {
+  const t = Math.min(vis / Math.max(max, 1), 1)
+  if (t < 0.5) {
+    const r = 220
+    const g = Math.round(80 + t * 2 * 140)
+    return `rgb(${r},${g},50)`
+  }
+  const r = Math.round(220 - (t - 0.5) * 2 * 180)
+  const g = 200
+  return `rgb(${r},${g},60)`
+}
+
+/** Video-validation confidence → status token. Trust reads on the status
+ *  ramp (high trust = success, low = danger), and the banner derives its
+ *  border/background tints from this same token via color-mix. */
+function confidenceToken(confidence: number): string {
+  if (confidence >= 0.7) return 'var(--ds-success)'
+  if (confidence >= 0.3) return 'var(--ds-warn)'
+  return 'var(--ds-danger)'
+}
+
+// A dive clip can be thousands of frames; rendering one DOM node each makes the
+// sparkline enormous. Cap the drawn bars and evenly downsample past this.
+const MAX_SPARK_BARS = 240
 
 export default function VisibilityAnalyser({ calib = 4.0, onResult, className }: Props) {
   const [phase, setPhase] = useState<Phase>('idle')
@@ -123,20 +150,22 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
     URL.revokeObjectURL(url)
   }
 
-  // ── Sparkbar colour: red→yellow→green by visibility ──
-  function barColor(vis: number, max: number): string {
-    const t = Math.min(vis / Math.max(max, 1), 1)
-    if (t < 0.5) {
-      const r = 220
-      const g = Math.round(80 + t * 2 * 140)
-      return `rgb(${r},${g},50)`
-    }
-    const r = Math.round(220 - (t - 0.5) * 2 * 180)
-    const g = 200
-    return `rgb(${r},${g},60)`
-  }
-
   const isProcessing = phase === 'extracting' || phase === 'analysing'
+
+  // Evenly downsample the per-frame series to at most MAX_SPARK_BARS so the
+  // sparkline DOM stays bounded regardless of clip length.
+  const sparkFrames = useMemo(() => {
+    const frames = report?.frames
+    if (!frames) return []
+    if (frames.length <= MAX_SPARK_BARS) return frames
+    const step = frames.length / MAX_SPARK_BARS
+    const out: typeof frames = []
+    for (let i = 0; i < MAX_SPARK_BARS; i++) {
+      const f = frames[Math.floor(i * step)]
+      if (f) out.push(f)
+    }
+    return out
+  }, [report])
 
   return (
     <div className={`${styles.container} ${className ?? ''}`}>
@@ -153,7 +182,7 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
             onDrop={onDrop}
             onClick={() => inputRef.current?.click()}
           >
-            <div className={styles.dropzoneIcon}>🎥</div>
+            <div className={styles.dropzoneIcon} aria-hidden="true">🎥</div>
             <div className={styles.dropzoneTitle}>Drop dive video here</div>
             <div className={styles.dropzoneHint}>or click to browse — MP4, MOV, WebM</div>
             <input
@@ -168,7 +197,7 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
             <>
               <p
                 style={{
-                  color: '#ef4444',
+                  color: 'var(--ds-danger)',
                   fontSize: '0.8rem',
                   marginTop: '0.75rem',
                   textAlign: 'center',
@@ -226,26 +255,12 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
             <div
               className={styles.validationBanner}
               style={{
-                borderColor: report.validation.confidence >= 0.7
-                  ? 'rgba(15, 179, 122, 0.4)'
-                  : report.validation.confidence >= 0.3
-                    ? 'rgba(212, 133, 10, 0.4)'
-                    : 'rgba(192, 57, 43, 0.4)',
-                background: report.validation.confidence >= 0.7
-                  ? 'rgba(31, 81, 56, 0.08)'
-                  : report.validation.confidence >= 0.3
-                    ? 'rgba(143, 95, 8, 0.08)'
-                    : 'rgba(164, 50, 31, 0.08)',
+                borderColor: `color-mix(in srgb, ${confidenceToken(report.validation.confidence)} 40%, transparent)`,
+                background: `color-mix(in srgb, ${confidenceToken(report.validation.confidence)} 8%, transparent)`,
               }}
             >
               <div className={styles.validationScore}>
-                <span style={{
-                  color: report.validation.confidence >= 0.7
-                    ? '#1f5138'
-                    : report.validation.confidence >= 0.3
-                      ? '#8f5f08'
-                      : '#a4321f',
-                }}>
+                <span style={{ color: confidenceToken(report.validation.confidence) }}>
                   {report.validation.confidence >= 0.7
                     ? 'Underwater footage confirmed'
                     : report.validation.confidence >= 0.3
@@ -290,7 +305,7 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
           <div className={styles.sparkSection}>
             <div className={styles.sparkTitle}>Per-frame visibility</div>
             <div className={styles.sparkContainer}>
-              {report.frames.map((f) => {
+              {sparkFrames.map((f) => {
                 const maxVis = report.visibility_m.max
                 const heightPct = maxVis > 0 ? (f.visibility_m / maxVis) * 100 : 0
                 return (

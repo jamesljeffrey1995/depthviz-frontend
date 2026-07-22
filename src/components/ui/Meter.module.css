@@ -1,0 +1,48 @@
+.meter { display: flex; flex-direction: column; gap: 6px; }
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--ds-space-3);
+}
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-body);
+  font-weight: var(--ds-fw-medium);
+  color: var(--ds-text-body);
+}
+.value {
+  font-family: var(--ds-font-num);
+  font-size: var(--ds-text-body);
+  font-weight: var(--ds-fw-semi);
+  font-variant-numeric: tabular-nums;
+  color: var(--ds-text-strong);
+}
+
+.glyph { font-size: var(--ds-text-label); line-height: 1; }
+.positive { color: var(--ds-success); }
+.neutral  { color: var(--ds-text-muted); }
+.negative { color: var(--ds-danger); }
+
+.track {
+  position: relative;
+  height: 8px;
+  border-radius: var(--ds-radius-pill);
+  background: var(--ds-surface-sunken);
+  overflow: hidden;
+}
+.fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: var(--ds-radius-pill);
+  transition: width var(--ds-dur-slow) var(--ds-ease-spring);
+}
+.note {
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-meta);
+  color: var(--ds-text-muted);
+}

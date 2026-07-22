@@ -282,7 +282,7 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
     votingInFlight.current.add(locationId)
     setVoteError(null)
 
-    const existing = dbUserVotes[locationId]
+    const existing = dbUserVotes[locationId] ?? null
     const prevCount = dbVoteCounts[locationId] ?? 0
 
     // Optimistic update
@@ -301,7 +301,7 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
       }
       // Sync with server response
       setDbVoteCounts(prev => ({ ...prev, [locationId]: updated.vote_count }))
-      setDbUserVotes(prev => ({ ...prev, [locationId]: updated.user_vote }))
+      setDbUserVotes(prev => ({ ...prev, [locationId]: updated.user_vote ?? null }))
     } catch {
       // Rollback on failure and show brief error
       setDbVoteCounts(prev => ({ ...prev, [locationId]: prevCount }))

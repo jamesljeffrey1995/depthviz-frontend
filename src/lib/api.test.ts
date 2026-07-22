@@ -7,8 +7,8 @@
  *   home page below the DIVE / USE MY LOCATION buttons). parseErrorBody
  *   extracts the `detail` field so users see a clean sentence instead.
  */
-import { describe, expect, test } from 'vitest'
-import { parseErrorBody } from './api'
+import { describe, expect, test, vi, afterEach } from 'vitest'
+import { parseErrorBody, parseRetryAfter } from './api'
 
 describe('parseErrorBody', () => {
   test('extracts FastAPI detail string', () => {
@@ -47,5 +47,34 @@ describe('parseErrorBody', () => {
   test('handles leading whitespace before JSON', () => {
     expect(parseErrorBody('   {"detail":"oops"}'))
       .toBe('oops')
+  })
+})
+
+describe('parseRetryAfter', () => {
+  afterEach(() => vi.useRealTimers())
+
+  test('returns null for a missing header', () => {
+    expect(parseRetryAfter(null)).toBeNull()
+  })
+
+  test('parses delta-seconds', () => {
+    expect(parseRetryAfter('30')).toBe(30)
+    expect(parseRetryAfter('  5 ')).toBe(5)
+  })
+
+  test('parses an HTTP-date into remaining seconds', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))
+    expect(parseRetryAfter('Thu, 01 Jan 2026 00:00:10 GMT')).toBe(10)
+  })
+
+  test('clamps a past HTTP-date to zero', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-01-01T00:01:00Z'))
+    expect(parseRetryAfter('Thu, 01 Jan 2026 00:00:00 GMT')).toBe(0)
+  })
+
+  test('returns null for unparseable values', () => {
+    expect(parseRetryAfter('soon')).toBeNull()
   })
 })

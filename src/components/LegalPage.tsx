@@ -127,7 +127,7 @@ function Disclaimer() {
       <div className={styles.section}>
         <h3>Questions</h3>
         <div className={styles.contactCard}>
-          <p>Email: <a href="mailto:hello@depthviz.com">hello@depthviz.com</a></p>
+          <p>Email: <a href="mailto:hello@depthviz.uk">hello@depthviz.uk</a></p>
         </div>
       </div>
     </>
@@ -138,18 +138,29 @@ function PrivacyPolicy() {
   return (
     <>
       <div className={styles.title}>Privacy Policy</div>
-      <div className={styles.updated}>Last updated: March 2026</div>
+      <div className={styles.updated}>Last updated: July 2026</div>
 
       <div className={styles.section}>
         <h3>What we collect</h3>
         <p>DepthViz collects only what is necessary to provide underwater visibility forecasts and community dive reports:</p>
         <ul>
-          <li><span className={styles.highlight}>Email address</span> — for authentication via magic link (Supabase Auth)</li>
+          <li><span className={styles.highlight}>Email address</span> — for authentication (Supabase Auth). It is stored only as a one-way cryptographic hash, never as plaintext.</li>
           <li><span className={styles.highlight}>Location searches</span> — coordinates you search for, to return forecast data</li>
-          <li><span className={styles.highlight}>Saved locations</span> — dive sites you choose to bookmark</li>
-          <li><span className={styles.highlight}>Dive reports</span> — visibility observations you voluntarily submit</li>
+          <li><span className={styles.highlight}>Saved locations</span> — dive sites you bookmark. Coordinates for spots you mark <em>private</em> are encrypted on your device before they reach us.</li>
+          <li><span className={styles.highlight}>Dive reports &amp; catch logs</span> — observations you voluntarily submit</li>
           <li><span className={styles.highlight}>Display name</span> — optional, shown on the community leaderboard</li>
         </ul>
+      </div>
+
+      <div className={styles.section}>
+        <h3>Competition safety data</h3>
+        <p>
+          If you register for a spearfishing competition, we collect the details needed to keep
+          you safe in the water — your name, phone number, an emergency contact, and any medical
+          notes you choose to share. This is used only for in-water safety accounting during the
+          event, is visible only to competition administrators, and is automatically purged a set
+          period after the event.
+        </p>
       </div>
 
       <div className={styles.section}>
@@ -165,21 +176,25 @@ function PrivacyPolicy() {
         <h3>Third-party services</h3>
         <p>We rely on the following external services to operate:</p>
         <ul>
-          <li><span className={styles.highlight}>Supabase</span> — authentication and user data storage (hosted in EU)</li>
-          <li><span className={styles.highlight}>Open-Meteo</span> — weather and marine forecast data (no personal data sent, only coordinates)</li>
-          <li><span className={styles.highlight}>Copernicus Marine Service</span> — ocean model data (no personal data sent)</li>
-          <li><span className={styles.highlight}>Open-Meteo Geocoding API</span> — location search (no personal data sent, only search queries)</li>
+          <li><span className={styles.highlight}>Supabase</span> — authentication and data storage (hosted in the EU/UK, London region)</li>
+          <li><span className={styles.highlight}>Anthropic (Claude)</span> — optional AI reading of a photo you submit with a forecast dispute. Only that single image is sent, and only when you use the feature.</li>
+          <li><span className={styles.highlight}>Open-Meteo, Copernicus Marine Service, WorldTides</span> — weather, ocean and tide data (no personal data sent, only coordinates)</li>
         </ul>
       </div>
 
       <div className={styles.section}>
         <h3>Data retention</h3>
-        <p>Your account data and dive reports are retained as long as your account exists. You can request deletion of your account and all associated data by contacting us.</p>
+        <p>Your account data is retained as long as your account exists. Competition safety details (emergency contact and medical notes) are automatically purged a set period after each event. If you delete your account, your dive reports are kept but permanently anonymised — they help improve forecasts for everyone and can no longer be traced back to you.</p>
       </div>
 
       <div className={styles.section}>
         <h3>Your rights</h3>
-        <p>You may request access to, correction of, or deletion of your personal data at any time by emailing the address listed on our contact page.</p>
+        <p>You are in control of your data. From your profile, under <span className={styles.highlight}>Privacy &amp; your data</span>, you can:</p>
+        <ul>
+          <li><span className={styles.highlight}>Download my data</span> — export everything we hold about you as a single file (right of access)</li>
+          <li><span className={styles.highlight}>Delete my account</span> — permanently erase your account and personal data, including your login (right to erasure)</li>
+        </ul>
+        <p>You can also correct your details at any time, or contact us using the address on our contact page.</p>
       </div>
     </>
   )
@@ -197,7 +212,7 @@ function CookiePolicy() {
         <ul>
           <li><span className={styles.highlight}>Supabase auth token</span> — keeps you signed in between sessions (localStorage)</li>
           <li><span className={styles.highlight}>Cookie consent preference</span> — remembers your cookie banner choice (localStorage)</li>
-          <li><span className={styles.highlight}>Custom dive spots</span> — stores your user-added map spots locally in your browser (localStorage). These are never sent to our servers and are not visible to other users.</li>
+          <li><span className={styles.highlight}>Custom dive spots</span> — stores your user-added map spots locally in your browser (localStorage). These are never sent to our servers and are not visible to other users. Because they stay on your device only, they are held in plain text (not encrypted): anyone with access to this browser profile — a shared computer, or a malicious browser extension — could read their names and coordinates. Remove them, or clear this site&rsquo;s storage, on a device you do not control.</li>
         </ul>
       </div>
 
@@ -283,7 +298,7 @@ function SecurityPolicy() {
         <p>If you discover a security vulnerability in DepthViz, please report it responsibly. Do not publicly disclose the issue until we have had a chance to address it.</p>
         <div className={styles.contactCard}>
           <p>
-            Email: <a href="mailto:security@depthviz.com">security@depthviz.com</a><br />
+            Email: <a href="mailto:security@depthviz.uk">security@depthviz.uk</a><br />
             Please include a description of the vulnerability, steps to reproduce, and any potential impact.
           </p>
         </div>
@@ -294,7 +309,7 @@ function SecurityPolicy() {
         <h3>Abuse reporting</h3>
         <p>To report abusive behaviour, fraudulent dive reports, or any other misuse of the platform:</p>
         <div className={styles.contactCard}>
-          <p>Email: <a href="mailto:abuse@depthviz.com">abuse@depthviz.com</a></p>
+          <p>Email: <a href="mailto:abuse@depthviz.uk">abuse@depthviz.uk</a></p>
         </div>
       </div>
     </>
@@ -316,16 +331,16 @@ function ContactPage() {
             [DepthViz]<br />
             [Stratford Grove West]<br />
             [Newcastle upon Tyne, United Kingdom]<br /><br />
-            General enquiries: <a href="mailto:hello@depthviz.com">hello@depthviz.com</a><br />
-            Security issues: <a href="mailto:security@depthviz.com">security@depthviz.com</a><br />
-            Abuse reports: <a href="mailto:abuse@depthviz.com">abuse@depthviz.com</a>
+            General enquiries: <a href="mailto:hello@depthviz.uk">hello@depthviz.uk</a><br />
+            Security issues: <a href="mailto:security@depthviz.uk">security@depthviz.uk</a><br />
+            Abuse reports: <a href="mailto:abuse@depthviz.uk">abuse@depthviz.uk</a>
           </p>
         </div>
       </div>
 
       <div className={styles.section}>
         <h3>Support</h3>
-        <p>For questions about your account, dive reports, or forecast data, email <a href="mailto:hello@depthviz.com">hello@depthviz.com</a>. We aim to respond within a few working days.</p>
+        <p>For questions about your account, dive reports, or forecast data, email <a href="mailto:hello@depthviz.uk">hello@depthviz.uk</a>. We aim to respond within a few working days.</p>
       </div>
 
       <div className={styles.section}>
@@ -366,7 +381,7 @@ function AccessibilityStatement() {
 
       <div className={styles.section}>
         <h3>Feedback</h3>
-        <p>Email <a href="mailto:hello@depthviz.com">hello@depthviz.com</a> with any accessibility concerns or suggestions.</p>
+        <p>Email <a href="mailto:hello@depthviz.uk">hello@depthviz.uk</a> with any accessibility concerns or suggestions.</p>
       </div>
     </>
   )

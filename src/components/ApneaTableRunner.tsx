@@ -300,12 +300,19 @@ export function ApneaTableRunner({ user, onShowAuth, sharedTable }: Props) {
   useEffect(() => {
     if (phase !== 'hold' && phase !== 'rest' && phase !== 'prep') return
     let lock: { release: () => Promise<void> } | null = null
+    let released = false
     type Nav = Navigator & { wakeLock?: { request: (type: 'screen') => Promise<{ release: () => Promise<void> }> } }
     const w = navigator as Nav
     if (w.wakeLock) {
-      w.wakeLock.request('screen').then(l => { lock = l }).catch(() => {})
+      w.wakeLock.request('screen').then(l => {
+        // The request resolves asynchronously; if cleanup already ran, release
+        // immediately so the acquired lock doesn't leak.
+        if (released) l.release().catch(() => {})
+        else lock = l
+      }).catch(() => {})
     }
     return () => {
+      released = true
       if (lock) lock.release().catch(() => {})
     }
   }, [phase])
@@ -411,13 +418,17 @@ export function ApneaTableRunner({ user, onShowAuth, sharedTable }: Props) {
         <label htmlFor="audio-toggle">Audio cues (start, countdown, finish)</label>
       </div>
 
-      <div className={`${styles.runnerCard} ${phaseClass}`} aria-live="polite">
-        <div className={styles.phaseLabel}>{phaseLabel}</div>
+      <div className={`${styles.runnerCard} ${phaseClass}`}>
+        {/* Only the phase label is a live region — it changes a handful of
+            times per session. The big countdown re-renders continuously but is
+            no longer inside a live region, so it won't flood the screen reader
+            with per-tick announcements; it stays readable in browse mode. */}
+        <div className={styles.phaseLabel} aria-live="polite">{phaseLabel}</div>
         <div className={styles.bigTime}>{formatTime(displaySeconds)}</div>
         <div className={styles.roundInfo}>
           {phase === 'idle' && `${table.cycles.length} rounds · total ${Math.round(totalSeconds(table.cycles) / 60)} min`}
-          {phase === 'hold' && `Hold ${cycleIdx + 1}/${table.cycles.length} · target ${formatTime(table.cycles[cycleIdx].hold_seconds)}`}
-          {phase === 'rest' && `Rest ${formatTime(table.cycles[cycleIdx].rest_seconds)} before round ${cycleIdx + 2}`}
+          {phase === 'hold' && `Hold ${cycleIdx + 1}/${table.cycles.length} · target ${formatTime(table.cycles[cycleIdx]?.hold_seconds ?? 0)}`}
+          {phase === 'rest' && `Rest ${formatTime(table.cycles[cycleIdx]?.rest_seconds ?? 0)} before round ${cycleIdx + 2}`}
           {phase === 'prep' && 'Get into position — first hold starts when this reaches zero'}
           {phase === 'done' && 'Session complete — recover and hydrate'}
         </div>

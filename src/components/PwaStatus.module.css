@@ -2,11 +2,11 @@
    but in the accent colour to read as informational rather than a warning. */
 .offlineBanner {
   background: rgba(0, 201, 255, 0.1);
-  border: 1px solid var(--accent);
+  border: 1px solid var(--ds-accent);
   border-radius: var(--radius-sm);
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 11px;
+  color: var(--ds-accent);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   letter-spacing: 0.08em;
   padding: var(--space-sm) var(--space-md);
   text-align: center;
@@ -14,33 +14,49 @@
   margin-bottom: var(--space-md);
 }
 
-/* Service-worker update + offline-ready toasts, pinned above the bottom nav. */
+/* Service-worker update + offline-ready toasts.
+   Mobile: compact, centred just above the bottom tab bar so it never covers
+   forms, calculator results or map controls mid-screen.
+   Desktop (no bottom bar): docked bottom-right, out of the content column. */
 .updateToast,
 .readyToast {
   position: fixed;
   left: 50%;
-  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(64px + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
   z-index: 1000;
   display: flex;
   align-items: center;
-  gap: var(--space-md);
-  max-width: calc(100vw - 2 * var(--space-md));
-  background: var(--surface, #07151d);
-  border: 1px solid var(--accent);
-  border-radius: var(--radius-sm);
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-sm) var(--space-md);
+  max-width: min(420px, calc(100vw - 2 * var(--space-md)));
+  background: rgba(4, 21, 31, 0.97);
+  border: 1px solid var(--ds-hairline-strong);
+  border-radius: var(--radius-md);
   color: var(--text-bright);
-  font-family: var(--font-mono);
+  font-family: var(--ds-font-sans);
   font-size: 12px;
-  letter-spacing: 0.04em;
+  line-height: 1.5;
+  letter-spacing: 0.03em;
   padding: var(--space-sm) var(--space-md);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+@media (min-width: 481px) {
+  .updateToast,
+  .readyToast {
+    left: auto;
+    right: var(--space-md);
+    bottom: var(--space-md);
+    transform: none;
+  }
 }
 
 .readyToast {
-  color: var(--accent);
+  color: var(--ds-accent);
   text-transform: uppercase;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.08em;
 }
 
@@ -52,19 +68,20 @@
 
 .reloadBtn,
 .dismissBtn {
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 6px 12px;
+  min-height: 36px;
+  padding: 6px 14px;
   border-radius: var(--radius-sm);
   cursor: pointer;
 }
 
 .reloadBtn {
-  background: var(--accent);
+  background: var(--ds-accent);
   color: #020d14;
-  border: 1px solid var(--accent);
+  border: 1px solid var(--ds-accent);
   font-weight: 700;
 }
 

@@ -95,6 +95,61 @@ describe('calculateWeight', () => {
   })
 })
 
+describe('per-region suit model', () => {
+  const regionBase = {
+    heightCm: 180,
+    weightKg: 80,
+    build: 'average' as const,
+    neutralDepthM: 10,
+    water: 'salt' as const,
+  }
+
+  test('a uniform 5mm full suit + hood matches the legacy fullHood coverage', () => {
+    const legacy = calculateWeight({ ...base, suitType: 'fullHood', wetsuitMm: 5 })
+    const region = calculateWeight({
+      ...regionBase,
+      regions: { hood: 5, body: 5, legs: 5 },
+    })
+    expect(region.suitBuoyancySurface).toBeCloseTo(legacy.suitBuoyancySurface, 6)
+  })
+
+  test('a uniform 5mm full suit (no hood) matches the legacy full coverage', () => {
+    const legacy = calculateWeight({ ...base, suitType: 'full', wetsuitMm: 5 })
+    const region = calculateWeight({
+      ...regionBase,
+      regions: { body: 5, legs: 5 },
+    })
+    expect(region.suitBuoyancySurface).toBeCloseTo(legacy.suitBuoyancySurface, 6)
+  })
+
+  test('thicker legs alone increases suit buoyancy', () => {
+    const thin = calculateWeight({ ...regionBase, regions: { legs: 3 } })
+    const thick = calculateWeight({ ...regionBase, regions: { legs: 7 } })
+    expect(thick.suitBuoyancySurface).toBeGreaterThan(thin.suitBuoyancySurface)
+  })
+
+  test('empty / bare regions contribute no suit buoyancy', () => {
+    const bare = calculateWeight({ ...regionBase, regions: {} })
+    expect(bare.suitBuoyancySurface).toBe(0)
+  })
+
+  test('missing region entries count as bare, not NaN', () => {
+    const r = calculateWeight({ ...regionBase, regions: { body: 5 } })
+    expect(Number.isFinite(r.suitBuoyancySurface)).toBe(true)
+    expect(r.suitBuoyancySurface).toBeGreaterThan(0)
+  })
+
+  test('regions take precedence over legacy suitType/wetsuitMm', () => {
+    const r = calculateWeight({
+      ...base,
+      suitType: 'fullHood',
+      wetsuitMm: 8,
+      regions: {},
+    })
+    expect(r.suitBuoyancySurface).toBe(0)
+  })
+})
+
 describe('kgToLb', () => {
   test('converts kilograms to pounds', () => {
     expect(kgToLb(10)).toBeCloseTo(22.05, 1)

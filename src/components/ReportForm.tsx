@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import type { DayForecast, Location } from '../types'
 import type { VisibilityReport } from '../lib/underwaterVisibility'
 import { submitReport } from '../lib/api'
@@ -25,7 +25,7 @@ function buildDateOptions(): { value: string; label: string }[] {
   for (let i = 0; i <= 7; i++) {
     const d = new Date(today)
     d.setDate(today.getDate() - i)
-    const value = d.toISOString().split('T')[0]
+    const value = d.toISOString().slice(0, 10)
     const label = i === 0 ? 'Today' : i === 1 ? 'Yesterday' :
       d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })
     options.push({ value, label })
@@ -34,7 +34,7 @@ function buildDateOptions(): { value: string; label: string }[] {
 }
 
 export function ReportForm({ day, allDays, locations, onSubmitted, initialLocationId, units = 'm' }: Props) {
-  const todayStr = new Date().toISOString().split('T')[0]
+  const todayStr = new Date().toISOString().slice(0, 10)
   const [selectedDate, setSelectedDate] = useState(day?.date ?? todayStr)
   const [locationId, setLocationId] = useState<number | ''>(initialLocationId ?? '')
   const [actualVis, setActualVis] = useState('')
@@ -43,6 +43,18 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
+
+  // After the success state shows, hand control back to the parent (which
+  // usually navigates away). Store the timer so an unmount before it fires
+  // clears it instead of invoking onSubmitted on a dead component. Read
+  // onSubmitted from a ref so a parent re-render doesn't reset the countdown.
+  const onSubmittedRef = useRef(onSubmitted)
+  onSubmittedRef.current = onSubmitted
+  useEffect(() => {
+    if (!done) return
+    const timer = setTimeout(() => onSubmittedRef.current(), 2500)
+    return () => clearTimeout(timer)
+  }, [done])
 
   const onVideoResult = useCallback((report: VisibilityReport) => {
     setVideoReport(report)
@@ -118,7 +130,6 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
         } : {}),
       })
       setDone(true)
-      setTimeout(onSubmitted, 2500)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to submit')
     } finally {
@@ -205,7 +216,7 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
         {videoReport && (
           <div className={styles.hint} style={
             videoReport.validation && !videoReport.validation.is_valid
-              ? { color: '#a4321f' }
+              ? { color: 'var(--ds-danger)' }
               : undefined
           }>
             {videoReport.validation && !videoReport.validation.is_valid

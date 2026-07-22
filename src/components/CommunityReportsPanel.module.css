@@ -1,0 +1,130 @@
+.panel {
+  background: rgba(4, 30, 46, 0.55);
+  border: 1px solid rgba(0, 201, 255, 0.1);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  margin-bottom: 20px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.title {
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.meta {
+  font-size: var(--ds-text-label);
+  color: var(--text-dim);
+  opacity: 0.75;
+}
+
+.summary {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.55;
+  margin: 4px 0 12px;
+  padding: 8px 12px;
+  border-left: 2px solid var(--ds-accent);
+  background: rgba(0, 201, 255, 0.04);
+  border-radius: var(--radius-sm);
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: baseline;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(2, 13, 20, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.date {
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.14em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.body {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.5;
+  min-width: 0;
+}
+
+.diver {
+  font-weight: 600;
+  color: var(--text-bright);
+  margin-right: 6px;
+}
+
+.note {
+  color: var(--text-dim);
+  font-style: italic;
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.vis {
+  text-align: right;
+  font-family: var(--ds-font-sans);
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text-bright);
+}
+
+.visUnit {
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.deltaGood { color: var(--ds-q-good); }
+.deltaBad  { color: var(--ds-warn); }
+.deltaVeryBad { color: var(--ds-danger); }
+
+.delta {
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.12em;
+  margin-top: 2px;
+}
+
+.empty {
+  padding: 18px 8px;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.emptyHint {
+  font-size: 12px;
+  margin-top: 6px;
+  opacity: 0.7;
+}
