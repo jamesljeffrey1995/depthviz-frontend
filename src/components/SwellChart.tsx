@@ -172,7 +172,7 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
               <rect
                 x={bx - barW / 2 - 2} y={waveTop}
                 width={barW + 4} height={waveH}
-                fill={`color-mix(in srgb, ${color} 16%, transparent)`} rx={2}
+                fill={color} fillOpacity={0.16} rx={2}
               />
               <rect
                 x={bx - barW / 2} y={swellTop}

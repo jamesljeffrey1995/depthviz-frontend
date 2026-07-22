@@ -27,7 +27,8 @@ export interface DiveRatingInfo {
   short: string
   /** Legacy color_class bucket used by existing CSS (blocked/poor/marginal/decent/good/excellent). */
   colorClass: 'blocked' | 'poor' | 'marginal' | 'decent' | 'good' | 'excellent'
-  /** Hex color for chips/markers. */
+  /** Design-token reference (e.g. `var(--ds-q-good)`) for chips/markers —
+   *  usable in any CSS/inline-SVG context, but not a hex to parse or suffix. */
   color: string
   description: string
 }
