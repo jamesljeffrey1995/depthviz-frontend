@@ -12,8 +12,8 @@
 
 .input {
   width: 100%;
-  background: rgba(10, 61, 92, 0.3);
-  border: 1px solid rgba(0, 201, 255, 0.15);
+  background: rgba(250, 246, 234, 0.3);
+  border: 1px solid rgba(168, 59, 12, 0.15);
   color: var(--text-bright);
   font-size: 13px;
   padding: 14px 18px;
@@ -23,12 +23,12 @@
 }
 
 .input::placeholder {
-  color: rgba(139, 184, 204, 0.4);
+  color: rgba(42, 37, 30, 0.4);
 }
 
 .input:focus {
-  border-color: rgba(0, 201, 255, 0.4);
-  background: rgba(10, 61, 92, 0.5);
+  border-color: rgba(168, 59, 12, 0.4);
+  background: rgba(250, 246, 234, 0.5);
 }
 
 .suggestions {
@@ -37,7 +37,7 @@
   left: 0;
   right: 0;
   background: var(--ocean-mid);
-  border: 1px solid rgba(0, 201, 255, 0.2);
+  border: 1px solid rgba(168, 59, 12, 0.2);
   border-top: none;
   z-index: 10;
   list-style: none;
@@ -49,12 +49,12 @@
   cursor: pointer;
   color: var(--text);
   transition: background 0.15s;
-  border-bottom: 1px solid rgba(0, 201, 255, 0.05);
+  border-bottom: 1px solid rgba(168, 59, 12, 0.05);
 }
 
 .suggestion:hover,
 .suggestionActive {
-  background: rgba(0, 201, 255, 0.08);
+  background: rgba(168, 59, 12, 0.08);
   color: var(--text-bright);
 }
 
@@ -82,27 +82,27 @@
 }
 
 .btnDive {
-  background: rgba(0, 201, 255, 0.1);
-  border: 1px solid rgba(0, 201, 255, 0.3);
+  background: rgba(168, 59, 12, 0.1);
+  border: 1px solid rgba(168, 59, 12, 0.3);
   color: var(--accent);
 }
 
 .btnDive:hover {
-  background: rgba(0, 201, 255, 0.2);
-  border-color: rgba(0, 201, 255, 0.6);
-  box-shadow: 0 0 20px rgba(0, 201, 255, 0.1);
+  background: rgba(168, 59, 12, 0.2);
+  border-color: rgba(168, 59, 12, 0.6);
+  box-shadow: 0 0 20px rgba(168, 59, 12, 0.1);
 }
 
 .btnLocate {
-  background: rgba(26, 106, 74, 0.2);
-  border: 1px solid rgba(15, 179, 122, 0.3);
+  background: rgba(47, 107, 70, 0.2);
+  border: 1px solid rgba(31, 81, 56, 0.3);
   color: var(--excellent);
 }
 
 .btnLocate:hover {
-  background: rgba(26, 106, 74, 0.35);
-  border-color: rgba(15, 179, 122, 0.6);
-  box-shadow: 0 0 20px rgba(15, 179, 122, 0.1);
+  background: rgba(47, 107, 70, 0.35);
+  border-color: rgba(31, 81, 56, 0.6);
+  box-shadow: 0 0 20px rgba(31, 81, 56, 0.1);
 }
 
 .btnDive:active,

@@ -190,7 +190,7 @@
 .submitBtn {
   background: var(--accent);
   border: none;
-  color: var(--ocean-deep);
+  color: var(--paper);
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 700;

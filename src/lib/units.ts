@@ -35,8 +35,8 @@ export interface WaterQuality {
  * caller is using.
  */
 export function getWaterQuality(factor: number): WaterQuality {
-  if (factor < 0.3) return { label: 'Nutrient-poor',      color: '#1a8a5a', description: 'Oligotrophic — algae blooms rare' }
-  if (factor < 0.6) return { label: 'Moderate nutrients', color: '#d4850a', description: 'Some bloom potential in warm conditions' }
-  if (factor < 0.8) return { label: 'Nutrient-rich',      color: '#e06c00', description: 'Eutrophic — elevated bloom risk when warm' }
-  return              { label: 'Highly eutrophic',         color: '#c0392b', description: 'High nutrient load — bloom penalty fully applied' }
+  if (factor < 0.3) return { label: 'Nutrient-poor',      color: '#2f6b46', description: 'Oligotrophic — algae blooms rare' }
+  if (factor < 0.6) return { label: 'Moderate nutrients', color: '#8f5f08', description: 'Some bloom potential in warm conditions' }
+  if (factor < 0.8) return { label: 'Nutrient-rich',      color: '#96470f', description: 'Eutrophic — elevated bloom risk when warm' }
+  return              { label: 'Highly eutrophic',         color: '#a4321f', description: 'High nutrient load — bloom penalty fully applied' }
 }

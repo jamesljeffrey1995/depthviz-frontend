@@ -37,7 +37,7 @@
 
 .requestBadge {
   position: absolute; top: -6px; right: -6px;
-  background: var(--accent); color: var(--ocean-deep);
+  background: var(--accent); color: var(--paper);
   font-family: var(--font-mono); font-size: 9px; font-weight: 700;
   min-width: 16px; height: 16px;
   border-radius: 8px;

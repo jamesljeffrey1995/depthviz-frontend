@@ -1,7 +1,7 @@
 .wrap {
   margin: 0 0 16px;
-  background: rgba(2, 13, 20, 0.4);
-  border: 1px solid rgba(0, 201, 255, 0.08);
+  background: var(--paper-dim);
+  border: 1px solid var(--rule);
   padding: 6px 10px;
 }
 
@@ -12,13 +12,13 @@
 }
 
 .valueLabel {
-  fill: var(--text-bright);
+  fill: var(--ink);
   font-family: var(--font-display);
   font-size: 11px;
 }
 
 .dayLabel {
-  fill: rgba(255, 255, 255, 0.4);
+  fill: var(--ink-faint);
   font-size: 8px;
   letter-spacing: 0.08em;
   text-transform: uppercase;

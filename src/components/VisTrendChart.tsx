@@ -52,9 +52,9 @@ export function VisTrendChart({ days, selectedIndex, onSelect }: Props) {
         {/* 8 m "good" reference line */}
         <line
           x1={PAD.left} x2={W - PAD.right} y1={y(8)} y2={y(8)}
-          stroke="rgba(26,138,90,0.35)" strokeWidth={1} strokeDasharray="3 3"
+          stroke="rgba(47,107,70,0.35)" strokeWidth={1} strokeDasharray="3 3"
         />
-        {areaPath && <path d={areaPath} fill="rgba(0,201,255,0.08)" />}
+        {areaPath && <path d={areaPath} fill="rgba(168,59,12,0.1)" />}
         {n > 1 && <path d={linePath} fill="none" stroke="var(--accent)" strokeWidth={1.5} />}
 
         {points.map(p => {
@@ -70,7 +70,7 @@ export function VisTrendChart({ days, selectedIndex, onSelect }: Props) {
               <circle
                 cx={p.cx} cy={p.cy} r={selected ? 4.5 : 3}
                 fill={categoryColor(p.cat)}
-                stroke={selected ? '#fff' : 'transparent'}
+                stroke={selected ? 'var(--paper)' : 'transparent'}
                 strokeWidth={selected ? 1.5 : 0}
               />
               {showLabel && (

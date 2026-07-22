@@ -38,38 +38,38 @@ function defaultConditionsOpen(): boolean {
 }
 
 function getTurbidity(penalty: number): { label: string; color: string; spm: string; description: string } {
-  if (penalty < 0.3)  return { label: 'Clear',        color: '#1a8a5a', spm: '< 2 mg/l',   description: 'Low sediment — minimal impact on visibility' }
-  if (penalty < 1.0)  return { label: 'Slight haze',  color: '#d4850a', spm: '2–5 mg/l',   description: 'Some particulates — slight reduction in viz' }
-  if (penalty < 2.0)  return { label: 'Turbid',       color: '#e06c00', spm: '5–15 mg/l',  description: 'Elevated sediment — noticeable viz reduction' }
-  if (penalty < 3.5)  return { label: 'Very turbid',  color: '#c0392b', spm: '15–50 mg/l', description: 'High sediment load — likely post-swell resuspension' }
-  return               { label: 'Extreme turbidity',   color: '#8b0000', spm: '> 50 mg/l',  description: 'Storm/estuary levels — severe viz impact' }
+  if (penalty < 0.3)  return { label: 'Clear',        color: '#2f6b46', spm: '< 2 mg/l',   description: 'Low sediment — minimal impact on visibility' }
+  if (penalty < 1.0)  return { label: 'Slight haze',  color: '#8f5f08', spm: '2–5 mg/l',   description: 'Some particulates — slight reduction in viz' }
+  if (penalty < 2.0)  return { label: 'Turbid',       color: '#96470f', spm: '5–15 mg/l',  description: 'Elevated sediment — noticeable viz reduction' }
+  if (penalty < 3.5)  return { label: 'Very turbid',  color: '#a4321f', spm: '15–50 mg/l', description: 'High sediment load — likely post-swell resuspension' }
+  return               { label: 'Extreme turbidity',   color: '#7a2415', spm: '> 50 mg/l',  description: 'Storm/estuary levels — severe viz impact' }
 }
 
 function getAirTempSeverity(temp: number): { color: string; note: string | null } {
-  if (temp < 4)  return { color: '#c0392b', note: 'fog risk' }
-  if (temp < 10) return { color: '#d4850a', note: null }
-  return { color: '#1a8a5a', note: null }
+  if (temp < 4)  return { color: '#a4321f', note: 'fog risk' }
+  if (temp < 10) return { color: '#8f5f08', note: null }
+  return { color: '#2f6b46', note: null }
 }
 
 function getSeaTempSeverity(temp: number): { color: string; note: string | null } {
-  if (temp > 20) return { color: '#c0392b', note: 'bloom risk' }
-  if (temp > 15) return { color: '#d4850a', note: 'algae risk' }
-  return { color: '#1a8a5a', note: null }
+  if (temp > 20) return { color: '#a4321f', note: 'bloom risk' }
+  if (temp > 15) return { color: '#8f5f08', note: 'algae risk' }
+  return { color: '#2f6b46', note: null }
 }
 
 function getHumiditySeverity(humidity: number): { color: string; note: string | null } {
-  if (humidity > 94) return { color: '#c0392b', note: null }
-  if (humidity > 88) return { color: '#d4850a', note: null }
-  return { color: '#1a8a5a', note: null }
+  if (humidity > 94) return { color: '#a4321f', note: null }
+  if (humidity > 88) return { color: '#8f5f08', note: null }
+  return { color: '#2f6b46', note: null }
 }
 
 function getRiskColor(level: string): string {
   switch (level) {
-    case 'none': return '#1a8a5a'
-    case 'low':  return '#d4850a'
-    case 'moderate': return '#e06c00'
-    case 'high': return '#c0392b'
-    default: return '#1a8a5a'
+    case 'none': return '#2f6b46'
+    case 'low':  return '#8f5f08'
+    case 'moderate': return '#96470f'
+    case 'high': return '#a4321f'
+    default: return '#2f6b46'
   }
 }
 
@@ -198,15 +198,19 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
 
   return (
     <div className={styles.card}>
-      <div className={styles.header}>
-        <div className={styles.dateBlock}>
-          <div className={styles.dateLine}>{locationName}</div>
-          <div className={styles.dateLine}>{dateLabel}</div>
-          {day.is_forecast && <div className={styles.forecastBadge}>Forecast</div>}
+      <div className={styles.stationHeader}>
+        <div className={styles.stationMeta}>
+          <div className={styles.stationLabel}>Station</div>
+          <div className={styles.stationName}>{locationName}</div>
+          <div className={styles.stationDate}>{dateLabel}</div>
         </div>
+        {day.is_forecast && <div className={styles.forecastBadge}>Forecast</div>}
+      </div>
+
+      <div className={styles.readingRow}>
         <div className={styles.visBlock}>
           <div className={`${styles.visNumber} ${styles[day.color_class]}`}>{vis.toFixed(1)}</div>
-          <div className={styles.visUnit}>metres</div>
+          <div className={styles.visUnit}>metres est. visibility</div>
           {day.vis_corrected !== null && (
             <div className={styles.correctedNote}>
               AI-corrected
@@ -218,9 +222,9 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
               {' '}({reportCount} reports)
               {day.bias_attribution && day.bias_attribution.knn && day.bias_attribution.knn.confidence !== 'insufficient_data' && (
                 <span className={styles.correctedOffset} style={{
-                  color: day.bias_attribution.knn.confidence === 'high' ? '#4ecb8d'
-                    : day.bias_attribution.knn.confidence === 'medium' ? '#d4850a'
-                    : '#e05555',
+                  color: day.bias_attribution.knn.confidence === 'high' ? '#2f6b46'
+                    : day.bias_attribution.knn.confidence === 'medium' ? '#8f5f08'
+                    : '#a4321f',
                   marginLeft: 4,
                 }}>
                   {day.bias_attribution.knn.confidence} conf.
@@ -228,6 +232,10 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
               )}
             </div>
           )}
+        </div>
+
+        <div className={`${styles.stamp} ${styles[`stamp_${day.color_class}`]}`}>
+          {day.verdict}
         </div>
       </div>
 
@@ -243,8 +251,6 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
       {trendDays && (
         <SwellChart days={trendDays} selectedIndex={selectedIndex} onSelect={onSelectDay} units={units} />
       )}
-
-      <div className={`${styles.verdict} ${styles[day.color_class]}`}>{day.verdict}</div>
 
       <div className={styles.barContainer}>
         <div className={styles.barLabels}>
@@ -280,31 +286,31 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
               {seaSev.note && <div className={styles.metricChipNote} style={{ color: seaSev.color }}>{seaSev.note}</div>}
             </div>
           )}
-          <div className={styles.metricChip} style={{ borderColor: '#00c9ff40' }}>
+          <div className={styles.metricChip} style={{ borderColor: '#a83b0c40' }}>
             <div className={styles.metricChipLabel}>Wave / Swell</div>
-            <div className={styles.metricChipValue} style={{ color: '#00c9ff' }}>
+            <div className={styles.metricChipValue} style={{ color: '#a83b0c' }}>
               {Math.max(day.wave_height, day.swell_height).toFixed(1)}{units}
             </div>
-            <div className={styles.metricChipNote} style={{ color: '#00c9ff' }}>
+            <div className={styles.metricChipNote} style={{ color: '#a83b0c' }}>
               {day.wave_height.toFixed(1)} / {day.swell_height.toFixed(1)}{units}
             </div>
           </div>
           {day.swell_dir_label != null && (
-            <div className={styles.metricChip} style={{ borderColor: '#00c9ff40' }}>
+            <div className={styles.metricChip} style={{ borderColor: '#a83b0c40' }}>
               <div className={styles.metricChipLabel}>Swell Dir</div>
-              <div className={styles.metricChipValue} style={{ color: '#00c9ff' }}>{day.swell_dir_label}</div>
-              {day.swell_direction != null && <div className={styles.metricChipNote} style={{ color: '#00c9ff' }}>{Math.round(day.swell_direction)}°</div>}
+              <div className={styles.metricChipValue} style={{ color: '#a83b0c' }}>{day.swell_dir_label}</div>
+              {day.swell_direction != null && <div className={styles.metricChipNote} style={{ color: '#a83b0c' }}>{Math.round(day.swell_direction)}°</div>}
             </div>
           )}
-          <div className={styles.metricChip} style={{ borderColor: '#00c9ff40' }}>
+          <div className={styles.metricChip} style={{ borderColor: '#a83b0c40' }}>
             <div className={styles.metricChipLabel}>Wind</div>
-            <div className={styles.metricChipValue} style={{ color: '#00c9ff' }}>{Math.round(day.wind_speed)}kn</div>
-            {day.wind_dir_label && <div className={styles.metricChipNote} style={{ color: '#00c9ff' }}>{day.wind_dir_label}</div>}
+            <div className={styles.metricChipValue} style={{ color: '#a83b0c' }}>{Math.round(day.wind_speed)}kn</div>
+            {day.wind_dir_label && <div className={styles.metricChipNote} style={{ color: '#a83b0c' }}>{day.wind_dir_label}</div>}
           </div>
-          <div className={styles.metricChip} style={{ borderColor: '#00c9ff40' }}>
+          <div className={styles.metricChip} style={{ borderColor: '#a83b0c40' }}>
             <div className={styles.metricChipLabel}>Rain</div>
-            <div className={styles.metricChipValue} style={{ color: '#00c9ff' }}>{day.precipitation.toFixed(1)}</div>
-            <div className={styles.metricChipNote} style={{ color: '#00c9ff' }}>mm/h</div>
+            <div className={styles.metricChipValue} style={{ color: '#a83b0c' }}>{day.precipitation.toFixed(1)}</div>
+            <div className={styles.metricChipNote} style={{ color: '#a83b0c' }}>mm/h</div>
           </div>
           <div className={styles.metricChip} style={{ borderColor: `${humSev.color}40` }}>
             <div className={styles.metricChipLabel}>Humidity</div>
@@ -479,7 +485,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                     <span className={styles.debugLabel}>Confidence</span>
                     <span className={styles.debugValue} style={{
                       color: day.bias_attribution.knn.confidence === 'high' ? '#4ecb8d'
-                        : day.bias_attribution.knn.confidence === 'medium' ? '#d4850a'
+                        : day.bias_attribution.knn.confidence === 'medium' ? '#8f5f08'
                         : '#e05555'
                     }}>
                       {day.bias_attribution.knn.confidence.toUpperCase().replace('_', ' ')}
@@ -774,7 +780,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                 {day.water_quality.bgc_source && (
                   <div
                     className={styles.waterQualityBadge}
-                    style={{ color: day.water_quality.bgc_source.toUpperCase() === 'FALLBACK' ? '#d4850a' : '#00c9ff' }}
+                    style={{ color: day.water_quality.bgc_source.toUpperCase() === 'FALLBACK' ? '#8f5f08' : '#a83b0c' }}
                   >
                     {day.water_quality.bgc_source.toUpperCase()}
                   </div>
@@ -832,7 +838,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                 const { label, color } = getImpact(f.penalty, f.max_penalty)
                 const barPct = Math.min(100, (Math.abs(f.penalty) / f.max_penalty) * 100)
                 const ratio = Math.abs(f.penalty) / f.max_penalty
-                const barColor = ratio === 0 ? '#1a6b4a' : ratio < 0.4 ? '#d4850a' : ratio < 0.75 ? '#e06c00' : '#c0392b'
+                const barColor = ratio === 0 ? '#2f6b46' : ratio < 0.4 ? '#8f5f08' : ratio < 0.75 ? '#96470f' : '#a4321f'
                 return (
                   <div key={f.name} className={styles.factorCard}>
                     <div className={styles.factorName}>{f.name}</div>

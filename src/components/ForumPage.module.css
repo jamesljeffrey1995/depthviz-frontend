@@ -47,7 +47,7 @@
 
 .primaryBtn {
   background: var(--accent);
-  color: var(--ocean-deep);
+  color: var(--paper);
   border: 1px solid var(--accent);
   font-family: var(--font-mono);
   font-size: 12px;
@@ -159,7 +159,7 @@
   background: var(--ocean-deep);
   border: 1px solid rgba(0, 201, 255, 0.2);
   border-radius: var(--radius-md);
-  color: var(--text-bright);
+  color: var(--paper);
   font-family: var(--font-mono);
   font-size: 13px;
   padding: 10px 12px;
@@ -239,5 +239,5 @@
   border-radius: var(--radius-sm);
 }
 
-.pin { color: var(--ocean-deep); background: var(--accent); }
+.pin { color: var(--paper); background: var(--accent); }
 .lock { color: var(--warn); border: 1px solid var(--warn); }

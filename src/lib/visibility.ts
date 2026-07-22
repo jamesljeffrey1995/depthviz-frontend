@@ -43,12 +43,12 @@ export function degToCompass(deg: number): string {
 }
 
 export function getImpact(penalty: number, maxPenalty: number): { label: ImpactLevel; color: string } {
-  if (maxPenalty === 0 || penalty === 0) return { label: 'NO IMPACT', color: '#1a8a5a' }
+  if (maxPenalty === 0 || penalty === 0) return { label: 'NO IMPACT', color: '#2f6b46' }
   const ratio = Math.abs(penalty) / maxPenalty
-  if (ratio < 0.3)   return { label: 'LOW IMPACT',  color: '#d4850a' }
-  if (ratio < 0.6)   return { label: 'MODERATE',    color: '#e06c00' }
-  if (ratio < 0.85)  return { label: 'HIGH IMPACT', color: '#c0392b' }
-  return               { label: 'SEVERE',            color: '#c0392b' }
+  if (ratio < 0.3)   return { label: 'LOW IMPACT',  color: '#8f5f08' }
+  if (ratio < 0.6)   return { label: 'MODERATE',    color: '#96470f' }
+  if (ratio < 0.85)  return { label: 'HIGH IMPACT', color: '#a4321f' }
+  return               { label: 'SEVERE',            color: '#a4321f' }
 }
 
 export function getVerdict(vis: number): Verdict {

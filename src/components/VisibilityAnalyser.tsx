@@ -232,19 +232,19 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
                     ? 'rgba(212, 133, 10, 0.4)'
                     : 'rgba(192, 57, 43, 0.4)',
                 background: report.validation.confidence >= 0.7
-                  ? 'rgba(15, 179, 122, 0.08)'
+                  ? 'rgba(31, 81, 56, 0.08)'
                   : report.validation.confidence >= 0.3
-                    ? 'rgba(212, 133, 10, 0.08)'
-                    : 'rgba(192, 57, 43, 0.08)',
+                    ? 'rgba(143, 95, 8, 0.08)'
+                    : 'rgba(164, 50, 31, 0.08)',
               }}
             >
               <div className={styles.validationScore}>
                 <span style={{
                   color: report.validation.confidence >= 0.7
-                    ? '#0fb37a'
+                    ? '#1f5138'
                     : report.validation.confidence >= 0.3
-                      ? '#d4850a'
-                      : '#c0392b',
+                      ? '#8f5f08'
+                      : '#a4321f',
                 }}>
                   {report.validation.confidence >= 0.7
                     ? 'Underwater footage confirmed'

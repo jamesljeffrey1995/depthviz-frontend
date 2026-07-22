@@ -4,7 +4,6 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App.tsx'
 import '@fontsource/space-mono/400.css'
 import '@fontsource/space-mono/700.css'
-import '@fontsource/bebas-neue/400.css'
 import './index.css'
 
 // Clickjacking defense: break out of frames

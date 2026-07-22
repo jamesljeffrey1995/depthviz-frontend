@@ -16,10 +16,10 @@ const PAD = { top: 16, right: 30, bottom: 24, left: 14 }
 const FT_PER_M = 3.28084
 
 const COLORS = {
-  calm:     '#1a8a5a',
-  light:    '#d4850a',
-  moderate: '#e06c00',
-  rough:    '#c0392b',
+  calm:     '#2f6b46',
+  light:    '#8f5f08',
+  moderate: '#96470f',
+  rough:    '#a4321f',
 }
 
 function maxScale(units: 'ft' | 'm') {
@@ -143,11 +143,11 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
       >
         <line
           x1={PAD.left} x2={W - PAD.right} y1={y15} y2={y15}
-          stroke="rgba(192,57,43,0.45)" strokeWidth={1} strokeDasharray="3 3"
+          stroke="rgba(164,50,31,0.45)" strokeWidth={1} strokeDasharray="3 3"
         />
         <line
           x1={PAD.left} x2={W - PAD.right} y1={y1} y2={y1}
-          stroke="rgba(212,133,10,0.45)" strokeWidth={1} strokeDasharray="3 3"
+          stroke="rgba(143,95,8,0.45)" strokeWidth={1} strokeDasharray="3 3"
         />
         <text x={W - PAD.right + 3} y={y15 + 3.5} className={styles.refLabel}>{ref15Label}</text>
         <text x={W - PAD.right + 3} y={y1  + 3.5} className={styles.refLabel}>{ref1Label}</text>
@@ -176,7 +176,7 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
                 x={bx - barW / 2} y={swellTop}
                 width={barW} height={swellH}
                 fill={color} opacity={sel ? 1 : 0.78} rx={2}
-                stroke={sel ? 'rgba(255,255,255,0.55)' : 'transparent'}
+                stroke={sel ? 'rgba(42,37,30,0.6)' : 'transparent'}
                 strokeWidth={sel ? 1 : 0}
               />
               {showLabel && (

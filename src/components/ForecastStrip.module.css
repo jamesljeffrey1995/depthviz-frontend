@@ -11,9 +11,13 @@
   padding-bottom: 4px;
 }
 
+/* Each day reads as an index tab clipped to a station log — squared off,
+   ruled border, a bit of "clipped-to-the-page" overlap via negative margin
+   would fight the scroll strip, so we keep them separate but tab-like. */
 .day {
-  background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(0, 201, 255, 0.08);
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-bottom: 2px solid var(--rule);
   padding: 12px 10px;
   width: 72px;
   cursor: pointer;
@@ -22,7 +26,6 @@
   flex-shrink: 0;
   text-align: left;
   font-family: var(--font-mono);
-
 }
 
 .day:focus-visible {
@@ -31,13 +34,14 @@
 }
 
 .day:hover {
-  border-color: rgba(0, 201, 255, 0.25);
-  background: rgba(4, 30, 46, 0.9);
+  border-color: var(--rule-strong);
+  background: var(--paper);
 }
 
 .day.active {
-  border-color: rgba(0, 201, 255, 0.5);
-  background: rgba(7, 40, 64, 0.9);
+  border-color: var(--rule-strong);
+  border-bottom: 2px solid var(--accent);
+  background: var(--paper);
 }
 
 .day.forecast::after {
@@ -47,16 +51,15 @@
   right: 4px;
   font-size: 6px;
   letter-spacing: 0.1em;
-  opacity: 0.35;
+  color: var(--ink-faint);
 }
 
 .dateLabel {
   font-size: 9px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  opacity: 1;
   margin-bottom: 6px;
-  color: rgba(58, 212, 255, 0.25);
+  color: var(--ink-faint);
 }
 
 .vis {
@@ -68,9 +71,8 @@
 
 .unit {
   font-size: 8px;
-  opacity: 1;
   letter-spacing: 0.1em;
-  color: rgba(0, 201, 255, 0.25);
+  color: var(--ink-faint);
 }
 
 .verdict {
@@ -78,9 +80,8 @@
   letter-spacing: 0.05em;
   text-transform: uppercase;
   margin-top: 6px;
-  opacity: 1;
   line-height: 1.3;
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .algaePip {
@@ -93,24 +94,25 @@
 }
 
 .algaeLow      { background: transparent; }
-.algaeModerate { background: #d4850a; }
-.algaeHigh     { background: #c0392b; }
+.algaeModerate { background: var(--warn); }
+.algaeHigh     { background: var(--danger); }
 
 .driver {
   font-size: 7px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   margin-top: 4px;
-  color: rgba(0, 201, 255, 0.45);
+  color: var(--accent);
+  opacity: 0.7;
   line-height: 1.2;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
-.blocked  { color: #7a8a9a; }
-.poor     { color: var(--danger); }
-.marginal { color: var(--warn); }
-.decent   { color: #7fb87a; }
-.good     { color: var(--good); }
+.blocked   { color: var(--blocked); }
+.poor      { color: var(--danger); }
+.marginal  { color: var(--warn); }
+.decent    { color: var(--decent); }
+.good      { color: var(--good); }
 .excellent { color: var(--excellent); }

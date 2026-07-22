@@ -1,20 +1,54 @@
+/* ── Stamped stencil face — self-hosted (see DESIGN.md); the
+   @fontsource registry package couldn't be installed in this
+   environment, so the font is bundled directly. Single weight —
+   Allerta Stencil ships regular only, which is what a rubber
+   stamp/crate-marking face would look like anyway. ── */
+@font-face {
+  font-family: 'Allerta Stencil';
+  src: url('./assets/fonts/AllertaStencil-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
-  /* ── Colour palette ── */
-  --ocean-deep: #020d14;
-  --ocean-mid: #041e2e;
-  --ocean-surface: #072840;
-  --brine: #0a3d5c;
-  --danger: #c0392b;
-  --warn: #d4850a;
-  --good: #1a8a5a;
-  --excellent: #0fb37a;
-  --text: #8bb8cc;
-  --text-bright: #d4eaf5;
-  --accent: #00c9ff;
+  /* ── Colour palette — oceanographic field-log ──
+     Survey-paper ground + graphite ink + one safety-orange working ink.
+     Verdict/impact inks form a small functional signal set (not decoration):
+     good/excellent (field green), warn/moderate (ochre/burnt umber),
+     danger (oxblood red) — see DESIGN.md for the full rationale. */
+  --paper: #f2ecdd;
+  --paper-raised: #faf6ea;
+  --paper-dim: #e6dcc3;
+  --ink: #2a251e;
+  --ink-dim: #5c5344;
+  --ink-faint: #a89c84;
+  --rule: #c7bb9c;
+  --rule-strong: #8c8064;
+
+  --accent: #a83b0c;
+  --danger: #a4321f;
+  --danger-deep: #7a2415;
+  --warn: #8f5f08;
+  --moderate: #96470f;
+  --good: #2f6b46;
+  --excellent: #1f5138;
+  --decent: #4f6b3a;
+  --blocked: #675e4e;
+
+  /* Legacy dark-theme token names — kept alive so pages not yet migrated to
+     the field-log system (see DESIGN.md "Rollout") still render sensibly;
+     retire each alias as its page gets its own pass. */
+  --ocean-deep: var(--ink);
+  --ocean-mid: var(--paper-dim);
+  --ocean-surface: var(--paper-raised);
+  --brine: var(--rule-strong);
+  --text: var(--ink-dim);
+  --text-bright: var(--ink);
 
   /* ── Typography ── */
   --font-mono: 'Space Mono', monospace;
-  --font-display: 'Bebas Neue', sans-serif;
+  --font-display: 'Allerta Stencil', sans-serif;
 
   /* ── Spacing scale ── */
   --space-xs:  4px;
@@ -24,15 +58,15 @@
   --space-xl:  40px;
   --space-2xl: 64px;
 
-  /* ── Border radius ── */
-  --radius-sm: 2px;
-  --radius-md: 4px;
-  --radius-lg: 8px;
+  /* ── Border radius — a ruled page has corners, not rounded cards ── */
+  --radius-sm: 1px;
+  --radius-md: 2px;
+  --radius-lg: 3px;
 
   /* ── Motion & shadow ── */
   --transition-base: 150ms ease;
-  --shadow-glow:    0 0 20px rgba(0, 201, 255, 0.15);
-  --shadow-card:    0 2px 12px rgba(0, 0, 0, 0.5);
+  --shadow-glow:    0 1px 0 rgba(42, 37, 30, 0.06);
+  --shadow-card:    0 1px 3px rgba(42, 37, 30, 0.14);
 }
 
 /* ── Reset ── */
@@ -53,7 +87,7 @@ html, body, #root {
 }
 
 body {
-  background: var(--ocean-deep);
+  background: var(--paper);
   color: var(--text);
   font-family: var(--font-mono);
   overflow-x: hidden;
@@ -63,15 +97,35 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Animated ocean background ── */
+/* ── Ruled grid-paper ground — static, not animated; a survey sheet
+   doesn't shimmer. Two hairline grids (fine + a heavier "margin" rule
+   every 5th line) plus a faint paper-fibre speckle. ── */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background:
-    radial-gradient(ellipse 80% 60% at 20% 80%, rgba(4, 30, 46, 0.9) 0%, transparent 70%),
-    radial-gradient(ellipse 60% 80% at 80% 20%, rgba(2, 13, 20, 0.95) 0%, transparent 60%),
-    linear-gradient(180deg, #020d14 0%, #041e2e 40%, #072840 70%, #041e2e 100%);
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(140, 128, 100, 0.07) 0,
+      rgba(140, 128, 100, 0.07) 1px,
+      transparent 1px,
+      transparent 32px
+    ),
+    repeating-linear-gradient(
+      to right,
+      rgba(140, 128, 100, 0.05) 0,
+      rgba(140, 128, 100, 0.05) 1px,
+      transparent 1px,
+      transparent 32px
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      rgba(140, 128, 100, 0.12) 0,
+      rgba(140, 128, 100, 0.12) 1px,
+      transparent 1px,
+      transparent 160px
+    );
   z-index: 0;
   pointer-events: none;
 }
@@ -79,23 +133,16 @@ body::before {
 body::after {
   content: '';
   position: fixed;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
+  inset: 0;
   background-image:
-    radial-gradient(ellipse 3px 8px at 20% 15%, rgba(0, 201, 255, 0.03) 0%, transparent 100%),
-    radial-gradient(ellipse 8px 3px at 60% 35%, rgba(0, 201, 255, 0.04) 0%, transparent 100%),
-    radial-gradient(ellipse 4px 10px at 80% 20%, rgba(0, 201, 255, 0.02) 0%, transparent 100%),
-    radial-gradient(ellipse 6px 4px at 35% 60%, rgba(0, 201, 255, 0.03) 0%, transparent 100%);
-  animation: caustics 8s ease-in-out infinite alternate;
+    radial-gradient(ellipse 1px 1px at 12% 22%, rgba(42, 37, 30, 0.06) 0%, transparent 100%),
+    radial-gradient(ellipse 1px 1px at 68% 8%, rgba(42, 37, 30, 0.05) 0%, transparent 100%),
+    radial-gradient(ellipse 1px 1px at 40% 65%, rgba(42, 37, 30, 0.06) 0%, transparent 100%),
+    radial-gradient(ellipse 1px 1px at 85% 78%, rgba(42, 37, 30, 0.04) 0%, transparent 100%),
+    radial-gradient(ellipse 1px 1px at 22% 90%, rgba(42, 37, 30, 0.05) 0%, transparent 100%);
+  background-size: 240px 240px;
   z-index: 0;
   pointer-events: none;
-}
-
-@keyframes caustics {
-  0%   { transform: translate(0, 0) rotate(0deg); opacity: 0.5; }
-  100% { transform: translate(30px, 20px) rotate(2deg); opacity: 1; }
 }
 
 /* ── Interactive element base styles ── */
@@ -132,7 +179,7 @@ input:focus-visible {
   z-index: 9999;
   padding: var(--space-sm) var(--space-md);
   background: var(--accent);
-  color: var(--ocean-deep);
+  color: var(--paper);
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 700;
@@ -149,15 +196,12 @@ input:focus-visible {
 
 /* ── Text selection ── */
 ::selection {
-  background: rgba(0, 201, 255, 0.25);
-  color: var(--text-bright);
+  background: rgba(168, 59, 12, 0.22);
+  color: var(--ink);
 }
 
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
-  body::after {
-    animation: none;
-  }
   * {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
