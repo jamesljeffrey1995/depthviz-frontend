@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { DayForecast } from '../types'
 import { weekdayShort, weekdayLong } from '../lib/visTrend'
+import { SEVERITY_TOKEN } from '../lib/severity'
 import styles from './SwellChart.module.css'
 
 interface Props {
@@ -15,11 +16,12 @@ const H = 100
 const PAD = { top: 16, right: 30, bottom: 24, left: 14 }
 const FT_PER_M = 3.28084
 
+// Sea-state severity rides the shared status ramp (calm → rough).
 const COLORS = {
-  calm:     '#1a8a5a',
-  light:    '#d4850a',
-  moderate: '#e06c00',
-  rough:    '#c0392b',
+  calm:     SEVERITY_TOKEN.safe,
+  light:    SEVERITY_TOKEN.low,
+  moderate: SEVERITY_TOKEN.moderate,
+  rough:    SEVERITY_TOKEN.high,
 }
 
 function maxScale(units: 'ft' | 'm') {
@@ -170,7 +172,7 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
               <rect
                 x={bx - barW / 2 - 2} y={waveTop}
                 width={barW + 4} height={waveH}
-                fill={`${color}28`} rx={2}
+                fill={`color-mix(in srgb, ${color} 16%, transparent)`} rx={2}
               />
               <rect
                 x={bx - barW / 2} y={swellTop}

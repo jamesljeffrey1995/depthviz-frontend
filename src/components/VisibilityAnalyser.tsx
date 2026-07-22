@@ -188,7 +188,7 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
             <>
               <p
                 style={{
-                  color: '#ef4444',
+                  color: 'var(--ds-danger)',
                   fontSize: '0.8rem',
                   marginTop: '0.75rem',
                   textAlign: 'center',
@@ -261,10 +261,10 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
               <div className={styles.validationScore}>
                 <span style={{
                   color: report.validation.confidence >= 0.7
-                    ? '#0fb37a'
+                    ? 'var(--ds-success)'
                     : report.validation.confidence >= 0.3
-                      ? '#d4850a'
-                      : '#c0392b',
+                      ? 'var(--ds-warn)'
+                      : 'var(--ds-danger)',
                 }}>
                   {report.validation.confidence >= 0.7
                     ? 'Underwater footage confirmed'
