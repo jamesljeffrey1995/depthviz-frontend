@@ -89,6 +89,17 @@ colour rather than collapsing into `--ds-warn`. Consumers map to these through
 `src/lib/severity.ts` (`SEVERITY_TOKEN`, `impactToken`, `riskToken`) so no
 component reintroduces a raw hex, and every use is paired with a text label.
 
+**Categorical palette** (`--ds-cat-1…6`) is a third, distinct ramp for cases
+where hue marks a *category*, not a magnitude, quality or alert: the swell
+compass's component arrows, the admin traffic-chart series, and the map markers
+(featured / community / private / dropped pin). It is ordered for maximum
+separation (blue → teal → amber → violet → coral → green), colourblind-aware,
+and always paired with a legend. Unlike the theme-mapped semantic tokens these
+are **direct hex** — a qualitative key must read the same in both themes, and a
+flat value can be resolved via `getComputedStyle` for the two contexts where
+`var()` cannot: an SVG serialized into a `data:` URI (Leaflet marker icons) and
+a canvas. `src/lib/cssVar.ts` (`resolveCssVar`) does that resolution.
+
 ### Spacing: strict 8px system
 
 `4 · 8 · 12 · 16 · 24 · 32 · 48 · 64` → `--ds-space-1 … --ds-space-8`. 4px is the
