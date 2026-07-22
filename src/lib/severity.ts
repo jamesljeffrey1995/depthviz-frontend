@@ -31,7 +31,9 @@ export const SEVERITY_TOKEN: Record<Severity, string> = {
  * so this is a pure colour-source swap, not a behaviour change.
  */
 export function impactToken(ratio: number): string {
-  if (ratio <= 0) return SEVERITY_TOKEN.safe
+  // Defensive: a non-finite ratio (e.g. a zero-max factor divided through)
+  // must not fall through to the high-severity band and cry wolf.
+  if (!Number.isFinite(ratio) || ratio <= 0) return SEVERITY_TOKEN.safe
   if (ratio < 0.4) return SEVERITY_TOKEN.low
   if (ratio < 0.75) return SEVERITY_TOKEN.moderate
   return SEVERITY_TOKEN.high

@@ -79,8 +79,11 @@ export function FactorGrid({ factors }: FactorGridProps) {
     <div className={styles.grid}>
       {factors.map(f => {
         const { label: impactLabel, color: impactColor } = getImpact(f.penalty, f.max_penalty)
-        const barPct = Math.min(100, (Math.abs(f.penalty) / f.max_penalty) * 100)
-        const ratio = Math.abs(f.penalty) / f.max_penalty
+        // Guard the divide: a zero-max factor has no impact, so it maps to a
+        // 0 ratio (empty bar, safe colour) rather than a NaN width / high-
+        // severity colour from dividing by zero.
+        const ratio = f.max_penalty > 0 ? Math.abs(f.penalty) / f.max_penalty : 0
+        const barPct = Math.min(100, ratio * 100)
         const barColor = impactToken(ratio)
 
         return (
