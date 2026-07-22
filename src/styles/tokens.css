@@ -281,7 +281,6 @@
    vocabulary on top of the `--ds-*` engine so new work (and external design
    references) can be written against the documented names; both point at the
    same theme-aware values, so a single theme switch updates everything.
-   The five-step status ramp is the water-clarity condition scale.
    ========================================================================== */
 :root {
   --color-surface-canvas:   var(--ds-bg);
@@ -294,11 +293,19 @@
   --color-chart-secondary:  var(--ds-chart-secondary);
   --color-focus-ring:       var(--ds-focus-ring);
 
-  /* Water-clarity condition ramp (poor → excellent) */
+  /* Water-clarity condition ramp. The shipped scale is the six-step
+     `--ds-q-*` engine that every component renders from, so these public
+     aliases mirror it one-to-one (murkiest → clearest) rather than offsetting
+     the design doc's shorter poor→excellent shorthand onto it — that keeps a
+     single, complete source of truth and stops a consumer picking the wrong
+     colour for a band. The doc's five labels map onto steps 2–6 of this ramp
+     (poor→poor, fair→marginal, good→workable, very-good→good,
+     excellent→excellent); `blown` is the sixth, blown-out step. */
+  --color-status-blown:     var(--ds-q-blown);
   --color-status-poor:      var(--ds-q-poor);
-  --color-status-fair:      var(--ds-q-marginal);
-  --color-status-good:      var(--ds-q-workable);
-  --color-status-very-good: var(--ds-q-good);
+  --color-status-marginal:  var(--ds-q-marginal);
+  --color-status-workable:  var(--ds-q-workable);
+  --color-status-good:      var(--ds-q-good);
   --color-status-excellent: var(--ds-q-excellent);
 
   /* Font families */
