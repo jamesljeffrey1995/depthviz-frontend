@@ -74,7 +74,7 @@ function getElevatedWarnings(day: DayForecast): string[] {
     warnings.push(`${day.resuspension.risk_level === 'high' ? 'High' : 'Moderate'} seabed resuspension`)
   if (day.river_discharge && (day.river_discharge.risk_level === 'high' || day.river_discharge.risk_level === 'moderate'))
     warnings.push(`${day.river_discharge.risk_level === 'high' ? 'High' : 'Moderate'} river discharge`)
-  return warnings
+  return [...new Set(warnings)]
 }
 
 export function DayDetail({ day, locationName, reportCount }: Props) {
