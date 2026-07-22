@@ -77,7 +77,7 @@ function getElevatedWarnings(day: DayForecast): string[] {
   return [...new Set(warnings)]
 }
 
-export function DayDetail({ day, locationName, reportCount }: Props) {
+export function DayDetail({ day, locationName: _locationName, reportCount: _reportCount }: Props) {
   const [showAdvanced, setShowAdvanced] = useState(false)
   const vis = day.vis_corrected ?? day.vis_estimate
   const pct = (vis / 15) * 100
@@ -95,7 +95,7 @@ export function DayDetail({ day, locationName, reportCount }: Props) {
   const advancedAvailable = hasAdvancedData(day)
 
   return (
-    <div className={styles.card} data-location={locationName} data-report-count={reportCount}>
+    <div className={styles.card}>
       {/* Safety-relevant caveats — promoted directly under the verdict, ahead
           of any chart or collapsible section, per Constitution §1: warnings
           are never hidden behind disclosure or buried below the fold. These
