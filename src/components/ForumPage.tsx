@@ -6,6 +6,7 @@ import {
   createForumThread, createForumPost, deleteForumPost,
 } from '../lib/api'
 import type { ForumCategory, ForumCategoryView, ForumThreadDetail } from '../types'
+import { IconChevronLeft, IconPlus } from './icons'
 import styles from './ForumPage.module.css'
 
 function timeAgo(iso: string): string {
@@ -110,10 +111,14 @@ export function ForumCategoryPage({ user, onShowAuth }: ForumProps) {
 
   return (
     <div className={styles.container}>
-      <button className={styles.back} onClick={() => navigate('/forum')}>← All categories</button>
+      <button className={styles.back} onClick={() => navigate('/forum')}>
+        <IconChevronLeft width={14} height={14} /> All categories
+      </button>
       <header className={styles.head}>
         <h1 className={styles.pageTitle}>{view?.category.name ?? 'Loading…'}</h1>
-        <button className={styles.primaryBtn} onClick={openComposer}>+ New thread</button>
+        <button className={styles.primaryBtn} onClick={openComposer}>
+          <IconPlus width={14} height={14} /> New thread
+        </button>
       </header>
       {view?.category.description && <p className={styles.intro}>{view.category.description}</p>}
       {error && <p className={styles.error} role="alert">{error}</p>}
@@ -241,7 +246,7 @@ export function ForumThreadPage({ user, onShowAuth }: ForumProps) {
         className={styles.back}
         onClick={() => navigate(categorySlug ? `/forum/${categorySlug}` : '/forum')}
       >
-        ← {thread.category?.name ?? 'Forum'}
+        <IconChevronLeft width={14} height={14} /> {thread.category?.name ?? 'Forum'}
       </button>
       <h1 className={styles.threadHeading}>
         {thread.is_pinned && <span className={styles.pin}>Pinned</span>}

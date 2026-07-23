@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { getCatches, getMyCatches, logCatch, deleteCatch, getCatchSpecies } from '../lib/api'
 import type { CatchRead, Location } from '../types'
+import { Tabs } from './Tabs'
 import styles from './CatchesPage.module.css'
 
 interface CatchesPageProps {
@@ -198,17 +199,15 @@ export function CatchesPage({ user, locations, onShowAuth }: CatchesPageProps) {
       <div className={styles.title}>Catches</div>
       <div className={styles.subtitle}>Log and browse fishing catches</div>
 
-      <div className={styles.tabs}>
-        <button className={`${styles.tab} ${tab === 'mine' ? styles.tabActive : ''}`} onClick={() => setTab('mine')}>
-          My Catches
-        </button>
-        <button className={`${styles.tab} ${tab === 'community' ? styles.tabActive : ''}`} onClick={() => setTab('community')}>
-          Community
-        </button>
-        <button className={`${styles.tab} ${tab === 'log' ? styles.tabActive : ''}`} onClick={() => setTab('log')}>
-          Log Catch
-        </button>
-      </div>
+      <Tabs
+        tabs={[
+          { id: 'mine', label: 'My Catches' },
+          { id: 'community', label: 'Community' },
+          { id: 'log', label: 'Log Catch' },
+        ]}
+        active={tab}
+        onChange={t => setTab(t as Tab)}
+      />
 
       {error && <div className={styles.error}>{error}</div>}
 

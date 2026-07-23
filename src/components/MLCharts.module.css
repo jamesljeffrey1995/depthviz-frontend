@@ -1,28 +1,39 @@
+/* Overall rhythm: generous space between the three chart groupings below,
+   tight space between charts that belong to the same grouping. */
 .chartsContainer {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--space-xl);
+}
+
+.chartGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
 }
 
 .chartCard {
-  background: rgba(2, 13, 20, 0.4);
-  border: 1px solid rgba(14, 124, 134, 0.08);
-  padding: 14px;
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-md);
 }
 
 .chartTitle {
-  font-family: var(--font-display);
-  font-size: 13px;
-  color: var(--accent);
-  letter-spacing: 0.1em;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-text);
+  letter-spacing: -0.005em;
   margin-bottom: 2px;
 }
 
 .chartSubtitle {
-  font-size: 9px;
-  opacity: 0.35;
-  letter-spacing: 0.05em;
-  margin-bottom: 10px;
+  font-size: 11px;
+  color: var(--ink-faint);
+  line-height: 1.5;
+  margin-bottom: var(--space-sm);
 }
 
 .chartWrapper {
@@ -36,8 +47,80 @@
   -webkit-overflow-scrolling: touch;
 }
 
-.tableScroll table {
+.table {
+  width: 100%;
   min-width: 340px;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-family: var(--font-sans);
+}
+
+.tableHeadRow th {
+  text-align: left;
+  padding: var(--space-xs) 5px;
+  color: var(--ink-faint);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.numCol {
+  text-align: right;
+}
+
+.tableRow td {
+  padding: var(--space-xs) 5px;
+  border-top: 1px solid var(--surface-border);
+  color: var(--ink-dim);
+}
+
+.tableRow.quarantinedRow {
+  opacity: 0.45;
+}
+
+.errCellHigh {
+  color: var(--sev-poor);
+  font-weight: 700;
+}
+
+.errCell {
+  color: var(--ink);
+}
+
+.quarantinedLabel {
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  color: var(--ink-faint);
+}
+
+/* Destructive per-row action — kept visually distinct (severity tint, small
+   pill) from the primary "Force Retrain"/"Run Cleaning" actions in
+   AdminPanel so it never reads as an equally-weighted default action. */
+.quarantineBtn {
+  background: rgba(189, 58, 58, 0.08);
+  border: 1px solid rgba(189, 58, 58, 0.3);
+  border-radius: var(--radius-full);
+  color: var(--sev-poor);
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.quarantineBtn:hover {
+  background: rgba(189, 58, 58, 0.18);
+}
+
+.summaryStrong {
+  color: var(--ink);
+}
+
+.summaryWarn {
+  color: var(--sev-poor);
 }
 
 .chart {
@@ -47,12 +130,11 @@
 
 .legend {
   display: flex;
-  gap: 14px;
+  gap: var(--space-md);
   justify-content: center;
-  margin-top: 8px;
-  font-size: 9px;
-  opacity: 0.5;
-  letter-spacing: 0.05em;
+  margin-top: var(--space-sm);
+  font-size: 11px;
+  color: var(--ink-faint);
 }
 
 .legendItem {
@@ -68,18 +150,10 @@
   border-radius: 50%;
 }
 
-.loading {
-  font-size: 11px;
-  opacity: 0.4;
-  letter-spacing: 0.1em;
-  padding: 20px 0;
-  text-align: center;
-}
-
+.loading,
 .empty {
-  font-size: 11px;
-  opacity: 0.4;
-  letter-spacing: 0.1em;
-  padding: 20px 0;
+  font-size: 12px;
+  color: var(--ink-faint);
+  padding: var(--space-lg) 0;
   text-align: center;
 }

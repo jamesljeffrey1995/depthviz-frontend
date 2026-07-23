@@ -8,7 +8,7 @@
   font-family: var(--font-display);
   font-size: 28px;
   letter-spacing: 0.12em;
-  color: var(--text-bright);
+  color: var(--ink);
   margin-bottom: 4px;
 }
 
@@ -21,52 +21,24 @@
 }
 
 .warning {
-  background: rgba(192, 57, 43, 0.12);
-  border: 1px solid rgba(192, 57, 43, 0.35);
+  background: rgba(189, 58, 58, 0.08);
+  border: 1px solid rgba(189, 58, 58, 0.3);
+  border-radius: var(--radius-md);
   padding: 12px 14px;
   margin-bottom: 20px;
   font-size: 11px;
   line-height: 1.5;
-  color: #f0c0b8;
+  color: var(--sev-poor);
   letter-spacing: 0.04em;
 }
 
 .warning strong {
-  color: var(--danger);
+  color: var(--sev-poor);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   font-size: 10px;
   display: block;
   margin-bottom: 4px;
-}
-
-.tabs {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 16px;
-  border-bottom: 1px solid rgba(14, 124, 134, 0.15);
-}
-
-.tab {
-  background: transparent;
-  border: none;
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  padding: 10px 14px;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  transition: color 0.15s, border-color 0.15s;
-}
-
-.tab:hover { color: var(--text-bright); }
-
-.tabActive {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
 }
 
 .filters {
@@ -77,21 +49,27 @@
 }
 
 .chip {
-  background: rgba(10, 61, 92, 0.4);
-  border: 1px solid rgba(14, 124, 134, 0.15);
-  color: var(--text);
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  color: var(--ink-dim);
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   padding: 6px 12px;
+  border-radius: var(--radius-full);
   cursor: pointer;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.chip:hover {
+  border-color: var(--surface-border-strong);
 }
 
 .chipActive {
-  background: rgba(14, 124, 134, 0.15);
-  border-color: rgba(14, 124, 134, 0.5);
-  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-text);
 }
 
 .toolbar {
@@ -101,20 +79,26 @@
 }
 
 .newBtn {
-  background: rgba(14, 124, 134, 0.1);
-  border: 1px solid rgba(14, 124, 134, 0.4);
-  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: var(--accent-on);
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   padding: 10px 16px;
+  border-radius: var(--radius-full);
   cursor: pointer;
+  transition: background var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .newBtn:hover {
-  background: rgba(14, 124, 134, 0.2);
+  background: var(--accent-strong);
+  box-shadow: var(--shadow-glow);
 }
 
 .empty {
@@ -125,6 +109,14 @@
   letter-spacing: 0.1em;
 }
 
+.groupHeading {
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  opacity: 0.4;
+  margin: 20px 0 10px;
+}
+
 .list {
   display: flex;
   flex-direction: column;
@@ -132,15 +124,17 @@
 }
 
 .card {
-  background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(14, 124, 134, 0.12);
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
   padding: 16px 18px;
   cursor: pointer;
-  transition: border-color 0.15s, transform 0.15s;
+  box-shadow: var(--shadow-card);
+  transition: border-color var(--transition-base), transform var(--transition-base);
 }
 
 .card:hover {
-  border-color: rgba(14, 124, 134, 0.35);
+  border-color: var(--surface-border-strong);
   transform: translateY(-1px);
 }
 
@@ -156,7 +150,7 @@
   font-family: var(--font-display);
   font-size: 18px;
   letter-spacing: 0.08em;
-  color: var(--text-bright);
+  color: var(--ink);
 }
 
 .badges {
@@ -171,16 +165,17 @@
   text-transform: uppercase;
   padding: 3px 8px;
   border: 1px solid;
+  border-radius: var(--radius-sm);
   white-space: nowrap;
 }
 
-.badgeBeginner { color: var(--good); border-color: rgba(26, 138, 90, 0.5); }
-.badgeIntermediate { color: var(--warn); border-color: rgba(212, 133, 10, 0.5); }
-.badgeExpert { color: var(--danger); border-color: rgba(192, 57, 43, 0.5); }
-.badgeType { color: var(--accent); border-color: rgba(14, 124, 134, 0.4); }
-.badgeSystem { color: var(--text); border-color: rgba(139, 184, 204, 0.4); }
-.badgePublic { color: var(--excellent); border-color: rgba(15, 179, 122, 0.5); }
-.badgePrivate { color: var(--text); border-color: rgba(139, 184, 204, 0.3); }
+.badgeBeginner { color: var(--sev-good); background: rgba(35, 119, 68, 0.1); border-color: var(--sev-good); }
+.badgeIntermediate { color: var(--sev-marginal); background: rgba(152, 92, 22, 0.1); border-color: var(--sev-marginal); }
+.badgeExpert { color: var(--sev-poor); background: rgba(189, 58, 58, 0.08); border-color: var(--sev-poor); }
+.badgeType { color: var(--accent-text); border-color: var(--accent); }
+.badgeSystem { color: var(--ink-dim); border-color: var(--surface-border-strong); }
+.badgePublic { color: var(--sev-good); background: rgba(35, 119, 68, 0.1); border-color: var(--sev-good); }
+.badgePrivate { color: var(--ink-dim); border-color: var(--surface-border); }
 
 .cardDesc {
   font-size: 12px;
@@ -198,7 +193,7 @@
 }
 
 .cardMeta span strong {
-  color: var(--text-bright);
+  color: var(--ink);
   font-weight: 700;
 }
 
@@ -212,9 +207,9 @@
 }
 
 .error {
-  background: rgba(192, 57, 43, 0.1);
-  border: 1px solid rgba(192, 57, 43, 0.3);
-  color: var(--danger);
+  background: rgba(189, 58, 58, 0.08);
+  border: 1px solid rgba(189, 58, 58, 0.3);
+  color: var(--sev-poor);
   padding: 12px;
   margin-bottom: 16px;
   font-size: 11px;

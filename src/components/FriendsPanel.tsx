@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { getFriends, getFriendRequests, respondToFriendRequest, removeFriend, sendFriendRequest, searchUsers } from '../lib/api'
 import type { Friend, FriendRequest, UserSearchResult } from '../types'
+import { Tabs } from './Tabs'
+import { IconChevronLeft } from './icons'
 import styles from './FriendsPanel.module.css'
 
 interface FriendsPanelProps {
@@ -70,34 +72,20 @@ export function FriendsPanel({ onClose }: FriendsPanelProps) {
     <div className={styles.panel}>
       {onClose && (
         <button className={styles.backBtn} onClick={onClose}>
-          &#8592; Back
+          <IconChevronLeft width={14} height={14} /> Back
         </button>
       )}
 
       {/* Tabs */}
-      <div className={styles.tabs}>
-        <button
-          className={`${styles.tab} ${tab === 'friends' ? styles.tabActive : ''}`}
-          onClick={() => setTab('friends')}
-        >
-          Friends
-        </button>
-        <button
-          className={`${styles.tab} ${tab === 'requests' ? styles.tabActive : ''}`}
-          onClick={() => setTab('requests')}
-        >
-          Requests
-          {requests.length > 0 && (
-            <span className={styles.requestBadge}>{requests.length}</span>
-          )}
-        </button>
-        <button
-          className={`${styles.tab} ${tab === 'find' ? styles.tabActive : ''}`}
-          onClick={() => setTab('find')}
-        >
-          Find Divers
-        </button>
-      </div>
+      <Tabs
+        tabs={[
+          { id: 'friends', label: 'Friends' },
+          { id: 'requests', label: requests.length > 0 ? `Requests (${requests.length})` : 'Requests' },
+          { id: 'find', label: 'Find Divers' },
+        ]}
+        active={tab}
+        onChange={t => setTab(t as Tab)}
+      />
 
       {/* Friends list */}
       {tab === 'friends' && (

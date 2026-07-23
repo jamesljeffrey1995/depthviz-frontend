@@ -1,68 +1,80 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: var(--space-lg);
+  gap: var(--space-xl);
 }
 
 .head {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
+  gap: var(--space-sm);
 }
 
 .title {
-  font-family: var(--font-display);
-  font-size: 36px;
-  letter-spacing: 0.06em;
-  color: var(--text-bright);
+  font-family: var(--font-sans);
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
   margin: 0;
 }
 
 .newBtn {
   background: var(--accent);
-  color: var(--paper);
+  color: var(--accent-on);
   border: 1px solid var(--accent);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.08em;
+  font-family: var(--font-sans);
+  font-size: 13px;
   font-weight: 700;
   padding: 9px 16px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full);
   cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.newBtn:hover { box-shadow: var(--shadow-glow); }
+.newBtn:hover { background: var(--accent-strong); box-shadow: var(--shadow-glow); }
 .newBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .ghostBtn {
   background: transparent;
-  color: var(--text);
-  border: 1px solid rgba(14, 124, 134, 0.2);
-  font-family: var(--font-mono);
-  font-size: 12px;
+  color: var(--ink-dim);
+  border: 1px solid var(--surface-border);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
   padding: 9px 16px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full);
   cursor: pointer;
 }
 
+.ghostBtn:hover { border-color: var(--surface-border-strong); color: var(--ink); }
+
 .error {
-  color: var(--danger);
+  color: var(--sev-poor);
   font-size: 13px;
+  background: rgba(189, 58, 58, 0.08);
+  border: 1px solid rgba(189, 58, 58, 0.24);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  margin: 0;
 }
 
 .muted {
-  color: var(--text);
-  opacity: 0.6;
+  color: var(--ink-faint);
   font-size: 13px;
+  margin: 0;
 }
 
-/* ── Composer ── */
+/* ── Composer — an admin-only tool, kept visually distinct (sunken) from
+   the reading-facing cards below it ── */
 .composer {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
-  background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(14, 124, 134, 0.18);
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
   padding: var(--space-md);
 }
@@ -70,14 +82,19 @@
 .input,
 .textarea {
   width: 100%;
-  background: var(--ocean-deep);
-  border: 1px solid rgba(14, 124, 134, 0.2);
-  border-radius: var(--radius-md);
-  color: var(--paper);
-  font-family: var(--font-mono);
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-family: var(--font-sans);
   font-size: 13px;
   padding: 10px 12px;
   box-sizing: border-box;
+}
+
+.input:focus, .textarea:focus {
+  outline: none;
+  border-color: var(--accent);
 }
 
 .textarea { resize: vertical; line-height: 1.6; }
@@ -94,7 +111,7 @@
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--text);
+  color: var(--ink-dim);
 }
 
 .composerActions {
@@ -103,7 +120,39 @@
   gap: var(--space-sm);
 }
 
-/* ── Cards ── */
+/* ── Category filter — a compact pill row, distinct from the list below ── */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.chip,
+.chipActive {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  border: 1px solid var(--surface-border);
+  background: var(--surface-raised);
+  color: var(--ink-dim);
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.chip:hover { border-color: var(--surface-border-strong); color: var(--ink); }
+
+.chip:focus-visible,
+.chipActive:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.chipActive {
+  background: var(--accent);
+  color: var(--accent-on);
+  border-color: var(--accent);
+}
+
+/* ── List — tight within a card, generous between cards ── */
 .list {
   list-style: none;
   margin: 0;
@@ -114,105 +163,81 @@
 }
 
 .card {
-  background: rgba(4, 30, 46, 0.5);
-  border: 1px solid rgba(14, 124, 134, 0.12);
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
   padding: var(--space-lg);
 }
 
+/* Eyebrow row of status pills — sits above the headline as a distinct,
+   tightly-packed tier so it never competes with the title for weight. */
 .cardHead {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: var(--space-xs);
   flex-wrap: wrap;
+  margin-bottom: var(--space-sm);
 }
 
 .cardTitle {
   font-size: 18px;
-  color: var(--text-bright);
-  margin: 0;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  color: var(--ink);
+  margin: 0 0 var(--space-xs);
 }
 
 .pin,
 .draft {
-  font-size: 9px;
-  letter-spacing: 0.1em;
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  padding: 2px 6px;
-  border-radius: var(--radius-sm);
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
 }
 
 .pin {
-  color: var(--paper);
+  color: var(--accent-on);
   background: var(--accent);
 }
 
 .draft {
-  color: var(--warn);
-  border: 1px solid var(--warn);
+  color: var(--sev-marginal);
+  background: rgba(152, 92, 22, 0.1);
 }
 
-/* Category badge on a card — accent outline, palette colours only. */
 .badge {
-  font-size: 9px;
-  letter-spacing: 0.1em;
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  padding: 2px 7px;
-  border-radius: var(--radius-sm);
-  color: var(--accent);
-  background: rgba(14, 124, 134, 0.1);
-  border: 1px solid rgba(14, 124, 134, 0.4);
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  color: var(--accent-text);
+  background: var(--accent-soft);
+}
+
+/* Byline/date — secondary metadata, directly under the headline */
+.meta {
+  font-size: 12px;
+  color: var(--ink-faint);
+  margin-bottom: var(--space-sm);
 }
 
 .summary {
-  margin: var(--space-sm) 0 0;
-  color: var(--text-bright);
+  margin: 0 0 var(--space-sm);
+  color: var(--ink);
   font-size: 14px;
-  line-height: 1.6;
-}
-
-/* ── Category filter chips ── */
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-sm);
-}
-
-.chip,
-.chipActive {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  padding: 6px 12px;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  border: 1px solid rgba(14, 124, 134, 0.25);
-  background: transparent;
-  color: var(--text);
-}
-
-.chip:hover { border-color: var(--accent); color: var(--text-bright); }
-
-.chip:focus-visible,
-.chipActive:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-.chipActive {
-  background: var(--accent);
-  color: var(--paper);
-  border-color: var(--accent);
-  font-weight: 700;
-}
-
-.meta {
-  font-size: 11px;
-  color: var(--text);
-  opacity: 0.6;
-  margin-top: var(--space-xs);
+  font-weight: 600;
+  line-height: 1.55;
 }
 
 .body {
-  margin: var(--space-md) 0 0;
-  color: var(--text);
+  margin: 0;
+  color: var(--ink-dim);
   font-size: 13px;
   line-height: 1.7;
   white-space: pre-wrap;
@@ -222,18 +247,21 @@
   display: flex;
   gap: var(--space-md);
   margin-top: var(--space-md);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--surface-border);
 }
 
 .linkBtn,
 .linkBtnDanger {
   background: none;
   border: none;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
   padding: 0;
 }
 
-.linkBtn { color: var(--accent); }
-.linkBtnDanger { color: var(--danger); }
+.linkBtn { color: var(--accent-text); }
+.linkBtnDanger { color: var(--sev-poor); }
 .linkBtn:hover, .linkBtnDanger:hover { text-decoration: underline; }

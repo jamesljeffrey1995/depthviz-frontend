@@ -137,12 +137,15 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
   }
 
   const isProcessing = phase === 'extracting' || phase === 'analysing'
+  const isIdle = phase === 'idle' || phase === 'error'
 
+  // ── Progressive disclosure: only the phase currently in play renders —
+  // an idle drop-zone, an in-progress bar, or a finished result never sit
+  // stacked on top of one another. ──
   return (
     <div className={`${styles.container} ${className ?? ''}`}>
-      {/* ── Upload zone ── */}
-      {phase === 'idle' || phase === 'error' ? (
-        <>
+      {isIdle && (
+        <div className={styles.uploadState}>
           <div
             className={`${styles.dropzone} ${dragActive ? styles.dropzoneActive : ''}`}
             onDragOver={(e) => {
@@ -153,7 +156,7 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
             onDrop={onDrop}
             onClick={() => inputRef.current?.click()}
           >
-            <div className={styles.dropzoneIcon}>🎥</div>
+            <div className={styles.dropzoneIcon} aria-hidden="true">🎥</div>
             <div className={styles.dropzoneTitle}>Drop dive video here</div>
             <div className={styles.dropzoneHint}>or click to browse — MP4, MOV, WebM</div>
             <input
@@ -165,35 +168,18 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
             />
           </div>
           {error && (
-            <>
-              <p
-                style={{
-                  color: '#ef4444',
-                  fontSize: '0.8rem',
-                  marginTop: '0.75rem',
-                  textAlign: 'center',
-                }}
-              >
-                {error}
-              </p>
+            <div className={styles.errorState}>
+              <p className={styles.errorText}>{error}</p>
               {lastFile && (
-                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.5rem' }}>
-                  <button
-                    type="button"
-                    className={styles.btnSecondary}
-                    style={{ flex: 'none', padding: '0.4rem 1rem' }}
-                    onClick={retry}
-                  >
-                    Retry
-                  </button>
-                </div>
+                <button type="button" className={styles.retryBtn} onClick={retry}>
+                  Retry
+                </button>
               )}
-            </>
+            </div>
           )}
-        </>
-      ) : null}
+        </div>
+      )}
 
-      {/* ── Progress bar ── */}
       {isProcessing && (
         <div className={styles.progressSection}>
           <div className={styles.phaseLabel}>
@@ -202,7 +188,9 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
           <div className={styles.progressTrack}>
             <div
               className={styles.progressFill}
-              style={{ width: progress.total ? `${(progress.current / progress.total) * 100}%` : '0%' }}
+              style={{
+                transform: `scaleX(${progress.total ? progress.current / progress.total : 0})`,
+              }}
             />
           </div>
           <div className={styles.progressCount}>
@@ -211,14 +199,13 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
         </div>
       )}
 
-      {/* ── Results ── */}
       {phase === 'done' && report && (
         <div className={styles.results}>
           {/* Headline */}
           <div className={styles.headline}>
             <span className={styles.headlineValue}>{report.visibility_m.median.toFixed(1)}</span>
             <span className={styles.headlineUnit}>m</span>
-            <div className={styles.headlineLabel}>Median Visibility</div>
+            <div className={styles.headlineLabel}>Median visibility</div>
           </div>
 
           {/* Validation banner */}
@@ -227,24 +214,24 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
               className={styles.validationBanner}
               style={{
                 borderColor: report.validation.confidence >= 0.7
-                  ? 'rgba(15, 179, 122, 0.4)'
+                  ? 'rgba(35, 119, 68, 0.3)'
                   : report.validation.confidence >= 0.3
-                    ? 'rgba(212, 133, 10, 0.4)'
-                    : 'rgba(192, 57, 43, 0.4)',
+                    ? 'rgba(152, 92, 22, 0.3)'
+                    : 'rgba(189, 58, 58, 0.3)',
                 background: report.validation.confidence >= 0.7
-                  ? 'rgba(31, 81, 56, 0.08)'
+                  ? 'rgba(35, 119, 68, 0.08)'
                   : report.validation.confidence >= 0.3
-                    ? 'rgba(143, 95, 8, 0.08)'
-                    : 'rgba(164, 50, 31, 0.08)',
+                    ? 'rgba(152, 92, 22, 0.08)'
+                    : 'rgba(189, 58, 58, 0.08)',
               }}
             >
               <div className={styles.validationScore}>
                 <span style={{
                   color: report.validation.confidence >= 0.7
-                    ? '#107852'
+                    ? 'var(--sev-good)'
                     : report.validation.confidence >= 0.3
-                      ? '#985c16'
-                      : '#bd3a3a',
+                      ? 'var(--sev-marginal)'
+                      : 'var(--sev-poor)',
                 }}>
                   {report.validation.confidence >= 0.7
                     ? 'Underwater footage confirmed'
@@ -298,7 +285,7 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
                     key={f.index}
                     className={styles.sparkBar}
                     style={{
-                      height: `${Math.max(heightPct, 4)}%`,
+                      transform: `scaleY(${Math.max(heightPct, 4) / 100})`,
                       background: barColor(f.visibility_m, maxVis),
                     }}
                     title={`Frame ${f.index}: ${f.visibility_m.toFixed(1)} m`}
@@ -327,47 +314,16 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
 
       {/* ── OpenCV loader debug panel ── */}
       {cvLog.length > 0 && (
-        <div
-          style={{
-            marginTop: '0.75rem',
-            fontSize: '0.72rem',
-            color: 'rgba(180, 200, 215, 0.7)',
-          }}
-        >
+        <div className={styles.logSection}>
           <button
             type="button"
+            className={styles.logToggle}
             onClick={() => setShowLog((v) => !v)}
-            style={{
-              background: 'transparent',
-              border: '1px solid rgba(120, 180, 210, 0.3)',
-              color: 'inherit',
-              padding: '0.3rem 0.7rem',
-              borderRadius: '6px',
-              fontSize: '0.72rem',
-              cursor: 'pointer',
-              width: '100%',
-            }}
           >
             {showLog ? 'Hide' : 'Show'} video analyser logs ({cvLog.length})
           </button>
           {showLog && (
-            <pre
-              style={{
-                marginTop: '0.5rem',
-                padding: '0.6rem',
-                background: 'rgba(0, 0, 0, 0.35)',
-                border: '1px solid rgba(120, 180, 210, 0.2)',
-                borderRadius: '6px',
-                maxHeight: '14rem',
-                overflow: 'auto',
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
-                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-                fontSize: '0.68rem',
-                lineHeight: 1.4,
-                color: 'rgba(210, 225, 235, 0.85)',
-              }}
-            >
+            <pre className={styles.logPre}>
               {cvLog
                 .map(
                   (e) =>

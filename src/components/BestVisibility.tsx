@@ -12,8 +12,9 @@ function safeColorClass(cls: string | undefined): string {
   return cls && COLOR_CLASSES.has(cls) ? cls : 'decent'
 }
 
-// Number of placeholder rows to render while the fan-out resolves.
-const SKELETON_COUNT = 8
+// Number of placeholder rows to render while the fan-out resolves (one
+// winner-sized skeleton plus these compact rows below it).
+const SKELETON_COUNT = 7
 // The /forecast/best fan-out is a single (non-streaming) response, so real
 // per-spot progress isn't observable. Ramp a bounded bar toward a cap over
 // the expected cold-response window to convey motion without overpromising.
@@ -63,17 +64,32 @@ export function BestVisibility({ onSelectSpot }: Props) {
     return () => clearInterval(id)
   }, [loading])
 
+  const winner = spots[0]
+  const rest = spots.slice(1)
+
   return (
     <div className={styles.wrapper}>
-      <div className={styles.title}>BEST VISIBILITY</div>
-      <div className={styles.subtitle}>UK dive spots ranked for today</div>
+      <div className={styles.header}>
+        <div className={styles.title}>Best visibility</div>
+        <div className={styles.subtitle}>UK dive spots ranked for today</div>
+      </div>
 
       {loading && (
         <div aria-busy="true">
           <div className={styles.progressBar} aria-hidden="true">
-            <div className={styles.progressFill} style={{ width: `${progress}%` }} />
+            <div className={styles.progressFill} style={{ transform: `scaleX(${progress / 100})` }} />
           </div>
           <div className={styles.dateLabel}>{todayDisplay}</div>
+
+          {/* Winner-sized skeleton first, so the leader card doesn't cause
+              layout shift once real data resolves. */}
+          <div className={styles.winnerSkeleton} aria-hidden="true">
+            <div className={styles.skelWinnerBadge} />
+            <div className={styles.skelWinnerName} />
+            <div className={styles.skelWinnerVis} />
+            <div className={styles.skelWinnerVerdict} />
+          </div>
+
           <div className={styles.list} aria-hidden="true">
             {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
               <div key={i} className={styles.skeletonRow}>
@@ -99,40 +115,76 @@ export function BestVisibility({ onSelectSpot }: Props) {
 
       {error && <div className={styles.error}>{error}</div>}
 
-      {!loading && !error && spots.length > 0 && (
+      {!loading && !error && winner && (
         <>
           <div className={styles.dateLabel}>{todayDisplay}</div>
-          <div className={styles.list}>
-            {spots.map((spot, i) => {
-              const vis = spot.day.vis_corrected ?? spot.day.vis_estimate
-              const cc = safeColorClass(spot.day.color_class)
-              return (
-                <div
-                  key={`${spot.lat}-${spot.lon}`}
-                  className={styles.spotRow}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`View forecast for ${spot.name}`}
-                  onClick={() => onSelectSpot(spot.lat, spot.lon, spot.name)}
-                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectSpot(spot.lat, spot.lon, spot.name) } }}
-                >
-                  <div className={styles.rank}>{i + 1}</div>
-                  <div className={styles.spotInfo}>
-                    <div className={styles.spotName}>{spot.name}</div>
-                    <div className={styles.verdict}>
-                      <span className={styles[cc]}>{spot.day.verdict}</span>
-                    </div>
+
+          {/* The winner — clear visual priority: larger card, bigger type,
+              stronger elevation. Size/weight/elevation carry the "this one's
+              the best" signal, not the instrument gauge. */}
+          {(() => {
+            const vis = winner.day.vis_corrected ?? winner.day.vis_estimate
+            const cc = safeColorClass(winner.day.color_class)
+            return (
+              <div
+                className={styles.winnerCard}
+                role="button"
+                tabIndex={0}
+                aria-label={`View forecast for ${winner.name}, the best-visibility spot today`}
+                onClick={() => onSelectSpot(winner.lat, winner.lon, winner.name)}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectSpot(winner.lat, winner.lon, winner.name) } }}
+              >
+                <div className={styles.winnerBadge}>Best today</div>
+                <div className={styles.winnerBody}>
+                  <div className={styles.winnerInfo}>
+                    <div className={styles.winnerName}>{winner.name}</div>
+                    <div className={`${styles.winnerVerdict} ${styles[cc]}`}>{winner.day.verdict}</div>
                   </div>
-                  <div className={styles.visBlock}>
-                    <div className={`${styles.visValue} ${styles[cc]}`}>
-                      {vis.toFixed(1)}
-                    </div>
-                    <div className={styles.visUnit}>metres</div>
+                  <div className={styles.winnerVisBlock}>
+                    <div className={`${styles.winnerVisValue} ${styles[cc]}`}>{vis.toFixed(1)}</div>
+                    <div className={styles.winnerVisUnit}>metres</div>
                   </div>
                 </div>
-              )
-            })}
-          </div>
+              </div>
+            )
+          })()}
+
+          {rest.length > 0 && (
+            <>
+              <div className={styles.sectionLabel}>Other spots</div>
+              <div className={styles.list}>
+                {rest.map((spot, i) => {
+                  const vis = spot.day.vis_corrected ?? spot.day.vis_estimate
+                  const cc = safeColorClass(spot.day.color_class)
+                  return (
+                    <div
+                      key={`${spot.lat}-${spot.lon}`}
+                      className={styles.spotRow}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`View forecast for ${spot.name}`}
+                      onClick={() => onSelectSpot(spot.lat, spot.lon, spot.name)}
+                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectSpot(spot.lat, spot.lon, spot.name) } }}
+                    >
+                      <div className={styles.rank}>{i + 2}</div>
+                      <div className={styles.spotInfo}>
+                        <div className={styles.spotName}>{spot.name}</div>
+                        <div className={styles.verdict}>
+                          <span className={styles[cc]}>{spot.day.verdict}</span>
+                        </div>
+                      </div>
+                      <div className={styles.visBlock}>
+                        <div className={`${styles.visValue} ${styles[cc]}`}>
+                          {vis.toFixed(1)}
+                        </div>
+                        <div className={styles.visUnit}>metres</div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </>
+          )}
         </>
       )}
 

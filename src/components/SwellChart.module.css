@@ -88,7 +88,7 @@
   width: 10px;
   height: 10px;
   margin-top: 2px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   background: var(--good);
   opacity: 0.85;
 }
@@ -98,9 +98,9 @@
   width: 10px;
   height: 10px;
   margin-top: 2px;
-  border-radius: 2px;
-  background: rgba(47, 107, 70, 0.2);
-  border: 1px solid rgba(47, 107, 70, 0.4);
+  border-radius: var(--radius-sm);
+  background: rgba(35, 119, 68, 0.2);
+  border: 1px solid rgba(35, 119, 68, 0.4);
 }
 
 .infoColorScale {
@@ -116,7 +116,7 @@
 .colorChip {
   width: 10px;
   height: 10px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   flex-shrink: 0;
 }
 

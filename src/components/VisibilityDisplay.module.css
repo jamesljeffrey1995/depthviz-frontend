@@ -1,6 +1,7 @@
 .card {
-  background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(14, 124, 134, 0.1);
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  box-shadow: var(--shadow-card);
   padding: 36px;
   margin-bottom: 16px;
   position: relative;
@@ -23,7 +24,7 @@
   opacity: 0.45;
   margin-bottom: 24px;
   padding-bottom: 16px;
-  border-bottom: 1px solid rgba(14, 124, 134, 0.07);
+  border-bottom: 1px solid var(--surface-border);
 }
 
 .depthRow {
@@ -35,9 +36,9 @@
 
 .number {
   font-family: var(--font-display);
-  font-size: clamp(72px, 20vw, 120px);
+  font-size: clamp(48px, 20vw, 80px);
   line-height: 1;
-  transition: color 0.6s;
+  transition: color var(--transition-base);
 }
 
 .unitBlock {
@@ -76,16 +77,18 @@
 
 .barTrack {
   height: 8px;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
   position: relative;
   overflow: hidden;
 }
 
 .barFill {
   height: 100%;
-  width: 0%;
-  transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 1.2s var(--ease-out);
   position: relative;
 }
 
@@ -122,8 +125,8 @@
 
 /* Alert */
 .alert {
-  background: rgba(192, 57, 43, 0.08);
-  border: 1px solid rgba(192, 57, 43, 0.25);
+  background: rgba(189, 58, 58, 0.08);
+  border: 1px solid rgba(189, 58, 58, 0.3);
   padding: 14px 18px;
   font-size: 11px;
   letter-spacing: 0.05em;
@@ -131,18 +134,18 @@
   margin-top: 16px;
 }
 
-/* Color classes */
-.blocked  { color: #4a4a5a; }
+/* Color classes — the full six-step severity scale (on-light register) */
+.blocked  { color: var(--blocked); }
 .poor     { color: var(--danger); }
 .marginal { color: var(--warn); }
-.decent   { color: #7fb87a; }
+.decent   { color: var(--decent); }
 .good     { color: var(--good); }
 .excellent { color: var(--excellent); }
 
-.bg_blocked  { background: #4a4a5a; }
+.bg_blocked  { background: var(--blocked); }
 .bg_poor     { background: var(--danger); }
 .bg_marginal { background: var(--warn); }
-.bg_decent   { background: #7fb87a; }
+.bg_decent   { background: var(--decent); }
 .bg_good     { background: var(--good); }
 .bg_excellent { background: var(--excellent); }
 
@@ -155,8 +158,8 @@
 }
 
 .factorCard {
-  background: rgba(2, 13, 20, 0.5);
-  border: 1px solid rgba(14, 124, 134, 0.07);
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
   padding: 16px;
   position: relative;
 }
@@ -192,6 +195,9 @@
 .factorBar {
   position: absolute;
   bottom: 0; left: 0;
+  width: 100%;
   height: 2px;
-  transition: width 0.8s ease;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.8s ease;
 }

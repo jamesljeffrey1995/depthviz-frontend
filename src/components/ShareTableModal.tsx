@@ -3,6 +3,7 @@ import QRCode from 'qrcode'
 import type { ApneaTable } from '../types'
 import { buildShareUrl } from '../lib/shareTable'
 import { useDialog } from '../hooks/useDialog'
+import { IconClose, IconCheck } from './icons'
 import styles from './ShareTableModal.module.css'
 
 interface Props {
@@ -31,12 +32,15 @@ export function ShareTableModal({ table, onClose }: Props) {
     const canvas = canvasRef.current
     if (!canvas) return
     // Dark-on-white with a quiet zone — inverted QR codes scan unreliably,
-    // so the code keeps a light background even on the dark theme.
+    // so the code keeps a fixed light background regardless of app theme.
+    // "Dark" module color is --ink's resolved value (a literal, not a CSS
+    // var — this runs through the qrcode library's canvas API, which needs
+    // a real color string, not a custom property).
     QRCode.toCanvas(canvas, url, {
       width: 232,
       margin: 2,
       errorCorrectionLevel: 'M',
-      color: { dark: '#041e2e', light: '#ffffff' },
+      color: { dark: '#101820', light: '#ffffff' },
     }).catch(() => setQrError(true))
   }, [table])
 
@@ -74,7 +78,9 @@ export function ShareTableModal({ table, onClose }: Props) {
         aria-labelledby="share-modal-title"
         tabIndex={-1}
       >
-        <button className={styles.close} onClick={onClose} aria-label="Close share dialog">✕</button>
+        <button className={styles.close} onClick={onClose} aria-label="Close share dialog">
+          <IconClose width={16} height={16} />
+        </button>
 
         <div className={styles.title} id="share-modal-title">SHARE TABLE</div>
         <div className={styles.sub}>{table.name}</div>
@@ -103,7 +109,7 @@ export function ShareTableModal({ table, onClose }: Props) {
             onFocus={e => e.target.select()}
           />
           <button className={styles.copyBtn} onClick={handleCopy}>
-            {copied ? 'Copied ✓' : 'Copy'}
+            {copied ? (<><IconCheck width={12} height={12} /> Copied</>) : 'Copy'}
           </button>
         </div>
 

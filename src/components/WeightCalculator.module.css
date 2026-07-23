@@ -1,46 +1,44 @@
 .wrap {
-  padding: 20px 16px 80px;
+  padding: var(--space-md) var(--space-md) 80px;
   max-width: 720px;
   margin: 0 auto;
 }
 
 .title {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: 26px;
-  letter-spacing: 0.12em;
-  color: var(--text-bright);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
   margin-bottom: 4px;
 }
 
 .subtitle {
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  opacity: 0.4;
-  margin-bottom: 20px;
+  font-size: 13px;
+  color: var(--ink-faint);
+  margin-bottom: var(--space-lg);
 }
 
 /* ── Safety notice ── */
 .safety {
-  background: rgba(212, 133, 10, 0.1);
-  border: 1px solid rgba(212, 133, 10, 0.4);
-  border-left-width: 3px;
-  color: var(--text-bright);
-  padding: 14px 16px;
-  margin-bottom: 18px;
-  font-size: 11px;
-  line-height: 1.7;
-  letter-spacing: 0.03em;
+  background: rgba(152, 92, 22, 0.08);
+  border: 1px solid rgba(152, 92, 22, 0.3);
+  border-radius: var(--radius-md);
+  color: var(--ink-dim);
+  padding: var(--space-md);
+  margin-bottom: var(--space-lg);
+  font-size: 13px;
+  line-height: 1.6;
 }
 
-.safety strong { color: var(--warn); }
+.safety strong { color: var(--sev-marginal); }
 
 .inlineLink {
   background: none;
   border: none;
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 11px;
+  color: var(--accent-text);
+  font-family: var(--font-sans);
+  font-size: 13px;
   padding: 0;
   cursor: pointer;
   text-decoration: underline;
@@ -48,46 +46,71 @@
 
 .inlineLink:hover { opacity: 0.8; }
 
-/* ── Form card ── */
+/* ── Form card — inputs cluster into logical groups (diver info vs.
+   equipment/target) rather than one flat field list. ── */
 .card {
-  background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(14, 124, 134, 0.1);
-  padding: 24px;
-  margin-bottom: 16px;
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-xl);
 }
 
-.field { margin-bottom: 18px; }
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.fieldGroup + .fieldGroup {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--surface-border);
+}
+
+.groupLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.field { display: flex; flex-direction: column; }
 
 .row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  gap: var(--space-sm);
 }
 
 .label {
   display: block;
-  font-size: 9px;
-  letter-spacing: 0.25em;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  opacity: 0.5;
-  margin-bottom: 8px;
+  color: var(--ink-faint);
+  margin-bottom: var(--space-xs);
 }
 
 .input, .select {
   width: 100%;
-  background: rgba(10, 61, 92, 0.3);
-  border: 1px solid rgba(14, 124, 134, 0.15);
-  color: var(--text-bright);
-  font-family: var(--font-mono);
-  font-size: 13px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
   padding: 10px 14px;
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color var(--transition-fast);
 }
 
-.input:focus, .select:focus { border-color: rgba(14, 124, 134, 0.4); }
+.input:focus, .select:focus { border-color: var(--accent); }
 
-.select option { background: var(--ocean-mid); }
+.select option { background: var(--surface-raised); color: var(--ink); }
 
 .select:disabled { opacity: 0.4; cursor: not-allowed; }
 
@@ -95,33 +118,33 @@
 .unitToggle, .segmented {
   display: flex;
   gap: 0;
-  margin-bottom: 18px;
-  border: 1px solid rgba(14, 124, 134, 0.15);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
 }
 
-.segmented { margin-bottom: 0; }
+.unitToggle { margin-bottom: var(--space-md); }
 
 .unitBtn, .segBtn {
   flex: 1;
   background: transparent;
   border: none;
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  color: var(--ink-dim);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
   padding: 10px 8px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--transition-fast);
 }
 
 .unitBtn + .unitBtn, .segBtn + .segBtn {
-  border-left: 1px solid rgba(14, 124, 134, 0.15);
+  border-left: 1px solid var(--surface-border);
 }
 
 .unitActive, .segActive {
-  background: rgba(14, 124, 134, 0.14);
-  color: var(--text-bright);
+  background: var(--accent);
+  color: var(--accent-on);
 }
 
 /* ── Depth slider ── */
@@ -132,121 +155,125 @@
 }
 
 .sliderValue {
-  font-family: var(--font-display);
-  font-size: 20px;
-  color: var(--accent);
-  letter-spacing: 0.08em;
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent-text);
+  font-variant-numeric: tabular-nums;
 }
 
 .slider {
   width: 100%;
   accent-color: var(--accent);
-  margin: 4px 0 6px;
+  margin: var(--space-xs) 0 6px;
 }
 
 .sliderHint {
-  font-size: 10px;
-  line-height: 1.6;
-  opacity: 0.55;
-  letter-spacing: 0.03em;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--ink-faint);
 }
 
-/* ── Result ── */
+/* ── Result — the unambiguous focal point of the screen: largest type,
+   most surrounding space, the only accent-bordered surface. ── */
 .resultCard {
-  background: linear-gradient(180deg, rgba(14, 124, 134, 0.1), rgba(4, 30, 46, 0.6));
-  border: 1px solid rgba(14, 124, 134, 0.3);
-  padding: 24px;
-  margin-bottom: 16px;
+  background: var(--surface-raised);
+  border: 2px solid var(--accent);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-xl) var(--space-lg);
+  margin-bottom: var(--space-xl);
   text-align: center;
 }
 
 .resultLabel {
-  font-size: 9px;
-  letter-spacing: 0.25em;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  opacity: 0.6;
-  margin-bottom: 8px;
+  color: var(--ink-faint);
+  margin-bottom: var(--space-sm);
 }
 
 .resultValue {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: 54px;
+  font-weight: 800;
   line-height: 1;
-  color: var(--text-bright);
-  letter-spacing: 0.04em;
-  text-shadow: 0 0 24px rgba(14, 124, 134, 0.4);
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
 }
 
 .resultRange {
-  font-size: 11px;
-  letter-spacing: 0.05em;
-  opacity: 0.7;
-  margin-top: 10px;
+  font-size: 13px;
+  color: var(--ink-dim);
+  margin-top: var(--space-sm);
 }
 
 .breakdown {
-  margin-top: 20px;
-  border-top: 1px solid rgba(14, 124, 134, 0.12);
-  padding-top: 14px;
+  margin-top: var(--space-lg);
+  border-top: 1px solid var(--surface-border);
+  padding-top: var(--space-md);
   text-align: left;
 }
 
 .breakdownRow {
   display: flex;
   justify-content: space-between;
-  font-size: 10px;
-  letter-spacing: 0.05em;
-  opacity: 0.7;
+  font-size: 12px;
+  color: var(--ink-faint);
   padding: 4px 0;
 }
 
-.breakdownRow span:last-child { color: var(--text-bright); opacity: 0.9; }
+.breakdownRow span:last-child {
+  color: var(--ink);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
 
-/* ── How-to ── */
+/* ── How-to — supporting/reference content, clearly subordinate to the
+   result above it ── */
 .howto {
-  background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(14, 124, 134, 0.1);
-  padding: 20px 24px;
-  margin-bottom: 16px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md) var(--space-lg);
+  margin-bottom: var(--space-lg);
 }
 
 .howto h3 {
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font-family: var(--font-sans);
+  font-size: 15px;
   font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin: 0 0 12px;
+  color: var(--ink);
+  margin: 0 0 var(--space-sm);
 }
 
 .howto ol {
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-sm);
   padding-left: 18px;
 }
 
 .howto li {
-  font-size: 11px;
-  line-height: 1.7;
-  letter-spacing: 0.03em;
-  color: var(--text);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-dim);
   margin-bottom: 6px;
 }
 
 .howtoNote {
-  font-size: 11px;
-  line-height: 1.7;
-  letter-spacing: 0.03em;
-  color: var(--text);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-dim);
   margin: 0;
 }
 
-.howtoNote strong { color: var(--warn); }
+.howtoNote strong { color: var(--sev-marginal); }
 
 .assumptions {
-  font-size: 10px;
-  line-height: 1.7;
-  letter-spacing: 0.03em;
-  opacity: 0.45;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ink-faint);
   padding: 0 4px;
 }

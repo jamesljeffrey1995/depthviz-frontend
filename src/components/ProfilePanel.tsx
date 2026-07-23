@@ -2,6 +2,8 @@ import { useState, useEffect, lazy, Suspense } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { getMyProfile, updateProfile, getMyReports, getLeaderboard } from '../lib/api'
 import type { UserProfile, ReportRead, LeaderboardEntry } from '../types'
+import { IconChevronLeft } from './icons'
+import { Tabs } from './Tabs'
 import styles from './ProfilePanel.module.css'
 
 const AdminPanel = lazy(() => import('./AdminPanel').then(m => ({ default: m.AdminPanel })))
@@ -48,7 +50,7 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
       {/* Back button */}
       {onClose && (
         <button className={styles.backBtn} onClick={onClose}>
-          ← Back
+          <IconChevronLeft width={14} height={14} /> Back
         </button>
       )}
 
@@ -115,13 +117,15 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
       )}
 
       {/* Tabs */}
-      <div className={styles.tabs}>
-        <button className={`${styles.tab} ${tab === 'mine' ? styles.tabActive : ''}`} onClick={() => setTab('mine')}>My Reports</button>
-        <button className={`${styles.tab} ${tab === 'board' ? styles.tabActive : ''}`} onClick={() => setTab('board')}>Leaderboard</button>
-        {profile?.is_admin && (
-          <button className={`${styles.tab} ${tab === 'admin' ? styles.tabActive : ''}`} onClick={() => setTab('admin')}>Admin</button>
-        )}
-      </div>
+      <Tabs
+        tabs={[
+          { id: 'mine', label: 'My Reports' },
+          { id: 'board', label: 'Leaderboard' },
+          ...(profile?.is_admin ? [{ id: 'admin', label: 'Admin' }] : []),
+        ]}
+        active={tab}
+        onChange={t => setTab(t as 'mine' | 'board' | 'admin')}
+      />
 
       {tab === 'mine' && (
         <div className={styles.reportList}>

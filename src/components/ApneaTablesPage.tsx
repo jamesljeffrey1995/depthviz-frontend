@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import type { User } from '@supabase/supabase-js'
 import { getApneaTables } from '../lib/api'
 import type { ApneaDifficulty, ApneaTable } from '../types'
+import { Tabs } from './Tabs'
+import { IconPlus } from './icons'
 import styles from './ApneaTablesPage.module.css'
 
 type Tab = 'library' | 'mine'
@@ -98,17 +100,14 @@ export function ApneaTablesPage({ user, onShowAuth }: Props) {
         intense. You are responsible for your own safety.
       </div>
 
-      <div className={styles.tabs}>
-        <button
-          className={`${styles.tab} ${tab === 'library' ? styles.tabActive : ''}`}
-          onClick={() => handleTabChange('library')}
-        >Library</button>
-        <button
-          className={`${styles.tab} ${tab === 'mine' ? styles.tabActive : ''}`}
-          onClick={() => handleTabChange('mine')}
-          aria-label={user ? 'My tables' : 'My tables (sign in required)'}
-        >My Tables{!user && ' 🔒'}</button>
-      </div>
+      <Tabs
+        tabs={[
+          { id: 'library', label: 'Library' },
+          { id: 'mine', label: user ? 'My Tables' : 'My Tables — sign in' },
+        ]}
+        active={tab}
+        onChange={next => handleTabChange(next as Tab)}
+      />
 
       <div className={styles.filters}>
         <button
@@ -128,7 +127,9 @@ export function ApneaTablesPage({ user, onShowAuth }: Props) {
         <button
           className={styles.newBtn}
           onClick={() => user ? navigate('/training/new') : onShowAuth()}
-        >+ New table</button>
+        >
+          <IconPlus width={14} height={14} /> New table
+        </button>
       </div>
 
       {error && <div className={styles.error}>{error}</div>}
@@ -144,10 +145,7 @@ export function ApneaTablesPage({ user, onShowAuth }: Props) {
         group.items.length > 0 && (
           <div key={group.heading || 'all'}>
             {group.heading && (
-              <div style={{
-                fontSize: 10, letterSpacing: '0.25em', textTransform: 'uppercase',
-                opacity: 0.4, margin: '20px 0 10px',
-              }}>{group.heading}</div>
+              <div className={styles.groupHeading}>{group.heading}</div>
             )}
             <div className={styles.list}>
               {group.items.map(t => (

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Location } from '../types'
 import { deleteLocation } from '../lib/api'
 import { decryptCoords } from '../lib/spotCrypto'
+import { IconAnchor, IconLock } from './icons'
 import styles from './SavedPlaces.module.css'
 
 interface Props {
@@ -77,8 +78,9 @@ export function SavedPlaces({ locations, onSelectLocation, onDelete, userUid }: 
   if (locations.length === 0) {
     return (
       <div className={styles.empty}>
-        <div className={styles.emptyIcon}>📍</div>
-        <div className={styles.emptyText}>No saved places yet<br />Search for a location and tap + Save</div>
+        <IconAnchor className={styles.emptyIcon} aria-hidden="true" />
+        <div className={styles.emptyText}>No saved places yet</div>
+        <div className={styles.emptySub}>Search for a location and tap + Save</div>
       </div>
     )
   }
@@ -86,61 +88,72 @@ export function SavedPlaces({ locations, onSelectLocation, onDelete, userUid }: 
   return (
     <div className={styles.container}>
       <div className={styles.heading}>My Saved Places</div>
-      {deleteError && <div className={styles.error} role="alert">{deleteError}</div>}
-      {selectError && <div className={styles.error} role="alert">{selectError}</div>}
+      {(deleteError || selectError) && (
+        <div className={styles.errorGroup}>
+          {deleteError && <div className={styles.error} role="alert">{deleteError}</div>}
+          {selectError && <div className={styles.error} role="alert">{selectError}</div>}
+        </div>
+      )}
       <div className={styles.list}>
-        {locations.map(loc => (
-          <div key={loc.id} className={styles.row}>
-            <div className={styles.info}>
-              <div className={styles.name}>{loc.name}</div>
-              <div className={styles.coords}>
-                {loc.encrypted_lat != null && loc.encrypted_lon != null
-                  ? 'Private spot — coordinates encrypted'
-                  : `${Math.abs(loc.lat).toFixed(3)}°${loc.lat >= 0 ? 'N' : 'S'} · ${Math.abs(loc.lon).toFixed(3)}°${loc.lon >= 0 ? 'E' : 'W'}`
-                }
+        {locations.map(loc => {
+          const isPrivate = loc.encrypted_lat != null && loc.encrypted_lon != null
+          return (
+            <div key={loc.id} className={styles.row}>
+              <div className={styles.info}>
+                <div className={styles.name}>{loc.name}</div>
+                <div className={styles.coords}>
+                  {isPrivate ? (
+                    <span className={styles.privateTag}>
+                      <IconLock className={styles.privateIcon} aria-hidden="true" />
+                      Private spot — coordinates encrypted
+                    </span>
+                  ) : (
+                    `${Math.abs(loc.lat).toFixed(3)}°${loc.lat >= 0 ? 'N' : 'S'} · ${Math.abs(loc.lon).toFixed(3)}°${loc.lon >= 0 ? 'E' : 'W'}`
+                  )}
+                </div>
+              </div>
+              <div className={styles.actions}>
+                {confirmId === loc.id ? (
+                  <div className={styles.confirmRow} role="group" aria-label={`Confirm removal of ${loc.name}`}>
+                    <span className={styles.confirmText}>Remove?</span>
+                    <button
+                      className={styles.confirmYes}
+                      onClick={() => handleDeleteConfirm(loc.id)}
+                      aria-label={`Yes, remove ${loc.name}`}
+                    >
+                      Yes
+                    </button>
+                    <button
+                      className={styles.confirmNo}
+                      onClick={handleDeleteCancel}
+                      aria-label="Cancel removal"
+                    >
+                      No
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      className={styles.forecastBtn}
+                      onClick={() => handleSelect(loc)}
+                      aria-label={`View forecast for ${loc.name}`}
+                    >
+                      Forecast
+                    </button>
+                    <button
+                      className={styles.deleteBtn}
+                      onClick={() => handleDeleteRequest(loc.id)}
+                      disabled={deletingId === loc.id}
+                      aria-label={`Remove ${loc.name} from saved places`}
+                    >
+                      {deletingId === loc.id ? 'Removing…' : 'Remove'}
+                    </button>
+                  </>
+                )}
               </div>
             </div>
-            <div className={styles.actions}>
-              {confirmId === loc.id ? (
-                <div className={styles.confirmRow} role="group" aria-label={`Confirm removal of ${loc.name}`}>
-                  <span className={styles.confirmText}>Remove?</span>
-                  <button
-                    className={styles.confirmYes}
-                    onClick={() => handleDeleteConfirm(loc.id)}
-                    aria-label={`Yes, remove ${loc.name}`}
-                  >
-                    Yes
-                  </button>
-                  <button
-                    className={styles.confirmNo}
-                    onClick={handleDeleteCancel}
-                    aria-label="Cancel removal"
-                  >
-                    No
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <button
-                    className={styles.forecastBtn}
-                    onClick={() => handleSelect(loc)}
-                    aria-label={`View forecast for ${loc.name}`}
-                  >
-                    Forecast
-                  </button>
-                  <button
-                    className={styles.deleteBtn}
-                    onClick={() => handleDeleteRequest(loc.id)}
-                    disabled={deletingId === loc.id}
-                    aria-label={`Remove ${loc.name} from saved places`}
-                  >
-                    {deletingId === loc.id ? '…' : '✕'}
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

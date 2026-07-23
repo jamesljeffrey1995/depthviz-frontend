@@ -46,8 +46,8 @@ function ScatterPlot({ points }: ScatterProps) {
             const y = PAD.top + CH - scale(v) * CH
             return (
               <g key={`y-${v}`}>
-                <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="rgba(14, 124, 134,0.06)" />
-                <text x={PAD.left - 6} y={y + 3} textAnchor="end" fill="rgba(139,184,204,0.4)" fontSize="9" fontFamily="monospace">{v}m</text>
+                <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="rgba(var(--accent-rgb), 0.06)" />
+                <text x={PAD.left - 6} y={y + 3} textAnchor="end" fill="var(--ink-faint)" fontSize="9" fontFamily="var(--font-mono)">{v}m</text>
               </g>
             )
           })}
@@ -55,8 +55,8 @@ function ScatterPlot({ points }: ScatterProps) {
             const x = PAD.left + scale(v) * CW
             return (
               <g key={`x-${v}`}>
-                <line x1={x} y1={PAD.top} x2={x} y2={H - PAD.bottom} stroke="rgba(14, 124, 134,0.06)" />
-                <text x={x} y={H - PAD.bottom + 14} textAnchor="middle" fill="rgba(139,184,204,0.4)" fontSize="9" fontFamily="monospace">{v}m</text>
+                <line x1={x} y1={PAD.top} x2={x} y2={H - PAD.bottom} stroke="rgba(var(--accent-rgb), 0.06)" />
+                <text x={x} y={H - PAD.bottom + 14} textAnchor="middle" fill="var(--ink-faint)" fontSize="9" fontFamily="var(--font-mono)">{v}m</text>
               </g>
             )
           })}
@@ -67,7 +67,7 @@ function ScatterPlot({ points }: ScatterProps) {
             y1={PAD.top + CH}
             x2={PAD.left + CW}
             y2={PAD.top}
-            stroke="rgba(14, 124, 134,0.2)"
+            stroke="rgba(var(--accent-rgb), 0.2)"
             strokeWidth="1"
             strokeDasharray="6,4"
           />
@@ -77,7 +77,7 @@ function ScatterPlot({ points }: ScatterProps) {
             const x = PAD.left + scale(p.predicted) * CW
             const y = PAD.top + CH - scale(p.actual) * CH
             const err = Math.abs(p.error)
-            const color = err < 1 ? 'rgba(15,179,122,0.7)' : err < 2.5 ? 'rgba(212,133,10,0.7)' : 'rgba(192,57,43,0.7)'
+            const color = err < 1 ? 'rgba(35,119,68,0.7)' : err < 2.5 ? 'rgba(152,92,22,0.7)' : 'rgba(189,58,58,0.7)'
             return (
               <circle key={i} cx={x} cy={y} r="3.5" fill={color} stroke="none" opacity="0.8">
                 <title>{p.location}: actual={p.actual}m, predicted={p.predicted}m, error={p.error}m ({p.date})</title>
@@ -86,14 +86,14 @@ function ScatterPlot({ points }: ScatterProps) {
           })}
 
           {/* Axis labels */}
-          <text x={W / 2} y={H - 4} textAnchor="middle" fill="rgba(139,184,204,0.5)" fontSize="10" fontFamily="monospace">Predicted (m)</text>
-          <text x={12} y={H / 2} textAnchor="middle" fill="rgba(139,184,204,0.5)" fontSize="10" fontFamily="monospace" transform={`rotate(-90,12,${H / 2})`}>Actual (m)</text>
+          <text x={W / 2} y={H - 4} textAnchor="middle" fill="var(--ink-faint)" fontSize="10" fontFamily="var(--font-mono)">Predicted (m)</text>
+          <text x={12} y={H / 2} textAnchor="middle" fill="var(--ink-faint)" fontSize="10" fontFamily="var(--font-mono)" transform={`rotate(-90,12,${H / 2})`}>Actual (m)</text>
         </svg>
       </div>
       <div className={styles.legend}>
-        <span className={styles.legendItem}><span className={styles.legendDot} style={{ background: 'rgba(15,179,122,0.8)' }} /> &lt;1m error</span>
-        <span className={styles.legendItem}><span className={styles.legendDot} style={{ background: 'rgba(212,133,10,0.8)' }} /> 1-2.5m</span>
-        <span className={styles.legendItem}><span className={styles.legendDot} style={{ background: 'rgba(192,57,43,0.8)' }} /> &gt;2.5m</span>
+        <span className={styles.legendItem}><span className={styles.legendDot} style={{ background: 'rgba(35,119,68,0.8)' }} /> &lt;1m error</span>
+        <span className={styles.legendItem}><span className={styles.legendDot} style={{ background: 'rgba(152,92,22,0.8)' }} /> 1-2.5m</span>
+        <span className={styles.legendItem}><span className={styles.legendDot} style={{ background: 'rgba(189,58,58,0.8)' }} /> &gt;2.5m</span>
       </div>
     </div>
   )
@@ -136,8 +136,8 @@ function ErrorHistogram({ points }: HistogramProps) {
             const y = PAD.top + CH - frac * CH
             return (
               <g key={frac}>
-                <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="rgba(14, 124, 134,0.06)" />
-                <text x={PAD.left - 6} y={y + 3} textAnchor="end" fill="rgba(139,184,204,0.4)" fontSize="9" fontFamily="monospace">{v}</text>
+                <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="rgba(var(--accent-rgb), 0.06)" />
+                <text x={PAD.left - 6} y={y + 3} textAnchor="end" fill="var(--ink-faint)" fontSize="9" fontFamily="var(--font-mono)">{v}</text>
               </g>
             )
           })}
@@ -146,7 +146,7 @@ function ErrorHistogram({ points }: HistogramProps) {
           {(() => {
             const zeroIdx = Math.floor((0 - minBin) / binWidth)
             const zeroX = PAD.left + zeroIdx * barW + barW / 2
-            return <line x1={zeroX} y1={PAD.top} x2={zeroX} y2={H - PAD.bottom} stroke="rgba(14, 124, 134,0.15)" strokeDasharray="4,4" />
+            return <line x1={zeroX} y1={PAD.top} x2={zeroX} y2={H - PAD.bottom} stroke="rgba(var(--accent-rgb), 0.15)" strokeDasharray="4,4" />
           })()}
 
           {/* Bars */}
@@ -155,7 +155,7 @@ function ErrorHistogram({ points }: HistogramProps) {
             const x = PAD.left + i * barW + 1
             const y = PAD.top + CH - barH
             const isNeg = bin.center < 0
-            const color = isNeg ? 'rgba(212,133,10,0.6)' : 'rgba(15,179,122,0.6)'
+            const color = isNeg ? 'rgba(152,92,22,0.6)' : 'rgba(35,119,68,0.6)'
             return (
               <rect key={i} x={x} y={y} width={Math.max(0, barW - 2)} height={barH} fill={color} rx="1">
                 <title>{bin.center.toFixed(1)}m: {bin.count} reports</title>
@@ -167,12 +167,12 @@ function ErrorHistogram({ points }: HistogramProps) {
           {[-6, -4, -2, 0, 2, 4, 6].map(v => {
             const x = PAD.left + ((v - minBin) / (maxBin - minBin)) * CW
             return (
-              <text key={v} x={x} y={H - PAD.bottom + 14} textAnchor="middle" fill="rgba(139,184,204,0.4)" fontSize="9" fontFamily="monospace">{v > 0 ? `+${v}` : v}m</text>
+              <text key={v} x={x} y={H - PAD.bottom + 14} textAnchor="middle" fill="var(--ink-faint)" fontSize="9" fontFamily="var(--font-mono)">{v > 0 ? `+${v}` : v}m</text>
             )
           })}
 
-          <text x={W / 2} y={H - 4} textAnchor="middle" fill="rgba(139,184,204,0.5)" fontSize="10" fontFamily="monospace">Prediction Error (m)</text>
-          <text x={12} y={H / 2} textAnchor="middle" fill="rgba(139,184,204,0.5)" fontSize="10" fontFamily="monospace" transform={`rotate(-90,12,${H / 2})`}>Count</text>
+          <text x={W / 2} y={H - 4} textAnchor="middle" fill="var(--ink-faint)" fontSize="10" fontFamily="var(--font-mono)">Prediction Error (m)</text>
+          <text x={12} y={H / 2} textAnchor="middle" fill="var(--ink-faint)" fontSize="10" fontFamily="var(--font-mono)" transform={`rotate(-90,12,${H / 2})`}>Count</text>
         </svg>
       </div>
     </div>
@@ -208,8 +208,8 @@ function MetricsTimeline({ trainingLog }: MetricsTimelineProps) {
             const y = PAD.top + CH - (v / yMax) * CH
             return (
               <g key={v}>
-                <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="rgba(14, 124, 134,0.06)" />
-                <text x={PAD.left - 6} y={y + 3} textAnchor="end" fill="rgba(139,184,204,0.4)" fontSize="9" fontFamily="monospace">{v.toFixed(1)}</text>
+                <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="rgba(var(--accent-rgb), 0.06)" />
+                <text x={PAD.left - 6} y={y + 3} textAnchor="end" fill="var(--ink-faint)" fontSize="9" fontFamily="var(--font-mono)">{v.toFixed(1)}</text>
               </g>
             )
           })}
@@ -225,10 +225,10 @@ function MetricsTimeline({ trainingLog }: MetricsTimelineProps) {
             const fillD = `${d} L${pts[pts.length - 1].x},${PAD.top + CH} L${pts[0].x},${PAD.top + CH} Z`
             return (
               <>
-                <path d={fillD} fill="rgba(14, 124, 134,0.08)" />
+                <path d={fillD} fill="rgba(var(--accent-rgb), 0.08)" />
                 <path d={d} fill="none" stroke="var(--accent)" strokeWidth="2" />
                 {pts.map((p, i) => (
-                  <circle key={i} cx={p.x} cy={p.y} r="3" fill="var(--accent)" stroke="rgba(2,13,20,0.8)" strokeWidth="1.5">
+                  <circle key={i} cx={p.x} cy={p.y} r="3" fill="var(--accent)" stroke="var(--surface-raised)" strokeWidth="1.5">
                     <title>Run {i + 1}: MAE={entries[i].global_mae?.toFixed(3)}, {entries[i].sample_count} samples ({entries[i].trigger})</title>
                   </circle>
                 ))}
@@ -242,20 +242,20 @@ function MetricsTimeline({ trainingLog }: MetricsTimelineProps) {
                 const x = PAD.left + (i / (entries.length - 1)) * CW
                 const label = new Date(e.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
                 return (
-                  <text key={i} x={x} y={H - PAD.bottom + 14} textAnchor="middle" fill="rgba(139,184,204,0.4)" fontSize="8" fontFamily="monospace">{label}</text>
+                  <text key={i} x={x} y={H - PAD.bottom + 14} textAnchor="middle" fill="var(--ink-faint)" fontSize="8" fontFamily="var(--font-mono)">{label}</text>
                 )
               })
             : [0, Math.floor(entries.length / 2), entries.length - 1].map(i => {
                 const x = PAD.left + (i / (entries.length - 1)) * CW
                 const label = new Date(entries[i].created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
                 return (
-                  <text key={i} x={x} y={H - PAD.bottom + 14} textAnchor="middle" fill="rgba(139,184,204,0.4)" fontSize="8" fontFamily="monospace">{label}</text>
+                  <text key={i} x={x} y={H - PAD.bottom + 14} textAnchor="middle" fill="var(--ink-faint)" fontSize="8" fontFamily="var(--font-mono)">{label}</text>
                 )
               })
           }
 
-          <text x={W / 2} y={H - 4} textAnchor="middle" fill="rgba(139,184,204,0.5)" fontSize="10" fontFamily="monospace">Training Run</text>
-          <text x={12} y={H / 2} textAnchor="middle" fill="rgba(139,184,204,0.5)" fontSize="10" fontFamily="monospace" transform={`rotate(-90,12,${H / 2})`}>MAE (m)</text>
+          <text x={W / 2} y={H - 4} textAnchor="middle" fill="var(--ink-faint)" fontSize="10" fontFamily="var(--font-mono)">Training Run</text>
+          <text x={12} y={H / 2} textAnchor="middle" fill="var(--ink-faint)" fontSize="10" fontFamily="var(--font-mono)" transform={`rotate(-90,12,${H / 2})`}>MAE (m)</text>
         </svg>
       </div>
     </div>
@@ -292,16 +292,16 @@ function FeatureImportanceChart({ features }: FeatureImportanceChartProps) {
             const y = PAD.top + i * (barH + gap)
             const barW = (f.abs_correlation / maxCorr) * barArea
             const isNeg = f.correlation < 0
-            const color = isNeg ? 'rgba(192,57,43,0.7)' : 'rgba(15,179,122,0.7)'
+            const color = isNeg ? 'rgba(189,58,58,0.7)' : 'rgba(35,119,68,0.7)'
             return (
               <g key={f.name}>
                 <text
                   x={labelW - 6}
                   y={y + barH / 2 + 3}
                   textAnchor="end"
-                  fill="rgba(139,184,204,0.7)"
+                  fill="var(--ink-dim)"
                   fontSize="9"
-                  fontFamily="monospace"
+                  fontFamily="var(--font-mono)"
                 >
                   {f.label}
                 </text>
@@ -323,7 +323,7 @@ function FeatureImportanceChart({ features }: FeatureImportanceChartProps) {
                   textAnchor="start"
                   fill={color}
                   fontSize="9"
-                  fontFamily="monospace"
+                  fontFamily="var(--font-mono)"
                 >
                   r={f.correlation > 0 ? '+' : ''}{f.correlation.toFixed(3)}
                 </text>
@@ -334,10 +334,10 @@ function FeatureImportanceChart({ features }: FeatureImportanceChartProps) {
       </div>
       <div className={styles.legend}>
         <span className={styles.legendItem}>
-          <span className={styles.legendDot} style={{ background: 'rgba(15,179,122,0.8)' }} /> Positive (increases viz)
+          <span className={styles.legendDot} style={{ background: 'rgba(35,119,68,0.8)' }} /> Positive (increases viz)
         </span>
         <span className={styles.legendItem}>
-          <span className={styles.legendDot} style={{ background: 'rgba(192,57,43,0.8)' }} /> Negative (reduces viz)
+          <span className={styles.legendDot} style={{ background: 'rgba(189,58,58,0.8)' }} /> Negative (reduces viz)
         </span>
       </div>
     </div>
@@ -366,7 +366,7 @@ function ResidualTable({ residuals, summary, quarantined, onQuarantine }: Residu
         {share !== null ? (
           <>
             Top 3 reports account for{' '}
-            <strong style={{ color: concentrated ? 'var(--danger)' : 'var(--text-bright)' }}>
+            <strong className={concentrated ? styles.summaryWarn : styles.summaryStrong}>
               {(share * 100).toFixed(0)}%
             </strong>{' '}
             of squared error
@@ -375,55 +375,44 @@ function ResidualTable({ residuals, summary, quarantined, onQuarantine }: Residu
         ) : 'Worst-fitting reports first'}
       </div>
       <div className={styles.tableScroll}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: 'monospace' }}>
+        <table className={styles.table}>
           <thead>
-            <tr style={{ textAlign: 'left', color: 'var(--text-dim, #4b5661)' }}>
-              <th style={{ padding: '4px 5px' }}>Date</th>
-              <th style={{ padding: '4px 5px' }}>Location</th>
-              <th style={{ padding: '4px 5px', textAlign: 'right' }}>Actual</th>
-              <th style={{ padding: '4px 5px', textAlign: 'right' }}>Pred</th>
-              <th style={{ padding: '4px 5px', textAlign: 'right' }}>Error</th>
-              <th style={{ padding: '4px 5px', textAlign: 'right' }}>Conf</th>
-              <th style={{ padding: '4px 5px', textAlign: 'center' }} scope="col">Action</th>
+            <tr className={styles.tableHeadRow}>
+              <th>Date</th>
+              <th>Location</th>
+              <th className={styles.numCol}>Actual</th>
+              <th className={styles.numCol}>Pred</th>
+              <th className={styles.numCol}>Error</th>
+              <th className={styles.numCol}>Conf</th>
+              <th style={{ textAlign: 'center' }} scope="col">Action</th>
             </tr>
           </thead>
           <tbody>
             {residuals.map(r => {
               const isQ = quarantined.has(r.id)
               return (
-                <tr key={r.id} style={{ borderTop: '1px solid rgba(139,184,204,0.15)', opacity: isQ ? 0.4 : 1 }}>
-                  <td style={{ padding: '4px 5px' }}>{r.date}</td>
-                  <td style={{ padding: '4px 5px' }}>{r.location}</td>
-                  <td style={{ padding: '4px 5px', textAlign: 'right' }}>{r.actual.toFixed(1)}</td>
-                  <td style={{ padding: '4px 5px', textAlign: 'right' }}>{r.predicted.toFixed(1)}</td>
-                  <td style={{ padding: '4px 5px', textAlign: 'right',
-                               color: Math.abs(r.error) > 2 ? 'var(--danger)' : 'var(--text-bright)' }}>
+                <tr key={r.id} className={`${styles.tableRow} ${isQ ? styles.quarantinedRow : ''}`}>
+                  <td>{r.date}</td>
+                  <td>{r.location}</td>
+                  <td className={styles.numCol}>{r.actual.toFixed(1)}</td>
+                  <td className={styles.numCol}>{r.predicted.toFixed(1)}</td>
+                  <td className={`${styles.numCol} ${Math.abs(r.error) > 2 ? styles.errCellHigh : styles.errCell}`}>
                     {r.error > 0 ? '+' : ''}{r.error.toFixed(1)}m
                   </td>
-                  <td style={{ padding: '4px 5px', textAlign: 'right' }}>
+                  <td className={styles.numCol}>
                     {r.video_confidence !== null ? r.video_confidence.toFixed(2) : '—'}
                   </td>
-                  <td style={{ padding: '4px 5px' }}>
+                  <td style={{ textAlign: 'center' }}>
                     {isQ ? (
-                      <span style={{ color: 'var(--text-dim, #4b5661)', fontSize: 10 }}>quarantined</span>
+                      <span className={styles.quarantinedLabel}>quarantined</span>
                     ) : (
                       <button
+                        className={styles.quarantineBtn}
                         onClick={() => onQuarantine(r.id)}
                         title="Quarantine this report"
                         aria-label={`Quarantine report ${r.id}`}
-                        style={{
-                          background: 'rgba(192,57,43,0.12)',
-                          border: '1px solid rgba(192,57,43,0.35)',
-                          color: 'rgba(192,57,43,0.85)',
-                          borderRadius: 3,
-                          padding: '1px 6px',
-                          fontSize: 10,
-                          cursor: 'pointer',
-                          fontFamily: 'monospace',
-                          lineHeight: '16px',
-                        }}
                       >
-                        Q
+                        Quarantine
                       </button>
                     )}
                   </td>
@@ -495,16 +484,28 @@ export function MLCharts({ trainingLog }: MLChartsProps) {
 
   return (
     <div className={styles.chartsContainer}>
-      <ScatterPlot points={predictions} />
-      <ErrorHistogram points={predictions} />
+      {/* Group 1: per-report prediction accuracy — the same underlying
+          points, viewed as a scatter and as an error distribution. */}
+      <div className={styles.chartGroup}>
+        <ScatterPlot points={predictions} />
+        <ErrorHistogram points={predictions} />
+      </div>
+
+      {/* Group 2: outlier diagnostic — the one place with a destructive
+          per-row action (quarantine), kept on its own so that action never
+          competes visually with the read-only charts around it. */}
       <ResidualTable
         residuals={residuals}
         summary={summary}
         quarantined={quarantinedIds}
         onQuarantine={handleQuarantine}
       />
-      <FeatureImportanceChart features={features} />
-      <MetricsTimeline trainingLog={trainingLog} />
+
+      {/* Group 3: model insight over time / across inputs. */}
+      <div className={styles.chartGroup}>
+        <FeatureImportanceChart features={features} />
+        <MetricsTimeline trainingLog={trainingLog} />
+      </div>
     </div>
   )
 }

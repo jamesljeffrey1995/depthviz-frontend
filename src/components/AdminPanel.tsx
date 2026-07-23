@@ -19,6 +19,8 @@ import type {
   MLRetrainResult,
 } from '../types'
 import { MLCharts } from './MLCharts'
+import { Tabs } from './Tabs'
+import { IconChevronLeft } from './icons'
 import styles from './AdminPanel.module.css'
 
 interface AdminPanelProps {
@@ -103,6 +105,7 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
   }
 
   const handleClean = async () => {
+    if (!confirm('Run outlier cleaning now? This will immediately quarantine or restore reports based on statistical analysis.')) return
     const id = beginRequest()
     setCleanResult(null)
     try {
@@ -151,6 +154,7 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
   }
 
   const handleRetrain = async () => {
+    if (!confirm('Force retrain the ML model now? This replaces the current calibration and bias data immediately.')) return
     const id = beginRequest()
     setRetrainResult(null)
     try {
@@ -181,7 +185,7 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
     <div className={styles.panel}>
       {onBack && (
         <button className={styles.backBtn} onClick={onBack}>
-          &larr; Back
+          <IconChevronLeft width={14} height={14} /> Back
         </button>
       )}
 
@@ -199,7 +203,7 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
             <div className={styles.statLbl}>Active</div>
           </div>
           <div className={styles.stat}>
-            <div className={styles.statVal} style={{ color: stats.quarantined_reports > 0 ? 'var(--danger)' : 'var(--text-bright)' }}>
+            <div className={styles.statVal} style={{ color: stats.quarantined_reports > 0 ? 'var(--sev-poor)' : 'var(--ink)' }}>
               {stats.quarantined_reports}
             </div>
             <div className={styles.statLbl}>Quarantined</div>
@@ -212,17 +216,16 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
       )}
 
       {/* Tabs */}
-      <div className={styles.tabs}>
-        {(['overview', 'quarantined', 'clean', 'ml'] as Tab[]).map(t => (
-          <button
-            key={t}
-            className={`${styles.tab} ${tab === t ? styles.tabActive : ''}`}
-            onClick={() => handleTabChange(t)}
-          >
-            {t === 'overview' ? 'Overview' : t === 'quarantined' ? 'Quarantined' : t === 'clean' ? 'Clean Outliers' : 'ML Model'}
-          </button>
-        ))}
-      </div>
+      <Tabs
+        tabs={[
+          { id: 'overview', label: 'Overview' },
+          { id: 'quarantined', label: 'Quarantined' },
+          { id: 'clean', label: 'Clean Outliers' },
+          { id: 'ml', label: 'ML Model' },
+        ]}
+        active={tab}
+        onChange={t => handleTabChange(t as Tab)}
+      />
 
       {error && <div className={styles.error}>{error}</div>}
 
@@ -300,10 +303,10 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
               <div className={styles.previewStats}>
                 <div>Reports scanned: <strong>{preview.total_reports}</strong></div>
                 <div>Locations: <strong>{preview.locations}</strong></div>
-                <div style={{ color: preview.would_quarantine_count > 0 ? 'var(--danger)' : 'var(--text)' }}>
+                <div style={{ color: preview.would_quarantine_count > 0 ? 'var(--sev-poor)' : 'var(--ink-dim)' }}>
                   Would quarantine: <strong>{preview.would_quarantine_count}</strong>
                 </div>
-                <div style={{ color: preview.would_restore_count > 0 ? 'var(--excellent)' : 'var(--text)' }}>
+                <div style={{ color: preview.would_restore_count > 0 ? 'var(--sev-good)' : 'var(--ink-dim)' }}>
                   Would restore: <strong>{preview.would_restore_count}</strong>
                 </div>
               </div>
@@ -322,7 +325,7 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
               )}
               {preview.would_restore.length > 0 && (
                 <div className={styles.previewList}>
-                  <div className={styles.previewListHeader} style={{ color: 'var(--excellent)' }}>Would restore:</div>
+                  <div className={styles.previewListHeader} style={{ color: 'var(--sev-good)' }}>Would restore:</div>
                   {preview.would_restore.slice(0, 20).map(item => (
                     <div key={item.id} className={styles.previewItem}>
                       #{item.id} — {item.report_date} — {item.actual_vis.toFixed(1)}m
@@ -339,10 +342,10 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
               <div className={styles.cleanStats}>
                 <div>Reports scanned: <strong>{cleanResult.total_reports_scanned}</strong></div>
                 <div>Locations: <strong>{cleanResult.locations_scanned}</strong></div>
-                <div style={{ color: cleanResult.newly_quarantined > 0 ? 'var(--danger)' : 'var(--text)' }}>
+                <div style={{ color: cleanResult.newly_quarantined > 0 ? 'var(--sev-poor)' : 'var(--ink-dim)' }}>
                   Newly quarantined: <strong>{cleanResult.newly_quarantined}</strong>
                 </div>
-                <div style={{ color: cleanResult.newly_restored > 0 ? 'var(--excellent)' : 'var(--text)' }}>
+                <div style={{ color: cleanResult.newly_restored > 0 ? 'var(--sev-good)' : 'var(--ink-dim)' }}>
                   Restored: <strong>{cleanResult.newly_restored}</strong>
                 </div>
                 <div>Trust weights updated: <strong>{cleanResult.trust_weights_updated}</strong></div>
@@ -364,16 +367,16 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
                 <div className={styles.previewHeader}>Calibration Multipliers</div>
                 {mlStatus.calibration ? (
                   <div className={styles.previewStats}>
-                    <div>Swell: <strong style={{ color: Math.abs(mlStatus.calibration.swell_multiplier - 1.0) > 0.2 ? 'var(--danger)' : 'var(--text-bright)' }}>
+                    <div>Swell: <strong style={{ color: Math.abs(mlStatus.calibration.swell_multiplier - 1.0) > 0.2 ? 'var(--sev-poor)' : 'var(--ink)' }}>
                       {mlStatus.calibration.swell_multiplier.toFixed(3)}
                     </strong></div>
-                    <div>Wind: <strong style={{ color: Math.abs(mlStatus.calibration.wind_multiplier - 1.0) > 0.2 ? 'var(--danger)' : 'var(--text-bright)' }}>
+                    <div>Wind: <strong style={{ color: Math.abs(mlStatus.calibration.wind_multiplier - 1.0) > 0.2 ? 'var(--sev-poor)' : 'var(--ink)' }}>
                       {mlStatus.calibration.wind_multiplier.toFixed(3)}
                     </strong></div>
-                    <div>Rain: <strong style={{ color: Math.abs(mlStatus.calibration.rain_multiplier - 1.0) > 0.2 ? 'var(--danger)' : 'var(--text-bright)' }}>
+                    <div>Rain: <strong style={{ color: Math.abs(mlStatus.calibration.rain_multiplier - 1.0) > 0.2 ? 'var(--sev-poor)' : 'var(--ink)' }}>
                       {mlStatus.calibration.rain_multiplier.toFixed(3)}
                     </strong></div>
-                    <div>Global AI offset: <strong style={{ color: Math.abs(mlStatus.calibration.global_bias_offset) > 0.5 ? 'var(--danger)' : 'var(--text-bright)' }}>
+                    <div>Global AI offset: <strong style={{ color: Math.abs(mlStatus.calibration.global_bias_offset) > 0.5 ? 'var(--sev-poor)' : 'var(--ink)' }}>
                       {mlStatus.calibration.global_bias_offset > 0 ? '+' : ''}{mlStatus.calibration.global_bias_offset.toFixed(3)}m
                     </strong></div>
                     <div>Training samples: <strong>{mlStatus.calibration.sample_count}</strong></div>
@@ -392,7 +395,7 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
                 <div className={styles.previewStats}>
                   <div>MAE: <strong>{mlStatus.live_metrics.mae?.toFixed(3) ?? '—'}</strong> m</div>
                   <div>RMSE: <strong>{mlStatus.live_metrics.rmse?.toFixed(3) ?? '—'}</strong> m</div>
-                  <div>R²: <strong style={{ color: (mlStatus.live_metrics.r2 ?? 0) > 0.3 ? 'var(--excellent)' : (mlStatus.live_metrics.r2 ?? 0) > 0 ? 'var(--text-bright)' : 'var(--danger)' }}>
+                  <div>R²: <strong style={{ color: (mlStatus.live_metrics.r2 ?? 0) > 0.3 ? 'var(--sev-good)' : (mlStatus.live_metrics.r2 ?? 0) > 0 ? 'var(--ink)' : 'var(--sev-poor)' }}>
                     {mlStatus.live_metrics.r2?.toFixed(3) ?? '—'}
                   </strong></div>
                   <div>Evaluated on: <strong>{mlStatus.live_metrics.n}</strong> reports</div>
@@ -415,7 +418,7 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
                         <div>RMSE: <strong>{baseRmse.toFixed(3)}</strong> m</div>
                         <div>R²: <strong>{lm.baseline_r2?.toFixed(3) ?? '—'}</strong></div>
                       </div>
-                      <div style={{ marginTop: 6, color: improves ? 'var(--excellent)' : 'var(--danger)' }}>
+                      <div style={{ marginTop: 6, color: improves ? 'var(--sev-good)' : 'var(--sev-poor)' }}>
                         {improves
                           ? `Correction improves RMSE by ${deltaPct?.toFixed(0)}% vs raw physics`
                           : 'Correction does NOT beat raw physics — likely overfitting / too little data'}
@@ -554,7 +557,7 @@ function DataOverviewDashboard({ data }: DataOverviewDashboardProps) {
             <div key={a.date} className={styles.sparkCol} title={`${fmtDate(a.date)}: ${a.count} report${a.count === 1 ? '' : 's'}`}>
               <div
                 className={styles.sparkBar}
-                style={{ height: `${Math.round((a.count / maxActivity) * 100)}%`, opacity: a.count > 0 ? 1 : 0.15 }}
+                style={{ transform: `scaleY(${a.count / maxActivity})`, opacity: a.count > 0 ? 1 : 0.15 }}
               />
             </div>
           ))}
@@ -599,7 +602,7 @@ function DataOverviewDashboard({ data }: DataOverviewDashboardProps) {
               <span
                 key={status}
                 className={styles.pill}
-                style={{ color: status === 'pending' ? 'var(--accent)' : status === 'accepted' ? 'var(--excellent)' : 'var(--danger)' }}
+                style={{ color: status === 'pending' ? 'var(--accent)' : status === 'accepted' ? 'var(--sev-good)' : 'var(--sev-poor)' }}
               >
                 {status}: <strong>{count}</strong>
               </span>

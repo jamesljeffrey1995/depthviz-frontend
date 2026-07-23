@@ -202,12 +202,14 @@ export function NewsPage({ isAdmin }: Props) {
         <ul className={styles.list}>
           {visibleItems.map(a => (
             <li key={a.id} className={styles.card}>
-              <div className={styles.cardHead}>
-                {a.is_pinned && <span className={styles.pin}>Pinned</span>}
-                {!a.is_published && <span className={styles.draft}>Draft</span>}
-                {a.category && <span className={styles.badge}>{a.category}</span>}
-                <h2 className={styles.cardTitle}>{a.title}</h2>
-              </div>
+              {(a.is_pinned || !a.is_published || a.category) && (
+                <div className={styles.cardHead}>
+                  {a.is_pinned && <span className={styles.pin}>Pinned</span>}
+                  {!a.is_published && <span className={styles.draft}>Draft</span>}
+                  {a.category && <span className={styles.badge}>{a.category}</span>}
+                </div>
+              )}
+              <h2 className={styles.cardTitle}>{a.title}</h2>
               <div className={styles.meta}>
                 {a.author_name} · {formatDate(a.created_at)}
               </div>

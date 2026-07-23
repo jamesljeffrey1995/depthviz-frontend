@@ -45,7 +45,7 @@
 
 .grid::-webkit-scrollbar-thumb {
   background: rgba(14, 124, 134, 0.2);
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
 }
 
 /* ── Day card ── */
@@ -98,7 +98,7 @@
   background: currentColor;
   color: var(--paper);
   padding: 1px 6px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   white-space: nowrap;
 }
 
@@ -111,7 +111,7 @@
   opacity: 0.5;
   border: 1px solid currentColor;
   padding: 1px 4px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
 }
 
 /* ── Date labels ── */
@@ -206,7 +206,7 @@
 .good .verdict { color: var(--good); }
 
 .decent .vis,
-.decent .verdict { color: #5ba87a; }
+.decent .verdict { color: var(--sev-good); }
 
 .marginal .vis,
 .marginal .verdict { color: var(--warn); }
@@ -215,7 +215,7 @@
 .poor .verdict { color: var(--danger); }
 
 .blocked .vis,
-.blocked .verdict { color: #555; }
+.blocked .verdict { color: var(--sev-blocked); }
 
 /* ── Hint ── */
 .hint {

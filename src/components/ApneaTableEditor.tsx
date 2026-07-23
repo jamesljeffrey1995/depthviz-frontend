@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { createApneaTable, deleteApneaTable, getApneaTable, updateApneaTable } from '../lib/api'
 import type { ApneaCycle, ApneaDifficulty, ApneaTableType } from '../types'
+import { IconPlus, IconClose } from './icons'
 import styles from './ApneaTableEditor.module.css'
 
 const BLANK_CYCLE: ApneaCycle = { hold_seconds: 60, rest_seconds: 60 }
@@ -210,7 +211,7 @@ export function ApneaTableEditor({ mode }: Props) {
 
         {editingId === null && (
           <div className={styles.preset}>
-            <span style={{ fontSize: 10, letterSpacing: '0.15em', opacity: 0.5, alignSelf: 'center' }}>Preset:</span>
+            <span className={styles.presetLabel}>Preset:</span>
             {PRESETS.map(p => (
               <button key={p.label} type="button" className={styles.presetBtn} onClick={() => applyPreset(p)}>{p.label}</button>
             ))}
@@ -251,13 +252,13 @@ export function ApneaTableEditor({ mode }: Props) {
                 onClick={() => removeCycle(idx)}
                 disabled={cycles.length === 1}
                 aria-label={`Remove cycle ${idx + 1}`}
-              >×</button>
+              ><IconClose width={14} height={14} /></button>
             </div>
           ))}
         </div>
 
         <button type="button" className={styles.addBtn} onClick={addCycle} disabled={cycles.length >= 24}>
-          + Add cycle
+          <IconPlus width={14} height={14} /> Add cycle
         </button>
 
         <div className={styles.totalNote}>

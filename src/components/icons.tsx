@@ -65,6 +65,14 @@ export function IconChevronUp(props: IconProps) {
   )
 }
 
+export function IconChevronLeft(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="m15 18-6-6 6-6" />
+    </svg>
+  )
+}
+
 export function IconClose(props: IconProps) {
   return (
     <svg {...base(props)}>

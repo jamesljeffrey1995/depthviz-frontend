@@ -1,18 +1,21 @@
 .wrapper {
-  margin-bottom: 12px;
+  margin-bottom: var(--space-lg);
 }
 
 .label {
   font-size: 9px;
   letter-spacing: 0.25em;
   text-transform: uppercase;
-  opacity: 0.4;
-  margin-bottom: 12px;
+  color: var(--ink-faint);
+  opacity: 0.7;
+  margin-bottom: var(--space-sm);
 }
 
 .mapContainer {
-  background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(14, 124, 134, 0.1);
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
   overflow: hidden;
   position: relative;
   isolation: isolate;
@@ -62,7 +65,7 @@
 .map {
   width: 100%;
   height: 480px;
-  background: var(--ocean-deep);
+  background: var(--surface-sunken);
 }
 
 @media (max-width: 480px) {
@@ -75,104 +78,118 @@
   font-size: 9px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  opacity: 0.35;
+  color: var(--ink-faint);
+  opacity: 0.7;
   text-align: center;
-  margin-top: 10px;
+  margin-top: var(--space-md);
+}
+
+/* ── Secondary control cluster — search/add-spot chrome, deliberately
+   recessed (surface-sunken) and generously separated from the map above so
+   it reads as subordinate chrome around the primary instrument, not a
+   competing element. ── */
+.controls {
+  margin-top: var(--space-lg);
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
 }
 
 /* Add Spot row */
 .addSpotRow {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-top: 12px;
+  gap: var(--space-sm);
 }
 
 .addSpotBtn {
-  background: rgba(14, 124, 134, 0.08);
-  border: 1px solid rgba(14, 124, 134, 0.25);
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.15em;
+  background: var(--accent-soft);
+  border: 1px solid var(--surface-border);
+  color: var(--accent-text);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   padding: 8px 16px;
+  border-radius: var(--radius-full);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: border-color var(--transition-fast);
 }
 
 .addSpotBtn:hover {
-  background: rgba(14, 124, 134, 0.15);
-  border-color: rgba(14, 124, 134, 0.5);
+  border-color: var(--accent);
 }
 
 .userSpotsCount {
   font-size: 9px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  opacity: 0.4;
-  color: #ffb800;
+  color: var(--sev-marginal);
 }
 
-/* Add Spot form */
+/* Add Spot form — lives inside .controls, so no outer surface/border of its
+   own; just the tight, form-internal rhythm. */
 .addForm {
-  margin-top: 12px;
-  background: rgba(4, 30, 46, 0.7);
-  border: 1px solid rgba(14, 124, 134, 0.15);
-  padding: 16px;
+  display: flex;
+  flex-direction: column;
 }
 
 .addFormTitle {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: 18px;
-  letter-spacing: 0.1em;
-  color: var(--accent);
-  margin-bottom: 4px;
+  font-weight: 800;
+  color: var(--ink);
+  margin-bottom: var(--space-xs);
 }
 
 .addFormPrivacy {
   font-size: 9px;
-  letter-spacing: 0.08em;
-  opacity: 0.55;
-  margin-bottom: 10px;
-  color: #ffb800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-sm);
+  color: var(--sev-marginal);
 }
 
 .addFormHint {
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  opacity: 0.6;
-  margin-bottom: 12px;
+  font-size: 12px;
+  margin-bottom: var(--space-sm);
   line-height: 1.5;
+  color: var(--ink-faint);
 }
 
 .addFormField {
-  margin-bottom: 10px;
+  margin-bottom: var(--space-sm);
 }
 
 .addFormLabel {
   display: block;
-  font-size: 9px;
-  letter-spacing: 0.25em;
+  font-size: 10px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  opacity: 0.45;
+  font-weight: 600;
+  color: var(--ink-faint);
   margin-bottom: 6px;
 }
 
 .addFormInput {
   width: 100%;
-  background: rgba(10, 61, 92, 0.3);
-  border: 1px solid rgba(14, 124, 134, 0.2);
-  color: var(--text-bright);
-  font-family: var(--font-mono);
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  color: var(--ink);
+  font-family: var(--font-sans);
   font-size: 13px;
   padding: 10px 14px;
   outline: none;
   box-sizing: border-box;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .addFormInput:focus {
-  border-color: rgba(14, 124, 134, 0.5);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .addFormActions {
@@ -183,136 +200,150 @@
 
 .addFormSaveBtn {
   flex: 1;
-  background: rgba(14, 124, 134, 0.12);
-  border: 1px solid rgba(14, 124, 134, 0.4);
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 10px;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: var(--accent-on);
+  font-family: var(--font-sans);
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   padding: 10px;
+  border-radius: var(--radius-full);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background var(--transition-fast);
 }
 
 .addFormSaveBtn:hover:not(:disabled) {
-  background: rgba(14, 124, 134, 0.22);
+  background: var(--accent-strong);
 }
 
 .addFormSaveBtn:disabled {
-  opacity: 0.35;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 .addFormCancelBtn {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.15em;
+  background: transparent;
+  border: 1px solid var(--surface-border);
+  color: var(--ink-dim);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   padding: 10px 18px;
+  border-radius: var(--radius-full);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: border-color var(--transition-fast);
 }
 
 .addFormCancelBtn:hover {
-  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--surface-border-strong);
 }
 
-/* Popup styling */
+/* Popup styling — renders inside Leaflet's light popup chrome, not the app shell */
 .popup {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   min-width: 180px;
 }
 
 .popupUserBadge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 9px;
-  letter-spacing: 0.15em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #ffb800;
-  border: 1px solid rgba(255, 184, 0, 0.4);
+  color: var(--sev-marginal);
+  border: 1px solid var(--sev-marginal);
+  border-radius: var(--radius-sm);
   padding: 2px 6px;
   margin-bottom: 6px;
 }
 
 .popupName {
-  font-family: var(--font-display);
-  font-size: 20px;
-  letter-spacing: 0.08em;
-  color: var(--ocean-deep);
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--ink);
   margin-bottom: 6px;
-  line-height: 1;
+  line-height: 1.15;
 }
 
 .popupDesc {
-  font-size: 11px;
-  color: #444;
+  font-size: 12px;
+  color: var(--ink-dim);
   line-height: 1.5;
   margin-bottom: 10px;
 }
 
 .popupCreator {
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  color: #888;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: var(--ink-faint);
   margin-bottom: 8px;
 }
 
 .popupBtn {
   display: block;
   width: 100%;
-  background: var(--ocean-mid);
-  border: 1px solid rgba(14, 124, 134, 0.3);
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.15em;
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
+  color: var(--accent-text);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   padding: 8px 12px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: border-color var(--transition-fast);
   text-align: center;
   margin-bottom: 6px;
 }
 
 .popupBtn:hover {
-  background: rgba(14, 124, 134, 0.15);
-  border-color: rgba(14, 124, 134, 0.5);
+  border-color: var(--accent);
 }
 
 .popupRemoveBtn {
   display: block;
   width: 100%;
   background: transparent;
-  border: 1px solid rgba(255, 80, 80, 0.3);
-  color: #ff5050;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.12em;
+  border: 1px solid var(--surface-border);
+  color: var(--sev-poor);
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   padding: 6px 12px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: border-color var(--transition-fast);
   text-align: center;
 }
 
 .popupRemoveBtn:hover {
-  background: rgba(255, 80, 80, 0.1);
-  border-color: rgba(255, 80, 80, 0.5);
+  border-color: var(--sev-poor);
 }
 
 /* Public spot badge */
 .popupPublicBadge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 9px;
-  letter-spacing: 0.15em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #2ecc71;
-  border: 1px solid rgba(46, 204, 113, 0.4);
+  color: var(--sev-good);
+  border: 1px solid var(--sev-good);
+  border-radius: var(--radius-sm);
   padding: 2px 6px;
   margin-bottom: 6px;
 }
@@ -326,31 +357,31 @@
 }
 
 .voteBtn {
-  background: rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
   cursor: pointer;
   font-size: 14px;
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   line-height: 1;
-  transition: all 0.15s;
+  transition: border-color var(--transition-fast);
 }
 
 .voteBtn:hover {
-  background: rgba(0, 0, 0, 0.1);
-  border-color: rgba(0, 0, 0, 0.25);
+  border-color: var(--surface-border-strong);
 }
 
 .voteBtnActive {
-  background: rgba(14, 124, 134, 0.15);
-  border-color: #0e7c86;
+  background: var(--accent-soft);
+  border-color: var(--accent);
 }
 
 .voteCount {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 700;
-  color: #333;
+  color: var(--ink);
+  font-feature-settings: 'tnum' 1;
   min-width: 20px;
   text-align: center;
 }
@@ -364,44 +395,44 @@
 
 .toggleBtn {
   flex: 1;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  color: var(--ink-dim);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.04em;
   padding: 8px 10px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
   text-align: center;
-  opacity: 0.6;
 }
 
 .toggleBtn:hover {
-  opacity: 0.85;
+  border-color: var(--surface-border-strong);
 }
 
 .toggleBtnActive {
-  background: rgba(255, 184, 0, 0.12);
-  border-color: rgba(255, 184, 0, 0.5);
-  color: #ffb800;
-  opacity: 1;
+  background: rgba(152, 92, 22, 0.1);
+  border-color: var(--sev-marginal);
+  color: var(--sev-marginal);
 }
 
 .toggleBtnActivePublic {
-  background: rgba(46, 204, 113, 0.12);
-  border-color: rgba(46, 204, 113, 0.5);
-  color: #2ecc71;
+  background: rgba(35, 119, 68, 0.1);
+  border-color: var(--sev-good);
+  color: var(--sev-good);
   opacity: 1;
 }
 
 /* Proximity error */
 .addFormError {
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  color: #ff5050;
-  background: rgba(255, 80, 80, 0.08);
-  border: 1px solid rgba(255, 80, 80, 0.25);
+  font-size: 12px;
+  color: var(--sev-poor);
+  background: rgba(189, 58, 58, 0.08);
+  border: 1px solid rgba(189, 58, 58, 0.3);
+  border-radius: var(--radius-md);
   padding: 8px 12px;
   margin-bottom: 12px;
   line-height: 1.5;

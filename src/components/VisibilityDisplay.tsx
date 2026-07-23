@@ -50,7 +50,7 @@ export function VisibilityDisplay({ result, locationName }: VisibilityDisplayPro
         <div className={styles.barTrack}>
           <div
             className={`${styles.barFill} ${styles[`bg_${verdict.colorClass}`]}`}
-            style={{ width: `${pct}%` }}
+            style={{ transform: `scaleX(${pct / 100})` }}
           />
         </div>
         <div className={styles.barMarkers}>
@@ -80,7 +80,7 @@ export function FactorGrid({ factors }: FactorGridProps) {
         const { label: impactLabel, color: impactColor } = getImpact(f.penalty, f.max_penalty)
         const barPct = Math.min(100, (Math.abs(f.penalty) / f.max_penalty) * 100)
         const ratio = Math.abs(f.penalty) / f.max_penalty
-        const barColor = ratio === 0 ? '#1a6b4a' : ratio < 0.4 ? '#d4850a' : ratio < 0.75 ? '#e06c00' : '#c0392b'
+        const barColor = ratio === 0 ? 'var(--sev-good)' : ratio < 0.4 ? 'var(--sev-decent)' : ratio < 0.75 ? 'var(--sev-marginal)' : 'var(--sev-poor)'
 
         return (
           <div key={f.name} className={styles.factorCard}>
@@ -88,7 +88,7 @@ export function FactorGrid({ factors }: FactorGridProps) {
             <div className={styles.factorValue}>{f.value}</div>
             {f.note && <div className={styles.factorNote}>{f.note}</div>}
             <div className={styles.factorImpact} style={{ color: impactColor }}>{impactLabel}</div>
-            <div className={styles.factorBar} style={{ width: `${barPct}%`, background: barColor }} />
+            <div className={styles.factorBar} style={{ transform: `scaleX(${barPct / 100})`, background: barColor }} />
           </div>
         )
       })}
