@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import styles from './DiveScore.module.css'
 
 interface DiveScoreProps {
@@ -16,23 +16,43 @@ interface DiveScoreProps {
 
 const SWEEP = 0.75           // 270° gauge — the gap sits at the bottom
 const STROKE = 12
+const TWEEN_MS = 620         // matches --ds-dur-reveal, the system's one reveal duration
 
 /**
  * The single, prominent Dive Quality Score gauge. A 270° radial arc keeps the
  * number the hero of the location page while the colour, band label and gap
  * position give three redundant reads of the same value (WCAG 1.4.1).
+ *
+ * The arc and the number count together between whatever value is currently
+ * shown and the new one — on first mount (0 → score) and on every later
+ * change, e.g. flipping to a different forecast day. The tween is
+ * interruptible: switching days again mid-count redirects from wherever the
+ * animation currently sits rather than jumping.
  */
 export function DiveScore({ score, color, label, caption, size = 148, animate = true }: DiveScoreProps) {
   const clamped = Math.max(0, Math.min(100, Math.round(score)))
   const [shown, setShown] = useState(animate ? 0 : clamped)
+  const shownRef = useRef(shown)
 
   useEffect(() => {
-    if (!animate) { setShown(clamped); return }
     const prefersReduced = typeof window !== 'undefined' && window.matchMedia
       && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (prefersReduced) { setShown(clamped); return }
-    const id = requestAnimationFrame(() => setShown(clamped))
-    return () => cancelAnimationFrame(id)
+    if (!animate || prefersReduced) { setShown(clamped); shownRef.current = clamped; return }
+    if (shownRef.current === clamped) return
+
+    const from = shownRef.current
+    const start = performance.now()
+    let raf = 0
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / TWEEN_MS)
+      const eased = 1 - Math.pow(1 - t, 3) // ease-out cubic
+      const value = Math.round(from + (clamped - from) * eased)
+      setShown(value)
+      shownRef.current = value
+      if (t < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
   }, [clamped, animate])
 
   const r = (size - STROKE) / 2
@@ -69,7 +89,7 @@ export function DiveScore({ score, color, label, caption, size = 148, animate = 
         </g>
       </svg>
       <div className={styles.center}>
-        <div className={styles.number}>{clamped}</div>
+        <div className={styles.number}>{shown}</div>
         <div className={styles.outOf}>/ 100</div>
         <div className={styles.label}>{label}</div>
       </div>
