@@ -59,7 +59,7 @@
 .logo {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 0;
   background: none;
   border: none;
   padding: 0;
@@ -76,6 +76,7 @@
   height: 22px;
   color: var(--accent-text);
   flex-shrink: 0;
+  margin-right: 8px;
 }
 
 .logo span {
@@ -522,7 +523,7 @@
   display: flex;
   justify-content: space-around;
   align-items: center;
-  background: rgba(255, 255, 255, 0.86);
+  background: rgba(6, 24, 36, 0.9);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-lg);
   backdrop-filter: blur(16px) saturate(1.4);
