@@ -1,14 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getNews } from '../lib/api'
 import type { Announcement } from '../types'
-import {
-  IconArrowRight, IconActivity, IconFish, IconTimer, IconScale, IconCompass,
-} from './icons'
+import { IconArrowRight } from './icons'
 import styles from './HomePage.module.css'
 
-/** Compact relative date, e.g. "3 days ago". */
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime()
   const mins = Math.floor(diff / 60000)
@@ -21,19 +18,12 @@ function timeAgo(iso: string): string {
   return new Date(iso).toLocaleDateString()
 }
 
-interface QuickLink {
-  label: string
-  description: string
-  path: string
-  icon: typeof IconActivity
-}
-
-const QUICK_LINKS: QuickLink[] = [
-  { label: 'Best visibility', description: 'Compare nearby spots', path: '/best', icon: IconCompass },
-  { label: 'Apnea training', description: 'Build and run tables', path: '/training', icon: IconTimer },
-  { label: 'Community', description: 'See recent dive reports', path: '/feed', icon: IconActivity },
-  { label: 'Catches', description: 'Log what you found', path: '/catches', icon: IconFish },
-  { label: 'Weight belt', description: 'Estimate your weighting', path: '/weight', icon: IconScale },
+const TOOLS = [
+  { ref: '01', label: 'Compare visibility', description: 'Rank nearby sites by forecast visibility and confidence.', path: '/best' },
+  { ref: '02', label: 'Read diver reports', description: 'Check what people actually found in the water.', path: '/feed' },
+  { ref: '03', label: 'Open the spot map', description: 'Browse the coast and inspect a specific entry point.', path: '/map' },
+  { ref: '04', label: 'Run an apnea table', description: 'Build and time dry training sessions.', path: '/training' },
+  { ref: '05', label: 'Calculate weighting', description: 'Estimate lead for your suit, body and water type.', path: '/weight' },
 ]
 
 interface HomePageProps {
@@ -57,54 +47,56 @@ export function HomePage({ locationSearch }: HomePageProps) {
   return (
     <div className={styles.home}>
       <section className={styles.hero}>
-        <div className={styles.heroCopy}>
-          <span className={styles.eyebrow}>Underwater visibility, decoded</span>
-          <h1 className={styles.heroTitle}>Pick the right window to dive.</h1>
+        <div>
+          <p className={styles.kicker}>UK coastal dive conditions</p>
+          <h1 className={styles.heroTitle}>Can I see enough to dive here today?</h1>
           <p className={styles.heroLead}>
-            Check calibrated visibility, swell and tide conditions for your spot —
-            sharpened by reports from divers already in the water.
+            DepthViz estimates underwater visibility for spearfishers and freedivers.
+            It combines marine conditions with reports from people who have recently dived the site.
           </p>
-          <ul className={styles.proofPoints} aria-label="DepthViz forecast features">
-            <li>7-day outlook</li>
-            <li>Local dive reports</li>
-            <li>Depth-aware conditions</li>
-          </ul>
+          <p className={styles.caution}>
+            Forecasts support a decision; they do not make one. Check access, swell,
+            wind and local advice before entering the water.
+          </p>
         </div>
 
-        <div className={styles.searchCard}>
-          <div className={styles.searchCardHead}>
+        <div className={styles.searchPanel}>
+          <div className={styles.searchHead}>
             <div>
-              <span className={styles.searchLabel}>Plan a dive</span>
-              <p>Search a coastal spot or use your current location.</p>
+              <span className={styles.searchLabel}>Start with a place</span>
+              <p>Town, beach, headland or coordinates</p>
             </div>
-            <button className={styles.mapLink} onClick={() => navigate('/map')}>
-              Open map
-              <IconArrowRight aria-hidden="true" />
+            <button className={styles.textLink} onClick={() => navigate('/map')}>
+              Use map <span aria-hidden="true">→</span>
             </button>
           </div>
           {locationSearch}
         </div>
       </section>
 
-      <nav className={styles.quickLinks} aria-label="Quick links">
-        {QUICK_LINKS.map(({ label, description, path, icon: Icon }) => (
-          <button key={path} className={styles.quickLink} onClick={() => navigate(path)}>
-            <Icon className={styles.quickLinkIcon} aria-hidden="true" />
-            <span className={styles.quickLinkCopy}>
-              <strong>{label}</strong>
-              <small>{description}</small>
-            </span>
-            <IconArrowRight className={styles.quickLinkArrow} aria-hidden="true" />
+      <nav className={styles.directory} aria-label="DepthViz tools">
+        <div className={styles.directoryHead}>
+          <h2>What do you need to do?</h2>
+          <span>{TOOLS.length} tools</span>
+        </div>
+        {TOOLS.map(({ ref, label, description, path }) => (
+          <button key={path} className={styles.tool} onClick={() => navigate(path)}>
+            <span className={styles.ref}>{ref}</span>
+            <strong>{label}</strong>
+            <span className={styles.description}>{description}</span>
+            <span className={styles.arrow} aria-hidden="true">→</span>
           </button>
         ))}
       </nav>
 
       <section className={styles.section} aria-labelledby="news-heading">
         <div className={styles.sectionHead}>
-          <h2 id="news-heading" className={styles.sectionTitle}>Latest news</h2>
-          <button className={styles.moreLink} onClick={() => navigate('/news')}>
-            All news
-            <IconArrowRight aria-hidden="true" />
+          <div>
+            <p className={styles.sectionIndex}>LOG / UPDATES</p>
+            <h2 id="news-heading" className={styles.sectionTitle}>From DepthViz</h2>
+          </div>
+          <button className={styles.textLink} onClick={() => navigate('/news')}>
+            View the full log <IconArrowRight aria-hidden="true" />
           </button>
         </div>
         {loadingNews ? (
@@ -117,8 +109,8 @@ export function HomePage({ locationSearch }: HomePageProps) {
               <li key={n.id}>
                 <button className={styles.newsItem} onClick={() => navigate('/news')}>
                   <div className={styles.newsItemHead}>
-                    {n.is_pinned && <span className={styles.pin}>Pinned</span>}
-                    {n.category && <span className={styles.newsBadge}>{n.category}</span>}
+                    {n.is_pinned && <span className={styles.tag}>Pinned</span>}
+                    {n.category && <span className={styles.tag}>{n.category}</span>}
                     <span className={styles.newsTitle}>{n.title}</span>
                     <span className={styles.newsDate}>{timeAgo(n.created_at)}</span>
                   </div>

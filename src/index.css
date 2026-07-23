@@ -19,18 +19,18 @@
      is a small functional signal set, kept in two registers — "on light"
      for chassis surfaces, "on face" for the dark instrument panel — so
      contrast holds in both places. See DESIGN.md for full rationale. */
-  --surface: #061824;
-  --surface-raised: #0b2535;
-  --surface-sunken: #03121d;
-  --surface-border: #183b4d;
-  --surface-border-strong: #2a566b;
+  --surface: #f2f0e8;
+  --surface-raised: #faf9f4;
+  --surface-sunken: #e7e5dc;
+  --surface-border: #cbc8bc;
+  --surface-border-strong: #87877f;
 
-  --ink: #f1f7fa;
-  --ink-dim: #b6cbd5;
+  --ink: #182528;
+  --ink-dim: #3e5052;
   /* Darkened from an initial #8a96a3 (2.78:1) — that failed AA even for large
      text against --surface-sunken. This value clears 4.5:1 against every
      light surface in the system. */
-  --ink-faint: #7898a8;
+  --ink-faint: #667476;
 
   /* Instrument face — the one dark surface in the system. */
   --face: #0b1622;
@@ -43,15 +43,16 @@
      reads as light catching an instrument's cover glass, not decoration. */
   --lens-sheen: linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 38%, rgba(255, 255, 255, 0.03) 60%, rgba(255, 255, 255, 0.1) 100%);
 
-  --accent: #18a6ad;
-  --accent-rgb: 24, 166, 173;
-  --accent-strong: #21bdc4;
-  --accent-soft: rgba(24, 166, 173, 0.16);
+  --accent: #0f545c;
+  --accent-rgb: 15, 84, 92;
+  --accent-strong: #093f46;
+  --accent-soft: rgba(15, 84, 92, 0.10);
   --accent-on: #ffffff;
   /* Text-on-light variant — --accent itself only clears ~4.2:1 against
-     --surface-sunken, short of AA for small text; use this wherever the
-     accent is a text/link color rather than a button fill or icon stroke. */
-  --accent-text: #55d7dc;
+     --surface-sunken, short of AA for small text; this darker value clears
+     4.5:1 and should be used wherever the accent is a text/link color rather
+     than a button fill or icon stroke. */
+  --accent-text: var(--accent-strong);
 
   /* Severity — "on light" register (chips, badges, factor rows, text on
      --surface/--surface-raised). Safety-relevant; keep distinguishable.
@@ -99,9 +100,9 @@
   --text-bright: var(--ink);
 
   /* ── Typography — one refined grotesque, the range does the work ── */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: var(--font-sans);
-  --font-display: var(--font-sans);
+  --font-sans: Arial, Helvetica, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+  --font-display: Georgia, 'Times New Roman', serif;
 
   /* ── Spacing scale ── */
   --space-xs: 4px;
@@ -113,19 +114,19 @@
 
   /* ── Radius — machined edges: rounded enough to feel made, not a logbook
      page's square corners. ── */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
-  --radius-full: 999px;
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --radius-full: 9999px;
 
   /* ── Motion & elevation — layered cards with real, soft depth. ── */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --transition-base: 180ms var(--ease-out);
   --transition-fast: 120ms ease;
-  --shadow-glow: 0 4px 14px rgba(14, 124, 134, 0.25);
-  --shadow-xs: 0 1px 2px rgba(16, 24, 32, 0.06);
-  --shadow-card: 0 1px 2px rgba(16, 24, 32, 0.04), 0 8px 24px -8px rgba(16, 24, 32, 0.16);
-  --shadow-lg: 0 20px 48px -12px rgba(16, 24, 32, 0.28);
+  --shadow-glow: none;
+  --shadow-xs: none;
+  --shadow-card: none;
+  --shadow-lg: 0 6px 18px rgba(16, 24, 32, 0.18);
   --shadow-face: 0 24px 60px -16px rgba(11, 22, 34, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
@@ -147,9 +148,11 @@ html, body, #root {
 }
 
 body {
-  background:
-    radial-gradient(circle at 50% -10%, rgba(24, 166, 173, 0.12), transparent 38rem),
-    linear-gradient(180deg, #081f2d 0%, var(--surface) 34%, #03111b 100%);
+  background-color: var(--surface);
+  background-image:
+    linear-gradient(rgba(24, 37, 40, .025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(24, 37, 40, .025) 1px, transparent 1px);
+  background-size: 32px 32px;
   color: var(--ink-dim);
   font-family: var(--font-sans);
   font-feature-settings: 'tnum' 1, 'cv05' 1;
