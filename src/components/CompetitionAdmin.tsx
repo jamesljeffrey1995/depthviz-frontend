@@ -632,6 +632,14 @@ function readWizardDraft(): CompetitionInput {
   } catch { return { ...EMPTY_COMP } }
 }
 
+function redactWizardDraft(input: CompetitionInput): CompetitionInput {
+  return {
+    ...input,
+    emergency_contact_name: '',
+    emergency_contact_phone: '',
+  }
+}
+
 function readWizardPerGram(): Record<string, number> {
   try {
     const raw = localStorage.getItem(WIZARD_PERGRAM_KEY)
@@ -759,7 +767,7 @@ function CompetitionWizard({
 
   useEffect(() => {
     if (!isNew) return
-    try { localStorage.setItem(WIZARD_DRAFT_KEY, JSON.stringify(draft)) } catch {}
+    try { localStorage.setItem(WIZARD_DRAFT_KEY, JSON.stringify(redactWizardDraft(draft))) } catch {}
   }, [isNew, draft])
 
   useEffect(() => {
