@@ -1,3 +1,11 @@
+## [1.24.3](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.24.2...v1.24.3) (2026-07-23)
+
+
+### Bug Fixes
+
+* restore 44px min-height on forecast tabs for touch accessibility ([8de5e2e](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/8de5e2e71c61ee038a3c15b344fee9c5c82de924))
+* update submit button aria-label to match visible text "Show forecast" ([83313a9](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/83313a9f288bca1e67c7e4cc445b1c5e38f2f503))
+
 ## [1.24.2](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.24.1...v1.24.2) (2026-07-21)
 
 
