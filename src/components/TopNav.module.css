@@ -1,20 +1,22 @@
 .topNav {
   margin: 0 0 var(--space-lg);
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
+  border-top: 1px solid var(--surface-border-strong);
+  border-bottom: 1px solid var(--surface-border-strong);
 }
 
 .list {
   display: inline-flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 2px;
+  gap: 0;
   list-style: none;
   margin: 0;
-  padding: 4px;
-  background: var(--surface-sunken);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-full);
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
 }
 
 .link {
@@ -24,9 +26,10 @@
   font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 600;
-  padding: 8px 16px;
+  padding: 11px 18px 10px 0;
+  margin-right: 18px;
   cursor: pointer;
-  border-radius: var(--radius-full);
+  border-radius: 0;
   transition: color var(--transition-fast), background var(--transition-fast);
 }
 
@@ -40,8 +43,9 @@
 }
 
 .active {
-  color: var(--accent-on);
-  background: var(--accent);
+  color: var(--ink);
+  background: transparent;
+  box-shadow: inset 0 -3px 0 var(--accent);
 }
 
 /* On narrow mobile the bottom tab bar is the primary navigation, so hide the
