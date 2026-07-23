@@ -1,0 +1,505 @@
+/* ── Admin operational console ─────────────────────────────────────────────
+   Precision Marine Instrument identity (see src/index.css / DESIGN.md): light
+   instrument-chassis surfaces, one teal accent, the on-light severity set.
+   Dashboard grid at desktop widths, collapsing to a single column on mobile.
+   Every panel is self-contained so the AdminPanel host can rearrange them
+   without touching internals.
+*/
+
+.wrap {
+  --panel-bg: var(--surface-raised);
+  --panel-border: var(--surface-border);
+  --panel-border-strong: var(--surface-border-strong);
+  --card-bg: var(--surface-sunken);
+  --card-border: var(--surface-border);
+  --danger: var(--sev-poor);
+  --warning: var(--sev-marginal);
+  --ok: var(--sev-good);
+  --muted: var(--ink-faint);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  width: 100%;
+}
+
+.rowFull {
+  grid-column: 1 / -1;
+}
+
+/* Desktop dashboard grid — wider viewports get a proper 12-col layout. */
+@media (min-width: 1100px) {
+  .wrap {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .colHealth   { grid-column: span 8; }
+  .colModel    { grid-column: span 4; }
+  .colAlerts   { grid-column: span 12; }
+  .colSites    { grid-column: span 7; }
+  .colBreakdown{ grid-column: span 5; }
+  .colDiag     { grid-column: span 12; }
+  .colReports  { grid-column: span 7; }
+  .colSensors  { grid-column: span 5; }
+  .colActions  { grid-column: span 12; }
+}
+
+/* ── Panel primitives ───────────────────────────────────────────────────── */
+
+.panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+.panelTitle {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+  margin: 0;
+}
+.panelSub {
+  font-size: 11px;
+  opacity: 0.5;
+  letter-spacing: 0.05em;
+  font-family: var(--font-sans);
+}
+.panelSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── Status chips ───────────────────────────────────────────────────────── */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  border: 1px solid;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+.chipHealthy  { color: var(--sev-good);   border-color: rgba(35, 119, 68, 0.35);  background: rgba(35, 119, 68, 0.08); }
+.chipTrusted  { color: var(--sev-good);   border-color: rgba(35, 119, 68, 0.35);  background: rgba(35, 119, 68, 0.08); }
+.chipOk       { color: var(--accent-text); border-color: rgba(var(--accent-rgb), 0.25); background: rgba(var(--accent-rgb), 0.06); }
+.chipStale    { color: var(--sev-marginal); border-color: rgba(152, 92, 22, 0.4); background: rgba(152, 92, 22, 0.08); }
+.chipDegraded { color: var(--sev-marginal); border-color: rgba(152, 92, 22, 0.4); background: rgba(152, 92, 22, 0.08); }
+.chipLow      { color: var(--sev-marginal); border-color: rgba(152, 92, 22, 0.4); background: rgba(152, 92, 22, 0.08); }
+.chipFailed   { color: var(--sev-poor);   border-color: rgba(189, 58, 58, 0.4);   background: rgba(189, 58, 58, 0.1); }
+.chipUnknown  { color: var(--ink-faint);  border-color: rgba(94, 107, 120, 0.2);  background: var(--surface-sunken); }
+
+.chipDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
+}
+
+/* ── Health summary grid ────────────────────────────────────────────────── */
+
+.healthGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+}
+.healthCard {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.healthCardLbl {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+.healthCardVal {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.healthCardMeta {
+  font-size: 12px;
+  opacity: 0.55;
+  font-family: var(--font-sans);
+}
+
+/* ── Alerts panel ───────────────────────────────────────────────────────── */
+
+.alertList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--surface-sunken);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.alertCritical { color: var(--sev-poor); background: rgba(189, 58, 58, 0.08); border: 1px solid rgba(189, 58, 58, 0.3); }
+.alertWarning  { color: var(--sev-marginal); background: rgba(152, 92, 22, 0.07); border: 1px solid rgba(152, 92, 22, 0.3); }
+.alertInfo     { color: var(--accent-text); background: rgba(var(--accent-rgb), 0.06); border: 1px solid rgba(var(--accent-rgb), 0.25); }
+.alertHint     { display: block; opacity: 0.6; font-size: 11px; margin-top: 3px; color: var(--ink-faint); }
+.alertEmpty {
+  padding: 12px;
+  text-align: center;
+  font-size: 12px;
+  opacity: 0.55;
+  border: 1px dashed var(--card-border);
+}
+
+/* ── Site grid ──────────────────────────────────────────────────────────── */
+
+.siteGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+.siteCard {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+.siteCard:hover { border-color: var(--surface-border-strong); }
+.siteCardSelected {
+  border-color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.06);
+}
+.siteCardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.siteCardName {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.siteMeta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  opacity: 0.55;
+  font-family: var(--font-sans);
+}
+.siteDriver {
+  font-size: 12px;
+  color: var(--accent-text);
+  opacity: 0.85;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.siteChipRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* ── Forecast breakdown ─────────────────────────────────────────────────── */
+
+.breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.breakdownStep {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  padding: 4px 0;
+  font-size: 12px;
+  border-bottom: 1px dashed rgba(var(--accent-rgb), 0.06);
+}
+.breakdownStep:last-child { border-bottom: none; }
+.breakdownLbl { opacity: 0.85; }
+.breakdownVal {
+  font-family: var(--font-sans);
+  color: var(--ink);
+}
+.stepBase   .breakdownVal { color: var(--ink); }
+.stepPenalty .breakdownVal { color: var(--sev-poor); }
+.stepCorrection .breakdownVal { color: var(--accent-text); }
+.stepFinal {
+  border-top: 1px solid rgba(var(--accent-rgb), 0.25);
+  margin-top: 4px;
+  padding-top: 8px;
+  font-family: var(--font-sans);
+  font-size: 15px;
+}
+.stepFinal .breakdownVal { color: var(--accent-text); }
+.driverGroup {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 6px;
+}
+@media (max-width: 560px) {
+  .driverGroup { grid-template-columns: 1fr; }
+}
+.driverGroupTitle {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  margin-bottom: 4px;
+}
+.driverItem {
+  font-size: 12px;
+  opacity: 0.85;
+}
+.summary {
+  padding: 8px 10px;
+  background: rgba(var(--accent-rgb), 0.05);
+  border: 1px solid rgba(var(--accent-rgb), 0.15);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ── Reports table ──────────────────────────────────────────────────────── */
+
+.reportsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-family: var(--font-sans);
+}
+.reportsTable th, .reportsTable td {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--card-border);
+}
+.reportsTable th {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  font-weight: normal;
+}
+.reportsTable td.num {
+  text-align: right;
+  color: var(--ink);
+}
+/* Match numeric headers to their column so the digits scan cleanly — the
+   header was left-aligned by default, breaking the column's visual axis. */
+.reportsTable th.num {
+  text-align: right;
+}
+.reportRowDisagree td { background: rgba(189, 58, 58, 0.05); }
+.rowActions {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+.rowActionBtn {
+  background: var(--surface-sunken);
+  border: 1px solid var(--card-border);
+  color: var(--ink-dim);
+  font-family: var(--font-sans);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 6px;
+  cursor: pointer;
+}
+.rowActionBtn:hover { border-color: var(--surface-border-strong); color: var(--accent-text); }
+
+/* ── Sensors ────────────────────────────────────────────────────────────── */
+
+.sensorCallout {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border: 1px dashed rgba(var(--accent-rgb), 0.2);
+  background: var(--surface-sunken);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.sensorTodo {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--sev-marginal);
+}
+
+/* ── Admin actions ──────────────────────────────────────────────────────── */
+
+.actionGroup {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+.actionCard {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.actionCardDanger { border-color: rgba(189, 58, 58, 0.25); background: rgba(189, 58, 58, 0.05); }
+.actionCardTitle {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+.actionCardBody {
+  font-size: 12px;
+  opacity: 0.7;
+  line-height: 1.4;
+  flex: 1;
+}
+.actionBtn {
+  align-self: flex-start;
+  background: rgba(var(--accent-rgb), 0.08);
+  border: 1px solid rgba(var(--accent-rgb), 0.3);
+  color: var(--accent-text);
+  font-family: var(--font-sans);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.actionBtn:hover { background: rgba(var(--accent-rgb), 0.15); }
+.actionBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+.actionBtnDanger {
+  background: rgba(189, 58, 58, 0.1);
+  border-color: rgba(189, 58, 58, 0.4);
+  color: var(--sev-poor);
+}
+.actionBtnDanger:hover { background: rgba(189, 58, 58, 0.2); }
+.actionConfirm {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  background: var(--surface-sunken);
+  border: 1px solid rgba(189, 58, 58, 0.3);
+  font-size: 12px;
+}
+.actionConfirmRow { display: flex; gap: 6px; }
+.actionCancelBtn {
+  background: none;
+  border: 1px solid rgba(var(--accent-rgb), 0.15);
+  color: var(--ink-dim);
+  font-family: var(--font-sans);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  cursor: pointer;
+  opacity: 0.65;
+}
+.actionCancelBtn:hover { opacity: 1; }
+
+.actionStub {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+/* ── Collapsible section ────────────────────────────────────────────────── */
+
+.collapse {
+  border: 1px solid var(--panel-border);
+  background: var(--surface-sunken);
+}
+.collapseToggle {
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--accent-text);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 10px 14px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.collapseToggle:hover { background: rgba(var(--accent-rgb), 0.06); }
+.collapseBody { padding: 12px 14px; border-top: 1px solid var(--panel-border); }
+
+/* ── Compact rows / muted text ──────────────────────────────────────────── */
+
+.kv {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  padding: 4px 0;
+  font-size: 12px;
+  border-bottom: 1px dashed rgba(var(--accent-rgb), 0.05);
+}
+.kv:last-child { border-bottom: none; }
+.kvKey { opacity: 0.75; }
+.kvVal { font-family: var(--font-sans); color: var(--ink); }
+
+.emptyMsg {
+  padding: 12px;
+  text-align: center;
+  font-size: 12px;
+  opacity: 0.55;
+}
+
+.loading {
+  padding: 20px;
+  text-align: center;
+  font-size: 10px;
+  opacity: 0.45;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  opacity: 0.7;
+}

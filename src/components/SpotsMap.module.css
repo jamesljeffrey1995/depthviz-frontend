@@ -3,7 +3,7 @@
 }
 
 .label {
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.25em;
   text-transform: uppercase;
   color: var(--ink-faint);
@@ -75,7 +75,7 @@
 }
 
 .hint {
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--ink-faint);
@@ -123,7 +123,7 @@
 }
 
 .userSpotsCount {
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--sev-marginal);

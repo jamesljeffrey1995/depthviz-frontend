@@ -37,9 +37,9 @@ jobs:
       - name: Test
         run: npm test
 
-      # No-op until a "lint" script exists (see issue #165); runs automatically once added.
+      # ESLint flat config (eslint.config.js) — fails the build on lint errors.
       - name: Lint
-        run: npm run lint --if-present
+        run: npm run lint
 
   audit:
     name: Dependency audit

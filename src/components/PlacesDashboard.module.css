@@ -75,7 +75,7 @@
 
 .privateBadge {
   background: rgba(152, 92, 22, 0.1);
-  color: var(--warn);
+  color: var(--sev-marginal);
   border: 1px solid var(--sev-marginal);
 }
 
@@ -120,17 +120,17 @@
 .todayMeta {
   display: flex;
   gap: var(--space-sm);
-  font-size: 11px;
-  color: var(--text);
+  font-size: 10px;
+  color: var(--ink-dim);
   flex-wrap: wrap;
   margin-top: 4px;
 }
 
 /* ── Condition color classes ── */
-.excellent { color: var(--excellent); }
-.good      { color: var(--good); }
+.excellent { color: var(--sev-excellent); }
+.good      { color: var(--sev-good); }
 .decent    { color: var(--sev-good); }
-.marginal  { color: var(--warn); }
+.marginal  { color: var(--sev-marginal); }
 .poor      { color: var(--sev-poor); }
 .blocked   { color: var(--ink-dim); }
 
@@ -165,7 +165,7 @@
 
 .condError {
   font-size: 12px;
-  color: var(--text);
+  color: var(--ink-dim);
   opacity: 0.5;
   font-style: italic;
 }
@@ -201,7 +201,7 @@
 }
 
 .miniDayVis {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   margin-top: 1px;
 }
@@ -246,7 +246,7 @@
 }
 
 .emptyText {
-  color: var(--text);
+  color: var(--ink-dim);
   opacity: 0.6;
   font-size: 14px;
   line-height: 1.6;

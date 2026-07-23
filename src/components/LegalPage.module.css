@@ -78,6 +78,8 @@
   color: var(--ink-dim);
   line-height: 1.65;
   margin: 0 0 var(--space-sm);
+  /* Break long links/IDs so legal and changelog copy never overruns the card. */
+  overflow-wrap: anywhere;
 }
 
 .section p:last-child,

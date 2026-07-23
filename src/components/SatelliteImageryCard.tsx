@@ -33,7 +33,11 @@ function ImageTile({ layer }: { layer: SatelliteLayer }) {
           <div className={styles.placeholder}>Loading…</div>
         )}
         {status === 'error' && (
-          <div className={styles.placeholder}>
+          <div
+            className={styles.placeholder}
+            role="img"
+            aria-label={`${layer.title}: no ${layer.kind === 'chlorophyll' ? 'cloud-free ocean-colour' : 'imagery'} available`}
+          >
             No {layer.kind === 'chlorophyll' ? 'cloud-free ocean-colour' : 'imagery'} available
           </div>
         )}

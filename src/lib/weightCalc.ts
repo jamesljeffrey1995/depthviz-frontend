@@ -23,6 +23,19 @@ export type Build = 'muscular' | 'lean' | 'average' | 'stocky'
 export type SuitType = 'none' | 'shorty' | 'full' | 'fullHood'
 export type WaterType = 'salt' | 'fresh'
 
+/**
+ * Individually-selectable neoprene regions on the body figure. "body" covers
+ * the torso and arms together (a wetsuit jacket), which is how two-piece
+ * freediving suits are actually cut.
+ */
+export type SuitRegion = 'hood' | 'body' | 'legs'
+
+/** Ordered region keys (used to iterate deterministically). */
+export const SUIT_REGIONS: SuitRegion[] = ['hood', 'body', 'legs']
+
+/** Per-region neoprene thickness in mm (0 or absent = bare skin there). */
+export type SuitRegions = Partial<Record<SuitRegion, number>>
+
 export interface WeightCalcInput {
   /** Standing height in centimetres. */
   heightCm: number
@@ -30,10 +43,23 @@ export interface WeightCalcInput {
   weightKg: number
   /** Body composition / build. */
   build: Build
-  /** Wetsuit neoprene thickness in millimetres (0 = no suit). */
-  wetsuitMm: number
-  /** How much of the body the suit covers. */
-  suitType: SuitType
+  /**
+   * Per-region neoprene thickness in millimetres. This is the preferred way to
+   * describe the suit — the diver sets the thickness of the hood, body (torso +
+   * arms) and legs independently. When present it overrides `suitType` /
+   * `wetsuitMm`.
+   */
+  regions?: SuitRegions
+  /**
+   * Wetsuit neoprene thickness in millimetres (0 = no suit).
+   * Legacy single-thickness model, used only when `regions` is not supplied.
+   */
+  wetsuitMm?: number
+  /**
+   * How much of the body the suit covers.
+   * Legacy coverage model, used only when `regions` is not supplied.
+   */
+  suitType?: SuitType
   /** Depth (metres) at which the diver wants to be neutrally buoyant. */
   neutralDepthM: number
   /** Salt or fresh water. */
@@ -73,6 +99,18 @@ const SUIT_COVERAGE: Record<SuitType, number> = {
   fullHood: 1.12,
 }
 
+/**
+ * Fraction of total body surface area covered by each region. Body (torso +
+ * arms) and legs sum to 1.0 (a full suit), and the hood adds 0.12 on top — so
+ * a uniform 5 mm full suit + hood matches the legacy `fullHood` coverage of
+ * 1.12.
+ */
+export const REGION_COVERAGE: Record<SuitRegion, number> = {
+  hood: 0.12,
+  body: 0.58,
+  legs: 0.42,
+}
+
 /** Neoprene surface buoyancy, kg per mm thickness per m² of covered skin. */
 const SUIT_K = 0.55
 /** Extra body buoyancy in salt water, as a fraction of body weight. */
@@ -97,14 +135,13 @@ export function calculateWeight(input: WeightCalcInput): WeightCalcResult {
   const heightCm = clamp(input.heightCm, 120, 230)
   const weightKg = clamp(input.weightKg, 35, 200)
   const depthM = clamp(input.neutralDepthM, 0, 40)
-  const suitType = input.suitType
-  // No-suit selection overrides any thickness value.
-  const mm = suitType === 'none' ? 0 : clamp(input.wetsuitMm, 0, 8)
 
   const bsa = bodySurfaceArea(heightCm, weightKg)
 
-  // Suit buoyancy at the surface, then compressed to depth.
-  const suitBuoyancySurface = SUIT_K * mm * bsa * SUIT_COVERAGE[suitType]
+  // Suit buoyancy at the surface, then compressed to depth. Two ways to
+  // describe the suit: the per-region thickness model (preferred) or the
+  // legacy single-thickness + coverage model.
+  const suitBuoyancySurface = SUIT_K * bsa * coveredThicknessMm(input)
   const suitCompression = 1 / (1 + depthM / 16)
   const suitBuoyancyAtDepth = suitBuoyancySurface * suitCompression
 
@@ -126,6 +163,26 @@ export function calculateWeight(input: WeightCalcInput): WeightCalcResult {
     suitBuoyancyAtDepth,
     bodyBuoyancyAtDepth,
   }
+}
+
+/**
+ * Coverage-weighted neoprene thickness (mm) for the whole body. Multiplying by
+ * SUIT_K and BSA gives the suit's surface buoyancy. Uses the per-region model
+ * when `regions` is supplied, otherwise falls back to the legacy suit type.
+ */
+function coveredThicknessMm(input: WeightCalcInput): number {
+  if (input.regions) {
+    let weighted = 0
+    for (const region of SUIT_REGIONS) {
+      const mm = clamp(input.regions[region] ?? 0, 0, 8)
+      weighted += mm * REGION_COVERAGE[region]
+    }
+    return weighted
+  }
+  const suitType = input.suitType ?? 'none'
+  // No-suit selection overrides any thickness value.
+  const mm = suitType === 'none' ? 0 : clamp(input.wetsuitMm ?? 0, 0, 8)
+  return mm * SUIT_COVERAGE[suitType]
 }
 
 function clamp(v: number, lo: number, hi: number): number {

@@ -48,7 +48,7 @@
 }
 
 .dateLabel {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   margin-bottom: 6px;
   color: var(--ink-faint);
@@ -94,7 +94,7 @@
 .algaeHigh     { background: var(--sev-poor); }
 
 .verdict {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.01em;
   line-height: 1.3;

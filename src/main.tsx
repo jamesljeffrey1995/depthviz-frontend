@@ -2,8 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.tsx'
-import '@fontsource/space-mono/400.css'
-import '@fontsource/space-mono/700.css'
+import './styles/tokens.css'
 import './index.css'
 
 // Clickjacking defense: break out of frames

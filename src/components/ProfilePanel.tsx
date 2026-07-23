@@ -1,16 +1,37 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import { getMyProfile, updateProfile, getMyReports, getLeaderboard } from '../lib/api'
-import type { UserProfile, ReportRead, LeaderboardEntry } from '../types'
-import { IconChevronLeft } from './icons'
+import { getMyProfile, updateProfile, updateProfileDetails, getMyReports, getLeaderboard, exportMyData, deleteMyAccount } from '../lib/api'
+import type { UserProfile, ProfileDiverDetails, ReportRead, LeaderboardEntry, ExperienceLevel } from '../types'
+import { IconChevronLeft, IconChevronDown, IconChevronUp, IconCheck } from './icons'
 import { Tabs } from './Tabs'
 import styles from './ProfilePanel.module.css'
 
 const AdminPanel = lazy(() => import('./AdminPanel').then(m => ({ default: m.AdminPanel })))
+const TrafficAnalytics = lazy(() => import('./admin/TrafficAnalytics').then(m => ({ default: m.TrafficAnalytics })))
 
 interface ProfilePanelProps {
   onClose?: () => void
   onNavigateFriends?: () => void
+}
+
+const EXPERIENCE_LABELS: Record<ExperienceLevel, string> = {
+  beginner: 'Beginner',
+  intermediate: 'Intermediate',
+  experienced: 'Experienced',
+}
+
+// The editable diver-detail fields, mirrored from the profile into local form
+// state so the competition registration form can pre-fill from them.
+function detailsFromProfile(p: UserProfile | null): ProfileDiverDetails {
+  return {
+    phone: p?.phone ?? '',
+    emergency_contact_name: p?.emergency_contact_name ?? '',
+    emergency_contact_phone: p?.emergency_contact_phone ?? '',
+    vehicle_reg: p?.vehicle_reg ?? '',
+    experience_level: p?.experience_level ?? null,
+    float_colour: p?.float_colour ?? '',
+    medical_notes: p?.medical_notes ?? '',
+  }
 }
 
 export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) {
@@ -20,14 +41,46 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [editName, setEditName] = useState(false)
   const [nameInput, setNameInput] = useState('')
-  const [tab, setTab] = useState<'mine' | 'board' | 'admin'>('mine')
+  const [tab, setTab] = useState<'mine' | 'board' | 'admin' | 'security'>('mine')
+  const [detailsOpen, setDetailsOpen] = useState(false)
+  const [details, setDetails] = useState<ProfileDiverDetails>(detailsFromProfile(null))
+  const [savingDetails, setSavingDetails] = useState(false)
+  const [detailsSaved, setDetailsSaved] = useState(false)
+  const [privacyOpen, setPrivacyOpen] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [dataError, setDataError] = useState('')
 
   useEffect(() => {
     if (!user) return
-    getMyProfile().then(p => { setProfile(p); setNameInput(p.display_name ?? '') }).catch(() => {})
+    getMyProfile().then(p => {
+      setProfile(p)
+      setNameInput(p.display_name ?? '')
+      setDetails(detailsFromProfile(p))
+    }).catch(() => {})
     getMyReports().then(setReports).catch(() => {})
     getLeaderboard().then(setLeaderboard).catch(() => {})
   }, [user])
+
+  const setDetail = (patch: Partial<ProfileDiverDetails>) => {
+    setDetails(d => ({ ...d, ...patch }))
+    setDetailsSaved(false)
+  }
+
+  const saveDetails = async () => {
+    setSavingDetails(true)
+    try {
+      const updated = await updateProfileDetails(details)
+      setProfile(updated)
+      setDetails(detailsFromProfile(updated))
+      setDetailsSaved(true)
+    } catch {
+      // Leave the form as-is so the diver can retry; a failed save is transient.
+    } finally {
+      setSavingDetails(false)
+    }
+  }
 
   const saveName = async () => {
     const trimmed = nameInput.trim().slice(0, 50)
@@ -43,6 +96,42 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
     onClose?.()
   }
 
+  const handleExport = async () => {
+    setExporting(true)
+    setDataError('')
+    try {
+      const data = await exportMyData()
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `depthviz-my-data-${new Date().toISOString().slice(0, 10)}.json`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    } catch {
+      setDataError('Could not export your data — please try again.')
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    if (confirmDelete.trim().toUpperCase() !== 'DELETE') return
+    setDeleting(true)
+    setDataError('')
+    try {
+      await deleteMyAccount()
+      // Account and login are gone; sign out and close the panel.
+      signOut()
+      onClose?.()
+    } catch {
+      setDataError('Could not delete your account — please try again or contact us.')
+      setDeleting(false)
+    }
+  }
+
   if (!user) return null
 
   return (
@@ -56,7 +145,7 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
 
       {/* User card */}
       <div className={styles.userCard}>
-        <div className={styles.avatar}>{(profile?.display_name ?? user.email ?? '?')[0].toUpperCase()}</div>
+        <div className={styles.avatar}>{(profile?.display_name ?? user.email ?? '?').charAt(0).toUpperCase()}</div>
         <div className={styles.userInfo}>
           {editName ? (
             <div className={styles.nameEdit}>
@@ -95,13 +184,135 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
             <div className={styles.statLbl}>Accuracy</div>
           </div>
           <div className={styles.stat}>
-            <div className={styles.statVal} style={{ color: profile.trusted ? 'var(--excellent)' : 'var(--text)' }}>
+            <div className={styles.statVal} style={{ color: profile.trusted ? 'var(--sev-good)' : 'var(--ink-dim)' }}>
               {profile.trusted ? '★ Trusted' : 'Standard'}
             </div>
             <div className={styles.statLbl}>Status</div>
           </div>
         </div>
       )}
+
+      {/* Diver details — saved once, reused to pre-fill competition sign-up. */}
+      <div className={styles.details}>
+        <button
+          className={styles.detailsHead}
+          onClick={() => setDetailsOpen(o => !o)}
+          aria-expanded={detailsOpen}
+        >
+          <span>Diver details</span>
+          {detailsOpen ? <IconChevronUp aria-hidden="true" /> : <IconChevronDown aria-hidden="true" />}
+        </button>
+        {detailsOpen && (
+          <>
+            <p className={styles.detailsHint}>
+              Save these once and we'll pre-fill them for you when you register for a competition.
+            </p>
+            <div className={styles.detailsGrid}>
+              <label className={styles.detailField}>
+                <span>Phone</span>
+                <input className={styles.detailInput} type="tel" value={details.phone ?? ''}
+                  onChange={e => setDetail({ phone: e.target.value })} />
+              </label>
+              <label className={styles.detailField}>
+                <span>Experience</span>
+                <select className={styles.detailSelect} value={details.experience_level ?? ''}
+                  onChange={e => setDetail({ experience_level: (e.target.value || null) as ExperienceLevel | null })}>
+                  <option value="">Select…</option>
+                  {(Object.keys(EXPERIENCE_LABELS) as ExperienceLevel[]).map(k => (
+                    <option key={k} value={k}>{EXPERIENCE_LABELS[k]}</option>
+                  ))}
+                </select>
+              </label>
+              <label className={styles.detailField}>
+                <span>Float colour</span>
+                <input className={styles.detailInput} value={details.float_colour ?? ''}
+                  onChange={e => setDetail({ float_colour: e.target.value })} />
+              </label>
+              <label className={styles.detailField}>
+                <span>Vehicle reg</span>
+                <input className={styles.detailInput} value={details.vehicle_reg ?? ''}
+                  onChange={e => setDetail({ vehicle_reg: e.target.value })} />
+              </label>
+              <label className={styles.detailField}>
+                <span>Emergency contact name</span>
+                <input className={styles.detailInput} value={details.emergency_contact_name ?? ''}
+                  onChange={e => setDetail({ emergency_contact_name: e.target.value })} />
+              </label>
+              <label className={styles.detailField}>
+                <span>Emergency contact phone</span>
+                <input className={styles.detailInput} type="tel" value={details.emergency_contact_phone ?? ''}
+                  onChange={e => setDetail({ emergency_contact_phone: e.target.value })} />
+              </label>
+              <label className={styles.detailField}>
+                <span>Medical notes</span>
+                <textarea className={styles.detailTextarea} value={details.medical_notes ?? ''}
+                  onChange={e => setDetail({ medical_notes: e.target.value })} />
+              </label>
+            </div>
+            <div className={styles.detailsActions}>
+              <button className={styles.detailsSave} onClick={saveDetails} disabled={savingDetails}>
+                {savingDetails ? 'Saving…' : 'Save details'}
+              </button>
+              {detailsSaved && (
+                <span className={styles.detailsSaved} aria-live="polite">
+                  <IconCheck width={14} height={14} aria-hidden="true" /> Saved
+                </span>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Privacy & your data — GDPR export / erasure */}
+      <div className={styles.details}>
+        <button
+          className={styles.detailsHead}
+          onClick={() => setPrivacyOpen(o => !o)}
+          aria-expanded={privacyOpen}
+        >
+          <span>Privacy &amp; your data</span>
+          {privacyOpen ? <IconChevronUp aria-hidden="true" /> : <IconChevronDown aria-hidden="true" />}
+        </button>
+        {privacyOpen && (
+          <div className={styles.privacyBody}>
+            <p className={styles.privacyNote}>
+              You can download everything we hold about you, or permanently delete
+              your account at any time.
+            </p>
+            <button
+              className={styles.detailsSave}
+              onClick={handleExport}
+              disabled={exporting}
+            >
+              {exporting ? 'Preparing…' : 'Download my data'}
+            </button>
+
+            <div className={styles.dangerZone}>
+              <p className={styles.dangerLabel}>Delete account</p>
+              <p className={styles.privacyNote}>
+                This permanently erases your account and data. Your dive reports are
+                kept but anonymised (they improve forecasts for everyone) and cannot
+                be traced back to you. This cannot be undone. Type <strong>DELETE</strong> to confirm.
+              </p>
+              <input
+                className={styles.nameInput}
+                value={confirmDelete}
+                onChange={e => setConfirmDelete(e.target.value)}
+                placeholder="DELETE"
+                aria-label="Type DELETE to confirm account deletion"
+              />
+              <button
+                className={styles.deleteBtn}
+                onClick={handleDeleteAccount}
+                disabled={deleting || confirmDelete.trim().toUpperCase() !== 'DELETE'}
+              >
+                {deleting ? 'Deleting…' : 'Permanently delete my account'}
+              </button>
+            </div>
+            {dataError && <p className={styles.dataError} aria-live="polite">{dataError}</p>}
+          </div>
+        )}
+      </div>
 
       {/* Friends — moved here from the bottom navigation bar */}
       {onNavigateFriends && (
@@ -121,10 +332,10 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
         tabs={[
           { id: 'mine', label: 'My Reports' },
           { id: 'board', label: 'Leaderboard' },
-          ...(profile?.is_admin ? [{ id: 'admin', label: 'Admin' }] : []),
+          ...(profile?.is_admin ? [{ id: 'admin', label: 'Admin' }, { id: 'security', label: 'Security' }] : []),
         ]}
         active={tab}
-        onChange={t => setTab(t as 'mine' | 'board' | 'admin')}
+        onChange={t => setTab(t as 'mine' | 'board' | 'admin' | 'security')}
       />
 
       {tab === 'mine' && (
@@ -168,6 +379,12 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
       {tab === 'admin' && profile?.is_admin && (
         <Suspense fallback={null}>
           <AdminPanel />
+        </Suspense>
+      )}
+
+      {tab === 'security' && profile?.is_admin && (
+        <Suspense fallback={null}>
+          <TrafficAnalytics />
         </Suspense>
       )}
     </div>

@@ -70,10 +70,10 @@ export function useDialog<T extends HTMLElement = HTMLDivElement>(
       const active = document.activeElement
       if (e.shiftKey && active === first) {
         e.preventDefault()
-        last.focus()
+        last?.focus()
       } else if (!e.shiftKey && active === last) {
         e.preventDefault()
-        first.focus()
+        first?.focus()
       }
     }
 

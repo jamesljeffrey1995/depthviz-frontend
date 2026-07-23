@@ -67,6 +67,21 @@
   margin: 0;
 }
 
+.emptyBox {
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-xl) var(--space-lg);
+  text-align: center;
+}
+
+.emptyTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 4px;
+}
+
 /* ── Composer — an admin-only tool, kept visually distinct (sunken) from
    the reading-facing cards below it ── */
 .composer {
@@ -242,6 +257,23 @@
   line-height: 1.7;
   white-space: pre-wrap;
 }
+
+.readBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--accent-text);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin-top: var(--space-xs);
+}
+
+.readBtn:hover { text-decoration: underline; }
 
 .adminRow {
   display: flex;

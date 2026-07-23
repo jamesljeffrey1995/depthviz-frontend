@@ -22,9 +22,9 @@ type Log = {
 
 function errorColor(err: number): string {
   const abs = Math.abs(err)
-  if (abs <= 1) return 'var(--excellent)'
-  if (abs <= 2.5) return 'var(--warn)'
-  return 'var(--danger)'
+  if (abs <= 1) return 'var(--sev-excellent)'
+  if (abs <= 2.5) return 'var(--sev-marginal)'
+  return 'var(--sev-poor)'
 }
 
 /** Month/year heading for a group of logs, e.g. "July 2026". */

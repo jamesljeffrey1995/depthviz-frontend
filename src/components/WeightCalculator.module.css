@@ -95,6 +95,13 @@
   margin-bottom: var(--space-xs);
 }
 
+.fieldError {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--sev-poor);
+}
+
 .input, .select {
   width: 100%;
   background: var(--surface-sunken);
@@ -166,6 +173,9 @@
   width: 100%;
   accent-color: var(--accent);
   margin: var(--space-xs) 0 6px;
+  /* A taller hit area makes the slider workable with wet or gloved thumbs. */
+  height: 32px;
+  cursor: pointer;
 }
 
 .sliderHint {
@@ -211,6 +221,44 @@
   margin-top: var(--space-sm);
 }
 
+.resultExplain {
+  margin: 16px auto 0;
+  max-width: 460px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--ink-dim);
+  text-align: center;
+}
+
+.resultInvalid {
+  margin: 10px auto 0;
+  max-width: 420px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--sev-poor);
+}
+
+/* What the estimate assumed — shown as quiet chips under the breakdown. */
+.resultAssumptions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.assumptionChip {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  border: 1px solid var(--surface-border);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-full);
+  padding: 4px 10px;
+}
+
 .breakdown {
   margin-top: var(--space-lg);
   border-top: 1px solid var(--surface-border);
@@ -250,16 +298,45 @@
   margin: 0 0 var(--space-sm);
 }
 
+/* Numbered step cards — scannable rather than a dense paragraph list. */
 .howto ol {
+  list-style: none;
+  counter-reset: step;
   margin: 0 0 var(--space-sm);
-  padding-left: 18px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
 }
 
 .howto li {
+  counter-increment: step;
+  position: relative;
   font-size: 13px;
   line-height: 1.6;
   color: var(--ink-dim);
-  margin-bottom: 6px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px 10px 46px;
+}
+
+.howto li::before {
+  content: counter(step);
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-on);
+  background: var(--accent);
+  border-radius: 50%;
 }
 
 .howtoNote {

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getNews, createNews, updateNews, deleteNews } from '../lib/api'
 import type { Announcement } from '../types'
+import { IconChevronDown, IconChevronUp } from './icons'
 import styles from './NewsPage.module.css'
 
 function formatDate(iso: string): string {
@@ -23,6 +24,18 @@ export function NewsPage({ isAdmin }: Props) {
   const [saving, setSaving] = useState(false)
   // Client-side category filter. Empty string means "all".
   const [activeCategory, setActiveCategory] = useState('')
+  // Cards render as a scannable index (title + excerpt); the full body only
+  // expands on demand so the page never becomes a wall of text.
+  const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set())
+
+  function toggleExpanded(id: number) {
+    setExpandedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   // Distinct categories present in the loaded posts, in first-seen order.
   const categories = Array.from(
@@ -193,36 +206,61 @@ export function NewsPage({ isAdmin }: Props) {
       )}
 
       {loading ? (
-        <p className={styles.muted}>Loading…</p>
+        <p className={styles.muted} role="status">Loading news…</p>
       ) : visibleItems.length === 0 ? (
-        <p className={styles.muted}>
-          {activeCategory ? `No posts in “${activeCategory}” yet.` : 'No announcements yet.'}
-        </p>
+        <div className={styles.emptyBox}>
+          <p className={styles.emptyTitle}>
+            {activeCategory ? `No posts in “${activeCategory}” yet` : 'No announcements yet'}
+          </p>
+          <p className={styles.muted}>
+            {activeCategory
+              ? 'Try another category, or check back soon.'
+              : 'News about forecasts, spots and the community will appear here.'}
+          </p>
+        </div>
       ) : (
         <ul className={styles.list}>
-          {visibleItems.map(a => (
-            <li key={a.id} className={styles.card}>
-              {(a.is_pinned || !a.is_published || a.category) && (
-                <div className={styles.cardHead}>
-                  {a.is_pinned && <span className={styles.pin}>Pinned</span>}
-                  {!a.is_published && <span className={styles.draft}>Draft</span>}
-                  {a.category && <span className={styles.badge}>{a.category}</span>}
+          {visibleItems.map(a => {
+            const expanded = expandedIds.has(a.id)
+            const excerpt = a.summary || `${a.body.slice(0, 220)}${a.body.length > 220 ? '…' : ''}`
+            return (
+              <li key={a.id} className={styles.card}>
+                {(a.is_pinned || !a.is_published || a.category) && (
+                  <div className={styles.cardHead}>
+                    {a.is_pinned && <span className={styles.pin}>Pinned</span>}
+                    {!a.is_published && <span className={styles.draft}>Draft</span>}
+                    {a.category && <span className={styles.badge}>{a.category}</span>}
+                  </div>
+                )}
+                <h2 className={styles.cardTitle}>{a.title}</h2>
+                <div className={styles.meta}>
+                  {a.author_name} · {formatDate(a.created_at)}
                 </div>
-              )}
-              <h2 className={styles.cardTitle}>{a.title}</h2>
-              <div className={styles.meta}>
-                {a.author_name} · {formatDate(a.created_at)}
-              </div>
-              {a.summary && <p className={styles.summary}>{a.summary}</p>}
-              <p className={styles.body}>{a.body}</p>
-              {isAdmin && (
-                <div className={styles.adminRow}>
-                  <button className={styles.linkBtn} onClick={() => startEdit(a)}>Edit</button>
-                  <button className={styles.linkBtnDanger} onClick={() => remove(a.id)}>Delete</button>
-                </div>
-              )}
-            </li>
-          ))}
+                {expanded ? (
+                  <>
+                    {a.summary && <p className={styles.summary}>{a.summary}</p>}
+                    <p className={styles.body}>{a.body}</p>
+                  </>
+                ) : (
+                  <p className={styles.summary}>{excerpt}</p>
+                )}
+                <button
+                  type="button"
+                  className={styles.readBtn}
+                  onClick={() => toggleExpanded(a.id)}
+                  aria-expanded={expanded}
+                >
+                  {expanded ? <><IconChevronUp width={14} height={14} /> Show less</> : <><IconChevronDown width={14} height={14} /> Read article</>}
+                </button>
+                {isAdmin && (
+                  <div className={styles.adminRow}>
+                    <button className={styles.linkBtn} onClick={() => startEdit(a)}>Edit</button>
+                    <button className={styles.linkBtnDanger} onClick={() => remove(a.id)}>Delete</button>
+                  </div>
+                )}
+              </li>
+            )
+          })}
         </ul>
       )}
     </div>

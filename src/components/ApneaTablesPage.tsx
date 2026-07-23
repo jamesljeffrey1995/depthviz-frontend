@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { User } from '@supabase/supabase-js'
 import { getApneaTables } from '../lib/api'
-import type { ApneaDifficulty, ApneaTable } from '../types'
+import type { ApneaDifficulty, ApneaTable, ApneaTableType } from '../types'
 import { Tabs } from './Tabs'
 import { IconPlus } from './icons'
 import styles from './ApneaTablesPage.module.css'
@@ -47,6 +47,8 @@ export function ApneaTablesPage({ user, onShowAuth }: Props) {
   const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('library')
   const [difficulty, setDifficulty] = useState<ApneaDifficulty | null>(null)
+  // CO₂/O₂ filter — applied client-side over the already-loaded rows.
+  const [tableType, setTableType] = useState<ApneaTableType | null>(null)
   const [tables, setTables] = useState<ApneaTable[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -76,28 +78,30 @@ export function ApneaTablesPage({ user, onShowAuth }: Props) {
   }
 
   const grouped = useMemo(() => {
+    const visible = tableType ? tables.filter(t => t.table_type === tableType) : tables
     // Library tab: group system first then user-public; Mine tab: flat.
-    if (tab === 'mine') return [{ heading: '', items: tables }]
-    const system = tables.filter(t => t.is_system)
-    const community = tables.filter(t => !t.is_system && t.is_public)
+    if (tab === 'mine') return [{ heading: '', items: visible }]
+    const system = visible.filter(t => t.is_system)
+    const community = visible.filter(t => !t.is_system && t.is_public)
     const out: { heading: string; items: ApneaTable[] }[] = []
     if (system.length) out.push({ heading: 'System tables', items: system })
     if (community.length) out.push({ heading: 'Community tables', items: community })
     if (!out.length) out.push({ heading: '', items: [] })
     return out
-  }, [tab, tables])
+  }, [tab, tables, tableType])
 
   return (
     <div className={styles.wrap}>
-      <div className={styles.title}>Apnea Training Tables</div>
+      <h1 className={styles.title}>Apnea Training Tables</h1>
       <div className={styles.subtitle}>Build · save · share breath-hold sessions</div>
 
-      <div className={styles.warning}>
+      <div className={styles.warning} role="note">
         <strong>Safety first</strong>
-        Apnea training is dangerous. Never hold your breath in or near water without
-        direct, qualified supervision. Dry static training only. Stop immediately if
-        you feel light-headed, see spots, or notice involuntary contractions becoming
-        intense. You are responsible for your own safety.
+        <ul className={styles.warningList}>
+          <li>Never train breath-hold in or near water alone — dry static training only without direct, qualified supervision.</li>
+          <li>Stop immediately if you feel light-headed, confused, or unwell, see spots, or contractions become intense.</li>
+          <li>You are responsible for your own safety.</li>
+        </ul>
       </div>
 
       <Tabs
@@ -109,17 +113,35 @@ export function ApneaTablesPage({ user, onShowAuth }: Props) {
         onChange={next => handleTabChange(next as Tab)}
       />
 
-      <div className={styles.filters}>
+      <div className={styles.filters} role="group" aria-label="Filter by level">
         <button
           className={`${styles.chip} ${difficulty === null ? styles.chipActive : ''}`}
+          aria-pressed={difficulty === null}
           onClick={() => setDifficulty(null)}
         >All levels</button>
         {(['beginner', 'intermediate', 'expert'] as const).map(d => (
           <button
             key={d}
             className={`${styles.chip} ${difficulty === d ? styles.chipActive : ''}`}
+            aria-pressed={difficulty === d}
             onClick={() => setDifficulty(d)}
           >{d}</button>
+        ))}
+      </div>
+
+      <div className={styles.filters} role="group" aria-label="Filter by table type">
+        <button
+          className={`${styles.chip} ${tableType === null ? styles.chipActive : ''}`}
+          aria-pressed={tableType === null}
+          onClick={() => setTableType(null)}
+        >All types</button>
+        {([['co2', 'CO₂ tolerance'], ['o2', 'O₂ tables']] as const).map(([value, label]) => (
+          <button
+            key={value}
+            className={`${styles.chip} ${tableType === value ? styles.chipActive : ''}`}
+            aria-pressed={tableType === value}
+            onClick={() => setTableType(value)}
+          >{label}</button>
         ))}
       </div>
 
@@ -136,9 +158,25 @@ export function ApneaTablesPage({ user, onShowAuth }: Props) {
       {loading && <div className={styles.loading}>Loading…</div>}
 
       {!loading && !error && grouped.every(g => g.items.length === 0) && (
-        <div className={styles.empty}>
-          {tab === 'mine' ? 'No tables yet — create one or copy from the library.' : 'No tables match these filters.'}
-        </div>
+        tab === 'mine' ? (
+          <div className={styles.emptyBox}>
+            <p className={styles.emptyTitle}>No tables of your own yet</p>
+            <p className={styles.emptyText}>
+              Build a table from scratch, or open one from the library and copy it
+              as a starting point.
+            </p>
+            <div className={styles.emptyActions}>
+              <button className={styles.newBtn} onClick={() => navigate('/training/new')}>
+                + New table
+              </button>
+              <button className={styles.ghostBtn} onClick={() => setTab('library')}>
+                Browse library
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className={styles.empty}>No tables match these filters.</div>
+        )
       )}
 
       {!loading && grouped.map(group => (
@@ -185,6 +223,7 @@ export function ApneaTablesPage({ user, onShowAuth }: Props) {
                     <span><strong>{t.cycles.length}</strong> rounds</span>
                     <span>longest hold <strong>{longestHoldLabel(t)}</strong></span>
                     <span>total <strong>{formatDuration(totalSeconds(t))}</strong></span>
+                    <span className={styles.cardGo} aria-hidden="true">View →</span>
                   </div>
                 </div>
               ))}

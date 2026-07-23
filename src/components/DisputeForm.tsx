@@ -41,7 +41,7 @@ export function DisputeForm({
   onClose,
 }: Props) {
   const [locationId, setLocationId] = useState<string>(defaultLocationId ? String(defaultLocationId) : '')
-  const [reportDate, setReportDate] = useState(defaultDate ?? new Date().toISOString().split('T')[0])
+  const [reportDate, setReportDate] = useState(defaultDate ?? new Date().toISOString().slice(0, 10))
   const [field, setField] = useState(defaultField ?? 'sea_temp')
   const [reportedValue, setReportedValue] = useState('')
   const [forecastValue, setForecastValue] = useState(

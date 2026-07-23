@@ -1,15 +1,11 @@
 import { useState, useEffect } from 'react'
 import { getBestVisibility } from '../lib/api'
+import { safeColorClass } from '../lib/visibilityPalette'
 import type { BestVisSpot } from '../types'
 import styles from './BestVisibility.module.css'
 
 interface Props {
   onSelectSpot: (lat: number, lon: number, name: string) => void
-}
-
-const COLOR_CLASSES = new Set(['blocked', 'poor', 'marginal', 'decent', 'good', 'excellent'])
-function safeColorClass(cls: string | undefined): string {
-  return cls && COLOR_CLASSES.has(cls) ? cls : 'decent'
 }
 
 // Number of placeholder rows to render while the fan-out resolves (one
@@ -29,7 +25,7 @@ export function BestVisibility({ onSelectSpot }: Props) {
   const [progress, setProgress] = useState(0)
 
   // Compute today's date once at mount to avoid drift across midnight
-  const [todayISO] = useState(() => new Date().toISOString().split('T')[0])
+  const [todayISO] = useState(() => new Date().toISOString().slice(0, 10))
   const todayDisplay = new Date(todayISO + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
 
   useEffect(() => {

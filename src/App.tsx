@@ -217,7 +217,7 @@ export default function App() {
       if (forecastRaw) {
         const stored = JSON.parse(forecastRaw) as { units?: string; forecast?: ForecastResponse }
         if (stored?.units === units && stored.forecast) {
-          init(stored.forecast)
+          init(stored.forecast, units)
         }
       }
       searchByCoords(loc.lat, loc.lon, loc.name, loc.locationId ?? undefined, units)
@@ -257,6 +257,7 @@ export default function App() {
     const results = getLocalSuggestions(query)
     if (results.length) {
       const loc = results[0]
+      if (!loc) return
       setCurrentLat(loc.latitude)
       setCurrentLon(loc.longitude)
       const name = formatLocationName(loc)
@@ -334,7 +335,7 @@ export default function App() {
             onClick={() => { if (user) navigate('/profile'); else setShowAuth(true) }}
             aria-label={user ? `View profile for ${user.email?.split('@')[0] ?? 'user'}` : 'Sign in to your account'}
           >
-            {user ? (user.email ?? 'U')[0].toUpperCase() : (<><IconUser aria-hidden="true" /><span>Sign in</span></>)}
+            {user ? (user.email?.[0] ?? 'U').toUpperCase() : (<><IconUser aria-hidden="true" /><span>Sign in</span></>)}
           </button>
         </div>
         <div className={styles.tagline}>Underwater visibility forecast for spearfishers &amp; freedivers</div>
@@ -722,7 +723,7 @@ export default function App() {
             user && forecast ? (
               <Suspense fallback={null}>
                 <ReportForm
-                  day={forecast.days[todayIndex] ?? forecast.days[selectedDay]}
+                  day={forecast.days[todayIndex] ?? forecast.days[selectedDay] ?? null}
                   allDays={forecast.days}
                   locations={locations}
                   onSubmitted={() => navigate('/forecast')}

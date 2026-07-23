@@ -291,7 +291,7 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
     votingInFlight.current.add(locationId)
     setVoteError(null)
 
-    const existing = dbUserVotes[locationId]
+    const existing = dbUserVotes[locationId] ?? null
     const prevCount = dbVoteCounts[locationId] ?? 0
 
     // Optimistic update
