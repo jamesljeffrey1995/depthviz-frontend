@@ -54,6 +54,7 @@ const NewsPage = lazy(() => import('./components/NewsPage').then(m => ({ default
 const ForumIndex = lazy(() => import('./components/ForumPage').then(m => ({ default: m.ForumIndex })))
 const ForumCategoryPage = lazy(() => import('./components/ForumPage').then(m => ({ default: m.ForumCategoryPage })))
 const ForumThreadPage = lazy(() => import('./components/ForumPage').then(m => ({ default: m.ForumThreadPage })))
+const CompetitionRegister = lazy(() => import('./components/CompetitionRegister').then(m => ({ default: m.CompetitionRegister })))
 
 /** Routes that depend on a loaded location's conditions context (the forecast
  *  itself plus its forecast-adjacent pages — tides, report, history, dispute).
@@ -551,6 +552,13 @@ export default function App() {
           <Route path="/forum/:slug" element={
             <Suspense fallback={null}>
               <ForumCategoryPage user={user} onShowAuth={() => setShowAuth(true)} />
+            </Suspense>
+          } />
+
+          {/* Competitions */}
+          <Route path="/competition" element={
+            <Suspense fallback={<div className={styles.loadingText}>Loading competitions…</div>}>
+              <CompetitionRegister />
             </Suspense>
           } />
 
