@@ -45,7 +45,7 @@
 
 .grid::-webkit-scrollbar-thumb {
   background: rgba(14, 124, 134, 0.2);
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
 }
 
 /* ── Day card ── */
@@ -92,13 +92,13 @@
   top: -10px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: var(--ds-text-label);
+  font-size: 10px;
   letter-spacing: 0.15em;
   font-weight: 700;
   background: currentColor;
   color: var(--paper);
   padding: 1px 6px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   white-space: nowrap;
 }
 
@@ -106,17 +106,17 @@
   position: absolute;
   top: 6px;
   right: 6px;
-  font-size: var(--ds-text-label);
+  font-size: 10px;
   letter-spacing: 0.1em;
   opacity: 0.5;
   border: 1px solid currentColor;
   padding: 1px 4px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
 }
 
 /* ── Date labels ── */
 .dayName {
-  font-size: var(--ds-text-label);
+  font-size: 10px;
   letter-spacing: 0.1em;
   color: var(--text);
   text-transform: uppercase;
@@ -124,7 +124,7 @@
 }
 
 .dayDate {
-  font-size: var(--ds-text-label);
+  font-size: 10px;
   color: var(--text);
   opacity: 0.5;
 }
@@ -146,7 +146,7 @@
 
 /* ── Verdict ── */
 .verdict {
-  font-size: var(--ds-text-label);
+  font-size: 10px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   font-weight: 600;
@@ -171,7 +171,7 @@
 }
 
 .metricLabel {
-  font-size: var(--ds-text-label);
+  font-size: 10px;
   color: var(--text);
   opacity: 0.5;
   text-transform: uppercase;
@@ -186,7 +186,7 @@
 }
 
 .metricVal {
-  font-size: var(--ds-text-label);
+  font-size: 10px;
   color: var(--text-bright);
   min-width: 0;
   overflow: hidden;
@@ -206,7 +206,7 @@
 .good .verdict { color: var(--good); }
 
 .decent .vis,
-.decent .verdict { color: #5ba87a; }
+.decent .verdict { color: var(--sev-good); }
 
 .marginal .vis,
 .marginal .verdict { color: var(--warn); }
@@ -215,11 +215,11 @@
 .poor .verdict { color: var(--danger); }
 
 .blocked .vis,
-.blocked .verdict { color: #555; }
+.blocked .verdict { color: var(--sev-blocked); }
 
 /* ── Hint ── */
 .hint {
-  font-size: var(--ds-text-label);
+  font-size: 10px;
   letter-spacing: 0.08em;
   color: var(--text);
   opacity: 0.4;

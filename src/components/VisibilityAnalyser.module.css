@@ -1,265 +1,358 @@
+/* ── Embedded form section, not a standalone page — no outer card frame or
+   max-width here; the parent (ReportForm's recessed video section) already
+   supplies the bounded card. Content below sits one layer "up" from that
+   sunken parent (surface-raised chips), the same nesting the flagship
+   waterQualityCard/clarityStat pairing uses in DayDetail. ── */
 .container {
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 1.5rem;
-  font-family: var(--ds-font-sans);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  font-family: var(--font-sans);
 }
 
-/* ── Dropzone ─────────────────────────────────────────────────── */
+/* ── Upload state ─────────────────────────────────────────────── */
+
+.uploadState {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
 
 .dropzone {
-  border: 2px dashed #2dd4bf;
-  border-radius: 12px;
-  padding: 3rem 1.5rem;
+  border: 2px dashed var(--accent);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg) var(--space-md);
   text-align: center;
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
-  background: rgba(15, 23, 42, 0.6);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+  background: var(--surface-raised);
 }
 
 .dropzone:hover,
 .dropzoneActive {
-  background: rgba(45, 212, 191, 0.08);
-  border-color: #5eead4;
+  background: var(--accent-soft);
+  border-color: var(--accent-strong);
 }
 
 .dropzoneIcon {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
+  font-size: 2.25rem;
+  margin-bottom: var(--space-xs);
 }
 
 .dropzoneTitle {
-  color: #e2e8f0;
-  font-size: 1.05rem;
+  color: var(--ink);
+  font-size: 15px;
   font-weight: 600;
-  margin-bottom: 0.25rem;
+  margin-bottom: 2px;
 }
 
 .dropzoneHint {
-  color: #94a3b8;
-  font-size: 0.8rem;
+  color: var(--ink-faint);
+  font-size: 12px;
 }
 
 .hiddenInput {
   display: none;
 }
 
-/* ── Progress ─────────────────────────────────────────────────── */
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.errorText {
+  color: var(--sev-poor);
+  font-size: 13px;
+  text-align: center;
+}
+
+.retryBtn {
+  flex: none;
+  padding: 6px 16px;
+  background: transparent;
+  color: var(--ink-dim);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.retryBtn:hover {
+  border-color: var(--surface-border-strong);
+  color: var(--ink);
+}
+
+/* ── Progress state ───────────────────────────────────────────── */
 
 .progressSection {
-  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
 }
 
 .phaseLabel {
-  color: #94a3b8;
-  font-size: 0.8rem;
-  margin-bottom: 0.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  color: var(--ink-dim);
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .progressTrack {
   width: 100%;
   height: 8px;
-  background: #1e293b;
-  border-radius: 4px;
+  background: var(--surface-border);
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
 .progressFill {
+  width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, #14b8a6, #2dd4bf);
-  border-radius: 4px;
-  transition: width 0.3s ease;
+  background: linear-gradient(90deg, var(--accent-strong), var(--accent));
+  border-radius: var(--radius-sm);
+  transform-origin: left;
+  transition: transform var(--transition-base);
 }
 
 .progressCount {
-  color: #64748b;
-  font-size: 0.75rem;
-  margin-top: 0.35rem;
+  color: var(--ink-faint);
+  font-size: 12px;
   text-align: right;
 }
 
-/* ── Results ──────────────────────────────────────────────────── */
+/* ── Results state ────────────────────────────────────────────── */
 
 .results {
-  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
 }
 
 .headline {
   text-align: center;
-  margin-bottom: 1.5rem;
 }
 
 .headlineValue {
-  font-family: var(--ds-font-sans);
-  font-size: 3.5rem;
-  color: #2dd4bf;
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .headlineUnit {
-  font-size: 1.2rem;
-  color: #94a3b8;
-  margin-left: 0.25rem;
+  font-size: 16px;
+  color: var(--ink-faint);
+  margin-left: 4px;
 }
 
 .headlineLabel {
-  color: #64748b;
-  font-size: 0.8rem;
+  color: var(--ink-faint);
+  font-size: 11px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-top: 0.25rem;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
 }
 
 /* ── Validation banner ────────────────────────────────────────── */
 
 .validationBanner {
   border: 1px solid;
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
-  margin-bottom: 1rem;
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
 }
 
 .validationScore {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.8rem;
+  gap: var(--space-sm);
+  font-size: 13px;
   font-weight: 600;
 }
 
 .confidenceValue {
-  color: #94a3b8;
-  font-size: 0.7rem;
+  color: var(--ink-faint);
+  font-size: 11px;
   font-weight: 400;
+  flex-shrink: 0;
 }
 
 .warningList {
-  margin: 0.5rem 0 0;
-  padding-left: 1.2rem;
-  color: #94a3b8;
-  font-size: 0.7rem;
+  margin: var(--space-xs) 0 0;
+  padding-left: 1.1rem;
+  color: var(--ink-faint);
+  font-size: 11px;
   line-height: 1.6;
   list-style: disc;
 }
 
-/* ── Stat grid ────────────────────────────────────────────────── */
+/* ── Stat grid ─────────────────────────────────────────────────── */
 
 .statGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  gap: var(--space-sm);
 }
 
 .statCard {
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid #1e293b;
-  border-radius: 8px;
-  padding: 0.75rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm);
   text-align: center;
 }
 
 .statValue {
-  color: #e2e8f0;
-  font-size: 1.1rem;
+  color: var(--ink);
+  font-size: 16px;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .statLabel {
-  color: #64748b;
-  font-size: 0.65rem;
+  color: var(--ink-faint);
+  font-size: 10px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-top: 0.2rem;
+  letter-spacing: 0.03em;
+  margin-top: 2px;
 }
 
-/* ── Sparkbar chart ───────────────────────────────────────────── */
+/* ── Sparkbar chart ────────────────────────────────────────────── */
 
 .sparkSection {
-  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
 }
 
 .sparkTitle {
-  color: #94a3b8;
-  font-size: 0.75rem;
+  color: var(--ink-faint);
+  font-size: 11px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.5rem;
+  letter-spacing: 0.04em;
 }
 
 .sparkContainer {
   display: flex;
   align-items: flex-end;
   gap: 2px;
-  height: 60px;
-  background: rgba(15, 23, 42, 0.5);
-  border-radius: 6px;
+  height: 56px;
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
   padding: 4px;
 }
 
 .sparkBar {
   flex: 1;
   min-width: 2px;
-  border-radius: 2px 2px 0 0;
-  transition: height 0.3s ease;
+  height: 100%;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transform-origin: bottom;
+  transition: transform var(--transition-base);
 }
 
-/* ── Actions ──────────────────────────────────────────────────── */
+/* ── Actions ───────────────────────────────────────────────────── */
 
 .actions {
   display: flex;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  gap: var(--space-sm);
 }
 
 .btnPrimary {
   flex: 1;
-  padding: 0.6rem 1rem;
-  background: #14b8a6;
-  color: #0f172a;
+  padding: 10px 16px;
+  background: var(--accent);
+  color: var(--accent-on);
   border: none;
-  border-radius: 6px;
-  font-size: 0.8rem;
+  border-radius: var(--radius-md);
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background var(--transition-fast);
 }
 
 .btnPrimary:hover {
-  background: #2dd4bf;
+  background: var(--accent-strong);
 }
 
 .btnSecondary {
   flex: 1;
-  padding: 0.6rem 1rem;
+  padding: 10px 16px;
   background: transparent;
-  color: #94a3b8;
-  border: 1px solid #334155;
-  border-radius: 6px;
-  font-size: 0.8rem;
+  color: var(--ink-dim);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
 }
 
 .btnSecondary:hover {
-  border-color: #64748b;
-  color: #e2e8f0;
+  border-color: var(--surface-border-strong);
+  color: var(--ink);
 }
 
-/* ── Privacy note ─────────────────────────────────────────────── */
+/* ── Privacy note ──────────────────────────────────────────────── */
 
 .privacy {
   text-align: center;
-  color: #475569;
-  font-size: 0.7rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid #1e293b;
+  color: var(--ink-faint);
+  font-size: 11px;
+  padding-top: var(--space-xs);
 }
 
-/* ── Responsive ───────────────────────────────────────────────── */
+/* ── OpenCV debug log (developer-facing, kept minimal) ────────────── */
+
+.logSection {
+  margin-top: var(--space-xs);
+}
+
+.logToggle {
+  background: transparent;
+  border: 1px solid var(--surface-border);
+  color: var(--ink-faint);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  cursor: pointer;
+  width: 100%;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.logToggle:hover {
+  border-color: var(--surface-border-strong);
+  color: var(--ink-dim);
+}
+
+.logPre {
+  margin-top: var(--space-xs);
+  padding: var(--space-sm);
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  max-height: 14rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--ink-dim);
+}
+
+/* ── Responsive ────────────────────────────────────────────────── */
 
 @media (max-width: 480px) {
   .statGrid {
@@ -267,7 +360,7 @@
   }
 
   .headlineValue {
-    font-size: 2.5rem;
+    font-size: 32px;
   }
 
   .actions {

@@ -2,6 +2,8 @@ import { useState, useEffect, lazy, Suspense } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { getMyProfile, updateProfile, updateProfileDetails, getMyReports, getLeaderboard, exportMyData, deleteMyAccount } from '../lib/api'
 import type { UserProfile, ProfileDiverDetails, ReportRead, LeaderboardEntry, ExperienceLevel } from '../types'
+import { IconChevronLeft, IconChevronDown, IconChevronUp, IconCheck } from './icons'
+import { Tabs } from './Tabs'
 import styles from './ProfilePanel.module.css'
 
 const AdminPanel = lazy(() => import('./AdminPanel').then(m => ({ default: m.AdminPanel })))
@@ -137,7 +139,7 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
       {/* Back button */}
       {onClose && (
         <button className={styles.backBtn} onClick={onClose}>
-          ← Back
+          <IconChevronLeft width={14} height={14} /> Back
         </button>
       )}
 
@@ -182,7 +184,7 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
             <div className={styles.statLbl}>Accuracy</div>
           </div>
           <div className={styles.stat}>
-            <div className={styles.statVal} style={{ color: profile.trusted ? 'var(--ds-q-excellent)' : 'var(--text)' }}>
+            <div className={styles.statVal} style={{ color: profile.trusted ? 'var(--sev-good)' : 'var(--ink-dim)' }}>
               {profile.trusted ? '★ Trusted' : 'Standard'}
             </div>
             <div className={styles.statLbl}>Status</div>
@@ -198,7 +200,7 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
           aria-expanded={detailsOpen}
         >
           <span>Diver details</span>
-          <span aria-hidden="true">{detailsOpen ? '▾' : '▸'}</span>
+          {detailsOpen ? <IconChevronUp aria-hidden="true" /> : <IconChevronDown aria-hidden="true" />}
         </button>
         {detailsOpen && (
           <>
@@ -251,7 +253,11 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
               <button className={styles.detailsSave} onClick={saveDetails} disabled={savingDetails}>
                 {savingDetails ? 'Saving…' : 'Save details'}
               </button>
-              {detailsSaved && <span className={styles.detailsSaved} aria-live="polite">Saved ✓</span>}
+              {detailsSaved && (
+                <span className={styles.detailsSaved} aria-live="polite">
+                  <IconCheck width={14} height={14} aria-hidden="true" /> Saved
+                </span>
+              )}
             </div>
           </>
         )}
@@ -264,7 +270,8 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
           onClick={() => setPrivacyOpen(o => !o)}
           aria-expanded={privacyOpen}
         >
-          Privacy &amp; your data {privacyOpen ? '▲' : '▼'}
+          <span>Privacy &amp; your data</span>
+          {privacyOpen ? <IconChevronUp aria-hidden="true" /> : <IconChevronDown aria-hidden="true" />}
         </button>
         {privacyOpen && (
           <div className={styles.privacyBody}>
@@ -321,16 +328,15 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
       )}
 
       {/* Tabs */}
-      <div className={styles.tabs}>
-        <button className={`${styles.tab} ${tab === 'mine' ? styles.tabActive : ''}`} onClick={() => setTab('mine')}>My Reports</button>
-        <button className={`${styles.tab} ${tab === 'board' ? styles.tabActive : ''}`} onClick={() => setTab('board')}>Leaderboard</button>
-        {profile?.is_admin && (
-          <button className={`${styles.tab} ${tab === 'admin' ? styles.tabActive : ''}`} onClick={() => setTab('admin')}>Admin</button>
-        )}
-        {profile?.is_admin && (
-          <button className={`${styles.tab} ${tab === 'security' ? styles.tabActive : ''}`} onClick={() => setTab('security')}>Security</button>
-        )}
-      </div>
+      <Tabs
+        tabs={[
+          { id: 'mine', label: 'My Reports' },
+          { id: 'board', label: 'Leaderboard' },
+          ...(profile?.is_admin ? [{ id: 'admin', label: 'Admin' }, { id: 'security', label: 'Security' }] : []),
+        ]}
+        active={tab}
+        onChange={t => setTab(t as 'mine' | 'board' | 'admin' | 'security')}
+      />
 
       {tab === 'mine' && (
         <div className={styles.reportList}>

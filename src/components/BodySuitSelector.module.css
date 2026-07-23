@@ -3,11 +3,9 @@
 }
 
 .hint {
-  font-size: var(--ds-text-label);
-  line-height: 1.6;
-  letter-spacing: 0.02em;
-  color: var(--text);
-  opacity: 0.85;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--ink-faint);
   margin: 0 0 14px;
 }
 
@@ -33,7 +31,7 @@
 }
 
 .region {
-  stroke: var(--ds-hairline-strong);
+  stroke: var(--surface-border-strong);
   stroke-width: 1.5;
   cursor: pointer;
   outline: none;
@@ -41,26 +39,26 @@
 }
 
 .region:hover {
-  stroke: var(--ds-accent);
+  stroke: var(--accent);
 }
 
 .region:focus-visible {
-  stroke: var(--ds-accent);
+  stroke: var(--accent);
   stroke-width: 2.5;
 }
 
 .regionSelected {
-  stroke: var(--ds-accent);
+  stroke: var(--accent);
   stroke-width: 2.5;
-  filter: drop-shadow(0 0 6px rgba(0, 201, 255, 0.5));
+  filter: drop-shadow(0 0 6px rgba(14, 124, 134, 0.35));
 }
 
 .badge {
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-sans);
   font-size: 15px;
-  fill: var(--text-bright);
+  font-weight: 700;
+  fill: var(--ink);
   pointer-events: none;
-  letter-spacing: 0.02em;
 }
 
 /* ── Thickness controls ── */
@@ -69,10 +67,11 @@
 }
 
 .controlsLabel {
-  font-size: var(--ds-text-label);
-  letter-spacing: 0.2em;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--ds-accent);
+  color: var(--accent-text);
   margin-bottom: 8px;
 }
 
@@ -84,31 +83,32 @@
 
 .choice {
   min-width: 42px;
-  background: rgba(10, 61, 92, 0.3);
-  border: 1px solid rgba(0, 201, 255, 0.15);
-  color: var(--text);
-  font-family: var(--ds-font-sans);
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  color: var(--ink-dim);
+  font-family: var(--font-sans);
   font-size: 13px;
   padding: 8px 10px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
 }
 
 .choice:hover {
-  border-color: rgba(0, 201, 255, 0.4);
+  border-color: var(--surface-border-strong);
 }
 
 .choiceActive {
-  background: rgba(0, 201, 255, 0.16);
-  border-color: var(--ds-accent);
-  color: var(--text-bright);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-text);
 }
 
 .mmUnit {
-  font-size: var(--ds-text-label);
-  letter-spacing: 0.15em;
+  font-size: 10px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  opacity: 0.5;
+  color: var(--ink-faint);
   margin-top: 6px;
 }
 
@@ -117,7 +117,7 @@
   list-style: none;
   margin: 16px 0 0;
   padding: 0;
-  border-top: 1px solid rgba(0, 201, 255, 0.12);
+  border-top: 1px solid var(--surface-border);
 }
 
 .summaryRow button {
@@ -127,28 +127,27 @@
   align-items: center;
   background: none;
   border: none;
-  border-bottom: 1px solid rgba(0, 201, 255, 0.08);
-  color: var(--text);
-  font-family: var(--ds-font-sans);
+  border-bottom: 1px solid var(--surface-border);
+  color: var(--ink-dim);
+  font-family: var(--font-sans);
   font-size: 12px;
-  letter-spacing: 0.04em;
   padding: 8px 4px;
   cursor: pointer;
-  transition: color 0.15s;
+  transition: color var(--transition-fast);
 }
 
 .summaryRow button:hover {
-  color: var(--text-bright);
+  color: var(--ink);
 }
 
 .summaryActive button {
-  color: var(--ds-accent);
+  color: var(--accent-text);
 }
 
 .summaryMm {
-  color: var(--text-bright);
+  color: var(--ink);
 }
 
 .summaryBare {
-  opacity: 0.5;
+  color: var(--ink-faint);
 }

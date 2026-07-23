@@ -13,7 +13,7 @@
 }
 
 .title {
-  font-size: var(--ds-text-label);
+  font-size: 10px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ink-faint);
@@ -29,7 +29,7 @@
 .legend {
   display: flex;
   gap: 8px;
-  font-size: var(--ds-text-label);
+  font-size: 10px;
 }
 
 .legendSwell {
@@ -74,7 +74,7 @@
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  font-size: var(--ds-text-label);
+  font-size: 10px;
   color: var(--text);
   line-height: 1.4;
 }
@@ -88,7 +88,7 @@
   width: 10px;
   height: 10px;
   margin-top: 2px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   background: var(--good);
   opacity: 0.85;
 }
@@ -98,9 +98,9 @@
   width: 10px;
   height: 10px;
   margin-top: 2px;
-  border-radius: 2px;
-  background: rgba(47, 107, 70, 0.2);
-  border: 1px solid rgba(47, 107, 70, 0.4);
+  border-radius: var(--radius-sm);
+  background: rgba(35, 119, 68, 0.2);
+  border: 1px solid rgba(35, 119, 68, 0.4);
 }
 
 .infoColorScale {
@@ -116,7 +116,7 @@
 .colorChip {
   width: 10px;
   height: 10px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   flex-shrink: 0;
 }
 
@@ -143,7 +143,7 @@
 }
 
 .annotDay {
-  font-size: var(--ds-text-label);
+  font-size: 10px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--accent);
@@ -166,7 +166,7 @@
 }
 
 .annotKey {
-  font-size: var(--ds-text-label);
+  font-size: 10px;
   letter-spacing: 0.1em;
   color: var(--ink-faint);
   text-transform: uppercase;
@@ -179,7 +179,7 @@
 }
 
 .annotPeriod {
-  font-size: var(--ds-text-label);
+  font-size: 10px;
   color: var(--text);
 }
 
@@ -197,14 +197,14 @@
 
 .dayLabel {
   fill: var(--ink-faint);
-  font-size: var(--ds-text-label);
+  font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .dayLabelSelected {
   fill: var(--accent);
-  font-size: var(--ds-text-label);
+  font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import type { User } from '@supabase/supabase-js'
 import { copyApneaTable, createApneaTable, getApneaTable } from '../lib/api'
 import type { ApneaCycle, ApneaTable } from '../types'
+import { IconChevronLeft } from './icons'
 import styles from './ApneaTableRunner.module.css'
 
 // Lazy so the qrcode dependency stays out of the runner chunk until the
@@ -381,7 +382,9 @@ export function ApneaTableRunner({ user, onShowAuth, sharedTable }: Props) {
       </div>
 
       <div className={styles.actions}>
-        <button className={styles.iconBtn} onClick={() => navigate('/training')}>← Back</button>
+        <button className={styles.iconBtn} onClick={() => navigate('/training')}>
+          <IconChevronLeft width={14} height={14} /> Back
+        </button>
         {canEdit && (
           <button className={`${styles.iconBtn} ${styles.iconBtnAccent}`} onClick={() => navigate(`/training/${table.id}/edit`)}>
             Edit
@@ -434,7 +437,7 @@ export function ApneaTableRunner({ user, onShowAuth, sharedTable }: Props) {
         </div>
 
         <div className={styles.progress} aria-hidden="true">
-          <div className={styles.progressBar} style={{ width: `${progress}%` }} />
+          <div className={styles.progressBar} style={{ transform: `scaleX(${progress / 100})` }} />
         </div>
 
         <div className={styles.controls}>

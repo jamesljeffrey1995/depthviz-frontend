@@ -42,12 +42,17 @@ function haversineMetres(
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
-// Predefined spot marker (cyan)
+// Marker fills are literal hex, not var() — these render inside a standalone
+// SVG data-URI image with no access to the app's CSS custom properties, so
+// the values below are hand-matched to --accent / --sev-marginal / --sev-good
+// in index.css rather than left to drift independently.
+
+// Predefined spot marker — known dive site (accent teal)
 const predefinedIcon = new L.Icon({
   iconUrl: 'data:image/svg+xml,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="36" viewBox="0 0 24 36">' +
     '<path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#0e7c86"/>' +
-    '<circle cx="12" cy="12" r="5" fill="#020d14"/>' +
+    '<circle cx="12" cy="12" r="5" fill="#0b1622"/>' +
     '</svg>'
   ),
   iconSize: [24, 36],
@@ -55,12 +60,16 @@ const predefinedIcon = new L.Icon({
   popupAnchor: [0, -36],
 })
 
-// User-added private spot marker (amber)
+// User-added private spot marker (amber) — center glyph is a small padlock so
+// "private" reads by shape, not just hue, for colorblind users (see the
+// matching .popupUserBadge text label for the same reason).
 const privateSpotIcon = new L.Icon({
   iconUrl: 'data:image/svg+xml,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="36" viewBox="0 0 24 36">' +
-    '<path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#ffb800"/>' +
-    '<circle cx="12" cy="12" r="5" fill="#020d14"/>' +
+    '<path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#985c16"/>' +
+    '<circle cx="12" cy="12" r="5" fill="#0b1622"/>' +
+    '<rect x="9.5" y="11.5" width="5" height="3.5" rx="0.6" fill="#985c16"/>' +
+    '<path d="M10.3 11.5v-1.3a1.7 1.7 0 0 1 3.4 0v1.3" stroke="#985c16" stroke-width="0.9" fill="none"/>' +
     '</svg>'
   ),
   iconSize: [24, 36],
@@ -68,12 +77,12 @@ const privateSpotIcon = new L.Icon({
   popupAnchor: [0, -36],
 })
 
-// Public spot marker (green)
+// Public spot marker (green) — plain dot, distinct from the private pin's lock glyph
 const publicSpotIcon = new L.Icon({
   iconUrl: 'data:image/svg+xml,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="36" viewBox="0 0 24 36">' +
-    '<path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#2ecc71"/>' +
-    '<circle cx="12" cy="12" r="5" fill="#020d14"/>' +
+    '<path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#237744"/>' +
+    '<circle cx="12" cy="12" r="5" fill="#0b1622"/>' +
     '</svg>'
   ),
   iconSize: [24, 36],
@@ -81,12 +90,12 @@ const publicSpotIcon = new L.Icon({
   popupAnchor: [0, -36],
 })
 
-// Pending position marker (orange)
+// Pending position marker — transient, shown only while placing a new spot
 const pendingIcon = new L.Icon({
   iconUrl: 'data:image/svg+xml,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="36" viewBox="0 0 24 36">' +
-    '<path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#ff6b35" opacity="0.85"/>' +
-    '<circle cx="12" cy="12" r="5" fill="#020d14"/>' +
+    '<path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#0e7c86" opacity="0.55"/>' +
+    '<circle cx="12" cy="12" r="5" fill="#0b1622" opacity="0.7"/>' +
     '</svg>'
   ),
   iconSize: [24, 36],
@@ -418,95 +427,97 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
         </MapContainer>
       </div>
 
-      {adding ? (
-        <div className={styles.addForm}>
-          <div className={styles.addFormTitle}>Add a Dive Spot</div>
-          <div className={styles.addFormPrivacy}>
-            {isPublic
-              ? 'This spot will be submitted for public visibility'
-              : 'Saved to this browser only — not visible to other users'}
-          </div>
-          {!pendingPos ? (
-            <div className={styles.addFormHint}>Click anywhere on the map to place your spot</div>
-          ) : (
-            <div className={styles.addFormHint}>
-              {pendingPos.lat.toFixed(4)}, {pendingPos.lon.toFixed(4)} — tap map to reposition
+      <div className={styles.controls}>
+        {adding ? (
+          <div className={styles.addForm}>
+            <div className={styles.addFormTitle}>Add a Dive Spot</div>
+            <div className={styles.addFormPrivacy}>
+              {isPublic
+                ? 'This spot will be submitted for public visibility'
+                : 'Saved to this browser only — not visible to other users'}
             </div>
-          )}
-          {proximityError && (
-            <div className={styles.addFormError}>{proximityError}</div>
-          )}
-          <div className={styles.addFormField}>
-            <label className={styles.addFormLabel}>Visibility</label>
-            <div className={styles.toggleRow}>
-              <button
-                className={`${styles.toggleBtn} ${!isPublic ? styles.toggleBtnActive : ''}`}
-                onClick={() => { setIsPublic(false); setProximityError('') }}
-                type="button"
-              >
-                Private
-              </button>
-              <button
-                className={`${styles.toggleBtn} ${isPublic ? styles.toggleBtnActivePublic : ''}`}
-                onClick={() => { setIsPublic(true); setProximityError('') }}
-                type="button"
-              >
-                Public
-              </button>
-            </div>
-            {isPublic && (
+            {!pendingPos ? (
+              <div className={styles.addFormHint}>Click anywhere on the map to place your spot</div>
+            ) : (
               <div className={styles.addFormHint}>
-                Public spots must be &ge; 100 m from other public spots
+                {pendingPos.lat.toFixed(4)}, {pendingPos.lon.toFixed(4)} — tap map to reposition
               </div>
             )}
+            {proximityError && (
+              <div className={styles.addFormError}>{proximityError}</div>
+            )}
+            <div className={styles.addFormField}>
+              <label className={styles.addFormLabel}>Visibility</label>
+              <div className={styles.toggleRow}>
+                <button
+                  className={`${styles.toggleBtn} ${!isPublic ? styles.toggleBtnActive : ''}`}
+                  onClick={() => { setIsPublic(false); setProximityError('') }}
+                  type="button"
+                >
+                  Private
+                </button>
+                <button
+                  className={`${styles.toggleBtn} ${isPublic ? styles.toggleBtnActivePublic : ''}`}
+                  onClick={() => { setIsPublic(true); setProximityError('') }}
+                  type="button"
+                >
+                  Public
+                </button>
+              </div>
+              {isPublic && (
+                <div className={styles.addFormHint}>
+                  Public spots must be &ge; 100 m from other public spots
+                </div>
+              )}
+            </div>
+            <div className={styles.addFormField}>
+              <label className={styles.addFormLabel}>Spot name</label>
+              <input
+                className={styles.addFormInput}
+                type="text"
+                placeholder="e.g. My Local Reef"
+                value={newName}
+                onChange={e => setNewName(e.target.value)}
+                maxLength={80}
+              />
+            </div>
+            <div className={styles.addFormField}>
+              <label className={styles.addFormLabel}>Description (optional)</label>
+              <input
+                className={styles.addFormInput}
+                type="text"
+                placeholder="e.g. Rocky reef with crabs"
+                value={newDesc}
+                onChange={e => setNewDesc(e.target.value)}
+                maxLength={200}
+              />
+            </div>
+            <div className={styles.addFormActions}>
+              <button
+                className={styles.addFormSaveBtn}
+                onClick={handleSaveSpot}
+                disabled={!pendingPos || !newName.trim()}
+              >
+                Save Spot
+              </button>
+              <button className={styles.addFormCancelBtn} onClick={handleCancelAdd}>
+                Cancel
+              </button>
+            </div>
           </div>
-          <div className={styles.addFormField}>
-            <label className={styles.addFormLabel}>Spot name</label>
-            <input
-              className={styles.addFormInput}
-              type="text"
-              placeholder="e.g. My Local Reef"
-              value={newName}
-              onChange={e => setNewName(e.target.value)}
-              maxLength={80}
-            />
-          </div>
-          <div className={styles.addFormField}>
-            <label className={styles.addFormLabel}>Description (optional)</label>
-            <input
-              className={styles.addFormInput}
-              type="text"
-              placeholder="e.g. Rocky reef with crabs"
-              value={newDesc}
-              onChange={e => setNewDesc(e.target.value)}
-              maxLength={200}
-            />
-          </div>
-          <div className={styles.addFormActions}>
-            <button
-              className={styles.addFormSaveBtn}
-              onClick={handleSaveSpot}
-              disabled={!pendingPos || !newName.trim()}
-            >
-              Save Spot
+        ) : (
+          <div className={styles.addSpotRow}>
+            <button className={styles.addSpotBtn} onClick={handleAddSpotClick}>
+              + Add a Spot
             </button>
-            <button className={styles.addFormCancelBtn} onClick={handleCancelAdd}>
-              Cancel
-            </button>
+            {privateSpots.length > 0 && (
+              <span className={styles.userSpotsCount}>
+                {privateSpots.length} private spot{privateSpots.length !== 1 ? 's' : ''}
+              </span>
+            )}
           </div>
-        </div>
-      ) : (
-        <div className={styles.addSpotRow}>
-          <button className={styles.addSpotBtn} onClick={handleAddSpotClick}>
-            + Add a Spot
-          </button>
-          {privateSpots.length > 0 && (
-            <span className={styles.userSpotsCount}>
-              {privateSpots.length} private spot{privateSpots.length !== 1 ? 's' : ''}
-            </span>
-          )}
-        </div>
-      )}
+        )}
+      </div>
 
       {voteError && (
         <div className={styles.addFormError}>{voteError}</div>

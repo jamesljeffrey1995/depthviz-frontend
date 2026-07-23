@@ -5,6 +5,7 @@ import { submitReport } from '../lib/api'
 import { feetToMetres } from '../lib/units'
 import VisibilityAnalyser from './VisibilityAnalyser'
 import { KelpVisibilityNote } from './KelpVisibilityNote'
+import { IconCheck } from './icons'
 import styles from './ReportForm.module.css'
 
 interface Props {
@@ -135,87 +136,112 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
   if (done) {
     return (
       <div className={styles.card}>
-        <div className={styles.success}>✓ Report submitted — thanks for contributing!</div>
+        <div className={styles.success}>
+          <IconCheck className={styles.successIcon} aria-hidden="true" />
+          <div className={styles.successText}>Report submitted — thanks for contributing!</div>
+        </div>
       </div>
     )
   }
 
+  const videoRejected = !!(videoReport?.validation && !videoReport.validation.is_valid)
+
   return (
     <div className={styles.card}>
-      <div className={styles.title}>Log Actual Visibility</div>
-      <div className={styles.subtitle}>Help improve predictions for others</div>
-
-      <div className={styles.field}>
-        <label className={styles.label}>Dive date</label>
-        <select
-          className={styles.select}
-          value={selectedDate}
-          onChange={e => setSelectedDate(e.target.value)}
-        >
-          {dateOptions.map(o => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
+      <div className={styles.header}>
+        <div className={styles.title}>Log actual visibility</div>
+        <p className={styles.subtitle}>Help improve predictions for other divers at this spot.</p>
       </div>
 
-      <div className={styles.field}>
-        <label className={styles.label}>Location</label>
-        <select className={styles.select} value={locationId} onChange={e => setLocationId(Number(e.target.value))}>
-          <option value="">Select a saved location</option>
-          {locations.map(l => (
-            <option key={l.id} value={l.id}>{l.name}</option>
-          ))}
-        </select>
-      </div>
-
-      <div className={styles.field}>
-        <label className={styles.label}>Actual visibility (metres)</label>
-        <input
-          className={styles.input}
-          type="number"
-          min="0"
-          max="50"
-          step="0.5"
-          placeholder="e.g. 8"
-          value={actualVis}
-          onChange={e => setActualVis(e.target.value)}
-        />
-        {activeDay && (
-          <div className={styles.hint}>
-            Model predicted {(activeDay.vis_corrected ?? activeDay.vis_estimate).toFixed(1)}m for{' '}
-            {new Date(selectedDate).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}
+      {/* Section 1 — which spot, which day: the two facts that identify this dive */}
+      <div className={styles.section}>
+        <div className={styles.sectionLabel}>Spot &amp; date</div>
+        <div className={styles.fieldRow}>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="report-location">Location</label>
+            <select
+              id="report-location"
+              className={styles.select}
+              value={locationId}
+              onChange={e => setLocationId(Number(e.target.value))}
+            >
+              <option value="">Select a saved location</option>
+              {locations.map(l => (
+                <option key={l.id} value={l.id}>{l.name}</option>
+              ))}
+            </select>
           </div>
-        )}
-        {!activeDay && (
-          <div className={styles.hint}>No forecast data available for this date</div>
-        )}
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="report-date">Dive date</label>
+            <select
+              id="report-date"
+              className={styles.select}
+              value={selectedDate}
+              onChange={e => setSelectedDate(e.target.value)}
+            >
+              {dateOptions.map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
 
-      <div className={styles.field}>
-        <label className={styles.label}>Notes (optional)</label>
-        <textarea
-          className={styles.textarea}
-          placeholder="Anything unusual — kelp, jellyfish, runoff..."
-          value={notes}
-          onChange={e => setNotes(e.target.value)}
-          rows={3}
-          maxLength={500}
-        />
+      {/* Section 2 — what the diver actually saw in the water */}
+      <div className={styles.section}>
+        <div className={styles.sectionLabel}>What you saw</div>
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="report-vis">Actual visibility (metres)</label>
+          <input
+            id="report-vis"
+            className={styles.input}
+            type="number"
+            min="0"
+            max="50"
+            step="0.5"
+            placeholder="e.g. 8"
+            value={actualVis}
+            onChange={e => setActualVis(e.target.value)}
+          />
+          {activeDay ? (
+            <div className={styles.hint}>
+              Model predicted {(activeDay.vis_corrected ?? activeDay.vis_estimate).toFixed(1)}m for{' '}
+              {new Date(selectedDate).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}
+            </div>
+          ) : (
+            <div className={styles.hint}>No forecast data available for this date</div>
+          )}
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="report-notes">Notes (optional)</label>
+          <textarea
+            id="report-notes"
+            className={styles.textarea}
+            placeholder="Anything unusual — kelp, jellyfish, runoff..."
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
+            rows={3}
+            maxLength={500}
+          />
+        </div>
+
+        {showKelpNote && <KelpVisibilityNote defaultOpen />}
       </div>
 
-      {showKelpNote && <KelpVisibilityNote defaultOpen />}
-
-      <div className={styles.field}>
-        <label className={styles.label}>Dive video analysis (optional)</label>
+      {/* Section 3 — optional on-device video analysis, kept visually
+          secondary (recessed panel) so it never competes with the required
+          fields above it. */}
+      <div className={styles.videoSection}>
+        <div className={styles.videoSectionHead}>
+          <span className={styles.sectionLabel}>Dive video analysis</span>
+          <span className={styles.optionalTag}>Optional</span>
+        </div>
         <VisibilityAnalyser onResult={onVideoResult} />
         {videoReport && (
-          <div className={styles.hint} style={
-            videoReport.validation && !videoReport.validation.is_valid
-              ? { color: '#bd3a3a' }
-              : undefined
-          }>
-            {videoReport.validation && !videoReport.validation.is_valid
-              ? `Video rejected — does not appear to be underwater footage (${Math.round(videoReport.validation.confidence * 100)}% confidence)`
+          <div className={`${styles.hint} ${videoRejected ? styles.hintError : ''}`}>
+            {videoRejected
+              ? `Video rejected — does not appear to be underwater footage (${Math.round(videoReport.validation!.confidence * 100)}% confidence)`
               : `Video analysis: ${videoReport.visibility_m.median.toFixed(1)}m median (${videoReport.frameCount} frames) — ${
                   videoReport.validation
                     ? `${Math.round(videoReport.validation.confidence * 100)}% underwater confidence`
@@ -226,14 +252,14 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
         )}
       </div>
 
-      {error && <div className={styles.error}>{error}</div>}
+      {error && <div className={styles.error} role="alert">{error}</div>}
 
       <button
         className={styles.btn}
         onClick={handleSubmit}
         disabled={!locationId || !actualVis || submitting || !activeDay}
       >
-        {submitting ? 'Submitting...' : 'Submit Report'}
+        {submitting ? 'Submitting…' : 'Submit report'}
       </button>
     </div>
   )

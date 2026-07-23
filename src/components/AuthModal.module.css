@@ -107,7 +107,7 @@
 .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .why {
-  font-size: var(--ds-text-label);
+  font-size: 10px;
   color: var(--ink-faint);
   line-height: 1.7;
   text-align: center;

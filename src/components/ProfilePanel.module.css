@@ -1,6 +1,8 @@
 .panel {
-  background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(14, 124, 134, 0.1);
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
   padding: 20px;
   margin-bottom: 16px;
 }
@@ -11,99 +13,102 @@
 
 .avatar {
   width: 44px; height: 44px; flex-shrink: 0;
-  background: rgba(14, 124, 134, 0.12);
-  border: 1px solid rgba(14, 124, 134, 0.25);
-  font-family: var(--font-display); font-size: 22px;
-  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-full);
+  font-family: var(--font-sans); font-weight: 800; font-size: 18px;
+  color: var(--accent-text);
   display: flex; align-items: center; justify-content: center;
 }
 
 .userInfo { flex: 1; min-width: 0; }
 
 .displayName {
-  font-size: 13px; color: var(--text-bright); letter-spacing: 0.05em;
+  font-size: 14px; font-weight: 600; color: var(--ink); letter-spacing: -0.005em;
   cursor: pointer; margin-bottom: 3px;
 }
-.editHint { opacity: .4; font-size: var(--ds-text-label); }
+.editHint { color: var(--ink-faint); font-size: 11px; }
 
 .nameEdit { display: flex; gap: 6px; margin-bottom: 3px; }
 .nameInput {
-  flex: 1; background: rgba(10,61,92,0.3); border: 1px solid rgba(14, 124, 134,0.2);
-  color: var(--text-bright); font-family: var(--font-mono); font-size: 12px; padding: 5px 8px; outline: none;
+  flex: 1; background: var(--surface-raised); border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  color: var(--ink); font-family: var(--font-sans); font-size: 13px; padding: 5px 8px; outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
+.nameInput:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .nameSave {
-  background: rgba(14, 124, 134,0.1); border: 1px solid rgba(14, 124, 134,0.3);
-  color: var(--accent); font-family: var(--font-mono); font-size: var(--ds-text-label); padding: 4px 10px; cursor: pointer;
+  background: var(--accent-soft); border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  color: var(--accent-text); font-family: var(--font-sans); font-weight: 600; font-size: 11px; padding: 4px 10px; cursor: pointer;
 }
 
-.email { font-size: var(--ds-text-label); opacity: .35; letter-spacing: 0.1em; }
+.email { font-size: 11px; color: var(--ink-faint); letter-spacing: 0.02em; }
 
 .signOut {
-  background: none; border: 1px solid rgba(192,57,43,0.3);
-  color: var(--danger); font-family: var(--font-mono); font-size: var(--ds-text-label);
-  letter-spacing: 0.15em; text-transform: uppercase; padding: 7px 12px; cursor: pointer; flex-shrink: 0;
-  opacity: .7; transition: opacity 0.15s;
+  background: none; border: 1px solid var(--surface-border);
+  border-radius: var(--radius-full);
+  color: var(--sev-poor); font-family: var(--font-sans); font-weight: 600; font-size: 11px;
+  letter-spacing: 0.02em; padding: 7px 12px; cursor: pointer; flex-shrink: 0;
+  transition: border-color var(--transition-fast);
 }
-.signOut:hover { opacity: 1; }
+.signOut:hover { border-color: var(--sev-poor); }
 
 .statsRow {
   display: flex; gap: 8px; margin-bottom: 20px;
 }
 .stat {
-  flex: 1; background: rgba(2,13,20,0.4); border: 1px solid rgba(14, 124, 134,0.06); padding: 12px 10px; text-align: center;
+  flex: 1; background: var(--surface-sunken); border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  padding: 12px 10px; text-align: center;
 }
-.statVal { font-family: var(--font-display); font-size: 20px; color: var(--text-bright); margin-bottom: 3px; }
-.statLbl { font-size: var(--ds-text-label); letter-spacing: 0.2em; text-transform: uppercase; opacity: .4; }
+.statVal { font-family: var(--font-sans); font-weight: 800; font-size: 20px; color: var(--ink); margin-bottom: 3px; }
+.statLbl { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; color: var(--ink-faint); }
 
 .friendsBtn {
   width: 100%;
   display: flex; align-items: center; justify-content: center; gap: 8px;
-  background: rgba(14, 124, 134,0.06); border: 1px solid rgba(14, 124, 134,0.18);
-  color: var(--accent); font-family: var(--font-mono); font-size: var(--ds-text-label);
-  letter-spacing: 0.2em; text-transform: uppercase; padding: 11px; cursor: pointer;
-  margin-bottom: 14px; transition: background 0.15s;
+  background: transparent; border: 1px solid var(--surface-border);
+  border-radius: var(--radius-full);
+  color: var(--ink-dim); font-family: var(--font-sans); font-weight: 600; font-size: 13px;
+  padding: 11px; cursor: pointer;
+  margin-bottom: 14px; transition: border-color var(--transition-fast), color var(--transition-fast);
 }
-.friendsBtn:hover { background: rgba(14, 124, 134,0.12); }
-.friendsBtn svg { width: 15px; height: 15px; flex-shrink: 0; }
-
-.tabs { display: flex; gap: 6px; margin-bottom: 14px; }
-.tab {
-  flex: 1; background: rgba(4,30,46,0.6); border: 1px solid rgba(14, 124, 134,0.08);
-  color: var(--text); font-family: var(--font-mono); font-size: var(--ds-text-label); letter-spacing: 0.2em;
-  text-transform: uppercase; padding: 8px; cursor: pointer;
-}
-.tab.tabActive { border-color: rgba(14, 124, 134,0.35); color: var(--accent); background: rgba(14, 124, 134,0.08); }
+.friendsBtn:hover { border-color: var(--surface-border-strong); color: var(--ink); }
+.friendsBtn svg { width: 16px; height: 16px; flex-shrink: 0; }
 
 .reportList { display: flex; flex-direction: column; gap: 6px; }
 .reportRow {
   display: flex; align-items: center; gap: 8px;
-  background: rgba(2,13,20,0.4); border: 1px solid rgba(14, 124, 134,0.05); padding: 10px 12px;
-  font-size: var(--ds-text-label);
+  background: var(--surface-sunken); border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 12px;
 }
-.reportRow.quarantined { opacity: .45; }
-.reportDate { opacity: .4; font-size: var(--ds-text-label); letter-spacing: 0.1em; flex-shrink: 0; }
-.reportVis { color: var(--text-bright); font-family: var(--font-display); font-size: 15px; }
-.reportPred { opacity: .35; font-size: var(--ds-text-label); flex: 1; }
+.reportRow.quarantined { opacity: .5; }
+.reportDate { color: var(--ink-faint); font-size: 10px; letter-spacing: 0.05em; flex-shrink: 0; }
+.reportVis { color: var(--ink); font-family: var(--font-sans); font-weight: 700; font-size: 15px; }
+.reportPred { color: var(--ink-faint); font-size: 11px; flex: 1; }
 .qTag {
-  font-size: var(--ds-text-label); letter-spacing: 0.1em; text-transform: uppercase;
-  border: 1px solid rgba(192,57,43,0.4); color: var(--danger); padding: 2px 6px;
+  font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700;
+  border: 1px solid var(--sev-poor); color: var(--sev-poor); border-radius: var(--radius-sm); padding: 2px 6px;
   flex-shrink: 0; white-space: nowrap;
 }
 
-.rank { font-family: var(--font-display); font-size: 18px; color: var(--accent); opacity: .5; width: 32px; flex-shrink: 0; }
-.boardName { flex: 1; font-size: 12px; color: var(--text-bright); }
-.trustedBadge { color: var(--excellent); margin-left: 5px; font-size: var(--ds-text-label); }
-.boardReports { font-size: var(--ds-text-label); opacity: .45; }
-.boardAcc { font-size: var(--ds-text-label); color: var(--excellent); opacity: .7; min-width: 50px; text-align: right; }
+.rank { font-family: var(--font-sans); font-weight: 800; font-size: 18px; color: var(--accent-text); width: 32px; flex-shrink: 0; }
+.boardName { flex: 1; font-size: 13px; font-weight: 600; color: var(--ink); }
+.trustedBadge { color: var(--sev-good); margin-left: 5px; font-size: 12px; }
+.boardReports { font-size: 11px; color: var(--ink-faint); }
+.boardAcc { font-size: 11px; color: var(--sev-good); min-width: 50px; text-align: right; }
 
-.empty { font-size: var(--ds-text-label); opacity: .4; letter-spacing: 0.1em; padding: 20px 0; text-align: center; }
+.empty { font-size: 12px; color: var(--ink-faint); letter-spacing: 0.02em; padding: 20px 0; text-align: center; }
 
 .locationRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 10px 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--surface-border);
 }
 
 .locationName {
@@ -113,8 +118,8 @@
 }
 
 .locationCoords {
-  font-size: var(--ds-text-label);
-  color: var(--text-muted);
+  font-size: 11px;
+  color: var(--ink-faint);
   letter-spacing: 0.05em;
   margin-top: 2px;
 }
@@ -126,30 +131,172 @@
 
 .deleteBtn {
   background: none;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
+  border: 1px solid var(--surface-border);
+  color: var(--ink-faint);
   cursor: pointer;
   padding: 4px 8px;
   font-size: 12px;
 }
 
 .deleteBtn:hover {
-  border-color: #c0392b;
-  color: #c0392b;
+  border-color: var(--sev-poor);
+  color: var(--sev-poor);
+}
+
+/* ── Diver details / Privacy & data — collapsible disclosure sections,
+   recessed relative to the panel so they read as secondary to the reports
+   list above them. ── */
+.details {
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.detailsHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 12px 14px;
+  cursor: pointer;
+}
+
+.detailsHead svg { width: 14px; height: 14px; color: var(--ink-faint); flex-shrink: 0; }
+
+.detailsHint {
+  margin: 0 14px 12px;
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+.detailsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 0 14px 14px;
+}
+
+.detailField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-faint);
+}
+
+.detailInput, .detailSelect, .detailTextarea {
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 400;
+  padding: 7px 9px;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.detailInput:focus, .detailSelect:focus, .detailTextarea:focus {
+  border-color: var(--accent);
+}
+
+.detailTextarea { resize: vertical; min-height: 48px; }
+
+.detailsActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px 14px;
+}
+
+.detailsSave {
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: var(--accent-on);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 12px;
+  padding: 7px 14px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+}
+
+.detailsSave:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.detailsSaved {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sev-good);
+}
+
+.privacyBody {
+  padding: 0 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.privacyNote {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-dim);
+}
+
+.privacyNote strong { color: var(--ink); }
+
+.dangerZone {
+  width: 100%;
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid var(--surface-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.dangerLabel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sev-poor);
+}
+
+.dataError {
+  margin: 0;
+  font-size: 12px;
+  color: var(--sev-poor);
 }
 
 .backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   background: none;
   border: none;
-  color: var(--accent);
-  font-family: var(--font-display);
+  color: var(--accent-text);
+  font-family: var(--font-sans);
+  font-weight: 600;
   font-size: 12px;
-  letter-spacing: 0.1em;
   cursor: pointer;
   padding: 0 0 16px 0;
-  opacity: 0.7;
-  transition: opacity 0.2s;
 }
 .backBtn:hover {
-  opacity: 1;
+  text-decoration: underline;
 }

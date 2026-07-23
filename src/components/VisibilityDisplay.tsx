@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { VisibilityResult } from '../types'
 import { getImpact } from '../lib/visibility'
-import { impactToken } from '../lib/severity'
+import { clarityFillToken } from '../lib/severity'
 import styles from './VisibilityDisplay.module.css'
 
 interface VisibilityDisplayProps {
@@ -51,7 +51,7 @@ export function VisibilityDisplay({ result, locationName }: VisibilityDisplayPro
         <div className={styles.barTrack}>
           <div
             className={`${styles.barFill} ${styles[`bg_${verdict.colorClass}`]}`}
-            style={{ width: `${pct}%` }}
+            style={{ transform: `scaleX(${pct / 100})` }}
           />
         </div>
         <div className={styles.barMarkers}>
@@ -84,7 +84,9 @@ export function FactorGrid({ factors }: FactorGridProps) {
         // severity colour from dividing by zero.
         const ratio = f.max_penalty > 0 ? Math.abs(f.penalty) / f.max_penalty : 0
         const barPct = Math.min(100, ratio * 100)
-        const barColor = impactToken(ratio)
+        // Single source for the ratio → clarity-token mapping (thresholds shared
+        // with impactToken via impactBand); see src/lib/severity.ts.
+        const barColor = clarityFillToken(ratio)
 
         return (
           <div key={f.name} className={styles.factorCard}>
@@ -92,7 +94,7 @@ export function FactorGrid({ factors }: FactorGridProps) {
             <div className={styles.factorValue}>{f.value}</div>
             {f.note && <div className={styles.factorNote}>{f.note}</div>}
             <div className={styles.factorImpact} style={{ color: impactColor }}>{impactLabel}</div>
-            <div className={styles.factorBar} style={{ width: `${barPct}%`, background: barColor }} />
+            <div className={styles.factorBar} style={{ transform: `scaleX(${barPct / 100})`, background: barColor }} />
           </div>
         )
       })}

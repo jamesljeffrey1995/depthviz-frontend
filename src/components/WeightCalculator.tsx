@@ -126,118 +126,127 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
           </button>
         </div>
 
-        <div className={styles.row}>
+        {/* Diver info — the physical inputs the estimate is built from */}
+        <div className={styles.fieldGroup}>
+          <div className={styles.groupLabel}>Diver</div>
+          <div className={styles.row}>
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="wc-height">
+                Height {imperial ? '(in)' : '(cm)'}
+              </label>
+              <input
+                id="wc-height"
+                className={styles.input}
+                type="number"
+                inputMode="decimal"
+                aria-invalid={heightInvalid || undefined}
+                aria-describedby={heightInvalid ? 'wc-height-err' : undefined}
+                value={imperial ? +(heightCm / IN_TO_CM).toFixed(1) : Math.round(heightCm)}
+                onChange={e => {
+                  // Ignore empty/partial input (NaN) so clearing the field doesn't snap to 0.
+                  const v = e.target.valueAsNumber
+                  if (Number.isNaN(v)) return
+                  setHeightCm(imperial ? v * IN_TO_CM : v)
+                }}
+              />
+              {heightInvalid && (
+                <p id="wc-height-err" className={styles.fieldError}>
+                  Enter a height between {rangeHint(HEIGHT_RANGE_CM, 'cm')}.
+                </p>
+              )}
+            </div>
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="wc-weight">
+                Body weight {imperial ? '(lb)' : '(kg)'}
+              </label>
+              <input
+                id="wc-weight"
+                className={styles.input}
+                type="number"
+                inputMode="decimal"
+                aria-invalid={weightInvalid || undefined}
+                aria-describedby={weightInvalid ? 'wc-weight-err' : undefined}
+                value={imperial ? +(weightKg / LB_TO_KG).toFixed(1) : Math.round(weightKg)}
+                onChange={e => {
+                  // Ignore empty/partial input (NaN) so clearing the field doesn't snap to 0.
+                  const v = e.target.valueAsNumber
+                  if (Number.isNaN(v)) return
+                  setWeightKg(imperial ? v * LB_TO_KG : v)
+                }}
+              />
+              {weightInvalid && (
+                <p id="wc-weight-err" className={styles.fieldError}>
+                  Enter a body weight between {rangeHint(WEIGHT_RANGE_KG, 'kg')}.
+                </p>
+              )}
+            </div>
+          </div>
+
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="wc-height">
-              Height {imperial ? '(in)' : '(cm)'}
-            </label>
-            <input
-              id="wc-height"
-              className={styles.input}
-              type="number"
-              inputMode="decimal"
-              aria-invalid={heightInvalid || undefined}
-              aria-describedby={heightInvalid ? 'wc-height-err' : undefined}
-              value={imperial ? +(heightCm / IN_TO_CM).toFixed(1) : Math.round(heightCm)}
-              onChange={e => {
-                // Ignore empty/partial input (NaN) so clearing the field doesn't snap to 0.
-                const v = e.target.valueAsNumber
-                if (Number.isNaN(v)) return
-                setHeightCm(imperial ? v * IN_TO_CM : v)
-              }}
-            />
-            {heightInvalid && (
-              <p id="wc-height-err" className={styles.fieldError}>
-                Enter a height between {rangeHint(HEIGHT_RANGE_CM, 'cm')}.
-              </p>
-            )}
+            <label className={styles.label} htmlFor="wc-build">Build / body composition</label>
+            <select
+              id="wc-build"
+              className={styles.select}
+              value={build}
+              onChange={e => setBuild(e.target.value as Build)}
+            >
+              {BUILD_OPTIONS.map(o => (
+                <option key={o.value} value={o.value}>{o.label} — {o.hint}</option>
+              ))}
+            </select>
           </div>
+        </div>
+
+        {/* Equipment & target — what you'll wear and where you want to hang neutral */}
+        <div className={styles.fieldGroup}>
+          <div className={styles.groupLabel}>Equipment &amp; target</div>
+
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="wc-weight">
-              Body weight {imperial ? '(lb)' : '(kg)'}
-            </label>
+            <span className={styles.label}>Wetsuit — set thickness per body part</span>
+            <BodySuitSelector value={regions} onChange={setRegions} />
+          </div>
+
+          <div className={styles.field}>
+            <div className={styles.sliderHeader}>
+              <label className={styles.label} htmlFor="wc-depth">Target neutral depth</label>
+              <span className={styles.sliderValue}>{neutralDepthM} m</span>
+            </div>
             <input
-              id="wc-weight"
-              className={styles.input}
-              type="number"
-              inputMode="decimal"
-              aria-invalid={weightInvalid || undefined}
-              aria-describedby={weightInvalid ? 'wc-weight-err' : undefined}
-              value={imperial ? +(weightKg / LB_TO_KG).toFixed(1) : Math.round(weightKg)}
-              onChange={e => {
-                // Ignore empty/partial input (NaN) so clearing the field doesn't snap to 0.
-                const v = e.target.valueAsNumber
-                if (Number.isNaN(v)) return
-                setWeightKg(imperial ? v * LB_TO_KG : v)
-              }}
+              id="wc-depth"
+              className={styles.slider}
+              type="range"
+              min={0}
+              max={30}
+              step={1}
+              value={neutralDepthM}
+              onChange={e => setNeutralDepthM(Number(e.target.value))}
             />
-            {weightInvalid && (
-              <p id="wc-weight-err" className={styles.fieldError}>
-                Enter a body weight between {rangeHint(WEIGHT_RANGE_KG, 'kg')}.
-              </p>
-            )}
+            <div className={styles.sliderHint}>
+              The depth where you want to stop sinking/floating and hover. Most freedivers weight
+              to be neutral at 8–12&nbsp;m so they float positively at the surface.
+            </div>
           </div>
-        </div>
 
-        <div className={styles.field}>
-          <label className={styles.label} htmlFor="wc-build">Build / body composition</label>
-          <select
-            id="wc-build"
-            className={styles.select}
-            value={build}
-            onChange={e => setBuild(e.target.value as Build)}
-          >
-            {BUILD_OPTIONS.map(o => (
-              <option key={o.value} value={o.value}>{o.label} — {o.hint}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className={styles.field}>
-          <span className={styles.label}>Wetsuit — set thickness per body part</span>
-          <BodySuitSelector value={regions} onChange={setRegions} />
-        </div>
-
-        <div className={styles.field}>
-          <div className={styles.sliderHeader}>
-            <label className={styles.label} htmlFor="wc-depth">Target neutral depth</label>
-            <span className={styles.sliderValue}>{neutralDepthM} m</span>
-          </div>
-          <input
-            id="wc-depth"
-            className={styles.slider}
-            type="range"
-            min={0}
-            max={30}
-            step={1}
-            value={neutralDepthM}
-            onChange={e => setNeutralDepthM(Number(e.target.value))}
-          />
-          <div className={styles.sliderHint}>
-            The depth where you want to stop sinking/floating and hover. Most freedivers weight
-            to be neutral at 8–12&nbsp;m so they float positively at the surface.
-          </div>
-        </div>
-
-        <div className={styles.field}>
-          <span className={styles.label} id="wc-water-label">Water type</span>
-          <div className={styles.segmented} role="group" aria-labelledby="wc-water-label">
-            <button
-              type="button"
-              className={`${styles.segBtn} ${water === 'salt' ? styles.segActive : ''}`}
-              onClick={() => setWater('salt')}
-              aria-pressed={water === 'salt'}
-            >
-              Salt water
-            </button>
-            <button
-              type="button"
-              className={`${styles.segBtn} ${water === 'fresh' ? styles.segActive : ''}`}
-              onClick={() => setWater('fresh')}
-              aria-pressed={water === 'fresh'}
-            >
-              Fresh water
-            </button>
+          <div className={styles.field}>
+            <label className={styles.label} id="wc-water-label">Water type</label>
+            <div className={styles.segmented} role="group" aria-labelledby="wc-water-label">
+              <button
+                type="button"
+                className={`${styles.segBtn} ${water === 'salt' ? styles.segActive : ''}`}
+                onClick={() => setWater('salt')}
+                aria-pressed={water === 'salt'}
+              >
+                Salt water
+              </button>
+              <button
+                type="button"
+                className={`${styles.segBtn} ${water === 'fresh' ? styles.segActive : ''}`}
+                onClick={() => setWater('fresh')}
+                aria-pressed={water === 'fresh'}
+              >
+                Fresh water
+              </button>
+            </div>
           </div>
         </div>
       </div>

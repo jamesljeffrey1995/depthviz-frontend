@@ -19,20 +19,20 @@ function formatDate(iso: string): string {
 
 function getCurrentStateColor(state: string): string {
   switch (state) {
-    case 'slack': return 'var(--good)'
-    case 'weak': return 'var(--good)'
-    case 'moderate': return 'var(--warn)'
-    case 'strong': return 'var(--danger)'
-    default: return 'var(--text)'
+    case 'slack': return 'var(--sev-good)'
+    case 'weak': return 'var(--sev-good)'
+    case 'moderate': return 'var(--sev-marginal)'
+    case 'strong': return 'var(--sev-poor)'
+    default: return 'var(--ink-dim)'
   }
 }
 
 function getRangeColor(category: string): string {
   switch (category) {
-    case 'micro': return 'var(--good)'
-    case 'meso': return 'var(--warn)'
-    case 'macro': return 'var(--danger)'
-    default: return 'var(--text)'
+    case 'micro': return 'var(--sev-good)'
+    case 'meso': return 'var(--sev-marginal)'
+    case 'macro': return 'var(--sev-poor)'
+    default: return 'var(--ink-dim)'
   }
 }
 
@@ -127,7 +127,7 @@ export function TidesPage({ lat, lon, locationName }: Props) {
 
   if (loading) {
     return (
-      <div className={styles.card}>
+      <div className={styles.hero}>
         <div className={styles.loadingState}>
           <div className={styles.loadingPulse} />
           <div className={styles.loadingText}>Loading tide data...</div>
@@ -138,7 +138,7 @@ export function TidesPage({ lat, lon, locationName }: Props) {
 
   if (error) {
     return (
-      <div className={styles.card}>
+      <div className={styles.hero}>
         <div className={styles.errorState}>{error}</div>
       </div>
     )
@@ -180,9 +180,10 @@ export function TidesPage({ lat, lon, locationName }: Props) {
   }))
 
   return (
-    <div>
-      {/* Header */}
-      <div className={styles.card}>
+    <div className={styles.page}>
+      {/* Hero — current tide state + the range chart, the one reading on
+          this screen that gets full priority treatment. */}
+      <div className={styles.hero}>
         <div className={styles.header}>
           <div className={styles.headerLeft}>
             <div className={styles.locationLabel}>{locationName}</div>
@@ -199,24 +200,14 @@ export function TidesPage({ lat, lon, locationName }: Props) {
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Date navigator */}
-      <div className={styles.dateNav}>
-        <button className={styles.dateBtn} onClick={() => handleDateChange(-1)}>&larr;</button>
-        <div className={styles.dateLabel}>{formatDate(selectedDate)}</div>
-        <button className={styles.dateBtn} onClick={() => handleDateChange(1)}>&rarr;</button>
-      </div>
-
-      {/* Tide chart */}
-      <div className={styles.card}>
         <div className={styles.sectionLabel}>Tide Chart</div>
         <div className={styles.chartWrapper}>
           <svg viewBox="0 0 600 200" className={styles.chart} preserveAspectRatio="none">
             <defs>
               <linearGradient id="tideFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(14, 124, 134,0.25)" />
-                <stop offset="100%" stopColor="rgba(14, 124, 134,0.02)" />
+                <stop offset="0%" stopColor="rgba(var(--accent-rgb), 0.25)" />
+                <stop offset="100%" stopColor="rgba(var(--accent-rgb), 0.02)" />
               </linearGradient>
             </defs>
 
@@ -226,8 +217,8 @@ export function TidesPage({ lat, lon, locationName }: Props) {
               const y = 20 + chartH - ((v - minH) / (maxH - minH || 1)) * chartH
               return (
                 <g key={v}>
-                  <line x1="0" y1={y} x2="600" y2={y} stroke="rgba(14, 124, 134,0.06)" strokeWidth="1" />
-                  <text x="4" y={y - 4} fill="rgba(139,184,204,0.4)" fontSize="9" fontFamily="var(--font-mono)">{v.toFixed(1)}m</text>
+                  <line x1="0" y1={y} x2="600" y2={y} stroke="var(--surface-border)" strokeWidth="1" />
+                  <text x="4" y={y - 4} fill="var(--ink-faint)" fontSize="9" fontFamily="var(--font-sans)">{v.toFixed(1)}m</text>
                 </g>
               )
             })}
@@ -240,20 +231,20 @@ export function TidesPage({ lat, lon, locationName }: Props) {
 
             {/* Now marker */}
             {nowX !== null && (
-              <line x1={nowX} y1="20" x2={nowX} y2="170" stroke="rgba(255,255,255,0.3)" strokeWidth="1" strokeDasharray="4,4" />
+              <line x1={nowX} y1="20" x2={nowX} y2="170" stroke="var(--surface-border-strong)" strokeWidth="1" strokeDasharray="4,4" />
             )}
 
             {/* High/low markers */}
             {eventPositions.map((ev, i) => (
               <g key={i}>
-                <circle cx={ev.x} cy={ev.y} r="4" fill={ev.type === 'high' ? 'var(--accent)' : 'var(--warn)'} />
+                <circle cx={ev.x} cy={ev.y} r="4" fill={ev.type === 'high' ? 'var(--accent)' : 'var(--sev-marginal)'} />
                 <text
                   x={ev.x}
                   y={ev.type === 'high' ? ev.y - 10 : ev.y + 16}
                   textAnchor="middle"
-                  fill="var(--text-bright)"
+                  fill="var(--ink)"
                   fontSize="9"
-                  fontFamily="var(--font-mono)"
+                  fontFamily="var(--font-sans)"
                 >
                   {ev.height != null ? `${ev.height.toFixed(1)}m` : ''}
                 </text>
@@ -262,7 +253,7 @@ export function TidesPage({ lat, lon, locationName }: Props) {
 
             {/* X-axis time labels */}
             {timeLabels.map((t, i) => (
-              <text key={i} x={t.x} y="195" textAnchor="middle" fill="rgba(139,184,204,0.4)" fontSize="9" fontFamily="var(--font-mono)">
+              <text key={i} x={t.x} y="195" textAnchor="middle" fill="var(--ink-faint)" fontSize="9" fontFamily="var(--font-sans)">
                 {t.label}
               </text>
             ))}
@@ -270,13 +261,21 @@ export function TidesPage({ lat, lon, locationName }: Props) {
         </div>
       </div>
 
-      {/* High/Low event cards */}
-      <div className={styles.card}>
+      {/* Date navigator — secondary, sits between the hero and the
+          lower-priority lists it steps through */}
+      <div className={styles.dateNav}>
+        <button className={styles.dateBtn} onClick={() => handleDateChange(-1)} aria-label="Previous day">&larr;</button>
+        <div className={styles.dateLabel}>{formatDate(selectedDate)}</div>
+        <button className={styles.dateBtn} onClick={() => handleDateChange(1)} aria-label="Next day">&rarr;</button>
+      </div>
+
+      {/* High/Low events — secondary list, lower visual weight than the hero */}
+      <div className={styles.section}>
         <div className={styles.sectionLabel}>High &amp; Low Tides</div>
         <div className={styles.eventsGrid}>
           {tides.events.map((ev, i) => (
             <div key={i} className={styles.eventCard}>
-              <div className={styles.eventType} style={{ color: ev.type === 'high' ? 'var(--accent)' : 'var(--warn)' }}>
+              <div className={styles.eventType} style={{ color: ev.type === 'high' ? 'var(--accent-text)' : 'var(--sev-marginal)' }}>
                 {ev.type === 'high' ? 'HIGH' : 'LOW'}
               </div>
               <div className={styles.eventHeight}>{ev.height != null ? `${ev.height.toFixed(2)}m` : 'N/A'}</div>
@@ -286,8 +285,8 @@ export function TidesPage({ lat, lon, locationName }: Props) {
         </div>
       </div>
 
-      {/* Tidal range */}
-      <div className={styles.card}>
+      {/* Tidal range — tertiary, least visual weight */}
+      <div className={styles.rangeCard}>
         <div className={styles.rangeRow}>
           <div className={styles.rangeInfo}>
             <div className={styles.sectionLabel}>Tidal Range</div>
@@ -302,7 +301,7 @@ export function TidesPage({ lat, lon, locationName }: Props) {
           <div
             className={styles.rangeFill}
             style={{
-              width: `${Math.min(100, ((tides.tidal_range_m ?? 0) / 8) * 100)}%`,
+              transform: `scaleX(${Math.min(100, ((tides.tidal_range_m ?? 0) / 8) * 100) / 100})`,
               background: getRangeColor(tides.range_category),
             }}
           />

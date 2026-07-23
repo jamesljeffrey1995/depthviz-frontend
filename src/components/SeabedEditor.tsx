@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ApiError, updateLocation } from '../lib/api'
 import type { Location, SeabedClass } from '../types'
+import { IconChevronDown, IconChevronUp, IconCheck } from './icons'
 import styles from './SeabedEditor.module.css'
 
 interface Props {
@@ -80,7 +81,11 @@ export function SeabedEditor({ location, onUpdated }: Props) {
         aria-expanded={open}
       >
         <span>Seabed &amp; depth {location.seabed_class || location.depth_m != null ? '' : '(improve accuracy)'}</span>
-        <span className={styles.arrow}>{open ? '▾' : '▸'}</span>
+        {open ? (
+          <IconChevronUp className={styles.arrow} aria-hidden="true" />
+        ) : (
+          <IconChevronDown className={styles.arrow} aria-hidden="true" />
+        )}
       </button>
 
       {open && (
@@ -91,49 +96,62 @@ export function SeabedEditor({ location, onUpdated }: Props) {
             but still murky&quot; days.
           </p>
 
-          <label className={styles.field}>
-            <span className={styles.fieldLabel}>Water depth (m)</span>
-            <input
-              type="number"
-              inputMode="decimal"
-              min={0}
-              max={11000}
-              step={0.5}
-              value={depth}
-              placeholder="auto (from bathymetry)"
-              onChange={e => setDepth(e.target.value)}
-              className={styles.input}
-            />
-          </label>
+          {/* Input/selection controls — grouped tightly, separate from the
+              save/status feedback below. */}
+          <div className={styles.fields}>
+            <label className={styles.field}>
+              <span className={styles.fieldLabel}>Water depth (m)</span>
+              <input
+                type="number"
+                inputMode="decimal"
+                min={0}
+                max={11000}
+                step={0.5}
+                value={depth}
+                placeholder="auto (from bathymetry)"
+                onChange={e => setDepth(e.target.value)}
+                className={styles.input}
+              />
+            </label>
 
-          <label className={styles.field}>
-            <span className={styles.fieldLabel}>Seabed type</span>
-            <select
-              value={seabed}
-              onChange={e => setSeabed(e.target.value as SeabedClass | '')}
-              className={styles.input}
+            <label className={styles.field}>
+              <span className={styles.fieldLabel}>Seabed type</span>
+              <select
+                value={seabed}
+                onChange={e => setSeabed(e.target.value as SeabedClass | '')}
+                className={styles.input}
+              >
+                <option value="">Auto / unknown</option>
+                {SEABED_OPTIONS.map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </label>
+
+            {seabed && (
+              <p className={styles.hint}>{SEABED_OPTIONS.find(o => o.value === seabed)?.hint}</p>
+            )}
+          </div>
+
+          {/* Save / status feedback — the terminal action of the flow, set
+              apart from the controls above by a rule and generous spacing. */}
+          <div className={styles.footer}>
+            {error && <p className={styles.error}>{error}</p>}
+            {saved && !dirty && (
+              <p className={styles.ok}>
+                <IconCheck className={styles.okIcon} aria-hidden="true" />
+                Saved
+              </p>
+            )}
+
+            <button
+              className={styles.save}
+              onClick={handleSave}
+              disabled={saving || depthInvalid || !dirty}
             >
-              <option value="">Auto / unknown</option>
-              {SEABED_OPTIONS.map(o => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
-          </label>
-
-          {seabed && (
-            <p className={styles.hint}>{SEABED_OPTIONS.find(o => o.value === seabed)?.hint}</p>
-          )}
-
-          {error && <p className={styles.error}>{error}</p>}
-          {saved && !dirty && <p className={styles.ok}>Saved ✓</p>}
-
-          <button
-            className={styles.save}
-            onClick={handleSave}
-            disabled={saving || depthInvalid || !dirty}
-          >
-            {saving ? 'Saving…' : 'Save'}
-          </button>
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+          </div>
         </div>
       )}
     </div>

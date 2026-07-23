@@ -1,119 +1,157 @@
-.container { margin-bottom: 16px; }
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-md);
+}
 
 .loading, .empty {
   text-align: center;
-  padding: 32px 16px;
-  color: var(--text);
-  font-family: var(--ds-font-sans);
-  font-size: var(--ds-text-label);
-  letter-spacing: 0.1em;
-  opacity: 0.6;
+  padding: var(--space-xl) var(--space-md);
+  color: var(--ink-faint);
+  font-size: 13px;
 }
-.emptyIcon { font-size: 28px; margin-bottom: 10px; }
+.emptyIcon { font-size: 28px; margin-bottom: var(--space-sm); }
 
+/* ── Summary strip — supporting aggregate stats, recessed (surface-sunken)
+   the same way DayDetail's metric chips are: secondary context sitting
+   above the primary content (the log list itself). ── */
 .summary {
   display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: var(--space-sm);
 }
 .summaryItem {
   flex: 1;
-  background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(14, 124, 134, 0.1);
-  padding: 12px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
   text-align: center;
 }
 .summaryVal {
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-sans);
   font-size: 22px;
-  color: var(--text-bright);
-  letter-spacing: 0.05em;
+  font-weight: 800;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
 }
 .summaryLbl {
-  font-size: var(--ds-text-label);
-  letter-spacing: 0.2em;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  opacity: 0.4;
+  color: var(--ink-faint);
   margin-top: 3px;
 }
 
-.logList { display: flex; flex-direction: column; gap: 4px; }
+/* ── Log list — grouped by month so a long history reads in weeks/months,
+   not one flat undifferentiated column. Generous space between groups,
+   tight space between the rows within one. ── */
+.logList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
 
+.logGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.groupLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: var(--space-sm);
+}
+
+.groupRows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Each entry is the primary, navigable content of this screen — same tier
+   as HomePage's newsItem: raised, real border, no shadow (a list row, not
+   a standalone card). */
 .logRow {
-  background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(14, 124, 134, 0.08);
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
   padding: 12px 14px;
   cursor: pointer;
-  transition: border-color 0.15s;
+  transition: border-color var(--transition-fast);
 }
-.logRow:hover { border-color: rgba(14, 124, 134, 0.2); }
-.logOpen { border-color: rgba(14, 124, 134, 0.25); }
+.logRow:hover { border-color: var(--surface-border-strong); }
+.logOpen { border-color: var(--accent); }
 
 .logMain {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Primary line — the scannable pair: when, and the actual reading. */
+.logPrimary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
 }
 .logDate {
-  font-family: var(--ds-font-sans);
-  font-size: var(--ds-text-label);
-  color: var(--text);
-  letter-spacing: 0.05em;
-  min-width: 120px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.logActual {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Secondary line — who logged it, what the model predicted, the error. */
+.logSecondary {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  font-size: 11px;
+  color: var(--ink-faint);
 }
 .logDiver {
-  font-family: var(--ds-font-sans);
-  font-size: var(--ds-text-label);
-  color: var(--ds-accent);
-  opacity: 0.7;
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.logVis {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-.logActual {
-  font-family: var(--ds-font-sans);
-  font-size: 18px;
-  color: var(--text-bright);
-  letter-spacing: 0.05em;
-}
 .logPred {
-  font-family: var(--ds-font-sans);
-  font-size: var(--ds-text-label);
-  opacity: 0.4;
+  flex-shrink: 0;
 }
 .logError {
-  font-family: var(--ds-font-sans);
-  font-size: var(--ds-text-label);
   font-weight: 700;
-  letter-spacing: 0.05em;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
 }
 
 .logDetail {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(14, 124, 134, 0.08);
+  margin-top: var(--space-sm);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--surface-border);
 }
 .conditions {
   display: flex;
-  gap: 12px;
-  font-family: var(--ds-font-sans);
-  font-size: var(--ds-text-label);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  opacity: 0.5;
+  flex-wrap: wrap;
+  gap: var(--space-sm) 12px;
+  font-size: 11px;
+  color: var(--ink-faint);
   margin-bottom: 6px;
 }
 .notes {
-  font-family: var(--ds-font-sans);
-  font-size: var(--ds-text-label);
-  color: var(--text);
-  opacity: 0.6;
+  font-size: 12px;
+  color: var(--ink-dim);
   font-style: italic;
   line-height: 1.5;
 }

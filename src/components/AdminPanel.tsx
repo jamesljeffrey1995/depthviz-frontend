@@ -29,6 +29,7 @@ import { ModelDiagnostics } from './admin/ModelDiagnostics'
 import { ReportsTable } from './admin/ReportsTable'
 import { SensorStatusPanel } from './admin/SensorStatusPanel'
 import { SiteForecastCard } from './admin/SiteForecastCard'
+import { IconChevronLeft } from './icons'
 import styles from './admin/AdminConsole.module.css'
 
 interface AdminPanelProps {
@@ -237,14 +238,13 @@ export function AdminPanel({ onBack }: AdminPanelProps) {
               type="button"
               onClick={onBack}
               className={styles.actionCancelBtn}
-              aria-label="Back"
             >
-              ← Back
+              <IconChevronLeft width={14} height={14} /> Back
             </button>
           )}
           <span style={{ flex: 1 }} />
           {error && (
-            <span style={{ color: 'var(--ds-danger)' }} role="alert">
+            <span style={{ color: 'var(--sev-poor)' }} role="alert">
               {error}
             </span>
           )}

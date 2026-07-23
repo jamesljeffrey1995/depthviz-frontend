@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest'
-import { SEVERITY_TOKEN, impactToken, riskToken } from './severity'
+import { SEVERITY_TOKEN, impactToken, clarityFillToken, riskToken } from './severity'
 
 /**
  * The severity ramp is the single source of truth for *alert* colour across
@@ -44,6 +44,29 @@ describe('impactToken', () => {
     // A NaN ratio (e.g. a zero-max factor) must not read as danger — callers
     // guard the divide, but the mapping is defensive too.
     expect(impactToken(NaN)).toBe(SEVERITY_TOKEN.safe)
+  })
+})
+
+describe('clarityFillToken', () => {
+  test('every band maps to a six-step clarity token, never a raw hex', () => {
+    for (const ratio of [0, 0.2, 0.5, 0.9]) {
+      expect(clarityFillToken(ratio)).toMatch(/^var\(--sev-[a-z]+\)$/)
+    }
+  })
+
+  test('shares impactToken thresholds but rides the clarity ramp', () => {
+    // Same boundaries as impactToken (via impactBand), different ramp.
+    expect(clarityFillToken(0)).toBe('var(--sev-good)')
+    expect(clarityFillToken(-0.5)).toBe('var(--sev-good)')
+    expect(clarityFillToken(0.39)).toBe('var(--sev-decent)')
+    expect(clarityFillToken(0.4)).toBe('var(--sev-marginal)')
+    expect(clarityFillToken(0.74)).toBe('var(--sev-marginal)')
+    expect(clarityFillToken(0.75)).toBe('var(--sev-poor)')
+    expect(clarityFillToken(1)).toBe('var(--sev-poor)')
+  })
+
+  test('non-finite ratios fall to the safe (good) fill, not danger', () => {
+    expect(clarityFillToken(NaN)).toBe('var(--sev-good)')
   })
 })
 

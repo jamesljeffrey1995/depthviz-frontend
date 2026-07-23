@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import type { User } from '@supabase/supabase-js'
 import { getApneaTables } from '../lib/api'
 import type { ApneaDifficulty, ApneaTable, ApneaTableType } from '../types'
+import { Tabs } from './Tabs'
+import { IconPlus } from './icons'
 import styles from './ApneaTablesPage.module.css'
 
 type Tab = 'library' | 'mine'
@@ -102,17 +104,14 @@ export function ApneaTablesPage({ user, onShowAuth }: Props) {
         </ul>
       </div>
 
-      <div className={styles.tabs}>
-        <button
-          className={`${styles.tab} ${tab === 'library' ? styles.tabActive : ''}`}
-          onClick={() => handleTabChange('library')}
-        >Library</button>
-        <button
-          className={`${styles.tab} ${tab === 'mine' ? styles.tabActive : ''}`}
-          onClick={() => handleTabChange('mine')}
-          aria-label={user ? 'My tables' : 'My tables (sign in required)'}
-        >My Tables{!user && ' 🔒'}</button>
-      </div>
+      <Tabs
+        tabs={[
+          { id: 'library', label: 'Library' },
+          { id: 'mine', label: user ? 'My Tables' : 'My Tables — sign in' },
+        ]}
+        active={tab}
+        onChange={next => handleTabChange(next as Tab)}
+      />
 
       <div className={styles.filters} role="group" aria-label="Filter by level">
         <button
@@ -150,7 +149,9 @@ export function ApneaTablesPage({ user, onShowAuth }: Props) {
         <button
           className={styles.newBtn}
           onClick={() => user ? navigate('/training/new') : onShowAuth()}
-        >+ New table</button>
+        >
+          <IconPlus width={14} height={14} /> New table
+        </button>
       </div>
 
       {error && <div className={styles.error}>{error}</div>}

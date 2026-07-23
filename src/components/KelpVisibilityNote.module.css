@@ -85,7 +85,7 @@
 }
 
 .tipLabel {
-  font-size: var(--ds-text-label);
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -99,7 +99,7 @@
 }
 
 .footnote {
-  font-size: var(--ds-text-label);
+  font-size: 10px;
   line-height: 1.55;
   color: var(--ink-faint);
   margin: 0;

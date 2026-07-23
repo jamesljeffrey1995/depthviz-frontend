@@ -14,19 +14,19 @@
 .valueLabel {
   fill: var(--ink);
   font-family: var(--font-display);
-  font-size: var(--ds-text-label);
+  font-size: 10px;
 }
 
 .dayLabel {
   fill: var(--ink-faint);
-  font-size: var(--ds-text-label);
+  font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .dayLabelSelected {
   fill: var(--accent);
-  font-size: var(--ds-text-label);
+  font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }

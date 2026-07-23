@@ -87,7 +87,10 @@ above. They climb `--ds-success` → `--ds-warn` → `--ds-caution` → `--ds-da
 turbidity, seabed resuspension, river discharge) keeps a distinct, meaningful
 colour rather than collapsing into `--ds-warn`. Consumers map to these through
 `src/lib/severity.ts` (`SEVERITY_TOKEN`, `impactToken`, `riskToken`) so no
-component reintroduces a raw hex, and every use is paired with a text label.
+component reintroduces a raw hex, and every use is paired with a text label. The
+same module owns the ratio→band thresholds (`impactBand`) shared by both the
+status ramp (`impactToken`) and the quality-scale meter fills
+(`clarityFillToken` → `--sev-*`), so the two ramps can never drift apart.
 
 **Categorical palette** (`--ds-cat-1…6`) is a third, distinct ramp for cases
 where hue marks a *category*, not a magnitude, quality or alert: the swell

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getNews, createNews, updateNews, deleteNews } from '../lib/api'
 import type { Announcement } from '../types'
+import { IconChevronDown, IconChevronUp } from './icons'
 import styles from './NewsPage.module.css'
 
 function formatDate(iso: string): string {
@@ -224,12 +225,14 @@ export function NewsPage({ isAdmin }: Props) {
             const excerpt = a.summary || `${a.body.slice(0, 220)}${a.body.length > 220 ? '…' : ''}`
             return (
               <li key={a.id} className={styles.card}>
-                <div className={styles.cardHead}>
-                  {a.is_pinned && <span className={styles.pin}>Pinned</span>}
-                  {!a.is_published && <span className={styles.draft}>Draft</span>}
-                  {a.category && <span className={styles.badge}>{a.category}</span>}
-                  <h2 className={styles.cardTitle}>{a.title}</h2>
-                </div>
+                {(a.is_pinned || !a.is_published || a.category) && (
+                  <div className={styles.cardHead}>
+                    {a.is_pinned && <span className={styles.pin}>Pinned</span>}
+                    {!a.is_published && <span className={styles.draft}>Draft</span>}
+                    {a.category && <span className={styles.badge}>{a.category}</span>}
+                  </div>
+                )}
+                <h2 className={styles.cardTitle}>{a.title}</h2>
                 <div className={styles.meta}>
                   {a.author_name} · {formatDate(a.created_at)}
                 </div>
@@ -247,7 +250,7 @@ export function NewsPage({ isAdmin }: Props) {
                   onClick={() => toggleExpanded(a.id)}
                   aria-expanded={expanded}
                 >
-                  {expanded ? '← Show less' : 'Read article →'}
+                  {expanded ? <><IconChevronUp width={14} height={14} /> Show less</> : <><IconChevronDown width={14} height={14} /> Read article</>}
                 </button>
                 {isAdmin && (
                   <div className={styles.adminRow}>

@@ -22,9 +22,32 @@ type Log = {
 
 function errorColor(err: number): string {
   const abs = Math.abs(err)
-  if (abs <= 1) return 'var(--ds-q-excellent)'
-  if (abs <= 2.5) return 'var(--ds-warn)'
-  return 'var(--ds-danger)'
+  if (abs <= 1) return 'var(--sev-excellent)'
+  if (abs <= 2.5) return 'var(--sev-marginal)'
+  return 'var(--sev-poor)'
+}
+
+/** Month/year heading for a group of logs, e.g. "July 2026". */
+function monthLabel(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
+}
+
+/** Group logs into contiguous runs sharing the same month/year — the log's
+ *  existing order (whatever the API returns) is preserved, just clustered
+ *  under a heading, so a long history reads as weeks/months rather than
+ *  one undifferentiated flat list. */
+function groupByMonth(logs: Log[]): { label: string; logs: Log[] }[] {
+  const groups: { label: string; logs: Log[] }[] = []
+  for (const log of logs) {
+    const label = monthLabel(log.date)
+    const current = groups[groups.length - 1]
+    if (current && current.label === label) {
+      current.logs.push(log)
+    } else {
+      groups.push({ label, logs: [log] })
+    }
+  }
+  return groups
 }
 
 export function LocationHistory({ locationId, locationName }: Props) {
@@ -84,44 +107,53 @@ export function LocationHistory({ locationId, locationName }: Props) {
       </div>
 
       <div className={styles.logList}>
-        {logs.map(log => {
-          const isOpen = expanded === log.id
-          const dateLabel = new Date(log.date).toLocaleDateString('en-GB', {
-            weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
-          })
-          return (
-            <div
-              key={log.id}
-              className={`${styles.logRow} ${isOpen ? styles.logOpen : ''}`}
-              onClick={() => setExpanded(isOpen ? null : log.id)}
-            >
-              <div className={styles.logMain}>
-                <div className={styles.logDate}>{dateLabel}</div>
-                <div className={styles.logDiver}>{log.diver}</div>
-                <div className={styles.logVis}>
-                  <span className={styles.logActual}>{log.actual_vis.toFixed(1)}m</span>
-                  <span className={styles.logPred}>pred {log.predicted_vis.toFixed(1)}m</span>
-                  <span className={styles.logError} style={{ color: errorColor(log.error) }}>
-                    {log.error > 0 ? '+' : ''}{log.error.toFixed(1)}
-                  </span>
-                </div>
-              </div>
-
-              {isOpen && (
-                <div className={styles.logDetail}>
-                  {(log.wave_height != null || log.swell_height != null || log.wind_speed != null) && (
-                    <div className={styles.conditions}>
-                      {log.wave_height != null && <span>Wave {log.wave_height.toFixed(1)}m</span>}
-                      {log.swell_height != null && <span>Swell {log.swell_height.toFixed(1)}m</span>}
-                      {log.wind_speed != null && <span>Wind {Math.round(log.wind_speed)}kn</span>}
+        {groupByMonth(logs).map(group => (
+          <div key={group.label} className={styles.logGroup}>
+            <div className={styles.groupLabel}>{group.label}</div>
+            <div className={styles.groupRows}>
+              {group.logs.map(log => {
+                const isOpen = expanded === log.id
+                const dateLabel = new Date(log.date).toLocaleDateString('en-GB', {
+                  weekday: 'short', day: 'numeric', month: 'short'
+                })
+                return (
+                  <div
+                    key={log.id}
+                    className={`${styles.logRow} ${isOpen ? styles.logOpen : ''}`}
+                    onClick={() => setExpanded(isOpen ? null : log.id)}
+                  >
+                    <div className={styles.logMain}>
+                      <div className={styles.logPrimary}>
+                        <span className={styles.logDate}>{dateLabel}</span>
+                        <span className={styles.logActual}>{log.actual_vis.toFixed(1)}m</span>
+                      </div>
+                      <div className={styles.logSecondary}>
+                        <span className={styles.logDiver}>{log.diver}</span>
+                        <span className={styles.logPred}>pred {log.predicted_vis.toFixed(1)}m</span>
+                        <span className={styles.logError} style={{ color: errorColor(log.error) }}>
+                          {log.error > 0 ? '+' : ''}{log.error.toFixed(1)}
+                        </span>
+                      </div>
                     </div>
-                  )}
-                  {log.notes && <div className={styles.notes}>"{log.notes}"</div>}
-                </div>
-              )}
+
+                    {isOpen && (
+                      <div className={styles.logDetail}>
+                        {(log.wave_height != null || log.swell_height != null || log.wind_speed != null) && (
+                          <div className={styles.conditions}>
+                            {log.wave_height != null && <span>Wave {log.wave_height.toFixed(1)}m</span>}
+                            {log.swell_height != null && <span>Swell {log.swell_height.toFixed(1)}m</span>}
+                            {log.wind_speed != null && <span>Wind {Math.round(log.wind_speed)}kn</span>}
+                          </div>
+                        )}
+                        {log.notes && <div className={styles.notes}>"{log.notes}"</div>}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
-          )
-        })}
+          </div>
+        ))}
       </div>
     </div>
   )

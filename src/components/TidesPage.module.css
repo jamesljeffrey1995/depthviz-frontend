@@ -1,108 +1,109 @@
-.card {
-  background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(14, 124, 134, 0.1);
-  padding: 24px;
-  margin-bottom: 12px;
-  position: relative;
-  overflow: hidden;
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
 }
 
-.card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
-  opacity: 0.3;
+/* ── Hero — today's reading: current tide state + the range chart. This is
+   the one element on the screen that gets full card treatment (raised,
+   bordered, shadowed) so it reads as the priority moment, the way the
+   instrument face does on DayDetail. ── */
+.hero {
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-lg);
 }
 
-/* Header */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
 }
 
 .headerLeft {}
 
 .locationLabel {
-  font-size: var(--ds-text-label);
-  letter-spacing: 0.2em;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  opacity: 0.45;
+  color: var(--ink-faint);
   margin-bottom: 4px;
 }
 
 .datumLabel {
-  font-size: var(--ds-text-label);
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  opacity: 0.3;
+  font-size: 11px;
+  color: var(--ink-faint);
 }
 
 .headerRight {
   text-align: right;
+  flex-shrink: 0;
 }
 
 .currentBadge {
-  font-family: var(--font-display);
-  font-size: 28px;
-  letter-spacing: 0.1em;
+  font-family: var(--font-sans);
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   line-height: 1;
 }
 
 .currentDirection {
-  font-size: var(--ds-text-label);
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  opacity: 0.5;
+  font-size: 12px;
+  color: var(--ink-faint);
   margin-top: 4px;
 }
 
-/* Date navigator */
+/* Date navigator — a compact pill control, secondary to the hero reading */
 .dateNav {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  margin-bottom: 12px;
+  gap: var(--space-md);
 }
 
 .dateBtn {
-  background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(14, 124, 134, 0.15);
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 14px;
-  padding: 6px 12px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
+  color: var(--accent-text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 700;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
 }
 
 .dateBtn:hover {
-  border-color: rgba(14, 124, 134, 0.4);
-  background: rgba(14, 124, 134, 0.1);
+  border-color: var(--surface-border-strong);
+  background: var(--accent-soft);
 }
 
 .dateLabel {
-  font-size: var(--ds-text-label);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--text-bright);
-  min-width: 200px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  min-width: 190px;
   text-align: center;
 }
 
-/* Section label */
+/* Section label used inside the hero card (chart) */
 .sectionLabel {
-  font-size: var(--ds-text-label);
-  letter-spacing: 0.25em;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  opacity: 0.4;
-  margin-bottom: 16px;
+  color: var(--ink-faint);
+  margin-bottom: var(--space-sm);
 }
 
-/* Chart */
 .chartWrapper {
   width: 100%;
   overflow: hidden;
@@ -113,100 +114,120 @@
   height: auto;
 }
 
-/* Events grid */
+/* ── Secondary group: High/Low events — recessed, lower visual weight than
+   the hero, a scannable strip rather than a second hero. ── */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
 .eventsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: var(--space-sm);
 }
 
 .eventCard {
-  background: rgba(2, 13, 20, 0.5);
-  border: 1px solid rgba(14, 124, 134, 0.07);
-  padding: 14px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
   text-align: center;
 }
 
 .eventType {
-  font-size: var(--ds-text-label);
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
+  font-size: 10px;
   font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.eventHeight {
-  font-family: var(--font-display);
-  font-size: 28px;
-  color: var(--text-bright);
-  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   margin-bottom: 6px;
 }
 
-.eventTime {
-  font-size: var(--ds-text-label);
-  letter-spacing: 0.15em;
-  opacity: 0.5;
+.eventHeight {
+  font-family: var(--font-sans);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1;
+  margin-bottom: 4px;
+  font-variant-numeric: tabular-nums;
 }
 
-/* Tidal range */
+.eventTime {
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+
+/* ── Tertiary: tidal range — a small recessed strip, least visual weight ── */
+.rangeCard {
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+}
+
 .rangeRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-sm);
 }
 
 .rangeInfo {}
 
 .rangeValue {
-  font-family: var(--font-display);
-  font-size: 36px;
-  color: var(--text-bright);
+  font-family: var(--font-sans);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .rangeBadge {
-  font-size: var(--ds-text-label);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
+  font-size: 11px;
   font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .rangeBar {
   height: 4px;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: var(--surface-border);
+  border-radius: var(--radius-full);
   margin-bottom: 6px;
   overflow: hidden;
 }
 
 .rangeFill {
   height: 100%;
-  transition: width 0.6s ease;
+  width: 100%;
+  border-radius: var(--radius-full);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.6s var(--ease-out);
 }
 
 .rangeScale {
   display: flex;
   justify-content: space-between;
-  font-size: var(--ds-text-label);
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  opacity: 0.3;
+  font-size: 10px;
+  color: var(--ink-faint);
 }
 
 /* Loading & error states */
 .loadingState {
   text-align: center;
-  padding: 32px;
+  padding: var(--space-2xl) var(--space-md);
 }
 
 .loadingPulse {
   width: 40px;
   height: 40px;
-  border: 1px solid rgba(14, 124, 134, 0.3);
+  border: 1px solid var(--accent);
   border-radius: 50%;
-  margin: 0 auto 16px;
+  margin: 0 auto var(--space-md);
   animation: tidePulse 1.5s ease-out infinite;
 }
 
@@ -216,22 +237,29 @@
 }
 
 .loadingText {
-  font-size: var(--ds-text-label);
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  opacity: 0.5;
+  font-size: 13px;
+  color: var(--ink-faint);
   animation: textPulse 1.5s ease-in-out infinite;
 }
 
 @keyframes textPulse {
-  0%, 100% { opacity: 0.3; }
-  50%      { opacity: 0.7; }
+  0%, 100% { opacity: 0.5; }
+  50%      { opacity: 1; }
 }
 
 .errorState {
   text-align: center;
-  padding: 32px;
-  font-size: var(--ds-text-label);
-  color: var(--danger);
-  letter-spacing: 0.1em;
+  padding: var(--space-2xl) var(--space-md);
+  font-size: 13px;
+  color: var(--sev-poor);
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding: var(--space-md);
+  }
+
+  .currentBadge {
+    font-size: 22px;
+  }
 }

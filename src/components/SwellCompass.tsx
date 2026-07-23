@@ -9,8 +9,11 @@ interface Props {
   units?: 'ft' | 'm'
 }
 
+// primary reuses the system accent; secondary/wind_wave are a small
+// categorical (non-severity) palette distinguishing swell component types —
+// not a good/bad scale, so they intentionally don't route through --sev-*.
 const COLORS: Record<string, string> = {
-  primary: '#0e7c86',
+  primary: 'var(--accent)',
   secondary: '#7a6a2e',
   wind_wave: '#3d5a73',
 }
@@ -50,8 +53,8 @@ export function SwellCompass({ components, windDir, units = 'm' }: Props) {
         style={{ overflow: 'visible' }}
       >
         {/* Background circle */}
-        <circle cx={CX} cy={CY} r={RING_R} fill="none" stroke="rgba(42,37,30,0.15)" strokeWidth="1" />
-        <circle cx={CX} cy={CY} r={RING_R * 0.5} fill="none" stroke="rgba(42,37,30,0.08)" strokeWidth="1" strokeDasharray="2 3" />
+        <circle cx={CX} cy={CY} r={RING_R} fill="none" stroke="rgba(16,24,32,0.15)" strokeWidth="1" />
+        <circle cx={CX} cy={CY} r={RING_R * 0.5} fill="none" stroke="rgba(16,24,32,0.08)" strokeWidth="1" strokeDasharray="2 3" />
 
         {/* Cardinal ticks + labels */}
         {CARDINALS.map(({ label, deg }) => {
@@ -64,14 +67,14 @@ export function SwellCompass({ components, windDir, units = 'm' }: Props) {
           const ly = CY + LABEL_R * Math.sin(rad)
           return (
             <g key={label}>
-              <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(42,37,30,0.4)" strokeWidth="1" />
+              <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(16,24,32,0.4)" strokeWidth="1" />
               <text
                 x={lx} y={ly}
                 textAnchor="middle"
                 dominantBaseline="central"
-                fill="rgba(42,37,30,0.55)"
+                fill="var(--ink-dim)"
                 fontSize="10"
-                fontFamily="monospace"
+                fontFamily="var(--font-mono)"
               >
                 {label}
               </text>
@@ -86,18 +89,18 @@ export function SwellCompass({ components, windDir, units = 'm' }: Props) {
           const y1 = CY + (TICK_INNER + 2) * Math.sin(rad)
           const x2 = CX + TICK_OUTER * Math.cos(rad)
           const y2 = CY + TICK_OUTER * Math.sin(rad)
-          return <line key={deg} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(42,37,30,0.22)" strokeWidth="1" />
+          return <line key={deg} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(16,24,32,0.22)" strokeWidth="1" />
         })}
 
         {/* Wind direction indicator (thin dashed line) */}
         <g transform={`translate(${CX},${CY}) rotate(${windDir})`}>
-          <line x1="0" y1="0" x2="0" y2={-RING_R + 5} stroke="rgba(42,37,30,0.3)" strokeWidth="1" strokeDasharray="3 3" />
+          <line x1="0" y1="0" x2="0" y2={-RING_R + 5} stroke="rgba(16,24,32,0.3)" strokeWidth="1" strokeDasharray="3 3" />
           <text
             x="0" y={-RING_R + 14}
             textAnchor="middle"
-            fill="rgba(42,37,30,0.45)"
+            fill="var(--ink-faint)"
             fontSize="7"
-            fontFamily="monospace"
+            fontFamily="var(--font-mono)"
           >
             wind
           </text>
@@ -106,7 +109,7 @@ export function SwellCompass({ components, windDir, units = 'm' }: Props) {
         {/* Swell component arrows */}
         {components.map((c) => {
           if (c.direction == null) return null
-          const color = COLORS[c.type] ?? '#0e7c86'
+          const color = COLORS[c.type] ?? 'var(--accent)'
           const lengthPct = Math.max(0.3, c.height / maxHeight)
           const arrowLen = 12 + lengthPct * 36
 
@@ -124,19 +127,19 @@ export function SwellCompass({ components, windDir, units = 'm' }: Props) {
         })}
 
         {/* Centre dot */}
-        <circle cx={CX} cy={CY} r="2" fill="rgba(42,37,30,0.5)" />
+        <circle cx={CX} cy={CY} r="2" fill="var(--ink-faint)" />
       </svg>
 
       {/* Legend */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '11px', fontFamily: 'monospace' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
         {components.map(c => {
-          const color = COLORS[c.type] ?? '#0e7c86'
+          const color = COLORS[c.type] ?? 'var(--accent)'
           return (
             <div key={c.type} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ width: '10px', height: '10px', background: color, borderRadius: '2px', display: 'inline-block', flexShrink: 0 }} />
-              <span style={{ color: 'rgba(42,37,30,0.75)' }}>
+              <span style={{ width: '10px', height: '10px', background: color, borderRadius: 'var(--radius-sm)', display: 'inline-block', flexShrink: 0 }} />
+              <span style={{ color: 'var(--ink-dim)' }}>
                 {c.label}: <span style={{ color }}>{c.height.toFixed(1)}{units}</span>
-                {c.dir_label && <span style={{ color: 'rgba(42,37,30,0.5)' }}> {c.dir_label} {Math.round(c.direction!)}°</span>}
+                {c.dir_label && <span style={{ color: 'var(--ink-faint)' }}> {c.dir_label} {Math.round(c.direction!)}°</span>}
               </span>
             </div>
           )

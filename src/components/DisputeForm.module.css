@@ -1,33 +1,81 @@
-.container {
-  padding: var(--space-md) 0 var(--space-xl);
+.page {
+  padding: var(--space-lg) 0 var(--space-xl);
+}
+
+/* ── Primary card — same surface-raised/border/shadow-card language as the
+   flagship forecast card and ReportForm. ── */
+.card {
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
 }
 
 /* ── Header ── */
 .header {
-  margin-bottom: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
 }
 
 .title {
-  font-family: var(--font-display);
-  font-size: 24px;
-  letter-spacing: 0.1em;
-  color: var(--text-bright);
-  margin-bottom: var(--space-sm);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--ink);
 }
 
 .subtitle {
-  font-size: 12px;
-  line-height: 1.7;
-  color: var(--text);
-  opacity: 0.75;
-  letter-spacing: 0.04em;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-dim);
 }
 
-/* ── Form ── */
+/* ── Form — grouped by the sequence a diver actually decides in: what to
+   dispute, why, then evidence. Tight gap within a section, generous gap
+   between sections. ── */
 .form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-lg);
+  gap: var(--space-xl);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.sectionLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+}
+
+.optionalTag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
 }
 
 .field {
@@ -37,45 +85,41 @@
 }
 
 .label {
-  font-size: var(--ds-text-label);
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--text);
-  opacity: 0.8;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-dim);
 }
 
 .hint {
-  font-size: var(--ds-text-label);
-  color: var(--text);
-  opacity: 0.5;
-  font-style: italic;
+  font-size: 12px;
+  color: var(--ink-faint);
 }
 
 .input,
 .select {
-  background: var(--ocean-mid);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
-  color: var(--text-bright);
-  font-family: var(--font-mono);
+  color: var(--ink);
+  font-family: var(--font-sans);
   font-size: 14px;
   padding: 10px 12px;
   outline: none;
-  transition: border-color var(--transition-base);
+  transition: border-color var(--transition-fast);
   width: 100%;
   appearance: none;
 }
 
 .input:focus,
 .select:focus {
-  border-color: var(--accent);
+  border-color: var(--accent-text);
 }
 
 .select option {
-  background: var(--ocean-mid);
+  background: var(--surface-raised);
 }
 
-.valueRow {
+.fieldRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-md);
@@ -83,22 +127,23 @@
 
 /* ── Image upload ── */
 .dropZone {
-  border: 2px dashed rgba(14, 124, 134, 0.25);
-  border-radius: var(--radius-lg);
+  border: 2px dashed var(--accent);
+  border-radius: var(--radius-md);
   min-height: 140px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: border-color var(--transition-base), background var(--transition-base);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
   overflow: hidden;
   position: relative;
+  background: var(--surface-raised);
 }
 
 .dropZone:hover,
 .dropZone:focus {
-  border-color: var(--accent);
-  background: rgba(14, 124, 134, 0.04);
+  border-color: var(--accent-strong);
+  background: var(--accent-soft);
   outline: none;
 }
 
@@ -114,17 +159,14 @@
 
 .dropText {
   font-size: 13px;
-  color: var(--text-bright);
-  letter-spacing: 0.06em;
+  font-weight: 600;
+  color: var(--ink);
 }
 
 .dropSubtext {
-  font-size: var(--ds-text-label);
-  color: var(--text);
-  opacity: 0.5;
+  font-size: 11px;
+  color: var(--ink-faint);
   margin-top: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
 }
 
 .preview {
@@ -141,11 +183,11 @@
 .removeImage {
   background: none;
   border: none;
-  color: var(--danger);
-  font-family: var(--font-mono);
-  font-size: var(--ds-text-label);
+  color: var(--sev-poor);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
-  letter-spacing: 0.1em;
   text-decoration: underline;
   padding: 0;
   align-self: flex-start;
@@ -153,53 +195,55 @@
 
 /* ── Error ── */
 .error {
-  background: rgba(192, 57, 43, 0.12);
-  border: 1px solid rgba(192, 57, 43, 0.3);
+  background: rgba(189, 58, 58, 0.08);
+  border: 1px solid rgba(189, 58, 58, 0.25);
   border-radius: var(--radius-md);
-  color: var(--danger);
+  color: var(--sev-poor);
   font-size: 13px;
   padding: 10px 14px;
-  letter-spacing: 0.04em;
 }
 
 /* ── Actions ── */
 .actions {
   display: flex;
-  gap: var(--space-md);
+  gap: var(--space-sm);
   justify-content: flex-end;
 }
 
 .cancelBtn {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 10px 20px;
-  border-radius: var(--radius-md);
+  border: 1px solid var(--surface-border);
+  color: var(--ink-dim);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 13px 22px;
+  border-radius: var(--radius-full);
   cursor: pointer;
-  transition: border-color var(--transition-base);
+  transition: all var(--transition-base);
 }
 
 .cancelBtn:hover {
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: var(--surface-border-strong);
+  color: var(--ink);
 }
 
 .submitBtn {
   background: var(--accent);
-  border: none;
-  color: var(--paper);
-  font-family: var(--font-mono);
-  font-size: 12px;
+  border: 1px solid var(--accent);
+  color: var(--accent-on);
+  font-family: var(--font-sans);
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 10px 24px;
-  border-radius: var(--radius-md);
+  padding: 13px 22px;
+  border-radius: var(--radius-full);
   cursor: pointer;
-  transition: opacity var(--transition-base);
+  transition: all var(--transition-base);
+}
+
+.submitBtn:hover:not(:disabled) {
+  background: var(--accent-strong);
+  box-shadow: var(--shadow-glow);
 }
 
 .submitBtn:disabled {
@@ -207,40 +251,49 @@
   cursor: not-allowed;
 }
 
-/* ── Success state ── */
+/* ── Success state — primary card containing recessed evidence sub-panels,
+   the same nesting rule as the request form above. ── */
 .successCard {
-  background: var(--ocean-mid);
-  border: 1px solid rgba(14, 124, 134, 0.15);
-  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
   padding: var(--space-lg);
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
 }
 
+.successHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
 .successIcon {
-  font-size: 36px;
-  color: var(--excellent);
+  width: 28px;
+  height: 28px;
+  color: var(--sev-good);
+  flex-shrink: 0;
 }
 
 .successTitle {
-  font-family: var(--font-display);
-  font-size: 22px;
-  letter-spacing: 0.1em;
-  color: var(--text-bright);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--ink);
 }
 
 .successText {
   font-size: 13px;
   line-height: 1.6;
-  color: var(--text);
-  letter-spacing: 0.04em;
+  color: var(--ink-dim);
 }
 
-/* ── AI result ── */
+/* ── AI result / dispute summary — recessed sub-panels ── */
 .aiResult {
-  background: rgba(14, 124, 134, 0.05);
-  border: 1px solid rgba(14, 124, 134, 0.15);
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
   padding: var(--space-md);
   display: flex;
@@ -249,68 +302,89 @@
 }
 
 .aiTitle {
-  font-size: var(--ds-text-label);
-  letter-spacing: 0.15em;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
-  color: var(--accent);
-  opacity: 0.8;
-  margin-bottom: 2px;
+  letter-spacing: 0.04em;
+  color: var(--accent-text);
 }
 
 .aiRow {
   display: flex;
   justify-content: space-between;
   font-size: 13px;
-  color: var(--text);
+  color: var(--ink-dim);
 }
 
 .aiRow strong {
-  color: var(--text-bright);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
 }
 
 .aiNotes {
   font-size: 12px;
-  color: var(--text);
-  opacity: 0.7;
-  font-style: italic;
+  color: var(--ink-faint);
   line-height: 1.5;
 }
 
 .aiMatch {
-  font-size: var(--ds-text-label);
-  color: var(--excellent);
-  letter-spacing: 0.06em;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sev-good);
   padding: 6px 10px;
-  background: rgba(15, 179, 122, 0.08);
+  background: rgba(35, 119, 68, 0.1);
   border-radius: var(--radius-sm);
 }
 
 .disputeSummary {
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  padding-top: var(--space-md);
 }
 
 .statusPending {
-  color: var(--warn);
+  color: var(--sev-marginal);
 }
 
 .closeBtn {
-  background: transparent;
-  border: 1px solid rgba(14, 124, 134, 0.3);
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 13px;
-  letter-spacing: 0.1em;
-  padding: 10px 24px;
-  border-radius: var(--radius-md);
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: var(--accent-on);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 13px 22px;
+  border-radius: var(--radius-full);
   cursor: pointer;
   align-self: flex-end;
-  transition: background var(--transition-base);
+  transition: all var(--transition-base);
 }
 
 .closeBtn:hover {
-  background: rgba(14, 124, 134, 0.08);
+  background: var(--accent-strong);
+  box-shadow: var(--shadow-glow);
+}
+
+@media (max-width: 480px) {
+  .card,
+  .successCard {
+    padding: var(--space-md);
+  }
+
+  .fieldRow {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+  }
+
+  .cancelBtn,
+  .submitBtn {
+    width: 100%;
+  }
 }
