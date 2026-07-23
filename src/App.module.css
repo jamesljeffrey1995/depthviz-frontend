@@ -46,7 +46,7 @@
 
 /* ── Header ── */
 .header {
-  margin-bottom: 18px;
+  margin-bottom: var(--space-lg);
 }
 
 .headerRow {

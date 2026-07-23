@@ -13,12 +13,12 @@
 
 :root {
   /* ── Colour system — "Precision Marine Instrument" ──
-     A light instrument chassis carries the app; one dark instrument-face
-     panel (the hero visibility reading, gauge thumbnails) is the deliberate
-     dark register, not the whole theme. One teal working accent. Severity
-     is a small functional signal set, kept in two registers — "on light"
-     for chassis surfaces, "on face" for the dark instrument panel — so
-     contrast holds in both places. See DESIGN.md for full rationale. */
+     A near-black navy instrument chassis carries the app, with an even denser
+     instrument-face register for focused readings such as the hero gauge.
+     One teal working accent. Severity is a small functional signal set, kept
+     in two registers — one for the dark chassis surfaces, one for the denser
+     face surfaces — so contrast holds in both places. See DESIGN.md for full
+     rationale. */
   --surface: #06121b;
   --surface-raised: #0a1b27;
   --surface-sunken: #030b11;
@@ -28,11 +28,11 @@
   --ink: #edf7f8;
   --ink-dim: #a9c1c8;
   /* Darkened from an initial #8a96a3 (2.78:1) — that failed AA even for large
-     text against --surface-sunken. This value clears 4.5:1 against every
-     light surface in the system. */
+     text against --surface-sunken. This value clears 4.5:1 against every dark
+     chassis surface in the system. */
   --ink-faint: #6f8c96;
 
-  /* Instrument face — the one dark surface in the system. */
+  /* Instrument face — the denser panel register within the dark theme. */
   --face: #0b1622;
   --face-raised: #142334;
   --face-border: rgba(255, 255, 255, 0.1);
@@ -52,9 +52,9 @@
      Keep the base accent for fills and use this token for readable labels. */
   --accent-text: var(--accent-strong);
 
-  /* Severity — "on light" register (chips, badges, factor rows, text on
+  /* Severity — default dark-surface register (chips, badges, factor rows, text on
      --surface/--surface-raised). Safety-relevant; keep distinguishable.
-     Values are chosen to clear 4.5:1 against every light surface in the
+     Values are chosen to clear 4.5:1 against every dark chassis surface in the
      system (surface, surface-raised, surface-sunken) as plain text, not
      just the 3:1 large-text minimum — an initial brighter pass failed AA
      for several of these (sev-decent measured 2.96:1). */
