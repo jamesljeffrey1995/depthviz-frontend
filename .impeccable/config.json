@@ -1,0 +1,26 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "createdAt": "2026-07-23T08:55:18.036Z",
+        "reason": "Deliberate Operate-mode workhorse UI face (not a display/point-of-view face) — DESIGN.md 'One-Face Rule' documents the reasoning; a second display face (Space Grotesk) was explicitly considered and rejected for this exact reason during the redesign"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#111",
+        "createdAt": "2026-07-23T08:55:31.249Z",
+        "reason": "Print-stylesheet fallback (@media print in index.css) intentionally ignores all design tokens — a plain print-safe override carried over unchanged from the prior redesign, documented in DESIGN.md's 'Documented exceptions'"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#ccc",
+        "createdAt": "2026-07-23T08:55:31.298Z",
+        "reason": "Print-stylesheet fallback (@media print in index.css) intentionally ignores all design tokens — a plain print-safe override carried over unchanged from the prior redesign, documented in DESIGN.md's 'Documented exceptions'"
+      }
+    ]
+  }
+}

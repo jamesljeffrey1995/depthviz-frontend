@@ -9,7 +9,7 @@
 
 .modal {
   background: var(--ocean-mid);
-  border: 1px solid rgba(0, 201, 255, 0.2);
+  border: 1px solid rgba(14, 124, 134, 0.2);
   padding: 32px 28px;
   width: 100%; max-width: 380px;
   position: relative;
@@ -28,10 +28,10 @@
   padding: 4px 8px;
 }
 .close:hover { opacity: 1; }
-.close:focus-visible { outline: 2px solid var(--ds-accent); outline-offset: 2px; opacity: 1; }
+.close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; opacity: 1; }
 
 .title {
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-display);
   font-size: 36px; letter-spacing: 0.12em;
   color: var(--text-bright); margin-bottom: 6px;
 }
@@ -49,7 +49,7 @@
 
 .qrCanvas {
   /* White quiet zone is drawn into the canvas; the border just frames it. */
-  border: 1px solid rgba(0, 201, 255, 0.2);
+  border: 1px solid rgba(14, 124, 134, 0.2);
 }
 
 .qrFallback {
@@ -57,7 +57,7 @@
   display: flex; align-items: center; justify-content: center;
   text-align: center;
   border: 1px solid rgba(192, 57, 43, 0.35);
-  color: var(--ds-danger);
+  color: var(--danger);
   font-size: var(--ds-text-label); line-height: 1.6;
   padding: 20px;
 }
@@ -76,31 +76,31 @@
 .linkInput {
   flex: 1; min-width: 0;
   background: rgba(10, 61, 92, 0.3);
-  border: 1px solid rgba(0, 201, 255, 0.2);
-  color: var(--text); font-family: var(--ds-font-sans); font-size: var(--ds-text-label);
+  border: 1px solid rgba(14, 124, 134, 0.2);
+  color: var(--text); font-family: var(--font-mono); font-size: var(--ds-text-label);
   padding: 10px 12px; outline: none;
   text-overflow: ellipsis;
 }
-.linkInput:focus { border-color: rgba(0, 201, 255, 0.5); }
+.linkInput:focus { border-color: rgba(14, 124, 134, 0.5); }
 
 .copyBtn {
-  background: rgba(0, 201, 255, 0.12);
-  border: 1px solid rgba(0, 201, 255, 0.4);
-  color: var(--ds-accent); font-family: var(--ds-font-sans);
+  background: rgba(14, 124, 134, 0.12);
+  border: 1px solid rgba(14, 124, 134, 0.4);
+  color: var(--accent); font-family: var(--font-mono);
   font-size: var(--ds-text-label); font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
   padding: 10px 14px; cursor: pointer; transition: all 0.15s;
   white-space: nowrap;
 }
-.copyBtn:hover { background: rgba(0, 201, 255, 0.22); }
-.copyBtn:focus-visible { outline: 2px solid var(--ds-accent); outline-offset: 2px; }
+.copyBtn:hover { background: rgba(14, 124, 134, 0.22); }
+.copyBtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .shareBtn {
   width: 100%;
   background: transparent;
   border: 1px solid rgba(139, 184, 204, 0.3);
-  color: var(--text); font-family: var(--ds-font-sans);
+  color: var(--text); font-family: var(--font-mono);
   font-size: var(--ds-text-label); letter-spacing: 0.15em; text-transform: uppercase;
   padding: 10px; cursor: pointer;
 }
 .shareBtn:hover { background: rgba(139, 184, 204, 0.08); color: var(--text-bright); }
-.shareBtn:focus-visible { outline: 2px solid var(--ds-accent); outline-offset: 2px; }
+.shareBtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

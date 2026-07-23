@@ -19,19 +19,19 @@ function formatDate(iso: string): string {
 
 function getCurrentStateColor(state: string): string {
   switch (state) {
-    case 'slack': return 'var(--ds-q-good)'
-    case 'weak': return 'var(--ds-q-good)'
-    case 'moderate': return 'var(--ds-warn)'
-    case 'strong': return 'var(--ds-danger)'
+    case 'slack': return 'var(--good)'
+    case 'weak': return 'var(--good)'
+    case 'moderate': return 'var(--warn)'
+    case 'strong': return 'var(--danger)'
     default: return 'var(--text)'
   }
 }
 
 function getRangeColor(category: string): string {
   switch (category) {
-    case 'micro': return 'var(--ds-q-good)'
-    case 'meso': return 'var(--ds-warn)'
-    case 'macro': return 'var(--ds-danger)'
+    case 'micro': return 'var(--good)'
+    case 'meso': return 'var(--warn)'
+    case 'macro': return 'var(--danger)'
     default: return 'var(--text)'
   }
 }
@@ -59,7 +59,8 @@ function buildChartPath(hourly: { time: string; height: number | null }[]): { pa
   }))
 
   // Smooth curve using cardinal spline
-  let path = `M${points[0]?.x ?? 0},${points[0]?.y ?? 0}`
+  const start = points[0]
+  let path = start ? `M${start.x},${start.y}` : ''
   for (let i = 0; i < points.length - 1; i++) {
     const p0 = points[Math.max(0, i - 1)]
     const p1 = points[i]
@@ -86,14 +87,17 @@ function findEventPositions(events: TideEvent[], chartPoints: { x: number; y: nu
     let closestIdx = 0
     let closestDiff = Infinity
     for (let i = 0; i < chartPoints.length; i++) {
-      const diff = Math.abs(new Date(chartPoints[i]?.time ?? '').getTime() - evTime)
+      const cp = chartPoints[i]
+      if (!cp) continue
+      const diff = Math.abs(new Date(cp.time).getTime() - evTime)
       if (diff < closestDiff) { closestDiff = diff; closestIdx = i }
     }
+    const closest = chartPoints[closestIdx]
     return {
       ...ev,
       height: ev.height as number,
-      x: chartPoints[closestIdx]?.x ?? 0,
-      y: chartPoints[closestIdx]?.y ?? 0,
+      x: closest?.x ?? 0,
+      y: closest?.y ?? 0,
     }
   })
 }
@@ -147,12 +151,14 @@ export function TidesPage({ lat, lon, locationName }: Props) {
 
   // Current time marker
   const now = new Date()
-  const todayStr = new Date().toISOString().slice(0, 10)
+  const todayStr = new Date().toISOString().split('T')[0]
   const isToday = selectedDate === todayStr
   let nowX: number | null = null
-  if (isToday && points.length > 1) {
-    const startTime = new Date(points[0]?.time ?? '').getTime()
-    const endTime = new Date(points[points.length - 1]?.time ?? '').getTime()
+  const firstPt = points[0]
+  const lastPt = points[points.length - 1]
+  if (isToday && firstPt && lastPt) {
+    const startTime = new Date(firstPt.time).getTime()
+    const endTime = new Date(lastPt.time).getTime()
     const nowTime = now.getTime()
     if (nowTime >= startTime && nowTime <= endTime) {
       nowX = ((nowTime - startTime) / (endTime - startTime)) * 600
@@ -209,8 +215,8 @@ export function TidesPage({ lat, lon, locationName }: Props) {
           <svg viewBox="0 0 600 200" className={styles.chart} preserveAspectRatio="none">
             <defs>
               <linearGradient id="tideFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(0,201,255,0.25)" />
-                <stop offset="100%" stopColor="rgba(0,201,255,0.02)" />
+                <stop offset="0%" stopColor="rgba(14, 124, 134,0.25)" />
+                <stop offset="100%" stopColor="rgba(14, 124, 134,0.02)" />
               </linearGradient>
             </defs>
 
@@ -220,8 +226,8 @@ export function TidesPage({ lat, lon, locationName }: Props) {
               const y = 20 + chartH - ((v - minH) / (maxH - minH || 1)) * chartH
               return (
                 <g key={v}>
-                  <line x1="0" y1={y} x2="600" y2={y} stroke="rgba(0,201,255,0.06)" strokeWidth="1" />
-                  <text x="4" y={y - 4} fill="rgba(139,184,204,0.4)" fontSize="9" fontFamily="var(--ds-font-sans)">{v.toFixed(1)}m</text>
+                  <line x1="0" y1={y} x2="600" y2={y} stroke="rgba(14, 124, 134,0.06)" strokeWidth="1" />
+                  <text x="4" y={y - 4} fill="rgba(139,184,204,0.4)" fontSize="9" fontFamily="var(--font-mono)">{v.toFixed(1)}m</text>
                 </g>
               )
             })}
@@ -230,7 +236,7 @@ export function TidesPage({ lat, lon, locationName }: Props) {
             {fillPath && <path d={fillPath} fill="url(#tideFill)" />}
 
             {/* Tide curve */}
-            {path && <path d={path} fill="none" stroke="var(--ds-accent)" strokeWidth="2" />}
+            {path && <path d={path} fill="none" stroke="var(--accent)" strokeWidth="2" />}
 
             {/* Now marker */}
             {nowX !== null && (
@@ -240,14 +246,14 @@ export function TidesPage({ lat, lon, locationName }: Props) {
             {/* High/low markers */}
             {eventPositions.map((ev, i) => (
               <g key={i}>
-                <circle cx={ev.x} cy={ev.y} r="4" fill={ev.type === 'high' ? 'var(--ds-accent)' : 'var(--ds-warn)'} />
+                <circle cx={ev.x} cy={ev.y} r="4" fill={ev.type === 'high' ? 'var(--accent)' : 'var(--warn)'} />
                 <text
                   x={ev.x}
                   y={ev.type === 'high' ? ev.y - 10 : ev.y + 16}
                   textAnchor="middle"
                   fill="var(--text-bright)"
                   fontSize="9"
-                  fontFamily="var(--ds-font-sans)"
+                  fontFamily="var(--font-mono)"
                 >
                   {ev.height != null ? `${ev.height.toFixed(1)}m` : ''}
                 </text>
@@ -256,7 +262,7 @@ export function TidesPage({ lat, lon, locationName }: Props) {
 
             {/* X-axis time labels */}
             {timeLabels.map((t, i) => (
-              <text key={i} x={t.x} y="195" textAnchor="middle" fill="rgba(139,184,204,0.4)" fontSize="9" fontFamily="var(--ds-font-sans)">
+              <text key={i} x={t.x} y="195" textAnchor="middle" fill="rgba(139,184,204,0.4)" fontSize="9" fontFamily="var(--font-mono)">
                 {t.label}
               </text>
             ))}
@@ -270,7 +276,7 @@ export function TidesPage({ lat, lon, locationName }: Props) {
         <div className={styles.eventsGrid}>
           {tides.events.map((ev, i) => (
             <div key={i} className={styles.eventCard}>
-              <div className={styles.eventType} style={{ color: ev.type === 'high' ? 'var(--ds-accent)' : 'var(--ds-warn)' }}>
+              <div className={styles.eventType} style={{ color: ev.type === 'high' ? 'var(--accent)' : 'var(--warn)' }}>
                 {ev.type === 'high' ? 'HIGH' : 'LOW'}
               </div>
               <div className={styles.eventHeight}>{ev.height != null ? `${ev.height.toFixed(2)}m` : 'N/A'}</div>

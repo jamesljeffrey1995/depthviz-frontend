@@ -1,6 +1,6 @@
 .card {
   background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(0, 201, 255, 0.1);
+  border: 1px solid rgba(14, 124, 134, 0.1);
   padding: 24px;
   margin-bottom: 12px;
   position: relative;
@@ -12,7 +12,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, var(--ds-accent), transparent);
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
   opacity: 0.3;
 }
 
@@ -45,7 +45,7 @@
 }
 
 .currentBadge {
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-display);
   font-size: 28px;
   letter-spacing: 0.1em;
   line-height: 1;
@@ -70,9 +70,9 @@
 
 .dateBtn {
   background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(0, 201, 255, 0.15);
-  color: var(--ds-accent);
-  font-family: var(--ds-font-sans);
+  border: 1px solid rgba(14, 124, 134, 0.15);
+  color: var(--accent);
+  font-family: var(--font-mono);
   font-size: 14px;
   padding: 6px 12px;
   cursor: pointer;
@@ -80,8 +80,8 @@
 }
 
 .dateBtn:hover {
-  border-color: rgba(0, 201, 255, 0.4);
-  background: rgba(0, 201, 255, 0.1);
+  border-color: rgba(14, 124, 134, 0.4);
+  background: rgba(14, 124, 134, 0.1);
 }
 
 .dateLabel {
@@ -122,7 +122,7 @@
 
 .eventCard {
   background: rgba(2, 13, 20, 0.5);
-  border: 1px solid rgba(0, 201, 255, 0.07);
+  border: 1px solid rgba(14, 124, 134, 0.07);
   padding: 14px;
   text-align: center;
 }
@@ -136,7 +136,7 @@
 }
 
 .eventHeight {
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-display);
   font-size: 28px;
   color: var(--text-bright);
   line-height: 1;
@@ -160,7 +160,7 @@
 .rangeInfo {}
 
 .rangeValue {
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-display);
   font-size: 36px;
   color: var(--text-bright);
   line-height: 1;
@@ -204,7 +204,7 @@
 .loadingPulse {
   width: 40px;
   height: 40px;
-  border: 1px solid rgba(0, 201, 255, 0.3);
+  border: 1px solid rgba(14, 124, 134, 0.3);
   border-radius: 50%;
   margin: 0 auto 16px;
   animation: tidePulse 1.5s ease-out infinite;
@@ -232,6 +232,6 @@
   text-align: center;
   padding: 32px;
   font-size: var(--ds-text-label);
-  color: var(--ds-danger);
+  color: var(--danger);
   letter-spacing: 0.1em;
 }

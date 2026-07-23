@@ -19,9 +19,9 @@
 
 .scopeBtn {
   background: rgba(4, 30, 46, 0.5);
-  border: 1px solid rgba(0, 201, 255, 0.15);
+  border: 1px solid rgba(14, 124, 134, 0.15);
   color: var(--text);
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-mono);
   font-size: 12px;
   letter-spacing: 0.08em;
   padding: 8px 16px;
@@ -44,9 +44,9 @@
 }
 
 .scopeActive {
-  background: rgba(0, 201, 255, 0.15);
-  color: var(--ds-accent);
-  border-color: var(--ds-accent);
+  background: rgba(14, 124, 134, 0.15);
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 .scopeActive + .scopeBtn {
@@ -61,9 +61,9 @@
 
 .filterChip {
   background: transparent;
-  border: 1px solid rgba(0, 201, 255, 0.12);
+  border: 1px solid rgba(14, 124, 134, 0.12);
   color: var(--text);
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-mono);
   font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -74,13 +74,13 @@
 }
 
 .filterChip:hover {
-  border-color: rgba(0, 201, 255, 0.3);
+  border-color: rgba(14, 124, 134, 0.3);
 }
 
 .filterActive {
-  background: rgba(0, 201, 255, 0.12);
-  border-color: var(--ds-accent);
-  color: var(--ds-accent);
+  background: rgba(14, 124, 134, 0.12);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .feedList {
@@ -91,14 +91,14 @@
 
 .feedCard {
   background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(0, 201, 255, 0.08);
+  border: 1px solid rgba(14, 124, 134, 0.08);
   padding: 20px 24px;
   border-radius: 2px;
   transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .feedCard:hover {
-  border-color: rgba(0, 201, 255, 0.2);
+  border-color: rgba(14, 124, 134, 0.2);
   background: rgba(4, 30, 46, 0.75);
 }
 
@@ -110,15 +110,15 @@
 }
 
 .userName {
-  color: var(--ds-accent);
-  font-family: var(--ds-font-sans);
+  color: var(--accent);
+  font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.04em;
 }
 
 .timeAgo {
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-mono);
   font-size: var(--ds-text-label);
   color: var(--text);
   opacity: 0.45;
@@ -150,8 +150,8 @@
 .visBadge {
   display: inline-block;
   background: rgba(15, 179, 122, 0.15);
-  color: var(--ds-q-excellent);
-  font-family: var(--ds-font-sans);
+  color: var(--excellent);
+  font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 700;
   padding: 3px 10px;
@@ -161,9 +161,9 @@
 
 .visBadgePredicted {
   display: inline-block;
-  background: rgba(0, 201, 255, 0.1);
-  color: var(--ds-accent);
-  font-family: var(--ds-font-sans);
+  background: rgba(14, 124, 134, 0.1);
+  color: var(--accent);
+  font-family: var(--font-mono);
   font-size: 12px;
   padding: 3px 10px;
   border-radius: 3px;
@@ -173,8 +173,8 @@
 .videoBadge {
   display: inline-block;
   background: rgba(192, 57, 43, 0.2);
-  color: var(--ds-danger);
-  font-family: var(--ds-font-sans);
+  color: var(--danger);
+  font-family: var(--font-mono);
   font-size: var(--ds-text-label);
   font-weight: 700;
   letter-spacing: 0.15em;
@@ -196,13 +196,13 @@
 }
 
 .catchDetail {
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-mono);
   font-size: 12px;
   color: var(--text);
   background: rgba(7, 40, 64, 0.6);
   padding: 3px 10px;
   border-radius: 3px;
-  border: 1px solid rgba(0, 201, 255, 0.08);
+  border: 1px solid rgba(14, 124, 134, 0.08);
 }
 
 .notes {
@@ -219,10 +219,10 @@
   width: 100%;
   margin-top: 20px;
   padding: 12px;
-  background: rgba(0, 201, 255, 0.08);
-  border: 1px solid rgba(0, 201, 255, 0.2);
-  color: var(--ds-accent);
-  font-family: var(--ds-font-sans);
+  background: rgba(14, 124, 134, 0.08);
+  border: 1px solid rgba(14, 124, 134, 0.2);
+  color: var(--accent);
+  font-family: var(--font-mono);
   font-size: 12px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -232,7 +232,7 @@
 }
 
 .loadMore:hover:not(:disabled) {
-  background: rgba(0, 201, 255, 0.15);
+  background: rgba(14, 124, 134, 0.15);
 }
 
 .loadMore:disabled {
@@ -245,7 +245,7 @@
   padding: 48px 24px;
   color: var(--text);
   opacity: 0.5;
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-mono);
   font-size: 13px;
   line-height: 1.8;
 }
@@ -253,8 +253,8 @@
 .error {
   background: rgba(192, 57, 43, 0.12);
   border: 1px solid rgba(192, 57, 43, 0.3);
-  color: var(--ds-danger);
-  font-family: var(--ds-font-sans);
+  color: var(--danger);
+  font-family: var(--font-mono);
   font-size: 12px;
   padding: 10px 16px;
   margin-bottom: 16px;
@@ -265,7 +265,7 @@
   text-align: center;
   color: var(--text);
   opacity: 0.5;
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-mono);
   font-size: 13px;
   padding: 32px 0;
 }

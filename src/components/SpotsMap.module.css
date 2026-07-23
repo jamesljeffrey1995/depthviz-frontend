@@ -12,7 +12,7 @@
 
 .mapContainer {
   background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(0, 201, 255, 0.1);
+  border: 1px solid rgba(14, 124, 134, 0.1);
   overflow: hidden;
   position: relative;
   isolation: isolate;
@@ -53,7 +53,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, var(--ds-accent), transparent);
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
   opacity: 0.3;
   z-index: 1000;
   pointer-events: none;
@@ -71,39 +71,13 @@
   }
 }
 
-/* Marker-colour key under the map */
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px 16px;
-  margin-top: 10px;
-}
-
-.legendItem {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--ds-text-label);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text);
-}
-
-.legendDot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
 .hint {
   font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  opacity: 0.45;
+  opacity: 0.35;
   text-align: center;
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
 /* Add Spot row */
@@ -115,10 +89,10 @@
 }
 
 .addSpotBtn {
-  background: rgba(0, 201, 255, 0.08);
-  border: 1px solid rgba(0, 201, 255, 0.25);
-  color: var(--ds-accent);
-  font-family: var(--ds-font-sans);
+  background: rgba(14, 124, 134, 0.08);
+  border: 1px solid rgba(14, 124, 134, 0.25);
+  color: var(--accent);
+  font-family: var(--font-mono);
   font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -128,8 +102,8 @@
 }
 
 .addSpotBtn:hover {
-  background: rgba(0, 201, 255, 0.15);
-  border-color: rgba(0, 201, 255, 0.5);
+  background: rgba(14, 124, 134, 0.15);
+  border-color: rgba(14, 124, 134, 0.5);
 }
 
 .userSpotsCount {
@@ -144,15 +118,15 @@
 .addForm {
   margin-top: 12px;
   background: rgba(4, 30, 46, 0.7);
-  border: 1px solid rgba(0, 201, 255, 0.15);
+  border: 1px solid rgba(14, 124, 134, 0.15);
   padding: 16px;
 }
 
 .addFormTitle {
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-display);
   font-size: 18px;
   letter-spacing: 0.1em;
-  color: var(--ds-accent);
+  color: var(--accent);
   margin-bottom: 4px;
 }
 
@@ -188,9 +162,9 @@
 .addFormInput {
   width: 100%;
   background: rgba(10, 61, 92, 0.3);
-  border: 1px solid rgba(0, 201, 255, 0.2);
+  border: 1px solid rgba(14, 124, 134, 0.2);
   color: var(--text-bright);
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-mono);
   font-size: 13px;
   padding: 10px 14px;
   outline: none;
@@ -198,7 +172,7 @@
 }
 
 .addFormInput:focus {
-  border-color: rgba(0, 201, 255, 0.5);
+  border-color: rgba(14, 124, 134, 0.5);
 }
 
 .addFormActions {
@@ -209,10 +183,10 @@
 
 .addFormSaveBtn {
   flex: 1;
-  background: rgba(0, 201, 255, 0.12);
-  border: 1px solid rgba(0, 201, 255, 0.4);
-  color: var(--ds-accent);
-  font-family: var(--ds-font-sans);
+  background: rgba(14, 124, 134, 0.12);
+  border: 1px solid rgba(14, 124, 134, 0.4);
+  color: var(--accent);
+  font-family: var(--font-mono);
   font-size: var(--ds-text-label);
   font-weight: 700;
   letter-spacing: 0.2em;
@@ -223,7 +197,7 @@
 }
 
 .addFormSaveBtn:hover:not(:disabled) {
-  background: rgba(0, 201, 255, 0.22);
+  background: rgba(14, 124, 134, 0.22);
 }
 
 .addFormSaveBtn:disabled {
@@ -235,7 +209,7 @@
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: var(--text);
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-mono);
   font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -250,7 +224,7 @@
 
 /* Popup styling */
 .popup {
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-mono);
   min-width: 180px;
 }
 
@@ -266,7 +240,7 @@
 }
 
 .popupName {
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-display);
   font-size: 20px;
   letter-spacing: 0.08em;
   color: var(--ocean-deep);
@@ -292,9 +266,9 @@
   display: block;
   width: 100%;
   background: var(--ocean-mid);
-  border: 1px solid rgba(0, 201, 255, 0.3);
-  color: var(--ds-accent);
-  font-family: var(--ds-font-sans);
+  border: 1px solid rgba(14, 124, 134, 0.3);
+  color: var(--accent);
+  font-family: var(--font-mono);
   font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -306,8 +280,8 @@
 }
 
 .popupBtn:hover {
-  background: rgba(0, 201, 255, 0.15);
-  border-color: rgba(0, 201, 255, 0.5);
+  background: rgba(14, 124, 134, 0.15);
+  border-color: rgba(14, 124, 134, 0.5);
 }
 
 .popupRemoveBtn {
@@ -316,7 +290,7 @@
   background: transparent;
   border: 1px solid rgba(255, 80, 80, 0.3);
   color: #ff5050;
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-mono);
   font-size: var(--ds-text-label);
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -368,12 +342,12 @@
 }
 
 .voteBtnActive {
-  background: rgba(0, 201, 255, 0.15);
-  border-color: #00c9ff;
+  background: rgba(14, 124, 134, 0.15);
+  border-color: #0e7c86;
 }
 
 .voteCount {
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 700;
   color: #333;
@@ -393,7 +367,7 @@
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: var(--text);
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-mono);
   font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   padding: 8px 10px;

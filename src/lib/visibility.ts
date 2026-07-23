@@ -7,7 +7,6 @@ import type {
   VerdictLabel,
   ImpactLevel,
 } from '../types'
-import { SEVERITY_TOKEN } from './severity'
 
 // ── Decay weights by days ago (index 0 = today) ──
 const SWELL_DECAY = [1.0, 0.7, 0.5, 0.35, 0.2, 0.1, 0.05]
@@ -17,7 +16,8 @@ const WIND_DECAY  = [1.0, 0.5, 0.25, 0.1, 0.05, 0.02, 0.01]
 function getDailyMaxes(timestamps: string[], values: number[]): number[] {
   const byDay: Record<string, number> = {}
   timestamps.forEach((ts, i) => {
-    const day = ts.split('T')[0] ?? ts
+    const day = ts.split('T')[0]
+    if (!day) return
     byDay[day] = Math.max(byDay[day] ?? 0, values[i] ?? 0)
   })
   return Object.keys(byDay)
@@ -40,19 +40,19 @@ function decayScore(dailyMaxes: number[], weights: number[]): number {
 
 export function degToCompass(deg: number): string {
   const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW']
-  // ((x % 16) + 16) % 16 keeps the index in [0,15] for negative degrees too —
-  // JS `%` preserves sign, so a bare `% 16` would index negatively and fall
-  // back to 'N' instead of wrapping around the compass.
-  return dirs[(((Math.round(deg / 22.5) % 16) + 16) % 16)] ?? 'N'
+  // ((x % 16) + 16) % 16 keeps the index in 0..15 for negative degrees —
+  // a bare `% 16` yields a negative index in JS and would return undefined.
+  const idx = ((Math.round(deg / 22.5) % 16) + 16) % 16
+  return dirs[idx] ?? 'N'
 }
 
 export function getImpact(penalty: number, maxPenalty: number): { label: ImpactLevel; color: string } {
-  if (maxPenalty === 0 || penalty === 0) return { label: 'NO IMPACT', color: SEVERITY_TOKEN.safe }
+  if (maxPenalty === 0 || penalty === 0) return { label: 'NO IMPACT', color: '#237744' }
   const ratio = Math.abs(penalty) / maxPenalty
-  if (ratio < 0.3)   return { label: 'LOW IMPACT',  color: SEVERITY_TOKEN.low }
-  if (ratio < 0.6)   return { label: 'MODERATE',    color: SEVERITY_TOKEN.moderate }
-  if (ratio < 0.85)  return { label: 'HIGH IMPACT', color: SEVERITY_TOKEN.high }
-  return               { label: 'SEVERE',            color: SEVERITY_TOKEN.high }
+  if (ratio < 0.3)   return { label: 'LOW IMPACT',  color: '#985c16' }
+  if (ratio < 0.6)   return { label: 'MODERATE',    color: '#a2571b' }
+  if (ratio < 0.85)  return { label: 'HIGH IMPACT', color: '#bd3a3a' }
+  return               { label: 'SEVERE',            color: '#bd3a3a' }
 }
 
 export function getVerdict(vis: number): Verdict {

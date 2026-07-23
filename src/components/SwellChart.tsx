@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import type { DayForecast } from '../types'
 import { weekdayShort, weekdayLong } from '../lib/visTrend'
-import { SEVERITY_TOKEN } from '../lib/severity'
 import styles from './SwellChart.module.css'
 
 interface Props {
@@ -16,12 +15,11 @@ const H = 100
 const PAD = { top: 16, right: 30, bottom: 24, left: 14 }
 const FT_PER_M = 3.28084
 
-// Sea-state severity rides the shared status ramp (calm → rough).
 const COLORS = {
-  calm:     SEVERITY_TOKEN.safe,
-  light:    SEVERITY_TOKEN.low,
-  moderate: SEVERITY_TOKEN.moderate,
-  rough:    SEVERITY_TOKEN.high,
+  calm:     '#237744',
+  light:    '#985c16',
+  moderate: '#a2571b',
+  rough:    '#bd3a3a',
 }
 
 function maxScale(units: 'ft' | 'm') {
@@ -117,7 +115,7 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
 
       {selSwell !== null && selWave !== null && (
         <div className={styles.annotPanel}>
-          <span className={styles.annotDay}>{weekdayShort(selDay?.date ?? '')}</span>
+          <span className={styles.annotDay}>{selDay ? weekdayShort(selDay.date) : ''}</span>
           <span className={styles.annotSep} />
           <span className={styles.annotItem}>
             <span className={styles.annotKey}>S</span>
@@ -145,11 +143,11 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
       >
         <line
           x1={PAD.left} x2={W - PAD.right} y1={y15} y2={y15}
-          stroke="rgba(192,57,43,0.45)" strokeWidth={1} strokeDasharray="3 3"
+          stroke="rgba(164,50,31,0.45)" strokeWidth={1} strokeDasharray="3 3"
         />
         <line
           x1={PAD.left} x2={W - PAD.right} y1={y1} y2={y1}
-          stroke="rgba(212,133,10,0.45)" strokeWidth={1} strokeDasharray="3 3"
+          stroke="rgba(143,95,8,0.45)" strokeWidth={1} strokeDasharray="3 3"
         />
         <text x={W - PAD.right + 3} y={y15 + 3.5} className={styles.refLabel}>{ref15Label}</text>
         <text x={W - PAD.right + 3} y={y1  + 3.5} className={styles.refLabel}>{ref1Label}</text>
@@ -172,13 +170,13 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
               <rect
                 x={bx - barW / 2 - 2} y={waveTop}
                 width={barW + 4} height={waveH}
-                fill={color} fillOpacity={0.16} rx={2}
+                fill={`${color}28`} rx={2}
               />
               <rect
                 x={bx - barW / 2} y={swellTop}
                 width={barW} height={swellH}
                 fill={color} opacity={sel ? 1 : 0.78} rx={2}
-                stroke={sel ? 'rgba(255,255,255,0.55)' : 'transparent'}
+                stroke={sel ? 'rgba(42,37,30,0.6)' : 'transparent'}
                 strokeWidth={sel ? 1 : 0}
               />
               {showLabel && (

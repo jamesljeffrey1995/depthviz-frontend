@@ -4,16 +4,18 @@ import { useAuth } from './hooks/useAuth'
 import { useConditions } from './hooks/useConditions'
 import { useGeolocation } from './hooks/useGeolocation'
 import { useServiceStatus } from './hooks/useServiceStatus'
-import { useMediaQuery } from './hooks/useMediaQuery'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { SearchBar } from './components/SearchBar'
 import { ForecastStrip } from './components/ForecastStrip'
 import { DayDetail } from './components/DayDetail'
-import { CommunityReportsPanel } from './components/CommunityReportsPanel'
 import { SeabedEditor } from './components/SeabedEditor'
 import { CookieBanner } from './components/CookieBanner'
 import { TopNav } from './components/TopNav'
 import PwaStatus from './components/PwaStatus'
+import {
+  IconHome, IconCompass, IconActivity, IconFish, IconTimer, IconScale, IconUser,
+  IconLock, IconGauge, IconCheck, IconPlus,
+} from './components/icons'
 import { getLocations, createLocation, getMyProfile } from './lib/api'
 import { encryptCoords } from './lib/spotCrypto'
 import { formatLocationName } from './types'
@@ -51,22 +53,18 @@ const NewsPage = lazy(() => import('./components/NewsPage').then(m => ({ default
 const ForumIndex = lazy(() => import('./components/ForumPage').then(m => ({ default: m.ForumIndex })))
 const ForumCategoryPage = lazy(() => import('./components/ForumPage').then(m => ({ default: m.ForumCategoryPage })))
 const ForumThreadPage = lazy(() => import('./components/ForumPage').then(m => ({ default: m.ForumThreadPage })))
-const ChangelogPage = lazy(() => import('./components/ChangelogPage').then(m => ({ default: m.ChangelogPage })))
-const CompetitionAdmin = lazy(() => import('./components/CompetitionAdmin').then(m => ({ default: m.CompetitionAdmin })))
-const CompetitionRegister = lazy(() => import('./components/CompetitionRegister').then(m => ({ default: m.CompetitionRegister })))
-const DesignSystemPage = lazy(() => import('./components/DesignSystemPage').then(m => ({ default: m.DesignSystemPage })))
 
 /** Routes that depend on a loaded location's conditions context (the forecast
  *  itself plus its forecast-adjacent pages — tides, report, history, dispute).
  *  On startup we restore the last location's stale forecast and revalidate it
  *  for these routes. The home page ("/") shows only the map and has no such
  *  dependency, so it must not trigger a conditions fetch on load. */
-const FORECAST_ROUTES = ['/forecast', '/tides', '/report', '/history', '/dispute', '/reports']
+const FORECAST_ROUTES = ['/forecast', '/tides', '/report', '/history', '/dispute']
 
 /** Routes the bottom-nav "Map" tab represents — the map plus the forecast-area
  *  pages the website-style top nav groups under "Forecast". Keeps the bottom
  *  tab highlighted while a user is anywhere in that area. */
-const MAP_GROUP_ROUTES = ['/map', '/forecast', '/tides', '/best', '/reports']
+const MAP_GROUP_ROUTES = ['/map', '/forecast', '/tides', '/best']
 
 /** Footer labels for each legal page, in display order. */
 const LEGAL_LABELS: Record<LegalPageType, string> = {
@@ -93,7 +91,7 @@ function LegalRouteWrapper({ onBack }: { onBack: () => void }) {
 
 export default function App() {
   const { user, loading: authLoading } = useAuth()
-  const { status, forecast, forecastUnits, error, isRevalidating, searchByCoords, init } = useConditions()
+  const { status, forecast, error, isRevalidating, searchByCoords, init } = useConditions()
   const serviceStatus = useServiceStatus()
   const downServices = ([
     ['open_meteo', 'Open-Meteo'],
@@ -114,14 +112,6 @@ export default function App() {
       return v === 'ft' || v === 'm' ? v : 'ft'
     } catch { return 'ft' }
   })
-  // Label heights from the unit the displayed forecast was actually computed in,
-  // not the live toggle. While a units change is refetching (stale-while-
-  // revalidate) the old forecast is still on screen, so pairing its numbers with
-  // the new toggle value would show e.g. metres labelled "ft". `forecastUnits`
-  // is tracked in the hook alongside the forecast, so it stays correct even for
-  // responses the API didn't stamp with `units` (older caches / pre-deploy).
-  // `units` still drives the toggle UI and the refetch; only display uses this.
-  const dataUnits: 'ft' | 'm' = forecastUnits ?? forecast?.units ?? units
   const [weekView, setWeekView] = useState(false)
   const [diveDepth, setDiveDepth] = useState<number>(() => {
     const VALID_DEPTHS = [5, 10, 15, 20, 30]
@@ -139,30 +129,16 @@ export default function App() {
   const currentPath = location.pathname
   const autoLoadedRef = useRef(false)
 
-  // Expanded window class (tablet landscape / desktop). At this width the map
-  // route group becomes a list-detail layout: the map stays visible in a left
-  // pane while the forecast/tides/best detail fills the right. Driven by width
-  // (not orientation) so high zoom and split-screen collapse back to a single
-  // column — keeping WCAG Reflow and Orientation satisfied.
-  const isExpanded = useMediaQuery('(min-width: 900px)')
-  const splitView = isExpanded && MAP_GROUP_ROUTES.includes(currentPath)
-  const detailPaneRef = useRef<HTMLDivElement>(null)
-
   // Admin status is decided by the server (via /profile/me's is_admin), never
   // by a client flag or a value baked into the bundle. The backend also
   // re-checks admin identity on every /admin/* route, so this only gates UI.
   const [isAdmin, setIsAdmin] = useState(false)
-  // Tracks whether the server admin check has completed, so admin-only routes
-  // can show "checking" instead of flashing "not authorised" for a real admin.
-  const [adminChecked, setAdminChecked] = useState(false)
   useEffect(() => {
-    if (!user) { setIsAdmin(false); setAdminChecked(true); return }
+    if (!user) { setIsAdmin(false); return }
     let cancelled = false
-    setAdminChecked(false)
     getMyProfile()
       .then(p => { if (!cancelled) setIsAdmin(!!p.is_admin) })
       .catch(() => { if (!cancelled) setIsAdmin(false) })
-      .finally(() => { if (!cancelled) setAdminChecked(true) })
     return () => { cancelled = true }
   }, [user])
 
@@ -177,7 +153,7 @@ export default function App() {
 
   useEffect(() => {
     if (forecast) {
-      const today = new Date().toISOString().slice(0, 10)
+      const today = new Date().toISOString().split('T')[0]
       const todayIdx = forecast.days.findIndex(d => d.date === today)
       setSelectedDay(todayIdx >= 0 ? todayIdx : Math.max(0, forecast.days.length - 1))
     }
@@ -188,10 +164,6 @@ export default function App() {
     if (currentPath !== '/forecast') setWeekView(false)
   }, [currentPath])
 
-  // Always-current units, so the boot restore effect (which fires later, on
-  // authLoading) doesn't act on a stale captured value.
-  const unitsRef = useRef<'ft' | 'm'>(units)
-  unitsRef.current = units
   const prevUnitsRef = useRef<'ft' | 'm'>(units)
   useEffect(() => {
     if (prevUnitsRef.current === units) return
@@ -241,22 +213,16 @@ export default function App() {
       setSelectedLocationId(typeof loc.locationId === 'number' ? loc.locationId : null)
       // Home page has no forecast — don't restore a snapshot or fetch conditions.
       if (!FORECAST_ROUTES.includes(currentPath)) return
-      // Read units from a ref rather than the value captured when this effect
-      // was created: the effect fires when authLoading flips (async), by which
-      // point a boot-time units toggle could have changed the preference. Using
-      // the stale capture would restore/refetch in the wrong unit.
-      const currentUnits = unitsRef.current
       const forecastRaw = localStorage.getItem('dv_last_forecast')
       if (forecastRaw) {
         const stored = JSON.parse(forecastRaw) as { units?: string; forecast?: ForecastResponse }
-        if (stored?.units === currentUnits && stored.forecast) {
-          init(stored.forecast, currentUnits)
+        if (stored?.units === units && stored.forecast) {
+          init(stored.forecast, units)
         }
       }
-      searchByCoords(loc.lat, loc.lon, loc.name, loc.locationId ?? undefined, currentUnits)
+      searchByCoords(loc.lat, loc.lon, loc.name, loc.locationId ?? undefined, units)
     } catch {}
-    // init and searchByCoords are stable (useCallback []); units is read via
-    // unitsRef and currentPath is captured once on mount.
+    // init and searchByCoords are stable (useCallback []); units & currentPath captured once on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading])
 
@@ -273,34 +239,34 @@ export default function App() {
     return results.slice(0, 8)
   }
 
-  // Errors propagate to the SearchBar, which shows a friendly inline message
-  // (geolocation denied/unavailable) instead of a silently dead button.
   const handleLocate = async () => {
-    const coords = await getLocation()
-    setCurrentLat(coords.latitude)
-    setCurrentLon(coords.longitude)
-    const name = `${coords.latitude.toFixed(2)}N, ${Math.abs(coords.longitude).toFixed(2)}${coords.longitude >= 0 ? 'E' : 'W'}`
-    setCurrentName(name)
-    const matched = findLocationByCoords(coords.latitude, coords.longitude, locations)
-    setSelectedLocationId(matched?.id ?? null)
-    navigate('/forecast')
-    searchByCoords(coords.latitude, coords.longitude, name, matched?.id, units)
+    try {
+      const coords = await getLocation()
+      setCurrentLat(coords.latitude)
+      setCurrentLon(coords.longitude)
+      const name = `${coords.latitude.toFixed(2)}N, ${Math.abs(coords.longitude).toFixed(2)}${coords.longitude >= 0 ? 'E' : 'W'}`
+      setCurrentName(name)
+      const matched = findLocationByCoords(coords.latitude, coords.longitude, locations)
+      setSelectedLocationId(matched?.id ?? null)
+      await searchByCoords(coords.latitude, coords.longitude, name, matched?.id, units)
+      navigate('/forecast')
+    } catch (e) { console.error(e) }
   }
 
-  /** Returns false when nothing matched, so the SearchBar can say so inline. */
-  const handleSearch = (query: string): boolean => {
+  const handleSearch = async (query: string) => {
     const results = getLocalSuggestions(query)
-    const loc = results[0]
-    if (!loc) return false
-    setCurrentLat(loc.latitude)
-    setCurrentLon(loc.longitude)
-    const name = formatLocationName(loc)
-    setCurrentName(name)
-    const matched = findLocationByCoords(loc.latitude, loc.longitude, locations)
-    setSelectedLocationId(matched?.id ?? null)
-    navigate('/forecast')
-    searchByCoords(loc.latitude, loc.longitude, name, matched?.id, units)
-    return true
+    if (results.length) {
+      const loc = results[0]
+      if (!loc) return
+      setCurrentLat(loc.latitude)
+      setCurrentLon(loc.longitude)
+      const name = formatLocationName(loc)
+      setCurrentName(name)
+      const matched = findLocationByCoords(loc.latitude, loc.longitude, locations)
+      setSelectedLocationId(matched?.id ?? null)
+      await searchByCoords(loc.latitude, loc.longitude, name, matched?.id, units)
+      navigate('/forecast')
+    }
   }
 
   const handleSaveLocation = async (isPrivate = false) => {
@@ -323,58 +289,27 @@ export default function App() {
     navigate('/report')
   }
 
-  const handleSpotSelect = (lat: number, lon: number, name: string, locationId?: number) => {
+  const handleSpotSelect = async (lat: number, lon: number, name: string, locationId?: number) => {
     setCurrentLat(lat)
     setCurrentLon(lon)
     setCurrentName(name)
     const resolvedId = locationId ?? findLocationByCoords(lat, lon, locations)?.id ?? null
     setSelectedLocationId(resolvedId)
+    await searchByCoords(lat, lon, name, resolvedId ?? undefined, units)
     navigate('/forecast')
-    searchByCoords(lat, lon, name, resolvedId ?? undefined, units)
-    // In the split layout the map stays put and only the detail pane changes,
-    // so move focus there to announce the update for keyboard / screen-reader
-    // users (list-detail focus handling).
-    if (isExpanded) {
-      requestAnimationFrame(() => detailPaneRef.current?.focus())
-    }
   }
 
-  // The map + saved-places dashboard. Rendered as the `/map` route on its own
-  // in compact/medium layouts, and reused in the persistent left pane of the
-  // expanded split layout (defined once so there is never a second map mounted).
-  const mapView = (
-    <>
-      {(status === 'loading' || isRevalidating) && (
-        <div className={styles.loadingBar} role="status" aria-live="polite">{isRevalidating ? 'Fetching conditions...' : 'Reading conditions...'}</div>
-      )}
-      {/* Logged-in users see their saved places dashboard; the map is below */}
-      {user && status === 'idle' && locations.filter(l => !l.is_predefined).length > 0 && (
-        <Suspense fallback={null}>
-          <PlacesDashboard
-            locations={locations.filter(l => !l.is_predefined).slice(0, 8)}
-            userUid={user.id}
-            units={units}
-            onSelectLocation={handleSpotSelect}
-          />
-        </Suspense>
-      )}
-      <Suspense fallback={null}>
-        <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} locations={locations} />
-      </Suspense>
-    </>
-  )
-
-  const todayIndex = forecast?.days.findIndex(d => d.date === new Date().toISOString().slice(0, 10)) ?? -1
+  const todayIndex = forecast?.days.findIndex(d => d.date === new Date().toISOString().split('T')[0]) ?? -1
 
   if (authLoading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-      <div style={{ color: 'var(--ds-accent)', fontFamily: 'var(--ds-font-sans)', fontSize: '36px', letterSpacing: '0.2em' }}>DEPTHVIZ</div>
+    <div className={styles.bootScreen}>
+      <IconGauge className={styles.bootMark} aria-hidden="true" />
     </div>
   )
 
   return (
     <ErrorBoundary>
-    <div className={`${styles.container}${splitView ? ` ${styles.containerWide}` : ''}`}>
+    <div className={styles.container}>
 
       {/* Skip to main content — keyboard navigation */}
       <a href="#main-content" className="skip-link">Skip to content</a>
@@ -383,34 +318,27 @@ export default function App() {
         {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       </Suspense>
 
-      {/* Admin screens use a compact header so more of the vertical space is
-          available for the operational UI (water board, weigh-in, results). */}
-      <header className={`${styles.header} ${currentPath.startsWith('/admin') ? styles.headerCompact : ''}`}>
-        <div
-          className={styles.logo}
-          aria-label="DepthViz — go to home"
-          role="button"
-          tabIndex={0}
-          style={{ cursor: 'pointer' }}
-          onClick={() => navigate('/')}
-          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') navigate('/') }}
-        >DEPTH<span>VIZ</span></div>
-        {!currentPath.startsWith('/admin') && (
-          <>
-            <div className={styles.tagline}>Underwater visibility forecast</div>
-            <p className={styles.valueProp}>
-              AI-calibrated 7-day forecasts · swell, current &amp; ocean data · community-verified
-            </p>
-          </>
-        )}
-        <button
-          type="button"
-          className={user ? styles.authBtnAvatar : styles.authBtn}
-          onClick={() => { if (user) navigate('/profile'); else setShowAuth(true) }}
-          aria-label={user ? `View profile for ${user.email?.split('@')[0] ?? 'user'}` : 'Sign in to your account'}
-        >
-          {user ? (user.email ?? 'U').charAt(0).toUpperCase() : 'Sign in'}
-        </button>
+      <header className={styles.header}>
+        <div className={styles.headerRow}>
+          <button
+            type="button"
+            className={styles.logo}
+            aria-label="DepthViz — go to home"
+            onClick={() => navigate('/')}
+          >
+            <IconGauge className={styles.logoMark} aria-hidden="true" />
+            DEPTH<span>VIZ</span>
+          </button>
+          <button
+            type="button"
+            className={user ? styles.authBtnAvatar : styles.authBtn}
+            onClick={() => { if (user) navigate('/profile'); else setShowAuth(true) }}
+            aria-label={user ? `View profile for ${user.email?.split('@')[0] ?? 'user'}` : 'Sign in to your account'}
+          >
+            {user ? (user.email?.[0] ?? 'U').toUpperCase() : (<><IconUser aria-hidden="true" /><span>Sign in</span></>)}
+          </button>
+        </div>
+        <div className={styles.tagline}>Underwater visibility forecast for spearfishers &amp; freedivers</div>
       </header>
 
       <TopNav />
@@ -423,145 +351,97 @@ export default function App() {
         </div>
       )}
 
-      {/* The spot search is the forecast entry point, so it lives on the home
-          page and the forecast/map route group. Content pages (news, forum,
-          weight, training…) skip it — repeating the form on every page made
-          the chrome feel heavier than the content. */}
-      {(currentPath === '/' || MAP_GROUP_ROUTES.includes(currentPath) || FORECAST_ROUTES.includes(currentPath)) && (
-        <div className={styles.searchWrap}>
-        <SearchBar
-          onSearch={handleSearch}
-          onLocate={handleLocate}
-          getSuggestions={async (q) => getLocalSuggestions(q)}
-          onSelectSuggestion={(r) => {
-            const name = formatLocationName(r)
-            setCurrentLat(r.latitude)
-            setCurrentLon(r.longitude)
-            setCurrentName(name)
-            const matched = findLocationByCoords(r.latitude, r.longitude, locations)
-            setSelectedLocationId(matched?.id ?? null)
-            navigate('/forecast')
-            searchByCoords(r.latitude, r.longitude, name, matched?.id, units)
-          }}
-        />
-        </div>
-      )}
+      <SearchBar
+        onSearch={handleSearch}
+        onLocate={handleLocate}
+        getSuggestions={async (q) => getLocalSuggestions(q)}
+        onSelectSuggestion={async (r) => {
+          const name = formatLocationName(r)
+          setCurrentLat(r.latitude)
+          setCurrentLon(r.longitude)
+          setCurrentName(name)
+          const matched = findLocationByCoords(r.latitude, r.longitude, locations)
+          setSelectedLocationId(matched?.id ?? null)
+          await searchByCoords(r.latitude, r.longitude, name, matched?.id, units)
+          navigate('/forecast')
+        }}
+      />
 
       {error && <div className={styles.error} role="alert">{error}</div>}
 
       {status === 'success' && forecast && FORECAST_ROUTES.includes(currentPath) && (
-        <>
-          <div className={styles.nav} role="navigation" aria-label="Forecast sections">
+        <div className={styles.nav} role="navigation" aria-label="Forecast sections">
+          <button
+            className={`${styles.navBtn} ${currentPath === '/forecast' && !weekView ? styles.navActive : ''}`}
+            onClick={() => { navigate('/forecast'); setWeekView(false) }}
+            aria-current={currentPath === '/forecast' && !weekView ? 'page' : undefined}
+          >
+            Forecast
+          </button>
+          <button
+            className={`${styles.navBtn} ${currentPath === '/forecast' && weekView ? styles.navActive : ''}`}
+            onClick={() => { navigate('/forecast'); setWeekView(true) }}
+            aria-label="Weekly conditions overview"
+            aria-current={currentPath === '/forecast' && weekView ? 'page' : undefined}
+          >
+            Week
+          </button>
+          <button
+            className={`${styles.navBtn} ${currentPath === '/tides' ? styles.navActive : ''}`}
+            onClick={() => navigate('/tides')}
+            aria-current={currentPath === '/tides' ? 'page' : undefined}
+          >
+            Tides
+          </button>
+          <button
+            className={`${styles.navBtn} ${currentPath === '/report' ? styles.navActive : ''}`}
+            onClick={() => handleReportClick()}
+            aria-label={!user ? 'Log Dive (sign in required)' : 'Log Dive'}
+            aria-current={currentPath === '/report' ? 'page' : undefined}
+          >
+            Log Dive
+            {!user && <IconLock className={styles.lockIcon} aria-hidden="true" />}
+          </button>
+          <button
+            className={`${styles.navBtn} ${selectedLocationId ? styles.navActive : ''}`}
+            onClick={() => handleSaveLocation(false)}
+            disabled={!!selectedLocationId}
+            aria-label={selectedLocationId ? 'Location already saved' : !user ? 'Save this location (sign in required)' : 'Save this location'}
+          >
+            {selectedLocationId ? <><IconCheck className={styles.lockIcon} aria-hidden="true" /><span>Saved</span></> : <><IconPlus className={styles.lockIcon} aria-hidden="true" /><span>Save</span>{!user && <IconLock className={styles.lockIcon} aria-hidden="true" />}</>}
+          </button>
+          {!selectedLocationId && (
             <button
-              className={`${styles.navBtn} ${currentPath === '/forecast' ? styles.navActive : ''}`}
-              onClick={() => { navigate('/forecast'); setWeekView(false) }}
-              aria-current={currentPath === '/forecast' ? 'page' : undefined}
+              className={styles.navBtn}
+              onClick={() => handleSaveLocation(true)}
+              aria-label={!user ? 'Save as private spot (sign in required)' : 'Save as private spot — coordinates encrypted'}
             >
-              Forecast
+              <IconLock className={styles.lockIcon} aria-hidden="true" /><span>Private</span>
             </button>
-            <button
-              className={`${styles.navBtn} ${currentPath === '/tides' ? styles.navActive : ''}`}
-              onClick={() => navigate('/tides')}
-              aria-current={currentPath === '/tides' ? 'page' : undefined}
-            >
-              Tides
-            </button>
-            <button
-              className={`${styles.navBtn} ${currentPath === '/reports' ? styles.navActive : ''}`}
-              onClick={() => navigate('/reports')}
-              aria-label="Community reports for this spot"
-              aria-current={currentPath === '/reports' ? 'page' : undefined}
-            >
-              Reports
-            </button>
-            <button
-              className={`${styles.navBtn} ${currentPath === '/report' ? styles.navActive : ''}`}
-              onClick={() => handleReportClick()}
-              aria-label={!user ? 'Log Dive (sign in required)' : 'Log Dive'}
-              aria-current={currentPath === '/report' ? 'page' : undefined}
-            >
-              Log Dive
-              {!user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}
-            </button>
-          </div>
-
-          {/* Secondary utility row — Save/Private/Week/Dive Logs/Report Issue.
-              Kept small so the primary "Forecast / Tides / Reports / Log Dive"
-              row stays the decision-focused control surface. */}
-          {currentPath === '/forecast' && (
-            <div className={styles.utilityRow} role="group" aria-label="Spot actions">
-              <button
-                className={`${styles.utilityBtn} ${weekView ? styles.utilityBtnActive : ''}`}
-                onClick={() => setWeekView((v) => !v)}
-                aria-pressed={weekView}
-                aria-label="Toggle 7-day overview"
-              >
-                {weekView ? 'Day view' : 'Week overview'}
-              </button>
-              <button
-                className={`${styles.utilityBtn} ${selectedLocationId ? styles.utilityBtnActive : ''}`}
-                onClick={() => handleSaveLocation(false)}
-                disabled={!!selectedLocationId}
-                aria-label={selectedLocationId ? 'Location already saved' : !user ? 'Save this location (sign in required)' : 'Save this location'}
-              >
-                {selectedLocationId ? 'Saved' : (<>+ Save{!user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}</>)}
-              </button>
-              {!selectedLocationId && (
-                <button
-                  className={styles.utilityBtn}
-                  onClick={() => handleSaveLocation(true)}
-                  aria-label={!user ? 'Save as private spot (sign in required)' : 'Save as private spot — coordinates encrypted'}
-                >
-                  + Private{!user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}
-                </button>
-              )}
-              {selectedLocationId && (
-                <button
-                  className={styles.utilityBtn}
-                  onClick={() => navigate('/history')}
-                  aria-label="View this spot's dive logs"
-                >
-                  Dive logs
-                </button>
-              )}
-              {user && (
-                <button
-                  className={styles.utilityBtn}
-                  onClick={() => navigate('/dispute')}
-                  aria-label="Report incorrect forecast data"
-                >
-                  Flag issue
-                </button>
-              )}
-            </div>
           )}
-        </>
+          {selectedLocationId && (
+            <button
+              className={`${styles.navBtn} ${currentPath === '/history' ? styles.navActive : ''}`}
+              onClick={() => navigate('/history')}
+              aria-current={currentPath === '/history' ? 'page' : undefined}
+            >
+              Dive Logs
+            </button>
+          )}
+          {user && (
+            <button
+              className={`${styles.navBtn} ${currentPath === '/dispute' ? styles.navActive : ''}`}
+              onClick={() => navigate('/dispute')}
+              aria-label="Report incorrect forecast data"
+              aria-current={currentPath === '/dispute' ? 'page' : undefined}
+            >
+              Report Issue
+            </button>
+          )}
+        </div>
       )}
 
-      <main id="main-content" tabIndex={-1} className={splitView ? styles.splitView : undefined}>
-        {splitView && (
-          <aside className={styles.mapPane} aria-label="Dive spot map and community context">
-            {mapView}
-            {/* Latest community reports for the selected spot — sits under the
-                map on desktop. Hidden on the /reports route so the panel isn't
-                rendered twice (once in the sidebar, once as the main content). */}
-            {currentLat !== null && currentLon !== null && currentPath !== '/reports' && (
-              <div className={styles.sidebarBlock}>
-                <CommunityReportsPanel
-                  locationId={selectedLocationId}
-                  locationName={currentName || 'this spot'}
-                />
-              </div>
-            )}
-          </aside>
-        )}
-        <div
-          ref={detailPaneRef}
-          className={splitView ? styles.detailPane : undefined}
-          tabIndex={splitView ? -1 : undefined}
-          role={splitView ? 'region' : undefined}
-          aria-label={splitView ? 'Forecast detail' : undefined}
-        >
+      <main id="main-content" tabIndex={-1}>
         <Routes>
           {/* Profile */}
           <Route path="/profile" element={
@@ -624,26 +504,12 @@ export default function App() {
             </Suspense>
           } />
 
-          {/* Release changelog */}
-          <Route path="/changelog" element={
-            <Suspense fallback={null}>
-              <ChangelogPage onBack={() => navigate(-1)} />
-            </Suspense>
-          } />
-
-          {/* Living design-system style guide */}
-          <Route path="/design" element={
-            <Suspense fallback={null}>
-              <DesignSystemPage />
-            </Suspense>
-          } />
-
           {/* Discussion forum. The static /forum/thread/:id segment is declared
               before /forum/:slug so React Router ranks it ahead of the category
               route and a thread link never resolves as a category slug. */}
           <Route path="/forum" element={
             <Suspense fallback={null}>
-              <ForumIndex user={user} />
+              <ForumIndex />
             </Suspense>
           } />
           <Route path="/forum/thread/:id" element={
@@ -657,34 +523,27 @@ export default function App() {
             </Suspense>
           } />
 
-          {/* Map / Dashboard. In the expanded split layout the map lives in the
-              persistent left pane, so the route itself only prompts the user to
-              pick a spot; otherwise it renders the full map view. */}
+          {/* Map / Dashboard */}
           <Route path="/map" element={
-            splitView ? (
-              <div className={styles.placeholderPanel}>
-                <h2 className={styles.placeholderTitle}>Pick a spot to see visibility</h2>
-                <p className={styles.placeholderSub}>
-                  Choose a marker on the map, search a coast, or use your location —
-                  the full 7-day forecast for that spot appears here.
-                </p>
-                <ul className={styles.placeholderList} aria-label="What the forecast includes">
-                  <li>Visibility</li>
-                  <li>Swell</li>
-                  <li>Wind</li>
-                  <li>Tides</li>
-                  <li>Confidence</li>
-                  <li>Recent reports</li>
-                </ul>
-                <p className={styles.placeholderHint}>
-                  Each forecast is AI-calibrated against dive reports from the community,
-                  so spots with recent reports carry higher confidence.
-                </p>
-                <p className={styles.placeholderSafety}>
-                  Not a substitute for local knowledge. Always dive with a buddy.
-                </p>
-              </div>
-            ) : mapView
+            <>
+              {(status === 'loading' || isRevalidating) && (
+                <div className={styles.loadingBar} role="status" aria-live="polite">{isRevalidating ? 'Fetching conditions...' : 'Reading conditions...'}</div>
+              )}
+              {/* Logged-in users see their saved places dashboard; the map is below */}
+              {user && status === 'idle' && locations.filter(l => !l.is_predefined).length > 0 && (
+                <Suspense fallback={null}>
+                  <PlacesDashboard
+                    locations={locations.filter(l => !l.is_predefined).slice(0, 8)}
+                    userUid={user.id}
+                    units={units}
+                    onSelectLocation={handleSpotSelect}
+                  />
+                </Suspense>
+              )}
+              <Suspense fallback={null}>
+                <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} locations={locations} />
+              </Suspense>
+            </>
           } />
 
           {/* Best Visibility */}
@@ -724,7 +583,7 @@ export default function App() {
               )}
               {status === 'idle' && (
                 <div className={styles.empty}>
-                  <div className={styles.emptyIcon} aria-hidden="true">&#129343;</div>
+                  <IconGauge className={styles.emptyIcon} aria-hidden="true" />
                   <div className={styles.emptyText}>Enter a location to check<br />underwater visibility conditions</div>
                 </div>
               )}
@@ -797,7 +656,7 @@ export default function App() {
                       <WeeklyOverview
                         days={forecast.days}
                         locationName={forecast.location_name}
-                        units={dataUnits}
+                        units={units}
                         selectedIndex={selectedDay}
                         onSelectDay={(i) => { setSelectedDay(i); setWeekView(false) }}
                       />
@@ -812,8 +671,7 @@ export default function App() {
                           lat={forecast.lat}
                           lon={forecast.lon}
                           reportCount={forecast.report_count}
-                          modelConfidence={forecast.model_confidence}
-                          units={dataUnits}
+                          units={units}
                           isAdmin={isAdmin}
                           biasOffset={forecast.bias_offset}
                           globalBiasOffset={forecast.global_bias_offset}
@@ -860,20 +718,6 @@ export default function App() {
             )
           } />
 
-          {/* Community reports for the current spot */}
-          <Route path="/reports" element={
-            currentLat !== null && currentLon !== null ? (
-              <CommunityReportsPanel
-                locationId={selectedLocationId}
-                locationName={currentName || 'this spot'}
-              />
-            ) : (
-              <div className={styles.empty}>
-                <div className={styles.emptyText}>Pick a spot to see recent community reports</div>
-              </div>
-            )
-          } />
-
           {/* Report */}
           <Route path="/report" element={
             user && forecast ? (
@@ -884,7 +728,7 @@ export default function App() {
                   locations={locations}
                   onSubmitted={() => navigate('/forecast')}
                   initialLocationId={selectedLocationId}
-                  units={dataUnits}
+                  units={units}
                 />
               </Suspense>
             ) : (
@@ -971,41 +815,7 @@ export default function App() {
               </div>
             )
           } />
-
-          {/* Admin-only competition operations. No public nav links point here;
-              the route is gated on the server-verified isAdmin flag and the
-              backend re-enforces require_admin on every request. Non-admins and
-              signed-out users get a neutral message, never the operational UI. */}
-          <Route path="/competition" element={
-            !user ? (
-              <div className={styles.empty}>
-                <div className={styles.emptyText}>Sign in to register for competitions</div>
-                <button className={styles.navBtn} onClick={() => setShowAuth(true)} style={{ marginTop: 16 }}>Sign in</button>
-              </div>
-            ) : (
-              <Suspense fallback={null}>
-                <CompetitionRegister />
-              </Suspense>
-            )
-          } />
-          <Route path="/admin/competition" element={
-            !user ? (
-              <div className={styles.empty}>
-                <div className={styles.emptyText}>Sign in required</div>
-                <button className={styles.navBtn} onClick={() => setShowAuth(true)} style={{ marginTop: 16 }}>Sign in</button>
-              </div>
-            ) : !adminChecked ? (
-              <div className={styles.empty}><div className={styles.emptyText}>Checking access…</div></div>
-            ) : isAdmin ? (
-              <Suspense fallback={null}>
-                <CompetitionAdmin isAdmin={isAdmin} />
-              </Suspense>
-            ) : (
-              <div className={styles.empty}><div className={styles.emptyText}>Not found</div></div>
-            )
-          } />
         </Routes>
-        </div>
       </main>
 
       {/* Bottom Navigation Bar */}
@@ -1016,10 +826,7 @@ export default function App() {
           aria-label="Home"
           aria-current={currentPath === '/' ? 'page' : undefined}
         >
-          <svg className={styles.bottomNavIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" />
-          </svg>
+          <span className={styles.bottomNavIconWrap}><IconHome className={styles.bottomNavIcon} /></span>
           <span>Home</span>
         </button>
         <button
@@ -1028,9 +835,7 @@ export default function App() {
           aria-label="Map"
           aria-current={MAP_GROUP_ROUTES.includes(currentPath) ? 'page' : undefined}
         >
-          <svg className={styles.bottomNavIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-          </svg>
+          <span className={styles.bottomNavIconWrap}><IconCompass className={styles.bottomNavIcon} /></span>
           <span>Map</span>
         </button>
         <button
@@ -1039,11 +844,7 @@ export default function App() {
           aria-label="Feed"
           aria-current={currentPath === '/feed' ? 'page' : undefined}
         >
-          <svg className={styles.bottomNavIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path d="M4 11a9 9 0 019 9" />
-            <path d="M4 4a16 16 0 0116 16" />
-            <circle cx="5" cy="19" r="1" />
-          </svg>
+          <span className={styles.bottomNavIconWrap}><IconActivity className={styles.bottomNavIcon} /></span>
           <span>Feed</span>
         </button>
         <button
@@ -1052,10 +853,7 @@ export default function App() {
           aria-label="Catches"
           aria-current={currentPath === '/catches' ? 'page' : undefined}
         >
-          <svg className={styles.bottomNavIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path d="M20 12c0 4.418-3.582 8-8 8s-8-3.582-8-8c0-2 1-4 2-5l6 3 6-3c1 1 2 3 2 5z" />
-            <path d="M12 3v12" />
-          </svg>
+          <span className={styles.bottomNavIconWrap}><IconFish className={styles.bottomNavIcon} /></span>
           <span>Catches</span>
         </button>
         <button
@@ -1064,10 +862,7 @@ export default function App() {
           aria-label="Apnea training tables"
           aria-current={currentPath.startsWith('/training') ? 'page' : undefined}
         >
-          <svg className={styles.bottomNavIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <circle cx="12" cy="12" r="9" />
-            <polyline points="12 7 12 12 15 14" />
-          </svg>
+          <span className={styles.bottomNavIconWrap}><IconTimer className={styles.bottomNavIcon} /></span>
           <span>Train</span>
         </button>
         <button
@@ -1076,13 +871,7 @@ export default function App() {
           aria-label="Weight belt calculator"
           aria-current={currentPath === '/weight' ? 'page' : undefined}
         >
-          <svg className={styles.bottomNavIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
-            <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
-            <path d="M7 21h10" />
-            <path d="M12 3v18" />
-            <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" />
-          </svg>
+          <span className={styles.bottomNavIconWrap}><IconScale className={styles.bottomNavIcon} /></span>
           <span>Weight</span>
         </button>
         <button
@@ -1091,10 +880,7 @@ export default function App() {
           aria-label={user ? 'Profile' : 'Profile (sign in required)'}
           aria-current={currentPath === '/profile' ? 'page' : undefined}
         >
-          <svg className={styles.bottomNavIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4-4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
+          <span className={styles.bottomNavIconWrap}><IconUser className={styles.bottomNavIcon} /></span>
           <span>Profile</span>
         </button>
       </nav>
@@ -1120,12 +906,6 @@ export default function App() {
               {LEGAL_LABELS[p]}
             </button>
           ))}
-          <button
-            className={styles.footerLink}
-            onClick={() => navigate('/changelog')}
-          >
-            Changelog
-          </button>
         </nav>
         <a
           href="https://buymeacoffee.com/depthviz"

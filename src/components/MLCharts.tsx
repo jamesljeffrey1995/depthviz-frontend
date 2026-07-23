@@ -46,7 +46,7 @@ function ScatterPlot({ points }: ScatterProps) {
             const y = PAD.top + CH - scale(v) * CH
             return (
               <g key={`y-${v}`}>
-                <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="rgba(0,201,255,0.06)" />
+                <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="rgba(14, 124, 134,0.06)" />
                 <text x={PAD.left - 6} y={y + 3} textAnchor="end" fill="rgba(139,184,204,0.4)" fontSize="9" fontFamily="monospace">{v}m</text>
               </g>
             )
@@ -55,7 +55,7 @@ function ScatterPlot({ points }: ScatterProps) {
             const x = PAD.left + scale(v) * CW
             return (
               <g key={`x-${v}`}>
-                <line x1={x} y1={PAD.top} x2={x} y2={H - PAD.bottom} stroke="rgba(0,201,255,0.06)" />
+                <line x1={x} y1={PAD.top} x2={x} y2={H - PAD.bottom} stroke="rgba(14, 124, 134,0.06)" />
                 <text x={x} y={H - PAD.bottom + 14} textAnchor="middle" fill="rgba(139,184,204,0.4)" fontSize="9" fontFamily="monospace">{v}m</text>
               </g>
             )
@@ -67,7 +67,7 @@ function ScatterPlot({ points }: ScatterProps) {
             y1={PAD.top + CH}
             x2={PAD.left + CW}
             y2={PAD.top}
-            stroke="rgba(0,201,255,0.2)"
+            stroke="rgba(14, 124, 134,0.2)"
             strokeWidth="1"
             strokeDasharray="6,4"
           />
@@ -119,7 +119,7 @@ function ErrorHistogram({ points }: HistogramProps) {
   for (const p of points) {
     const idx = Math.floor((p.error - minBin) / binWidth)
     const bin = bins[idx]
-    if (idx >= 0 && idx < bins.length && bin) bin.count++
+    if (bin) bin.count++
   }
 
   const maxCount = Math.max(...bins.map(b => b.count), 1)
@@ -137,7 +137,7 @@ function ErrorHistogram({ points }: HistogramProps) {
             const y = PAD.top + CH - frac * CH
             return (
               <g key={frac}>
-                <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="rgba(0,201,255,0.06)" />
+                <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="rgba(14, 124, 134,0.06)" />
                 <text x={PAD.left - 6} y={y + 3} textAnchor="end" fill="rgba(139,184,204,0.4)" fontSize="9" fontFamily="monospace">{v}</text>
               </g>
             )
@@ -147,7 +147,7 @@ function ErrorHistogram({ points }: HistogramProps) {
           {(() => {
             const zeroIdx = Math.floor((0 - minBin) / binWidth)
             const zeroX = PAD.left + zeroIdx * barW + barW / 2
-            return <line x1={zeroX} y1={PAD.top} x2={zeroX} y2={H - PAD.bottom} stroke="rgba(0,201,255,0.15)" strokeDasharray="4,4" />
+            return <line x1={zeroX} y1={PAD.top} x2={zeroX} y2={H - PAD.bottom} stroke="rgba(14, 124, 134,0.15)" strokeDasharray="4,4" />
           })()}
 
           {/* Bars */}
@@ -209,7 +209,7 @@ function MetricsTimeline({ trainingLog }: MetricsTimelineProps) {
             const y = PAD.top + CH - (v / yMax) * CH
             return (
               <g key={v}>
-                <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="rgba(0,201,255,0.06)" />
+                <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="rgba(14, 124, 134,0.06)" />
                 <text x={PAD.left - 6} y={y + 3} textAnchor="end" fill="rgba(139,184,204,0.4)" fontSize="9" fontFamily="monospace">{v.toFixed(1)}</text>
               </g>
             )
@@ -223,13 +223,17 @@ function MetricsTimeline({ trainingLog }: MetricsTimelineProps) {
             }))
             const d = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ')
             // Fill path
-            const fillD = `${d} L${pts[pts.length - 1]?.x ?? 0},${PAD.top + CH} L${pts[0]?.x ?? 0},${PAD.top + CH} Z`
+            const firstP = pts[0]
+            const lastP = pts[pts.length - 1]
+            const fillD = firstP && lastP
+              ? `${d} L${lastP.x},${PAD.top + CH} L${firstP.x},${PAD.top + CH} Z`
+              : d
             return (
               <>
-                <path d={fillD} fill="rgba(0,201,255,0.08)" />
-                <path d={d} fill="none" stroke="var(--ds-accent)" strokeWidth="2" />
+                <path d={fillD} fill="rgba(14, 124, 134,0.08)" />
+                <path d={d} fill="none" stroke="var(--accent)" strokeWidth="2" />
                 {pts.map((p, i) => (
-                  <circle key={i} cx={p.x} cy={p.y} r="3" fill="var(--ds-accent)" stroke="rgba(2,13,20,0.8)" strokeWidth="1.5">
+                  <circle key={i} cx={p.x} cy={p.y} r="3" fill="var(--accent)" stroke="rgba(2,13,20,0.8)" strokeWidth="1.5">
                     <title>Run {i + 1}: MAE={entries[i]?.global_mae?.toFixed(3)}, {entries[i]?.sample_count} samples ({entries[i]?.trigger})</title>
                   </circle>
                 ))}
@@ -248,7 +252,8 @@ function MetricsTimeline({ trainingLog }: MetricsTimelineProps) {
               })
             : [0, Math.floor(entries.length / 2), entries.length - 1].map(i => {
                 const x = PAD.left + (i / (entries.length - 1)) * CW
-                const label = new Date(entries[i]?.created_at ?? '').toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
+                const entry = entries[i]
+                const label = entry ? new Date(entry.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : ''
                 return (
                   <text key={i} x={x} y={H - PAD.bottom + 14} textAnchor="middle" fill="rgba(139,184,204,0.4)" fontSize="8" fontFamily="monospace">{label}</text>
                 )
@@ -367,7 +372,7 @@ function ResidualTable({ residuals, summary, quarantined, onQuarantine }: Residu
         {share !== null ? (
           <>
             Top 3 reports account for{' '}
-            <strong style={{ color: concentrated ? 'var(--ds-danger)' : 'var(--text-bright)' }}>
+            <strong style={{ color: concentrated ? 'var(--danger)' : 'var(--text-bright)' }}>
               {(share * 100).toFixed(0)}%
             </strong>{' '}
             of squared error
@@ -378,7 +383,7 @@ function ResidualTable({ residuals, summary, quarantined, onQuarantine }: Residu
       <div className={styles.tableScroll}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: 'monospace' }}>
           <thead>
-            <tr style={{ textAlign: 'left', color: 'var(--text-dim, #5c5344)' }}>
+            <tr style={{ textAlign: 'left', color: 'var(--text-dim, #4b5661)' }}>
               <th style={{ padding: '4px 5px' }}>Date</th>
               <th style={{ padding: '4px 5px' }}>Location</th>
               <th style={{ padding: '4px 5px', textAlign: 'right' }}>Actual</th>
@@ -398,7 +403,7 @@ function ResidualTable({ residuals, summary, quarantined, onQuarantine }: Residu
                   <td style={{ padding: '4px 5px', textAlign: 'right' }}>{r.actual.toFixed(1)}</td>
                   <td style={{ padding: '4px 5px', textAlign: 'right' }}>{r.predicted.toFixed(1)}</td>
                   <td style={{ padding: '4px 5px', textAlign: 'right',
-                               color: Math.abs(r.error) > 2 ? 'var(--ds-danger)' : 'var(--text-bright)' }}>
+                               color: Math.abs(r.error) > 2 ? 'var(--danger)' : 'var(--text-bright)' }}>
                     {r.error > 0 ? '+' : ''}{r.error.toFixed(1)}m
                   </td>
                   <td style={{ padding: '4px 5px', textAlign: 'right' }}>
@@ -406,7 +411,7 @@ function ResidualTable({ residuals, summary, quarantined, onQuarantine }: Residu
                   </td>
                   <td style={{ padding: '4px 5px' }}>
                     {isQ ? (
-                      <span style={{ color: 'var(--text-dim, #5c5344)', fontSize: 10 }}>quarantined</span>
+                      <span style={{ color: 'var(--text-dim, #4b5661)', fontSize: 10 }}>quarantined</span>
                     ) : (
                       <button
                         onClick={() => onQuarantine(r.id)}

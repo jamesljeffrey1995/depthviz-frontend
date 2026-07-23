@@ -44,17 +44,11 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
 
-  // After the success state shows, hand control back to the parent (which
-  // usually navigates away). Store the timer so an unmount before it fires
-  // clears it instead of invoking onSubmitted on a dead component. Read
-  // onSubmitted from a ref so a parent re-render doesn't reset the countdown.
-  const onSubmittedRef = useRef(onSubmitted)
-  onSubmittedRef.current = onSubmitted
-  useEffect(() => {
-    if (!done) return
-    const timer = setTimeout(() => onSubmittedRef.current(), 2500)
-    return () => clearTimeout(timer)
-  }, [done])
+  // Track the post-submit redirect timer so it can be cancelled on unmount —
+  // otherwise navigating away quickly lets it fire onSubmitted against an
+  // unmounted component.
+  const submittedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  useEffect(() => () => clearTimeout(submittedTimer.current), [])
 
   const onVideoResult = useCallback((report: VisibilityReport) => {
     setVideoReport(report)
@@ -130,6 +124,7 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
         } : {}),
       })
       setDone(true)
+      submittedTimer.current = setTimeout(onSubmitted, 2500)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to submit')
     } finally {
@@ -216,7 +211,7 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
         {videoReport && (
           <div className={styles.hint} style={
             videoReport.validation && !videoReport.validation.is_valid
-              ? { color: 'var(--ds-danger)' }
+              ? { color: '#bd3a3a' }
               : undefined
           }>
             {videoReport.validation && !videoReport.validation.is_valid

@@ -60,8 +60,8 @@ export default defineConfig({
         start_url: '/',
         scope: '/',
         display: 'standalone',
-        theme_color: '#f2ecdd',
-        background_color: '#f2ecdd',
+        theme_color: '#f3f6f8',
+        background_color: '#f3f6f8',
         categories: ['sports', 'weather', 'navigation'],
         icons: [
           { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },

@@ -10,7 +10,7 @@ interface Props {
 }
 
 const COLORS: Record<string, string> = {
-  primary: '#a83b0c',
+  primary: '#0e7c86',
   secondary: '#7a6a2e',
   wind_wave: '#3d5a73',
 }
@@ -106,7 +106,7 @@ export function SwellCompass({ components, windDir, units = 'm' }: Props) {
         {/* Swell component arrows */}
         {components.map((c) => {
           if (c.direction == null) return null
-          const color = COLORS[c.type] ?? '#a83b0c'
+          const color = COLORS[c.type] ?? '#0e7c86'
           const lengthPct = Math.max(0.3, c.height / maxHeight)
           const arrowLen = 12 + lengthPct * 36
 
@@ -130,7 +130,7 @@ export function SwellCompass({ components, windDir, units = 'm' }: Props) {
       {/* Legend */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '11px', fontFamily: 'monospace' }}>
         {components.map(c => {
-          const color = COLORS[c.type] ?? '#a83b0c'
+          const color = COLORS[c.type] ?? '#0e7c86'
           return (
             <div key={c.type} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ width: '10px', height: '10px', background: color, borderRadius: '2px', display: 'inline-block', flexShrink: 0 }} />

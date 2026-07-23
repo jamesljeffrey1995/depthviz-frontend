@@ -1,12 +1,12 @@
 .card {
   background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(0, 201, 255, 0.1);
+  border: 1px solid rgba(14, 124, 134, 0.1);
   padding: 28px;
   margin-bottom: 16px;
 }
 
 .title {
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-display);
   font-size: 22px;
   letter-spacing: 0.12em;
   color: var(--text-bright);
@@ -35,9 +35,9 @@
 .input, .select, .textarea {
   width: 100%;
   background: rgba(10, 61, 92, 0.3);
-  border: 1px solid rgba(0, 201, 255, 0.15);
+  border: 1px solid rgba(14, 124, 134, 0.15);
   color: var(--text-bright);
-  font-family: var(--ds-font-sans);
+  font-family: var(--font-mono);
   font-size: 13px;
   padding: 12px 16px;
   outline: none;
@@ -45,7 +45,7 @@
 }
 
 .input:focus, .select:focus, .textarea:focus {
-  border-color: rgba(0, 201, 255, 0.4);
+  border-color: rgba(14, 124, 134, 0.4);
 }
 
 .select option { background: var(--ocean-mid); }
@@ -60,14 +60,14 @@
 
 .error {
   font-size: var(--ds-text-label);
-  color: var(--ds-danger);
+  color: var(--danger);
   margin-bottom: 12px;
   letter-spacing: 0.08em;
 }
 
 .success {
   font-size: 13px;
-  color: var(--ds-q-excellent);
+  color: var(--excellent);
   letter-spacing: 0.1em;
   padding: 20px 0;
   text-align: center;
@@ -75,10 +75,10 @@
 
 .btn {
   width: 100%;
-  background: rgba(0, 201, 255, 0.1);
-  border: 1px solid rgba(0, 201, 255, 0.3);
-  color: var(--ds-accent);
-  font-family: var(--ds-font-sans);
+  background: rgba(14, 124, 134, 0.1);
+  border: 1px solid rgba(14, 124, 134, 0.3);
+  color: var(--accent);
+  font-family: var(--font-mono);
   font-size: var(--ds-text-label);
   font-weight: 700;
   letter-spacing: 0.2em;
@@ -89,8 +89,8 @@
 }
 
 .btn:hover:not(:disabled) {
-  background: rgba(0, 201, 255, 0.2);
-  border-color: rgba(0, 201, 255, 0.6);
+  background: rgba(14, 124, 134, 0.2);
+  border-color: rgba(14, 124, 134, 0.6);
 }
 
 .btn:disabled {

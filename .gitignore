@@ -1,26 +1,8 @@
-# Dependencies
 node_modules
-
-# Build output
 dist
 dist-ssr
-.vite/
-
-# Environment & secrets
-.env
-.env.*
-!.env.example
 *.local
-
-# Logs
-*.log
-logs/
-
-# OS
+.env
+.env.local
 .DS_Store
-Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-*.swp
+.impeccable/hook.cache.json

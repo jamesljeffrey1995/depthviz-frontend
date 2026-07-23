@@ -1,15 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { formatLocationName } from '../types'
 import type { GeocodingResult } from '../types'
+import { IconSearch, IconLocate, IconArrowRight } from './icons'
 import styles from './SearchBar.module.css'
 
 interface SearchBarProps {
-  /** Returns false when no matching location was found, so the bar can show
-   *  an inline hint instead of failing silently. */
-  onSearch: (query: string) => boolean | void | Promise<boolean | void>
-  /** May reject (e.g. geolocation denied) — the bar shows a friendly inline
-   *  error rather than a dead button. */
-  onLocate: () => Promise<void> | void
+  onSearch: (query: string) => void
+  onLocate: () => void
   getSuggestions: (query: string) => Promise<GeocodingResult[]>
   onSelectSuggestion: (result: GeocodingResult) => void
 }
@@ -20,8 +17,6 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [selectedResult, setSelectedResult] = useState<GeocodingResult | null>(null)
   const [activeIndex, setActiveIndex] = useState(-1)
-  const [locating, setLocating] = useState(false)
-  const [inlineError, setInlineError] = useState('')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const abortRef = useRef<AbortController | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -31,7 +26,6 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
     setQuery(value)
     setSelectedResult(null)
     setActiveIndex(-1)
-    setInlineError('')
     clearTimeout(debounceRef.current)
     // Cancel any in-flight suggestion request
     abortRef.current?.abort()
@@ -57,42 +51,21 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
     setSuggestions([])
     setShowSuggestions(false)
     setActiveIndex(-1)
-    setInlineError('')
     onSelectSuggestion(result)
   }, [onSelectSuggestion])
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(() => {
     setShowSuggestions(false)
-    setInlineError('')
     if (selectedResult) {
       onSelectSuggestion(selectedResult)
-      return
-    }
-    if (!query.trim()) return
-    let found: boolean | void
-    try {
-      found = await onSearch(query)
-    } catch {
-      setInlineError("Search didn't go through — check your connection and try again.")
-      return
-    }
-    if (found === false) {
-      setInlineError('No matching spot found — try a nearby beach, town or mark name.')
+    } else {
+      const trimmed = query.trim()
+      // Guard against an empty/whitespace query — an empty string is a
+      // substring of every saved location name, so passing it through would
+      // match (and navigate to) an arbitrary location in App.handleSearch.
+      if (trimmed) onSearch(trimmed)
     }
   }, [query, onSearch, onSelectSuggestion, selectedResult])
-
-  const handleLocate = useCallback(async () => {
-    if (locating) return
-    setInlineError('')
-    setLocating(true)
-    try {
-      await onLocate()
-    } catch {
-      setInlineError("Couldn't get your position — check location permissions and try again, or search by name.")
-    } finally {
-      setLocating(false)
-    }
-  }, [locating, onLocate])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!showSuggestions) {
@@ -140,6 +113,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
   return (
     <div className={styles.wrapper} ref={containerRef}>
       <div className={styles.inputRow}>
+        <IconSearch className={styles.inputIcon} aria-hidden="true" />
         <input
           className={styles.input}
           type="text"
@@ -152,7 +126,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
           value={query}
           onChange={e => handleInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Search a coast, mark, beach or dive spot…"
+          placeholder="Enter a coastal location…"
           autoComplete="off"
         />
         {showSuggestions && (
@@ -182,19 +156,15 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
         )}
       </div>
       <div className={styles.buttonRow}>
-        <button className={styles.btnDive} onClick={handleSubmit} aria-label="Check visibility for this location">Check visibility ›</button>
-        <button
-          className={styles.btnLocate}
-          onClick={handleLocate}
-          disabled={locating}
-          aria-label="Use my current GPS location"
-        >
-          {locating ? 'Locating…' : '⊕ Use my location'}
+        <button className={styles.btnDive} onClick={handleSubmit} aria-label="Search for this location">
+          <span>Search</span>
+          <IconArrowRight aria-hidden="true" />
+        </button>
+        <button className={styles.btnLocate} onClick={onLocate} aria-label="Use my current GPS location">
+          <IconLocate aria-hidden="true" />
+          <span>Use my location</span>
         </button>
       </div>
-      {inlineError && (
-        <p className={styles.inlineError} role="alert">{inlineError}</p>
-      )}
     </div>
   )
 }

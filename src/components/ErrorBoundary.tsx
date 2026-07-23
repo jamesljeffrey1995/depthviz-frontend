@@ -31,7 +31,7 @@ export class ErrorBoundary extends Component<Props, State> {
           minHeight: '100vh',
           gap: '16px',
           fontFamily: 'var(--font-mono)',
-          color: 'var(--text-bright, #2a251e)',
+          color: 'var(--text-bright, #101820)',
         }}>
           <div style={{ fontSize: '24px', fontFamily: 'var(--font-display, sans-serif)', letterSpacing: '0.2em' }}>
             SOMETHING WENT WRONG
@@ -47,8 +47,8 @@ export class ErrorBoundary extends Component<Props, State> {
             style={{
               marginTop: '8px',
               padding: '10px 24px',
-              background: 'var(--accent, #a83b0c)',
-              color: 'var(--paper, #f2ecdd)',
+              background: 'var(--accent, #0e7c86)',
+              color: '#020d14',
               border: 'none',
               cursor: 'pointer',
               fontFamily: 'var(--font-display, sans-serif)',

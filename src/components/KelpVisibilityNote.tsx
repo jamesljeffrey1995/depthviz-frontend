@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { IconChevronDown, IconChevronUp } from './icons'
 import styles from './KelpVisibilityNote.module.css'
 
 interface Props {
@@ -57,7 +58,7 @@ export function KelpVisibilityNote({ defaultOpen = false, showSpearfishingTip = 
         aria-expanded={open}
       >
         Clear from shore but murky in the kelp?
-        <span className={styles.toggleArrow} aria-hidden="true">{open ? ' ▲' : ' ▼'}</span>
+        {open ? <IconChevronUp className={styles.toggleArrow} aria-hidden="true" /> : <IconChevronDown className={styles.toggleArrow} aria-hidden="true" />}
       </button>
 
       {open && (
