@@ -14,7 +14,7 @@
 }
 
 .subtitle {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   opacity: 0.4;
@@ -25,7 +25,7 @@
 .tabs { display: flex; gap: 6px; margin-bottom: 14px; }
 .tab {
   flex: 1; background: rgba(4, 30, 46, 0.6); border: 1px solid rgba(14, 124, 134, 0.08);
-  color: var(--text); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.2em;
+  color: var(--text); font-family: var(--font-mono); font-size: var(--ds-text-label); letter-spacing: 0.2em;
   text-transform: uppercase; padding: 8px; cursor: pointer;
 }
 .tab.tabActive { border-color: rgba(14, 124, 134, 0.35); color: var(--accent); background: rgba(14, 124, 134, 0.08); }
@@ -36,7 +36,7 @@
 .catchCard {
   display: flex; align-items: flex-start; gap: 12px;
   background: rgba(2, 13, 20, 0.4); border: 1px solid rgba(14, 124, 134, 0.05);
-  padding: 12px 14px; font-size: 11px;
+  padding: 12px 14px; font-size: var(--ds-text-label);
 }
 
 .catchInfo { flex: 1; min-width: 0; }
@@ -50,7 +50,7 @@
 }
 
 .catchMeta {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   opacity: 0.4;
   letter-spacing: 0.08em;
   margin-bottom: 6px;
@@ -62,7 +62,7 @@
 }
 
 .catchDetail {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   color: var(--text);
   opacity: 0.65;
   letter-spacing: 0.05em;
@@ -78,7 +78,7 @@
 }
 
 .statGrid span {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   opacity: 0.5;
   letter-spacing: 0.05em;
 }
@@ -97,7 +97,7 @@
   border: 1px solid rgba(14, 124, 134, 0.15);
   color: var(--text-bright);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   padding: 8px 12px;
   outline: none;
 }
@@ -116,7 +116,7 @@
 
 .label {
   display: block;
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.25em;
   text-transform: uppercase;
   opacity: 0.5;
@@ -150,7 +150,7 @@
   border: 1px solid rgba(14, 124, 134, 0.3);
   color: var(--accent);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -174,7 +174,7 @@
   border: 1px solid rgba(192, 57, 43, 0.3);
   color: var(--danger);
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   padding: 5px 10px;
@@ -191,7 +191,7 @@
   border: 1px solid rgba(14, 124, 134, 0.3);
   color: var(--accent);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   padding: 10px 20px;
@@ -205,7 +205,7 @@
 
 /* States */
 .empty {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   opacity: 0.4;
   letter-spacing: 0.1em;
   padding: 20px 0;
@@ -218,7 +218,7 @@
 }
 
 .authPrompt p {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   opacity: 0.4;
   letter-spacing: 0.1em;
   margin-bottom: 14px;
@@ -233,14 +233,14 @@
 }
 
 .error {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   color: var(--danger);
   margin-bottom: 12px;
   letter-spacing: 0.08em;
 }
 
 .loading {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   opacity: 0.35;
   letter-spacing: 0.15em;
   text-transform: uppercase;

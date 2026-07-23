@@ -64,7 +64,7 @@
   border: 1px solid rgba(14, 124, 134, 0.12);
   color: var(--text);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   padding: 5px 12px;
@@ -119,7 +119,7 @@
 
 .timeAgo {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   color: var(--text);
   opacity: 0.45;
 }
@@ -175,7 +175,7 @@
   background: rgba(192, 57, 43, 0.2);
   color: var(--danger);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   font-weight: 700;
   letter-spacing: 0.15em;
   text-transform: uppercase;

@@ -17,12 +17,13 @@ function getDailyMaxes(timestamps: string[], values: number[]): number[] {
   const byDay: Record<string, number> = {}
   timestamps.forEach((ts, i) => {
     const day = ts.split('T')[0]
+    if (!day) return
     byDay[day] = Math.max(byDay[day] ?? 0, values[i] ?? 0)
   })
   return Object.keys(byDay)
     .sort()
     .reverse()
-    .map(d => byDay[d])
+    .map(d => byDay[d] ?? 0)
 }
 
 function decayScore(dailyMaxes: number[], weights: number[]): number {
@@ -77,16 +78,22 @@ export interface CalibrationWeights {
 
 /** Piecewise-linear interpolation between breakpoints — matches API swell_penalty(). */
 function interpolatePenalty(value: number, breakpoints: [number, number][]): number {
-  if (value <= breakpoints[0][0]) return breakpoints[0][1]
+  const first = breakpoints[0]
+  if (!first) return 0
+  if (value <= first[0]) return first[1]
   for (let i = 1; i < breakpoints.length; i++) {
-    const [loV, loP] = breakpoints[i - 1]
-    const [hiV, hiP] = breakpoints[i]
+    const lo = breakpoints[i - 1]
+    const hi = breakpoints[i]
+    if (!lo || !hi) continue
+    const [loV, loP] = lo
+    const [hiV, hiP] = hi
     if (value <= hiV) {
       const t = (value - loV) / (hiV - loV)
       return loP + t * (hiP - loP)
     }
   }
-  return breakpoints[breakpoints.length - 1][1]
+  const last = breakpoints[breakpoints.length - 1]
+  return last ? last[1] : 0
 }
 
 // Breakpoints aligned with API services/visibility.py
@@ -157,7 +164,7 @@ export function calculateVisibility(
   factors.push({
     name: 'Swell / Wave',
     value: `${rawSwell.toFixed(1)}m`,
-    note: histWaveMaxes[1] > rawSwell * 1.3 ? '↑ recent history' : null,
+    note: (histWaveMaxes[1] ?? 0) > rawSwell * 1.3 ? '↑ recent history' : null,
     penalty: wavePenalty * sm,
     max_penalty: 8,
   })

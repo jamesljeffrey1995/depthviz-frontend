@@ -25,7 +25,7 @@ function buildDateOptions(): { value: string; label: string }[] {
   for (let i = 0; i <= 7; i++) {
     const d = new Date(today)
     d.setDate(today.getDate() - i)
-    const value = d.toISOString().split('T')[0]
+    const value = d.toISOString().slice(0, 10)
     const label = i === 0 ? 'Today' : i === 1 ? 'Yesterday' :
       d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })
     options.push({ value, label })
@@ -34,7 +34,7 @@ function buildDateOptions(): { value: string; label: string }[] {
 }
 
 export function ReportForm({ day, allDays, locations, onSubmitted, initialLocationId, units = 'm' }: Props) {
-  const todayStr = new Date().toISOString().split('T')[0]
+  const todayStr = new Date().toISOString().slice(0, 10)
   const [selectedDate, setSelectedDate] = useState(day?.date ?? todayStr)
   const [locationId, setLocationId] = useState<number | ''>(initialLocationId ?? '')
   const [actualVis, setActualVis] = useState('')

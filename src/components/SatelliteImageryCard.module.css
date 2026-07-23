@@ -57,7 +57,7 @@
   justify-content: center;
   text-align: center;
   padding: 8px;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   color: var(--ink-faint);
 }
 
@@ -73,13 +73,13 @@
 }
 
 .tileTitle {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.04em;
   color: var(--accent-text);
 }
 
 .tileDate {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   color: var(--ink-faint);
   white-space: nowrap;
 }
@@ -89,28 +89,28 @@
 }
 
 .tileDesc {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   line-height: 1.5;
   color: var(--text);
   margin-top: 3px;
 }
 
 .tileSource {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.04em;
   color: var(--ink-faint);
   margin-top: 4px;
 }
 
 .loadingRow {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   color: var(--ink-faint);
   padding: 24px 0;
   text-align: center;
 }
 
 .footnote {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   line-height: 1.5;
   color: var(--ink-faint);
   margin-top: 12px;
