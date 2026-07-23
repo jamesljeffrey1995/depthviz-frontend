@@ -59,7 +59,11 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
     if (selectedResult) {
       onSelectSuggestion(selectedResult)
     } else {
-      onSearch(query)
+      const trimmed = query.trim()
+      // Guard against an empty/whitespace query — an empty string is a
+      // substring of every saved location name, so passing it through would
+      // match (and navigate to) an arbitrary location in App.handleSearch.
+      if (trimmed) onSearch(trimmed)
     }
   }, [query, onSearch, onSelectSuggestion, selectedResult])
 

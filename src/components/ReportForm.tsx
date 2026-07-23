@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import type { DayForecast, Location } from '../types'
 import type { VisibilityReport } from '../lib/underwaterVisibility'
 import { submitReport } from '../lib/api'
@@ -43,6 +43,12 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
+
+  // Track the post-submit redirect timer so it can be cancelled on unmount —
+  // otherwise navigating away quickly lets it fire onSubmitted against an
+  // unmounted component.
+  const submittedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  useEffect(() => () => clearTimeout(submittedTimer.current), [])
 
   const onVideoResult = useCallback((report: VisibilityReport) => {
     setVideoReport(report)
@@ -118,7 +124,7 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
         } : {}),
       })
       setDone(true)
-      setTimeout(onSubmitted, 2500)
+      submittedTimer.current = setTimeout(onSubmitted, 2500)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to submit')
     } finally {

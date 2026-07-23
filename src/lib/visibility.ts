@@ -39,7 +39,10 @@ function decayScore(dailyMaxes: number[], weights: number[]): number {
 
 export function degToCompass(deg: number): string {
   const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW']
-  return dirs[Math.round(deg / 22.5) % 16]
+  // ((x % 16) + 16) % 16 keeps the index in 0..15 for negative degrees —
+  // a bare `% 16` yields a negative index in JS and would return undefined.
+  const idx = ((Math.round(deg / 22.5) % 16) + 16) % 16
+  return dirs[idx] ?? 'N'
 }
 
 export function getImpact(penalty: number, maxPenalty: number): { label: ImpactLevel; color: string } {
