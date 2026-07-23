@@ -18,7 +18,7 @@
 }
 
 .subtitle {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   color: var(--text);
   opacity: 0.6;
@@ -92,7 +92,7 @@
   top: -10px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 8px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   font-weight: 700;
   background: currentColor;
@@ -106,7 +106,7 @@
   position: absolute;
   top: 6px;
   right: 6px;
-  font-size: 8px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   opacity: 0.5;
   border: 1px solid currentColor;
@@ -116,7 +116,7 @@
 
 /* ── Date labels ── */
 .dayName {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   color: var(--text);
   text-transform: uppercase;
@@ -124,7 +124,7 @@
 }
 
 .dayDate {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   color: var(--text);
   opacity: 0.5;
 }
@@ -146,7 +146,7 @@
 
 /* ── Verdict ── */
 .verdict {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   font-weight: 600;
@@ -171,7 +171,7 @@
 }
 
 .metricLabel {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   color: var(--text);
   opacity: 0.5;
   text-transform: uppercase;
@@ -186,7 +186,7 @@
 }
 
 .metricVal {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   color: var(--text-bright);
   min-width: 0;
   overflow: hidden;
@@ -219,7 +219,7 @@
 
 /* ── Hint ── */
 .hint {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.08em;
   color: var(--text);
   opacity: 0.4;

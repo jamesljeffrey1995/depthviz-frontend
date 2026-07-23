@@ -5,7 +5,7 @@
 
 .tickLabel {
   font-family: var(--font-sans);
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   font-weight: 600;
   fill: var(--face-ink-faint);
   letter-spacing: 0.02em;

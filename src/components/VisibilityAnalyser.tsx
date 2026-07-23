@@ -153,7 +153,7 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
             onDrop={onDrop}
             onClick={() => inputRef.current?.click()}
           >
-            <div className={styles.dropzoneIcon}>🎥</div>
+            <div className={styles.dropzoneIcon} aria-hidden="true">🎥</div>
             <div className={styles.dropzoneTitle}>Drop dive video here</div>
             <div className={styles.dropzoneHint}>or click to browse — MP4, MOV, WebM</div>
             <input

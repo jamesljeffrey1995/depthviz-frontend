@@ -13,7 +13,7 @@
 }
 
 .subtitle {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   opacity: 0.4;
@@ -25,7 +25,7 @@
   border: 1px solid rgba(192, 57, 43, 0.35);
   padding: 12px 14px;
   margin-bottom: 20px;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   line-height: 1.5;
   color: #f0c0b8;
   letter-spacing: 0.04em;
@@ -35,7 +35,7 @@
   color: var(--danger);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   display: block;
   margin-bottom: 4px;
 }
@@ -52,7 +52,7 @@
   border: none;
   color: var(--text);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   padding: 10px 14px;
@@ -81,7 +81,7 @@
   border: 1px solid rgba(14, 124, 134, 0.15);
   color: var(--text);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   padding: 6px 12px;
@@ -105,7 +105,7 @@
   border: 1px solid rgba(14, 124, 134, 0.4);
   color: var(--accent);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -166,7 +166,7 @@
 }
 
 .badge {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   padding: 3px 8px;
@@ -192,7 +192,7 @@
 .cardMeta {
   display: flex;
   gap: 14px;
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   opacity: 0.6;
 }
@@ -206,7 +206,7 @@
   text-align: center;
   padding: 40px;
   opacity: 0.4;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
 }
@@ -217,6 +217,6 @@
   color: var(--danger);
   padding: 12px;
   margin-bottom: 16px;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.05em;
 }

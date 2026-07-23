@@ -568,7 +568,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                   {day.bias_attribution.similar_reports.map((r, i) => (
                     <div key={i} className={styles.debugTableRowDives}>
                       <span className={styles.debugStep} style={{ color: 'rgba(255,255,255,0.6)' }}>
-                        {(() => { const [y,m,d] = r.date.split('-').map(Number); return new Date(y, (m??1)-1, d??1).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) })()}
+                        {(() => { const [y,m,d] = r.date.split('-').map(Number); return new Date(y ?? 1970, (m??1)-1, d??1).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) })()}
                       </span>
                       <span className={styles.debugDetail}>{r.conditions}</span>
                       <span className={styles.debugDelta} style={{ color: 'var(--sev-good-face)' }}>

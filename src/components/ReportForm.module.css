@@ -14,7 +14,7 @@
 }
 
 .subtitle {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   opacity: 0.4;
@@ -25,7 +25,7 @@
 
 .label {
   display: block;
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.25em;
   text-transform: uppercase;
   opacity: 0.5;
@@ -52,14 +52,14 @@
 .textarea { resize: vertical; }
 
 .hint {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   opacity: 0.4;
   margin-top: 6px;
   letter-spacing: 0.05em;
 }
 
 .error {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   color: var(--danger);
   margin-bottom: 12px;
   letter-spacing: 0.08em;
@@ -79,7 +79,7 @@
   border: 1px solid rgba(14, 124, 134, 0.3);
   color: var(--accent);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;

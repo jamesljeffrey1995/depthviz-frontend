@@ -100,7 +100,7 @@
   cursor: pointer;
   transition: all var(--transition-fast);
   font-family: var(--font-sans);
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   font-weight: 600;
   color: var(--ink-dim);
   text-align: center;
