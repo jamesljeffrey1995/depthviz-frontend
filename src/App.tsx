@@ -13,7 +13,7 @@ import { CookieBanner } from './components/CookieBanner'
 import { TopNav } from './components/TopNav'
 import PwaStatus from './components/PwaStatus'
 import {
-  IconHome, IconCompass, IconActivity, IconFish, IconTimer, IconScale, IconUser,
+  IconHome, IconCompass, IconActivity, IconTimer, IconUser,
   IconLock, IconGauge, IconCheck, IconPlus,
 } from './components/icons'
 import { getLocations, createLocation, getMyProfile } from './lib/api'
@@ -66,6 +66,10 @@ const FORECAST_ROUTES = ['/forecast', '/tides', '/report', '/history', '/dispute
  *  pages the website-style top nav groups under "Forecast". Keeps the bottom
  *  tab highlighted while a user is anywhere in that area. */
 const MAP_GROUP_ROUTES = ['/map', '/forecast', '/tides', '/best']
+
+/** Location search belongs only to the dive-planning journey. Keeping it off
+ *  community, training and utility pages gives those screens a clear purpose. */
+const LOCATION_SEARCH_ROUTES = ['/', '/map', '/forecast', '/tides', '/best']
 
 /** Footer labels for each legal page, in display order. */
 const LEGAL_LABELS: Record<LegalPageType, string> = {
@@ -320,6 +324,24 @@ export default function App() {
     </div>
   )
 
+  const locationSearch = (
+    <SearchBar
+      onSearch={handleSearch}
+      onLocate={handleLocate}
+      getSuggestions={async (q) => getLocalSuggestions(q)}
+      onSelectSuggestion={async (r) => {
+        const name = formatLocationName(r)
+        setCurrentLat(r.latitude)
+        setCurrentLon(r.longitude)
+        setCurrentName(name)
+        const matched = findLocationByCoords(r.latitude, r.longitude, locations)
+        setSelectedLocationId(matched?.id ?? null)
+        await searchByCoords(r.latitude, r.longitude, name, matched?.id, units)
+        navigate('/forecast')
+      }}
+    />
+  )
+
   return (
     <ErrorBoundary>
     <div className={styles.container}>
@@ -364,50 +386,41 @@ export default function App() {
         </div>
       )}
 
-      <SearchBar
-        onSearch={handleSearch}
-        onLocate={handleLocate}
-        getSuggestions={async (q) => getLocalSuggestions(q)}
-        onSelectSuggestion={async (r) => {
-          const name = formatLocationName(r)
-          setCurrentLat(r.latitude)
-          setCurrentLon(r.longitude)
-          setCurrentName(name)
-          const matched = findLocationByCoords(r.latitude, r.longitude, locations)
-          setSelectedLocationId(matched?.id ?? null)
-          await searchByCoords(r.latitude, r.longitude, name, matched?.id, units)
-          navigate('/forecast')
-        }}
-      />
+      {currentPath !== '/' && LOCATION_SEARCH_ROUTES.includes(currentPath) && (
+        <div className={styles.locationSearch}>{locationSearch}</div>
+      )}
 
       {error && <div className={styles.error} role="alert">{error}</div>}
 
       {status === 'success' && forecast && FORECAST_ROUTES.includes(currentPath) && (
-        <div className={styles.nav} role="navigation" aria-label="Forecast sections">
+        <div className={styles.forecastNav}>
+          <div className={styles.forecastTabs} role="navigation" aria-label="Forecast views">
+            <button
+              className={`${styles.navBtn} ${currentPath === '/forecast' && !weekView ? styles.navActive : ''}`}
+              onClick={() => { navigate('/forecast'); setWeekView(false) }}
+              aria-current={currentPath === '/forecast' && !weekView ? 'page' : undefined}
+            >
+              Forecast
+            </button>
+            <button
+              className={`${styles.navBtn} ${currentPath === '/forecast' && weekView ? styles.navActive : ''}`}
+              onClick={() => { navigate('/forecast'); setWeekView(true) }}
+              aria-label="Weekly conditions overview"
+              aria-current={currentPath === '/forecast' && weekView ? 'page' : undefined}
+            >
+              Week
+            </button>
+            <button
+              className={`${styles.navBtn} ${currentPath === '/tides' ? styles.navActive : ''}`}
+              onClick={() => navigate('/tides')}
+              aria-current={currentPath === '/tides' ? 'page' : undefined}
+            >
+              Tides
+            </button>
+          </div>
+          <div className={styles.forecastActions} aria-label="Forecast actions">
           <button
-            className={`${styles.navBtn} ${currentPath === '/forecast' && !weekView ? styles.navActive : ''}`}
-            onClick={() => { navigate('/forecast'); setWeekView(false) }}
-            aria-current={currentPath === '/forecast' && !weekView ? 'page' : undefined}
-          >
-            Forecast
-          </button>
-          <button
-            className={`${styles.navBtn} ${currentPath === '/forecast' && weekView ? styles.navActive : ''}`}
-            onClick={() => { navigate('/forecast'); setWeekView(true) }}
-            aria-label="Weekly conditions overview"
-            aria-current={currentPath === '/forecast' && weekView ? 'page' : undefined}
-          >
-            Week
-          </button>
-          <button
-            className={`${styles.navBtn} ${currentPath === '/tides' ? styles.navActive : ''}`}
-            onClick={() => navigate('/tides')}
-            aria-current={currentPath === '/tides' ? 'page' : undefined}
-          >
-            Tides
-          </button>
-          <button
-            className={`${styles.navBtn} ${currentPath === '/report' ? styles.navActive : ''}`}
+            className={`${styles.navBtn} ${styles.navBtnPrimary} ${currentPath === '/report' ? styles.navActive : ''}`}
             onClick={() => handleReportClick()}
             aria-label={!user ? 'Log Dive (sign in required)' : 'Log Dive'}
             aria-current={currentPath === '/report' ? 'page' : undefined}
@@ -451,10 +464,15 @@ export default function App() {
               Report Issue
             </button>
           )}
+          </div>
         </div>
       )}
 
-      <main id="main-content" tabIndex={-1}>
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className={currentPath === '/' ? styles.mainWide : styles.main}
+      >
         <Routes>
           {/* Profile */}
           <Route path="/profile" element={
@@ -506,7 +524,7 @@ export default function App() {
           {/* Home — website landing page (news + quick links) */}
           <Route path="/" element={
             <Suspense fallback={null}>
-              <HomePage />
+              <HomePage locationSearch={locationSearch} />
             </Suspense>
           } />
 
@@ -852,22 +870,13 @@ export default function App() {
           <span>Map</span>
         </button>
         <button
-          className={`${styles.bottomNavBtn} ${currentPath === '/feed' ? styles.bottomNavActive : ''}`}
+          className={`${styles.bottomNavBtn} ${['/feed', '/catches', '/forum', '/news'].some(path => currentPath.startsWith(path)) ? styles.bottomNavActive : ''}`}
           onClick={() => navigate('/feed')}
-          aria-label="Feed"
-          aria-current={currentPath === '/feed' ? 'page' : undefined}
+          aria-label="Community"
+          aria-current={['/feed', '/catches', '/forum', '/news'].some(path => currentPath.startsWith(path)) ? 'page' : undefined}
         >
           <span className={styles.bottomNavIconWrap}><IconActivity className={styles.bottomNavIcon} /></span>
-          <span>Feed</span>
-        </button>
-        <button
-          className={`${styles.bottomNavBtn} ${currentPath === '/catches' ? styles.bottomNavActive : ''}`}
-          onClick={() => navigate('/catches')}
-          aria-label="Catches"
-          aria-current={currentPath === '/catches' ? 'page' : undefined}
-        >
-          <span className={styles.bottomNavIconWrap}><IconFish className={styles.bottomNavIcon} /></span>
-          <span>Catches</span>
+          <span>Community</span>
         </button>
         <button
           className={`${styles.bottomNavBtn} ${currentPath.startsWith('/training') ? styles.bottomNavActive : ''}`}
@@ -877,15 +886,6 @@ export default function App() {
         >
           <span className={styles.bottomNavIconWrap}><IconTimer className={styles.bottomNavIcon} /></span>
           <span>Train</span>
-        </button>
-        <button
-          className={`${styles.bottomNavBtn} ${currentPath === '/weight' ? styles.bottomNavActive : ''}`}
-          onClick={() => navigate('/weight')}
-          aria-label="Weight belt calculator"
-          aria-current={currentPath === '/weight' ? 'page' : undefined}
-        >
-          <span className={styles.bottomNavIconWrap}><IconScale className={styles.bottomNavIcon} /></span>
-          <span>Weight</span>
         </button>
         <button
           className={`${styles.bottomNavBtn} ${currentPath === '/profile' ? styles.bottomNavActive : ''}`}

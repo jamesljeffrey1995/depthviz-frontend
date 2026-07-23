@@ -1,9 +1,26 @@
 .container {
   position: relative;
   z-index: 1;
-  max-width: 720px;
+  width: 100%;
+  max-width: 1080px;
   margin: 0 auto;
   padding: var(--space-lg) var(--space-md) 100px;
+}
+
+.main,
+.locationSearch,
+.forecastNav {
+  width: 100%;
+  max-width: 720px;
+  margin-inline: auto;
+}
+
+.mainWide {
+  width: 100%;
+}
+
+.locationSearch {
+  margin-bottom: 4px;
 }
 
 /* ── Boot screen ── */
@@ -331,12 +348,31 @@
   50%       { opacity: 1; }
 }
 
-/* ── Forecast section sub-nav — a segmented tab row ── */
-.nav {
+/* ── Forecast toolbar — views and actions have separate jobs ── */
+.forecastNav {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-direction: column;
+  gap: 10px;
   margin-bottom: 20px;
+}
+
+.forecastTabs,
+.forecastActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.forecastTabs {
+  width: fit-content;
+  padding: 4px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-full);
+}
+
+.forecastActions {
+  flex-wrap: wrap;
 }
 
 .navBtn {
@@ -349,12 +385,40 @@
   font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 600;
-  /* WCAG 2.5.5 — minimum 44×44 px touch target */
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 14px;
   border-radius: var(--radius-full);
   cursor: pointer;
   transition: all var(--transition-fast);
+}
+
+.forecastTabs .navBtn {
+  border-color: transparent;
+  background: transparent;
+}
+
+.forecastTabs .navActive {
+  background: var(--surface-raised);
+  border-color: var(--surface-border);
+  color: var(--ink);
+  box-shadow: var(--shadow-xs);
+}
+
+.navBtnPrimary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-on);
+}
+
+.navBtnPrimary:hover {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  color: var(--accent-on);
+}
+
+.navBtn:disabled {
+  cursor: default;
+  opacity: 0.72;
 }
 
 .navBtn:hover {
@@ -536,11 +600,38 @@
 /* ── Responsive ── */
 @media (max-width: 480px) {
   .container {
-    padding-top: var(--space-md);
+    padding: 14px 12px 96px;
+  }
+
+  .header {
+    margin-bottom: 18px;
+  }
+
+  .tagline {
+    display: none;
+  }
+
+  .forecastTabs,
+  .forecastActions {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+
+  .forecastTabs::-webkit-scrollbar,
+  .forecastActions::-webkit-scrollbar {
+    display: none;
   }
 
   .navBtn {
+    flex-shrink: 0;
     padding: 0 11px;
     font-size: 12px;
+  }
+
+  .footer {
+    margin-top: 48px;
   }
 }

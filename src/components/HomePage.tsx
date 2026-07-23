@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getNews } from '../lib/api'
 import type { Announcement } from '../types'
@@ -22,19 +23,24 @@ function timeAgo(iso: string): string {
 
 interface QuickLink {
   label: string
+  description: string
   path: string
   icon: typeof IconActivity
 }
 
 const QUICK_LINKS: QuickLink[] = [
-  { label: 'Best visibility', path: '/best', icon: IconCompass },
-  { label: 'Apnea training', path: '/training', icon: IconTimer },
-  { label: 'Activity feed', path: '/feed', icon: IconActivity },
-  { label: 'Catches', path: '/catches', icon: IconFish },
-  { label: 'Weight belt', path: '/weight', icon: IconScale },
+  { label: 'Best visibility', description: 'Compare nearby spots', path: '/best', icon: IconCompass },
+  { label: 'Apnea training', description: 'Build and run tables', path: '/training', icon: IconTimer },
+  { label: 'Community', description: 'See recent dive reports', path: '/feed', icon: IconActivity },
+  { label: 'Catches', description: 'Log what you found', path: '/catches', icon: IconFish },
+  { label: 'Weight belt', description: 'Estimate your weighting', path: '/weight', icon: IconScale },
 ]
 
-export function HomePage() {
+interface HomePageProps {
+  locationSearch: ReactNode
+}
+
+export function HomePage({ locationSearch }: HomePageProps) {
   const navigate = useNavigate()
   const [news, setNews] = useState<Announcement[]>([])
   const [loadingNews, setLoadingNews] = useState(true)
@@ -51,27 +57,44 @@ export function HomePage() {
   return (
     <div className={styles.home}>
       <section className={styles.hero}>
-        <h1 className={styles.heroTitle}>Know before you go in.</h1>
-        <p className={styles.heroLead}>
-          A calibrated underwater-visibility forecast for spearfishers and freedivers —
-          sharpened by reports from divers already in the water at your spot.
-        </p>
-        <div className={styles.heroActions}>
-          <button className={styles.primaryBtn} onClick={() => navigate('/map')}>
-            Check visibility
-            <IconArrowRight aria-hidden="true" />
-          </button>
-          <button className={styles.secondaryBtn} onClick={() => navigate('/forum')}>
-            Join the discussion
-          </button>
+        <div className={styles.heroCopy}>
+          <span className={styles.eyebrow}>Underwater visibility, decoded</span>
+          <h1 className={styles.heroTitle}>Pick the right window to dive.</h1>
+          <p className={styles.heroLead}>
+            Check calibrated visibility, swell and tide conditions for your spot —
+            sharpened by reports from divers already in the water.
+          </p>
+          <ul className={styles.proofPoints} aria-label="DepthViz forecast features">
+            <li>7-day outlook</li>
+            <li>Local dive reports</li>
+            <li>Depth-aware conditions</li>
+          </ul>
+        </div>
+
+        <div className={styles.searchCard}>
+          <div className={styles.searchCardHead}>
+            <div>
+              <span className={styles.searchLabel}>Plan a dive</span>
+              <p>Search a coastal spot or use your current location.</p>
+            </div>
+            <button className={styles.mapLink} onClick={() => navigate('/map')}>
+              Open map
+              <IconArrowRight aria-hidden="true" />
+            </button>
+          </div>
+          {locationSearch}
         </div>
       </section>
 
       <nav className={styles.quickLinks} aria-label="Quick links">
-        {QUICK_LINKS.map(({ label, path, icon: Icon }) => (
+        {QUICK_LINKS.map(({ label, description, path, icon: Icon }) => (
           <button key={path} className={styles.quickLink} onClick={() => navigate(path)}>
             <Icon className={styles.quickLinkIcon} aria-hidden="true" />
-            <span>{label}</span>
+            <span className={styles.quickLinkCopy}>
+              <strong>{label}</strong>
+              <small>{description}</small>
+            </span>
+            <IconArrowRight className={styles.quickLinkArrow} aria-hidden="true" />
           </button>
         ))}
       </nav>
