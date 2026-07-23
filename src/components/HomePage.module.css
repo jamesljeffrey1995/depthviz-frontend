@@ -63,7 +63,7 @@
   background: transparent; color: var(--ink); text-align: left;
 }
 .tool:last-child { border-bottom: 1px solid var(--surface-border); }
-.tool:hover, .newsItem:hover { background: var(--accent-soft); }
+.tool:hover, .newsItem:hover { background: rgba(var(--accent-rgb), .055); }
 .ref { color: var(--ink-faint); font-family: var(--font-mono); font-size: 10px; }
 .tool strong { font-family: var(--font-display); font-size: 16px; font-weight: 600; }
 .description { color: var(--ink-dim); font-size: 13px; line-height: 1.45; }

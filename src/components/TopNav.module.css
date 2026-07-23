@@ -26,8 +26,7 @@
   font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 600;
-  padding: 11px 18px 10px 0;
-  margin-right: 18px;
+  padding: 11px 36px 10px 0;
   cursor: pointer;
   border-radius: 0;
   transition: color var(--transition-fast), background var(--transition-fast);

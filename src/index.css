@@ -48,10 +48,9 @@
   --accent-strong: #58d6dc;
   --accent-soft: rgba(37, 184, 194, 0.09);
   --accent-on: #ffffff;
-  /* Text-on-light variant — --accent itself only clears ~4.2:1 against
-     --surface-sunken, short of AA for small text; use this wherever the
-     accent is a text/link color rather than a button fill or icon stroke. */
-  --accent-text: #58d6dc;
+  /* Brighter cyan for small text and links on the dark instrument surfaces.
+     Keep the base accent for fills and use this token for readable labels. */
+  --accent-text: var(--accent-strong);
 
   /* Severity — "on light" register (chips, badges, factor rows, text on
      --surface/--surface-raised). Safety-relevant; keep distinguishable.
@@ -116,7 +115,7 @@
   --radius-sm: 2px;
   --radius-md: 3px;
   --radius-lg: 4px;
-  --radius-full: 3px;
+  --radius-full: 9999px;
 
   /* ── Motion & elevation — layered cards with real, soft depth. ── */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
