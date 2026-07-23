@@ -1,3 +1,10 @@
+## [1.24.5](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.24.4...v1.24.5) (2026-07-23)
+
+
+### Bug Fixes
+
+* address review comments on CSS tokens and spacing ([f425e74](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/f425e745e3f20418047831f70acea1b7f8c1846b))
+
 ## [1.24.4](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.24.3...v1.24.4) (2026-07-23)
 
 
