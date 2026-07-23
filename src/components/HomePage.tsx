@@ -48,7 +48,11 @@ export function HomePage({ locationSearch }: HomePageProps) {
     <div className={styles.home}>
       <section className={styles.hero}>
         <div>
-          <p className={styles.kicker}>UK coastal dive conditions</p>
+          <div className={styles.systemLine}>
+            <span>DV / FORECAST</span>
+            <span>MODEL AREA 50–62°N</span>
+            <span>7 DAY WINDOW</span>
+          </div>
           <h1 className={styles.heroTitle}>Can I see enough to dive here today?</h1>
           <p className={styles.heroLead}>
             DepthViz estimates underwater visibility for spearfishers and freedivers.
@@ -61,6 +65,10 @@ export function HomePage({ locationSearch }: HomePageProps) {
         </div>
 
         <div className={styles.searchPanel}>
+          <div className={styles.panelCode}>
+            <span>LOCATION INPUT</span>
+            <span>01</span>
+          </div>
           <div className={styles.searchHead}>
             <div>
               <span className={styles.searchLabel}>Start with a place</span>
@@ -76,8 +84,11 @@ export function HomePage({ locationSearch }: HomePageProps) {
 
       <nav className={styles.directory} aria-label="DepthViz tools">
         <div className={styles.directoryHead}>
-          <h2>What do you need to do?</h2>
-          <span>{TOOLS.length} tools</span>
+          <div>
+            <span className={styles.sectionIndex}>OPERATIONS / 02</span>
+            <h2>What do you need to do?</h2>
+          </div>
+          <span>{TOOLS.length} AVAILABLE</span>
         </div>
         {TOOLS.map(({ ref, label, description, path }) => (
           <button key={path} className={styles.tool} onClick={() => navigate(path)}>
