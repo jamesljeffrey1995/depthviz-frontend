@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react'
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react'
 import { Routes, Route, useNavigate, useLocation, useParams } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import { useConditions } from './hooks/useConditions'
@@ -18,6 +18,7 @@ import {
 } from './components/icons'
 import { getLocations, createLocation, getMyProfile } from './lib/api'
 import { encryptCoords } from './lib/spotCrypto'
+import { startDayTransition } from './lib/viewTransition'
 import { formatLocationName } from './types'
 import type { GeocodingResult, Location, ForecastResponse } from './types'
 import type { LegalPageType } from './components/LegalPage'
@@ -100,6 +101,18 @@ export default function App() {
   ] as const).filter(([key]) => serviceStatus[key]?.status === 'down').map(([, label]) => label)
   const { getLocation } = useGeolocation()
   const [selectedDay, setSelectedDay] = useState(0)
+  // Flipping between forecast days is the single most-repeated interaction on
+  // the core decision screen — morph the score card via the View Transitions
+  // API instead of hard-swapping it. See src/lib/viewTransition.ts. Stable
+  // references so the memoized day selectors (ForecastStrip/WeeklyOverview)
+  // aren't re-rendered on every parent render. The week-view variant also
+  // exits week view *inside* the same transition, so both state changes land
+  // in one snapshot rather than the swap hard-cutting after the morph.
+  const selectDay = useCallback((i: number) => startDayTransition(() => setSelectedDay(i)), [])
+  const selectDayFromWeek = useCallback(
+    (i: number) => startDayTransition(() => { setSelectedDay(i); setWeekView(false) }),
+    [],
+  )
   const [locations, setLocations] = useState<Location[]>([])
   const [currentLat, setCurrentLat] = useState<number | null>(null)
   const [currentLon, setCurrentLon] = useState<number | null>(null)
@@ -658,12 +671,12 @@ export default function App() {
                         locationName={forecast.location_name}
                         units={units}
                         selectedIndex={selectedDay}
-                        onSelectDay={(i) => { setSelectedDay(i); setWeekView(false) }}
+                        onSelectDay={selectDayFromWeek}
                       />
                     </Suspense>
                   ) : (
                     <>
-                      <ForecastStrip days={forecast.days} selectedIndex={selectedDay} onSelect={setSelectedDay} />
+                      <ForecastStrip days={forecast.days} selectedIndex={selectedDay} onSelect={selectDay} />
                       {forecast.days[selectedDay] && (
                         <DayDetail
                           day={forecast.days[selectedDay]}
@@ -678,7 +691,7 @@ export default function App() {
                           maxDiveDepth={diveDepth}
                           days={forecast.days}
                           selectedIndex={selectedDay}
-                          onSelectDay={setSelectedDay}
+                          onSelectDay={selectDay}
                         />
                       )}
                       {/* Per-site bathymetry/substrate editor for saved spots (#155) —
