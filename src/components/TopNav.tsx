@@ -10,10 +10,9 @@ interface NavItem {
 
 const ITEMS: NavItem[] = [
   { label: 'Home', path: '/', match: p => p === '/' },
-  { label: 'Forecast', path: '/map', match: p => p === '/map' || p === '/forecast' || p === '/tides' || p === '/best' },
-  { label: 'News', path: '/news', match: p => p.startsWith('/news') },
-  { label: 'Discussions', path: '/forum', match: p => p.startsWith('/forum') },
-  { label: 'Weight Belt', path: '/weight', match: p => p === '/weight' },
+  { label: 'Explore', path: '/map', match: p => p === '/map' || p === '/forecast' || p === '/tides' },
+  { label: 'Best spots', path: '/best', match: p => p === '/best' },
+  { label: 'Community', path: '/feed', match: p => ['/feed', '/catches', '/forum', '/news'].some(prefix => p.startsWith(prefix)) },
   { label: 'Training', path: '/training', match: p => p.startsWith('/training') },
   { label: 'Competitions', path: '/competition', match: p => p === '/competition' },
 ]

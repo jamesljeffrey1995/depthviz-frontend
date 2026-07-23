@@ -112,59 +112,59 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
 
   return (
     <div className={styles.wrapper} ref={containerRef}>
-      <div className={styles.inputRow}>
-        <IconSearch className={styles.inputIcon} aria-hidden="true" />
-        <input
-          className={styles.input}
-          type="text"
-          role="combobox"
-          aria-label="Search for a coastal location"
-          aria-expanded={showSuggestions}
-          aria-autocomplete="list"
-          aria-controls={showSuggestions ? listId : undefined}
-          aria-activedescendant={activeIndex >= 0 ? `suggestion-${activeIndex}` : undefined}
-          value={query}
-          onChange={e => handleInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Enter a coastal location…"
-          autoComplete="off"
-        />
-        {showSuggestions && (
-          <ul
-            id={listId}
-            className={styles.suggestions}
-            role="listbox"
-            aria-label="Location suggestions"
-          >
-            {suggestions.map((r, i) => {
-              const name = formatLocationName(r)
-              return (
-                <li
-                  id={`suggestion-${i}`}
-                  key={i}
-                  className={`${styles.suggestion} ${i === activeIndex ? styles.suggestionActive : ''}`}
-                  role="option"
-                  aria-selected={i === activeIndex}
-                  onClick={() => handleSelect(r)}
-                  onMouseEnter={() => setActiveIndex(i)}
-                >
-                  {name}
-                </li>
-              )
-            })}
-          </ul>
-        )}
-      </div>
-      <div className={styles.buttonRow}>
+      <div className={styles.searchGroup}>
+        <div className={styles.inputRow}>
+          <IconSearch className={styles.inputIcon} aria-hidden="true" />
+          <input
+            className={styles.input}
+            type="text"
+            role="combobox"
+            aria-label="Search for a coastal location"
+            aria-expanded={showSuggestions}
+            aria-autocomplete="list"
+            aria-controls={showSuggestions ? listId : undefined}
+            aria-activedescendant={activeIndex >= 0 ? `suggestion-${activeIndex}` : undefined}
+            value={query}
+            onChange={e => handleInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Search a coastal spot…"
+            autoComplete="off"
+          />
+          {showSuggestions && (
+            <ul
+              id={listId}
+              className={styles.suggestions}
+              role="listbox"
+              aria-label="Location suggestions"
+            >
+              {suggestions.map((r, i) => {
+                const name = formatLocationName(r)
+                return (
+                  <li
+                    id={`suggestion-${i}`}
+                    key={i}
+                    className={`${styles.suggestion} ${i === activeIndex ? styles.suggestionActive : ''}`}
+                    role="option"
+                    aria-selected={i === activeIndex}
+                    onClick={() => handleSelect(r)}
+                    onMouseEnter={() => setActiveIndex(i)}
+                  >
+                    {name}
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </div>
         <button className={styles.btnDive} onClick={handleSubmit} aria-label="Search for this location">
-          <span>Search</span>
+          <span>Show forecast</span>
           <IconArrowRight aria-hidden="true" />
         </button>
-        <button className={styles.btnLocate} onClick={onLocate} aria-label="Use my current GPS location">
-          <IconLocate aria-hidden="true" />
-          <span>Use my location</span>
-        </button>
       </div>
+      <button className={styles.btnLocate} onClick={onLocate} aria-label="Use my current GPS location">
+        <IconLocate aria-hidden="true" />
+        <span>Use my current location</span>
+      </button>
     </div>
   )
 }
