@@ -25,7 +25,7 @@
 /* ── Card ── */
 .card {
   background: var(--ocean-mid);
-  border: 1px solid rgba(0, 201, 255, 0.1);
+  border: 1px solid rgba(14, 124, 134, 0.1);
   border-radius: var(--radius-lg);
   padding: var(--space-md);
   display: flex;
@@ -35,7 +35,7 @@
 }
 
 .card:hover {
-  border-color: rgba(0, 201, 255, 0.25);
+  border-color: rgba(14, 124, 134, 0.25);
 }
 
 .cardTop {
@@ -73,9 +73,9 @@
 }
 
 .publicBadge {
-  background: rgba(0, 201, 255, 0.1);
+  background: rgba(14, 124, 134, 0.1);
   color: var(--accent);
-  border: 1px solid rgba(0, 201, 255, 0.2);
+  border: 1px solid rgba(14, 124, 134, 0.2);
 }
 
 /* ── Today block ── */
@@ -197,7 +197,7 @@
 /* ── View button ── */
 .viewBtn {
   background: transparent;
-  border: 1px solid rgba(0, 201, 255, 0.3);
+  border: 1px solid rgba(14, 124, 134, 0.3);
   color: var(--accent);
   padding: 8px var(--space-sm);
   border-radius: var(--radius-md);
@@ -212,7 +212,7 @@
 }
 
 .viewBtn:hover {
-  background: rgba(0, 201, 255, 0.08);
+  background: rgba(14, 124, 134, 0.08);
   border-color: var(--accent);
 }
 

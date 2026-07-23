@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { formatLocationName } from '../types'
 import type { GeocodingResult } from '../types'
+import { IconSearch, IconLocate, IconArrowRight } from './icons'
 import styles from './SearchBar.module.css'
 
 interface SearchBarProps {
@@ -108,6 +109,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
   return (
     <div className={styles.wrapper} ref={containerRef}>
       <div className={styles.inputRow}>
+        <IconSearch className={styles.inputIcon} aria-hidden="true" />
         <input
           className={styles.input}
           type="text"
@@ -120,7 +122,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
           value={query}
           onChange={e => handleInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Enter coastal location..."
+          placeholder="Enter a coastal location…"
           autoComplete="off"
         />
         {showSuggestions && (
@@ -150,8 +152,14 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
         )}
       </div>
       <div className={styles.buttonRow}>
-        <button className={styles.btnDive} onClick={handleSubmit} aria-label="Search for this location">DIVE ›</button>
-        <button className={styles.btnLocate} onClick={onLocate} aria-label="Use my current GPS location">⊕ USE MY LOCATION</button>
+        <button className={styles.btnDive} onClick={handleSubmit} aria-label="Search for this location">
+          <span>Search</span>
+          <IconArrowRight aria-hidden="true" />
+        </button>
+        <button className={styles.btnLocate} onClick={onLocate} aria-label="Use my current GPS location">
+          <IconLocate aria-hidden="true" />
+          <span>Use my location</span>
+        </button>
       </div>
     </div>
   )

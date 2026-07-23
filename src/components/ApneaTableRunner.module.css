@@ -50,7 +50,7 @@
 .badgeBeginner { color: var(--good); border-color: rgba(26, 138, 90, 0.5); }
 .badgeIntermediate { color: var(--warn); border-color: rgba(212, 133, 10, 0.5); }
 .badgeExpert { color: var(--danger); border-color: rgba(192, 57, 43, 0.5); }
-.badgeType { color: var(--accent); border-color: rgba(0, 201, 255, 0.4); }
+.badgeType { color: var(--accent); border-color: rgba(14, 124, 134, 0.4); }
 
 .actions {
   display: flex;
@@ -77,10 +77,10 @@
 }
 
 .iconBtnAccent {
-  border-color: rgba(0, 201, 255, 0.4);
+  border-color: rgba(14, 124, 134, 0.4);
   color: var(--accent);
 }
-.iconBtnAccent:hover { background: rgba(0, 201, 255, 0.1); }
+.iconBtnAccent:hover { background: rgba(14, 124, 134, 0.1); }
 
 .warning {
   background: rgba(192, 57, 43, 0.12);
@@ -103,7 +103,7 @@
 
 .runnerCard {
   background: rgba(4, 30, 46, 0.75);
-  border: 1px solid rgba(0, 201, 255, 0.2);
+  border: 1px solid rgba(14, 124, 134, 0.2);
   padding: 32px 24px;
   margin-bottom: 16px;
   text-align: center;
@@ -131,7 +131,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-.phaseHold .bigTime { color: var(--accent); text-shadow: 0 0 20px rgba(0, 201, 255, 0.4); }
+.phaseHold .bigTime { color: var(--accent); text-shadow: 0 0 20px rgba(14, 124, 134, 0.4); }
 .phaseRest .bigTime { color: var(--good); }
 .phaseDone .bigTime { color: var(--excellent); }
 
@@ -167,8 +167,8 @@
 }
 
 .btn {
-  background: rgba(0, 201, 255, 0.1);
-  border: 1px solid rgba(0, 201, 255, 0.4);
+  background: rgba(14, 124, 134, 0.1);
+  border: 1px solid rgba(14, 124, 134, 0.4);
   color: var(--accent);
   font-family: var(--font-mono);
   font-size: 11px;
@@ -181,8 +181,8 @@
 }
 
 .btn:hover {
-  background: rgba(0, 201, 255, 0.2);
-  border-color: rgba(0, 201, 255, 0.7);
+  background: rgba(14, 124, 134, 0.2);
+  border-color: rgba(14, 124, 134, 0.7);
 }
 
 .btnSecondary {
@@ -207,7 +207,7 @@
 
 .cyclesTable {
   background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(0, 201, 255, 0.1);
+  border: 1px solid rgba(14, 124, 134, 0.1);
   padding: 20px 24px;
 }
 
@@ -228,7 +228,7 @@
   letter-spacing: 0.2em;
   text-transform: uppercase;
   opacity: 0.4;
-  border-bottom: 1px solid rgba(0, 201, 255, 0.1);
+  border-bottom: 1px solid rgba(14, 124, 134, 0.1);
 }
 
 .tableRow {
@@ -238,13 +238,13 @@
   padding: 10px 0;
   font-size: 13px;
   font-family: var(--font-mono);
-  border-bottom: 1px solid rgba(0, 201, 255, 0.05);
+  border-bottom: 1px solid rgba(14, 124, 134, 0.05);
 }
 
 .tableRow:last-child { border-bottom: none; }
 
 .tableRow.active {
-  background: rgba(0, 201, 255, 0.08);
+  background: rgba(14, 124, 134, 0.08);
   margin: 0 -12px;
   padding: 10px 12px;
 }

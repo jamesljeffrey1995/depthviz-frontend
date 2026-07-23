@@ -1,41 +1,79 @@
 ---
 name: DepthViz
-description: Underwater visibility forecast for spearfishers and freedivers — the field-science station log
+description: Underwater visibility forecast for spearfishers and freedivers — the precision marine instrument
 colors:
-  paper: "#f2ecdd"
-  paper-raised: "#faf6ea"
-  paper-dim: "#e6dcc3"
-  ink: "#2a251e"
-  ink-dim: "#5c5344"
-  ink-faint: "#a89c84"
-  rule: "#c7bb9c"
-  rule-strong: "#8c8064"
-  accent: "#a83b0c"
-  danger: "#a4321f"
-  danger-deep: "#7a2415"
-  warn: "#8f5f08"
-  moderate: "#96470f"
-  good: "#2f6b46"
-  excellent: "#1f5138"
-  decent: "#4f6b3a"
-  blocked: "#675e4e"
+  surface: "#f3f6f8"
+  surface-raised: "#ffffff"
+  surface-sunken: "#e7ecef"
+  surface-border: "#d8dee3"
+  surface-border-strong: "#b9c2c9"
+  ink: "#101820"
+  ink-dim: "#4b5661"
+  ink-faint: "#5e6b78"
+  face: "#0b1622"
+  face-raised: "#142334"
+  face-ink: "#f3f7fa"
+  accent: "#0e7c86"
+  accent-text: "#0d737d"
+  accent-strong: "#0a5f67"
+  sev-blocked: "#646b78"
+  sev-poor: "#bd3a3a"
+  sev-marginal: "#985c16"
+  sev-decent: "#5b722c"
+  sev-good: "#237744"
+  sev-excellent: "#107852"
+  moderate: "#a2571b"
+  danger-deep: "#9b2f2f"
+  sev-blocked-face: "#9ca3af"
+  sev-poor-face: "#ff6b6b"
+  sev-marginal-face: "#ffb454"
+  sev-decent-face: "#d7de6e"
+  sev-good-face: "#63e6a0"
+  sev-excellent-face: "#4cd9b0"
 typography:
+  scale:
+    step-7: "7px"
+    step-8: "8px"
+    step-9: "9px"
+    step-10: "10px"
+    step-11: "11px"
+    step-12: "12px"
+    step-13: "13px"
+    step-14: "14px"
+    step-15: "15px"
+    step-16: "16px"
+    step-17: "17px"
+    step-18: "18px"
+    step-20: "20px"
+    step-22: "22px"
+    step-24: "24px"
+    step-26: "26px"
+    step-28: "28px"
+    step-32: "32px"
+    step-36: "36px"
+    step-38: "38px"
+    step-40: "40px"
+    step-44: "44px"
+    step-48: "48px"
+    step-54: "54px"
+    step-64: "64px"
+    step-80: "80px"
   display:
-    fontFamily: "Allerta Stencil, sans-serif"
-    fontSize: "clamp(52px, 15vw, 88px)"
-    fontWeight: 400
+    fontFamily: "Inter, sans-serif"
+    fontSize: "44px"
+    fontWeight: 800
     lineHeight: 1
-    letterSpacing: "0.08em"
+    letterSpacing: "-0.03em"
   body:
-    fontFamily: "Space Mono, monospace"
-    fontSize: "13px"
+    fontFamily: "Inter, sans-serif"
+    fontSize: "14px"
     fontWeight: 400
     lineHeight: 1.6
-    letterSpacing: "0.05em"
 rounded:
-  sm: "1px"
-  md: "2px"
-  lg: "3px"
+  sm: "8px"
+  md: "12px"
+  lg: "20px"
+  full: "999px"
 spacing:
   xs: "4px"
   sm: "8px"
@@ -46,141 +84,144 @@ spacing:
 components:
   button-primary:
     backgroundColor: "{colors.accent}"
-    textColor: "{colors.paper}"
-    rounded: "{rounded.md}"
-    padding: "12px 22px"
-  verdict-stamp:
-    textColor: "{colors.good}"
-    rounded: "{rounded.md}"
-    padding: "9px 16px"
+    textColor: "#ffffff"
+    rounded: "{rounded.full}"
+    padding: "13px 22px"
+  instrument-gauge:
+    backgroundColor: "{colors.face}"
+    rounded: "{rounded.lg}"
+    padding: "28px 20px 20px"
 ---
 
 # Design System: DepthViz
 
 ## Overview
 
-**Creative North Star: "The Oceanographic Station Log"**
+**Creative North Star: "The Precision Marine Instrument"**
 
-DepthViz reads as a page from a marine research vessel's station log, not a sci-fi dive-computer dashboard. The decay-weighted visibility model is the interface: every screen is structured like a field scientist's data sheet — a station header, a plotted reading, a ruled table of contributing factors — rather than dressed up with glowing dashboard chrome afterward. This replaced the app's original identity outright: a near-black "deep ocean" theme with a cyan glow accent, Bebas Neue display type, and an animated caustics background. That look is the category's rut (the sci-fi-HUD dive-computer aesthetic every visibility/dive app defaults to) and is now evidence/anti-reference only, not a constraint.
+DepthViz reads as a calibrated instrument — the kind a serious diver already trusts their life to — not a weather app with a number on it. The visibility reading is a gauge reading, on a real 0–15m scale with tick marks, a needle position, and a visible confidence band, not a stat tile with a big font. This replaced the app's second identity outright: a warm survey-paper "station log" system (Space Mono, Allerta Stencil, rubber-stamped verdicts, near-square corners) built one redesign prior. That system is now evidence/anti-reference only. Both it and the system before it — a dark "deep ocean" theme with cyan glow — are the category's two ruts: the sci-fi dive-computer HUD and the field-journal cosplay. Neither is where this system lives now.
 
-The palette is Restrained: warm survey-paper neutrals carry the page, and one safety-orange working ink (the color of a grease pencil or a stamp pad) is the only accent, appearing on buttons, active states, and the day-indexing tabs. Verdict and factor severity form a small, functional signal set — not decoration — because a diver scanning for GO/NO-GO information under bright sun needs the color to carry real meaning, the same way a field log's red grease-pencil circle means something specific.
-
-Never let this system drift back toward warm-cream-plus-serif-plus-red-accent as a soft, generic "bookish" rendition — the palette is meant to read as working field-instrument paper (grid rules, stamps, ruled tables), not a cozy stationery aesthetic. Never reintroduce glow/neon shadows; nothing in this system emits light.
+The world comes from the audience's own instruments: a freediver's watch face, a CTD/Secchi depth-profile cast, a marine weather-routing panel — precision-machined, legible under bright sun, restrained. Color strategy is Restrained: a light aluminum-chassis ground carries almost the whole app, one deep-navy "instrument face" panel is the deliberate dark register (the hero reading, the day-strip mini-dials), and one teal accent does the work of buttons, links, and active states. A small severity set (blocked/poor/marginal/decent/good/excellent) is the only other color in the system, and it exists twice — an "on-light" register for chassis surfaces and a brighter "on-face" register for the dark panel — because a single severity color cannot clear WCAG AA in both places at once.
 
 **Key Characteristics:**
-- Survey-paper ground with graphite ruling, not a dark dashboard.
-- One accent (safety orange) carries buttons, active states, and emphasis — restrained, not scattered.
-- Verdicts render as rubber-stamped labels; the visibility number is a plotted reading, not just a stat tile.
-- Space Mono survives from the previous system for tabular data; a stencil display face (Allerta Stencil) replaced Bebas Neue for headers and verdicts.
-- Flat, ruled surfaces throughout — corners are nearly square (1–3px radius), because a logbook page doesn't have rounded cards.
+- Light instrument-chassis ground (cool off-white/pale blue-grey), never a full dark theme.
+- One dark surface, `--face`, reserved for the calibrated reading itself — the hero gauge and the day-strip thumbnails. Nothing else in the app is dark.
+- One teal accent (`--accent` for fills/icons/borders, `--accent-text` for text-on-light — the plain accent measures ~4.2:1 against `--surface-sunken`, short of AA for small text) carries buttons, links, active states.
+- The visibility number is always read off a 270° calibrated arc with real tick marks at 0/5/10/15m — never a bare number, never a generic circular progress ring.
+- Confidence is a literal visual encoding — the arc carries a translucent "uncertainty band" straddling the needle, wide for low-confidence readings and tight for high-confidence ones — plus a text confidence pip, so the encoding is never color-only.
+- One font family (Inter, self-hosted variable, 300–800) does all the work; hierarchy comes from size and weight, not a second display face.
+- Corners are machined-soft: 8/12/20px radii, never square, never fully pill-rounded except genuine pills (chips, nav segments, buttons).
+- Depth is real: soft diffused shadows with offset and blur (`--shadow-card`, `--shadow-lg`, `--shadow-face`), never a flat 1px rule standing in for elevation.
+- Glass appears exactly once, deliberately: `--lens-sheen`, a diagonal gradient overlay on the instrument face reads as light catching a sapphire cover glass. It is not used anywhere else.
 
 ## Colors
 
-The palette is built from one warm paper family, one working accent ink, and a small severity set that must stay distinguishable at a glance — this is a safety-relevant signal, not a decorative choice.
+### Chassis (light — carries almost the whole app)
+- **Surface** (`#f3f6f8`): page ground.
+- **Surface, Raised** (`#ffffff`): cards, inputs, the day-strip tile background.
+- **Surface, Sunken** (`#e7ecef`): recessed fills — metric chips, factor cards, secondary panels.
+- **Surface Border** (`#d8dee3` / `#b9c2c9` strong): hairlines, card borders.
+- **Ink** (`#101820`): primary text, headings, the wordmark.
+- **Ink, Dim** (`#4b5661`): body copy, secondary labels.
+- **Ink, Faint** (`#5e6b78`): tertiary text, placeholders, tick labels. (Darkened from an initial `#8a96a3`, which measured 2.78:1 against `--surface-sunken` — well short of even the 3:1 large-text floor.)
 
-### Primary
-- **Working Ink** (`#a83b0c`, safety orange): the single accent. Buttons, active tab state, focus rings, links, the day-index tab underline. Used sparingly — most of any screen is paper and ink, never accent-tinted chrome.
+### Instrument face (the one dark surface)
+- **Face** (`#0b1622`): the hero gauge panel and day-strip mini-dial background. Nothing else is this color.
+- **Face, Raised** (`#142334`): inset chips within the face, if ever needed.
+- **Face Ink** (`#f3f7fa` / dimmer variants at 62%/36% opacity): text and numerals on the face.
 
-### Neutral
-- **Survey Paper** (`#f2ecdd`): the page ground.
-- **Paper, Raised** (`#faf6ea`): cards and surfaces that sit slightly above the page (the station-log card itself, inputs).
-- **Paper, Dim** (`#e6dcc3`): recessed fills — metric chips, factor cards, secondary panels.
-- **Graphite Ink** (`#2a251e`): primary text, headings, the visibility number.
-- **Ink, Dim** (`#5c5344`): body copy, secondary labels.
-- **Ink, Faint** (`#a89c84`): tertiary text, placeholders, tick labels.
-- **Rule** (`#c7bb9c` / `#8c8064` strong): hairlines, borders, ruled dividers — the grid-paper of the whole system.
+### Accent
+- **Accent** (`#0e7c86`): the single working color. Button fills, icon strokes, borders, focus rings.
+- **Accent, Text** (`#0d737d`): use this instead of `--accent` whenever the accent is a text/link color on a light surface rather than a fill with white text on top — `--accent` alone only clears ~4.2:1 against `--surface-sunken`, short of the 4.5:1 body-text floor.
+
+### Severity — two registers, one meaning
+Both registers encode the same six-step scale (blocked → poor → marginal → decent → good → excellent); which one to use depends on what's behind the text:
+- **On light** (`--sev-*`, e.g. `--sev-good: #237744`): text, chip values, badges, factor bars on `--surface`/`--surface-sunken`/`--surface-raised`. Chosen to clear 4.5:1 against all three.
+- **On face** (`--sev-*-face`, e.g. `--sev-good-face: #63e6a0`): the gauge arc/needle and verdict tag on `--face`. Brighter because the background is near-black; each clears 6.5:1+ there.
+- **Blocked is deliberately neutral grey, not red** — "no dive" (unsafe sea state / a hard gate) reads differently from "poor visibility." This is inherited from the system before and is load-bearing: don't let `blocked` drift toward the danger-red family.
 
 ### Named Rules
-**The One Ink Rule.** Only the accent orange carries brand emphasis. Nothing else is "brand-colored" — severity colors are functional signals, not decoration, and must never be reached for as a second accent.
+**The Two-Register Rule.** Never use an on-light severity color against `--face`, or an on-face color against a light surface — both were tuned for one specific background and will fail contrast (or just look washed out) on the other.
 
-### Severity signal set (functional, not decorative)
-- **Good** (`#2f6b46`) / **Excellent** (`#1f5138`): field-green stamp ink for safe/favorable verdicts and "no impact" factors.
-- **Decent** (`#4f6b3a`): sage-olive, the step between marginal and good.
-- **Warn** (`#8f5f08`) / **Moderate** (`#96470f`): ochre through burnt-umber for caution states.
-- **Danger** (`#a4321f`) / **Danger, Deep** (`#7a2415`): oxblood red for poor/severe conditions.
-- **Blocked** (`#675e4e`): muted neutral ink for "STAY ASHORE" / no-data states — deliberately *not* red, preserving the original product's distinction between "unsafe" and "no reading available."
-
-**The Signal, Not Decoration Rule.** These six severity tones exist to be scanned in under a second by someone deciding whether to dive. Never introduce a seventh, never soften them toward the neutral palette, and never use them for anything that isn't an actual severity state.
+**The One Accent, Two Weights Rule.** `--accent` and `--accent-text` are the same hue at two different lightness steps, not two different colors — treat them as one accent with a text-safe variant, not a second brand color.
 
 ## Typography
 
-**Display Font:** Allerta Stencil (self-hosted TTF; no system fallback attempts a stencil look, so the stack falls back to plain `sans-serif`)
-**Body/Data Font:** Space Mono (carried over from the previous system)
+**Face:** Inter (self-hosted variable font, weights 300–800; `@fontsource` registry installs can't complete in this environment, so the woff2 is bundled directly — see `src/assets/fonts/Inter-Variable.woff2`).
 
-**Character:** A field-instrument pairing — Space Mono for anything tabular or data-driven (numbers, labels, factor tables), Allerta Stencil for anything that should read as stamped or marked: verdicts, the wordmark, section headers. The stencil face is load-bearing for the "rubber stamp" verdict treatment; do not swap it for a solid-cut display face, the visible gaps are the point.
+**Character:** One workhorse grotesque doing every job — Operate-mode UI is well served by a system-adjacent sans, and a second "display" face here would be reaching for a point-of-view typeface this surface doesn't need. Hierarchy is entirely size/weight/color: the hero numeral is 44px/800 with tight (-0.03em) tracking and `tabular-nums`; section titles are 20px/800; body is 13–15px/400; labels/captions are 10–12px/600, often uppercase with slight tracking for eyebrow-style metadata (station label, factor names, chip labels).
 
-### Hierarchy
-- **Display** (400, `clamp(52px, 15vw, 88px)`, line-height 1): the visibility number itself.
-- **Headline** (400, `clamp(44px, 10vw, 72px)`): the DEPTHVIZ wordmark, hero titles.
-- **Title** (700, 15–20px): station name, tile labels, card titles — set in Space Mono bold, not the display face.
-- **Body** (400, 12–14px, line-height 1.6–1.7): paragraph copy, summaries.
-- **Label** (400, 7–11px, letter-spacing 0.1–0.3em, uppercase): every small caption, chip label, and section eyebrow — this uppercase-tracked label voice is used constantly and is part of the system's "field data sheet" register.
+**Numerals:** `tabular-nums` on every metric value (the hero reading, factor values, metric chips, debug panel) so columns of numbers align and don't jitter as digits change.
 
 ### Real scale in use
-This is a dense, tabular Operate surface (station log, factor tables, metric chips), so the label/body range above isn't two sizes — it's a working scale with roughly a 1px step between adjacent tiers, used deliberately for tables where several nested levels of emphasis sit close together (a factor card's name vs. its value vs. its note vs. its impact tag, for example): `6, 7, 7.5, 8, 8.5, 9, 9.5, 10, 11, 12, 14, 15, 16, 18, 20, 22, 24, 28, 36, 48px`, plus the two fluid clamps above. Most of this scale predates this redesign pass and was carried over unchanged. Treat it as the documented ramp — a value landing on one of these steps is on-system, not drift.
+Like the previous system, this isn't two sizes — it's a working scale used deliberately across a dense, tabular Operate surface (metric chips, factor cards, debug tables) where several nested levels of emphasis sit close together: `7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 22, 24, 26, 28, 32, 36, 38, 40, 44px`, plus the fluid hero clamp. A value landing on one of these steps is on-system, not drift.
 
 ### Named Rules
-**The Stamped Verdict Rule.** Any GO/NO-GO-style verdict (STAY ASHORE → EXCELLENT) renders as a bordered, slightly rotated stamp in the display face and its severity color — never as plain colored text. This is the system's signature device.
+**The One-Face Rule.** Do not introduce a second family for "hierarchy" or a "signature" moment — the previous system's stencil/mono pairing is exactly the device this system replaced. Weight and size carry hierarchy here.
 
 ## Layout
 
-Single-column, max-width ~680px container, generous top padding, content-first. Density is deliberately high on the flagship forecast screen (a real field log is dense) but toggles exist for secondary detail ("Conditions", "Show detailed breakdown") so the glanceable core — verdict stamp, big number, ruled bar — stays uncluttered by default. Mobile gets a fixed bottom tab bar; ≥481px width swaps to a website-style top nav instead of duplicating both.
+Single-column, max-width ~720px container, mobile-first. Density is high on the flagship forecast screen by design (a real instrument face is a dense readout) but the "Conditions" and "Show detailed breakdown" toggles keep the glanceable core — the instrument face, the day strip, the verdict — uncluttered by default. Mobile gets a floating rounded bottom tab bar (`8px` inset on all sides, not flush to the viewport edge); ≥481px width swaps to a pill-segmented top nav instead of duplicating both.
 
 ## Elevation & Depth
 
-Flat by design — this is a paper world, not a glass/glow one. Depth comes from ruled borders and tonal paper steps (paper → paper-raised → paper-dim), not shadows. One shadow token exists (`--shadow-card`, a barely-there `0 1px 3px rgba(42,37,30,0.14)`) for the rare card that needs to lift off the page a touch; nothing glows.
+Real, soft, diffused shadows — this is a layered-card system, not a flat one. `--shadow-card` (cards resting on the chassis), `--shadow-lg` (floating elements: the bottom nav, modals, the cookie banner), `--shadow-face` (the instrument panel itself, which needs to read as a physical object sitting slightly proud of the page). Every shadow has an offset and blur; there is no flat `0 0 0` colored halo anywhere in the system.
 
 ### Named Rules
-**The No-Glow Rule.** The previous system used cyan glow shadows (`box-shadow: 0 0 20px rgba(0,201,255,.15)`) throughout. None of that survives. If something needs emphasis, give it a heavier rule or the accent color — never a glow.
+**The No-Flat-Shadow Rule.** A shadow token always carries a real offset + blur radius. A shadow that's just a tinted 1px outline is a decorative habit, not elevation.
 
-### Documented exceptions (intentionally outside the palette above)
-- **Admin debug/trace panel** (`DayDetail.module.css` `.debugPanel` and children): stays dark — near-black background, white/red-tinted text (`rgba(255,130,130,*)`, `rgba(255,80,80,*)`) — deliberately, as a "photostat/carbon-copy insert clipped into the log" rather than another paper surface. It's admin-only and reads as a distinct system-data overlay, not part of the diver-facing world. Don't migrate it to the paper palette; don't extend its dark treatment anywhere else.
-- **Print stylesheet** (`index.css` `@media print`): forces plain `#111` text on white, ignoring every token above. Standard print-safe override, unrelated to the visual identity.
+### Documented exceptions
+- **Admin debug/trace panel** (`DayDetail.module.css` `.debugPanel` and children): reuses `--face` deliberately, reading as a telemetry printout clipped into an otherwise light UI — admin-only, never diver-facing. Its positive/negative delta values (the penalty waterfall, KNN bias) use the on-face severity tokens (`--sev-poor-face`, `--sev-good-face`); its general chrome — borders, muted labels, table rules — keeps its own ad-hoc off-white/red-tinted rgba tones inherited unchanged from the system before, which is fine precisely because this panel is exempt from the main palette by design.
+- **Print stylesheet** (`index.css` `@media print`): forces plain `#111` on white, ignoring every token above. Standard print-safe override.
 
 ## Shapes
 
-Corners are almost square: 1–3px radius across the whole scale (`--radius-sm/md/lg`). Borders are 1px hairlines in `--rule`, with `--rule-strong` for active/hover states. The signature shape is the verdict stamp: a double-ruled rectangle (an outer 3px border plus an inset 1px border at 55% opacity), rotated -3°, in the severity color.
+Corners are machined-soft: `--radius-sm` (8px) for small chips/inputs, `--radius-md` (12px) for cards, `--radius-lg` (20px) for the hero instrument face, `--radius-full` for pills (buttons, nav segments, the day-strip verdict, badges). Borders are 1px hairlines in `--surface-border`, `--surface-border-strong` for hover/active. The signature shape is the **instrument gauge**: a 270° calibrated arc (135°–405°, a 90° gap centered at the bottom) with real tick marks at 0/5/10/15m, a fill arc in the severity-face color, and an optional translucent confidence band straddling the needle position.
 
 ## Components
 
+### Instrument Gauge (signature component)
+`src/components/InstrumentGauge.tsx`. Renders as a large version (216px) inside the DayDetail hero face, and a compact version (56px, no ticks) inside each ForecastStrip day tile. The fill arc position is always the real value on a 0–15m scale; the confidence band width is a real encoding of `high`/`medium`/`low`/`none` confidence (derived from `bias_attribution.knn.confidence`), not decoration. Never repurpose this component as a generic "progress ring" for unrelated data — it is specifically a calibrated 0–15m visibility scale.
+
 ### Buttons
-- **Shape:** 2px radius, 1px border.
-- **Primary:** `--accent` background, `--paper` text (never dark ink on the accent — the accent is mid-value, not bright, so it needs light text for contrast).
-- **Secondary/Ghost:** transparent or `--paper-raised` background, `--accent` text, `--rule`/accent-alpha border.
-- **Hover/Focus:** border darkens to `--rule-strong` or full accent; focus-visible is always a 2px solid accent outline.
+- **Shape:** full pill (`--radius-full`) for primary/secondary actions; `--radius-md` for inline form buttons.
+- **Primary:** `--accent` background, white text.
+- **Secondary/Ghost:** `--surface-raised` or transparent background, `--surface-border` border, `--ink-dim` text.
+- **Focus:** always a 2px solid accent outline, `outline-offset: 2px`.
 
-### Verdict Stamp (signature component)
-A bordered box in the display face, severity-colored via `currentColor`, rotated -3°, with a double-ruled border (outer 3px + inset 1px at 0.55 opacity). This is the system's one deliberately "designed" flourish — everything else is quiet.
+### Cards
+- **Corner style:** `--radius-md` (12px) standard, `--radius-lg` (20px) for the hero face.
+- **Background:** `--surface-raised` for primary cards, `--surface-sunken` for recessed/secondary panels (metric chips, factor cards, water-quality cards).
+- **Border:** 1px `--surface-border`.
+- **Shadow:** `--shadow-card` on primary cards; recessed panels use border only, no shadow.
 
-### Cards / Containers
-- **Corner style:** 0–3px radius, effectively square.
-- **Background:** `--paper-raised` for primary cards, `--paper-dim` for recessed/secondary panels.
-- **Border:** 1px `--rule`.
-- **Shadow:** none, or `--shadow-card` only on the primary station card.
-
-### Inputs / Fields
-- **Style:** `--paper-raised` background, 1px `--rule` border, `--ink` text.
-- **Focus:** 2px solid accent outline (no glow).
+### Inputs
+- **Style:** `--surface-sunken` or `--surface-raised` background, 1px `--surface-border`, `--ink` text.
+- **Focus:** border shifts to `--accent`, optional `0 0 0 3px` accent-soft glow ring (the search input) or a plain 2px accent outline (everything else).
 
 ### Navigation
-- **Top/section nav:** small uppercase labels (10px, 0.2em tracking) in bordered paper tabs; active state gets an accent background wash + accent border.
-- **Bottom tab bar (mobile only):** fixed, translucent paper background with blur, accent color for the active icon/label; hidden ≥481px in favor of the top nav.
-- **Day-index strip (signature nav):** the multi-day forecast selector reads as logbook index tabs — paper-raised cards with a ruled bottom border that becomes an accent underline when active.
+- **Top nav (≥481px):** a single pill-segmented control (`--surface-sunken` track, `--accent` fill on the active segment, white text) — not a row of underlined links.
+- **Bottom tab bar (mobile only):** floating, rounded (`--radius-lg`), inset 8px from every edge, translucent white + blur, `--accent`-soft pill behind the active icon. Hidden ≥481px.
+- **Day-index strip (signature nav):** each day is a `--surface-raised` card containing a compact instrument dial (dark `--face` disc, mini gauge arc, numeral) plus a verdict line below in the on-light severity color.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** treat the accent as a working ink, not a brand color to splash around — one accent, used with restraint (buttons, active states, the stamp's rare use elsewhere).
-- **Do** keep severity colors distinguishable and consistent everywhere they appear (verdict stamps, factor bars, chips) — they're safety information.
-- **Do** use Space Mono for anything tabular or numeric; reserve Allerta Stencil for verdicts, the wordmark, and major section headers.
-- **Do** keep corners nearly square and depth flat — the paper/field-log identity depends on it.
+- **Do** keep the accent to one hue; reach for `--accent-text` rather than a second color when `--accent` fails contrast as text.
+- **Do** keep severity colors distinguishable and correctly registered (on-light vs on-face) everywhere they appear — they're safety information.
+- **Do** carry the calibrated-gauge language (real ticks, a real scale, a real confidence encoding) anywhere a "how much / how confident" reading needs a hero treatment — it's the system's device, not a one-off widget.
+- **Do** use `tabular-nums` on any numeral that updates or sits in a column with others.
 
 ### Don't:
-- **Don't** reintroduce glow shadows, neon cyan, or the old `--ocean-*` dark theme — those are anti-reference only.
-- **Don't** let the palette drift toward a soft cream-and-serif "cozy stationery" look — this is working field-instrument paper, not a greeting card.
-- **Don't** use ink-on-accent text combinations (both are mid-to-dark values now; accent needs light `--paper` text, not dark `--ink`).
-- **Don't** treat the verdict stamp as a generic badge — it's the signature device and should stay a bordered, rotated, severity-colored stamp, not a pill or plain colored text.
+- **Don't** introduce a second display typeface "for hierarchy" — sizing and weight carry it.
+- **Don't** use a colored `border-left`/`border-right` accent bar on cards or callouts — alert/callout states get a tinted background + border, not a stripe (removed from `KelpVisibilityNote` and `SatelliteImageryCard` in this pass, which both had it).
+- **Don't** reintroduce the near-square 1–3px corners or the stamped/rotated verdict badge from the previous system, or the dark-theme-plus-neon-cyan system before that — both are anti-reference only.
+- **Don't** treat the instrument gauge as a decorative progress ring — every pixel of the arc maps to a real value.
 
 ## Rollout status
 
-This pass replaced the global tokens (colors, type, radii, shadows) app-wide — every screen inherits paper/ink/accent automatically through existing CSS custom properties — and fully rebuilt the flagship forecast screen (station header, verdict stamp, ruled bar, factor tables) plus the shell chrome (header, nav, bottom bar) and every screen a first-time visitor sees before reaching the forecast (home, search bar, cookie banner). Deeper secondary screens (forum, news composer/admin panels, apnea tables, admin ML charts, map popups) inherited the token retheme automatically but keep their original *structure* — a few of them (Forum/News composer inputs, several `background: var(--accent)` badges) needed a targeted contrast fix where the old dark-on-dark or light-on-light pairing broke under the new palette; those are fixed. Full compositional rework of those secondary screens (bringing them to the same "station log" structural language as the flagship) is follow-up work, not done in this pass.
+This pass replaced the global tokens (colors, type, radii, shadows, the self-hosted font) app-wide, and fully rebuilt the flagship path: the app shell (header, top nav, bottom nav, footer, loading/empty states), Home, Search, the day-index strip, the full forecast detail screen (instrument-face hero, metric chips, algae/water-quality/turbidity/resuspension/river-discharge cards, factor grid, admin debug panel), the auth modal, and the cookie banner. A new hand-authored icon set (`src/components/icons.tsx`, Lucide-style 24×24 line icons) replaced emoji/unicode glyphs across all of the above — a `lucide-react` dependency was attempted first but couldn't install in this environment (see below).
+
+Every other component in the app (forum, news, apnea tables, catches, admin panels, map/spot popups, friends, profile, etc.) inherited the new tokens automatically through the same CSS custom properties, plus a mechanical pass that replaced hardcoded legacy hex/rgba literals (the old paper-orange accent, the older cyan-glow dark-theme remnants, and the old severity hex values) with their new equivalents across roughly 40 files — so nothing in the app still renders the old palette, even where structure wasn't touched. Full compositional rework of those secondary screens to the instrument-panel structural language (not just its colors) is follow-up work, not done in this pass.
+
+**Environment note:** this sandbox's npm install is broken by an unrelated root-owned leftover package (`node_modules/@fontsource/bebas-neue`) that any `npm install` tries to reconcile and fails on with EACCES. Both the font (Inter) and the icons were sourced/authored to route around this rather than fix it, since it's outside this task's scope — a real dev environment should have no trouble running `npm install @fontsource-variable/inter lucide-react` if that's preferred going forward.

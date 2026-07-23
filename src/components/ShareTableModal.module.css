@@ -9,7 +9,7 @@
 
 .modal {
   background: var(--ocean-mid);
-  border: 1px solid rgba(0, 201, 255, 0.2);
+  border: 1px solid rgba(14, 124, 134, 0.2);
   padding: 32px 28px;
   width: 100%; max-width: 380px;
   position: relative;
@@ -49,7 +49,7 @@
 
 .qrCanvas {
   /* White quiet zone is drawn into the canvas; the border just frames it. */
-  border: 1px solid rgba(0, 201, 255, 0.2);
+  border: 1px solid rgba(14, 124, 134, 0.2);
 }
 
 .qrFallback {
@@ -76,22 +76,22 @@
 .linkInput {
   flex: 1; min-width: 0;
   background: rgba(10, 61, 92, 0.3);
-  border: 1px solid rgba(0, 201, 255, 0.2);
+  border: 1px solid rgba(14, 124, 134, 0.2);
   color: var(--text); font-family: var(--font-mono); font-size: 11px;
   padding: 10px 12px; outline: none;
   text-overflow: ellipsis;
 }
-.linkInput:focus { border-color: rgba(0, 201, 255, 0.5); }
+.linkInput:focus { border-color: rgba(14, 124, 134, 0.5); }
 
 .copyBtn {
-  background: rgba(0, 201, 255, 0.12);
-  border: 1px solid rgba(0, 201, 255, 0.4);
+  background: rgba(14, 124, 134, 0.12);
+  border: 1px solid rgba(14, 124, 134, 0.4);
   color: var(--accent); font-family: var(--font-mono);
   font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
   padding: 10px 14px; cursor: pointer; transition: all 0.15s;
   white-space: nowrap;
 }
-.copyBtn:hover { background: rgba(0, 201, 255, 0.22); }
+.copyBtn:hover { background: rgba(14, 124, 134, 0.22); }
 .copyBtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .shareBtn {

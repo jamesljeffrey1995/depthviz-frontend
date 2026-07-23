@@ -8,7 +8,22 @@ import { VisTrendChart } from './VisTrendChart'
 import { SwellChart } from './SwellChart'
 import { KelpVisibilityNote } from './KelpVisibilityNote'
 import { SatelliteImageryCard } from './SatelliteImageryCard'
+import { InstrumentGauge, type GaugeConfidence } from './InstrumentGauge'
+import {
+  IconChevronDown, IconChevronUp, IconAlertTriangle,
+  IconThermometer, IconWaves, IconCompass, IconWind, IconDroplet,
+} from './icons'
 import styles from './DayDetail.module.css'
+
+/** Confidence signal for the gauge's uncertainty band — derived from the
+ *  same local-bias attribution the AI-correction note already surfaces, so
+ *  the dial's band width and the text note never disagree. */
+function gaugeConfidence(day: DayForecast): GaugeConfidence {
+  if (day.vis_corrected == null) return 'none'
+  const c = day.bias_attribution?.knn?.confidence
+  if (c === 'high' || c === 'medium' || c === 'low') return c
+  return 'none'
+}
 
 interface Props {
   day: DayForecast
@@ -38,38 +53,38 @@ function defaultConditionsOpen(): boolean {
 }
 
 function getTurbidity(penalty: number): { label: string; color: string; spm: string; description: string } {
-  if (penalty < 0.3)  return { label: 'Clear',        color: '#2f6b46', spm: '< 2 mg/l',   description: 'Low sediment — minimal impact on visibility' }
-  if (penalty < 1.0)  return { label: 'Slight haze',  color: '#8f5f08', spm: '2–5 mg/l',   description: 'Some particulates — slight reduction in viz' }
-  if (penalty < 2.0)  return { label: 'Turbid',       color: '#96470f', spm: '5–15 mg/l',  description: 'Elevated sediment — noticeable viz reduction' }
-  if (penalty < 3.5)  return { label: 'Very turbid',  color: '#a4321f', spm: '15–50 mg/l', description: 'High sediment load — likely post-swell resuspension' }
-  return               { label: 'Extreme turbidity',   color: '#7a2415', spm: '> 50 mg/l',  description: 'Storm/estuary levels — severe viz impact' }
+  if (penalty < 0.3)  return { label: 'Clear',        color: '#237744', spm: '< 2 mg/l',   description: 'Low sediment — minimal impact on visibility' }
+  if (penalty < 1.0)  return { label: 'Slight haze',  color: '#985c16', spm: '2–5 mg/l',   description: 'Some particulates — slight reduction in viz' }
+  if (penalty < 2.0)  return { label: 'Turbid',       color: '#a2571b', spm: '5–15 mg/l',  description: 'Elevated sediment — noticeable viz reduction' }
+  if (penalty < 3.5)  return { label: 'Very turbid',  color: '#bd3a3a', spm: '15–50 mg/l', description: 'High sediment load — likely post-swell resuspension' }
+  return               { label: 'Extreme turbidity',   color: '#9b2f2f', spm: '> 50 mg/l',  description: 'Storm/estuary levels — severe viz impact' }
 }
 
 function getAirTempSeverity(temp: number): { color: string; note: string | null } {
-  if (temp < 4)  return { color: '#a4321f', note: 'fog risk' }
-  if (temp < 10) return { color: '#8f5f08', note: null }
-  return { color: '#2f6b46', note: null }
+  if (temp < 4)  return { color: '#bd3a3a', note: 'fog risk' }
+  if (temp < 10) return { color: '#985c16', note: null }
+  return { color: '#237744', note: null }
 }
 
 function getSeaTempSeverity(temp: number): { color: string; note: string | null } {
-  if (temp > 20) return { color: '#a4321f', note: 'bloom risk' }
-  if (temp > 15) return { color: '#8f5f08', note: 'algae risk' }
-  return { color: '#2f6b46', note: null }
+  if (temp > 20) return { color: '#bd3a3a', note: 'bloom risk' }
+  if (temp > 15) return { color: '#985c16', note: 'algae risk' }
+  return { color: '#237744', note: null }
 }
 
 function getHumiditySeverity(humidity: number): { color: string; note: string | null } {
-  if (humidity > 94) return { color: '#a4321f', note: null }
-  if (humidity > 88) return { color: '#8f5f08', note: null }
-  return { color: '#2f6b46', note: null }
+  if (humidity > 94) return { color: '#bd3a3a', note: null }
+  if (humidity > 88) return { color: '#985c16', note: null }
+  return { color: '#237744', note: null }
 }
 
 function getRiskColor(level: string): string {
   switch (level) {
-    case 'none': return '#2f6b46'
-    case 'low':  return '#8f5f08'
-    case 'moderate': return '#96470f'
-    case 'high': return '#a4321f'
-    default: return '#2f6b46'
+    case 'none': return '#237744'
+    case 'low':  return '#985c16'
+    case 'moderate': return '#a2571b'
+    case 'high': return '#bd3a3a'
+    default: return '#237744'
   }
 }
 
@@ -158,7 +173,6 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
   const trendDays = days && days.length > 1 ? days : null
   const summary = trendDays ? buildVisSummary(trendDays) : ''
   const vis = day.vis_corrected ?? day.vis_estimate
-  const pct = (vis / 15) * 100
   const dateLabel = new Date(day.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
 
   const waterQuality = day.nutrient_factor != null ? getWaterQuality(day.nutrient_factor) : null
@@ -196,6 +210,8 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
     return `${parts.join(' & ')} — surface mixing may reduce visibility at ${maxDiveDepth}m more than the forecast reflects`
   })() : null
 
+  const confidence = gaugeConfidence(day)
+
   return (
     <div className={styles.card}>
       <div className={styles.stationHeader}>
@@ -207,10 +223,28 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
         {day.is_forecast && <div className={styles.forecastBadge}>Forecast</div>}
       </div>
 
-      <div className={styles.readingRow}>
-        <div className={styles.visBlock}>
-          <div className={`${styles.visNumber} ${styles[day.color_class]}`}>{vis.toFixed(1)}</div>
-          <div className={styles.visUnit}>metres est. visibility</div>
+      {/* The instrument face — the signature reading. Everything about this
+          panel is a real calibrated value: the arc position is the metres
+          reading against a 0–15m scale, the band width is model confidence,
+          not decoration. */}
+      <div className={styles.face}>
+        <div className={styles.faceSheen} aria-hidden="true" />
+        <InstrumentGauge
+          value={vis}
+          color={`var(--sev-${day.color_class}-face)`}
+          confidence={confidence}
+          size={216}
+        >
+          <div className={styles.reading}>
+            <div className={styles.visNumber}>{vis.toFixed(1)}</div>
+            <div className={styles.visUnit}>metres visibility</div>
+          </div>
+        </InstrumentGauge>
+
+        <div className={styles.faceFooter}>
+          <div className={`${styles.verdictTag} ${styles[`verdict_${day.color_class}`]}`}>
+            {day.verdict}
+          </div>
           {day.vis_corrected !== null && (
             <div className={styles.correctedNote}>
               AI-corrected
@@ -219,23 +253,14 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                   {' '}{day.vis_corrected_offset >= 0 ? '+' : ''}{(Math.round(day.vis_corrected_offset * 10) / 10).toFixed(1)}m
                 </span>
               )}
-              {' '}({reportCount} reports)
+              {' '}&middot; {reportCount} report{reportCount !== 1 ? 's' : ''}
               {day.bias_attribution && day.bias_attribution.knn && day.bias_attribution.knn.confidence !== 'insufficient_data' && (
-                <span className={styles.correctedOffset} style={{
-                  color: day.bias_attribution.knn.confidence === 'high' ? '#2f6b46'
-                    : day.bias_attribution.knn.confidence === 'medium' ? '#8f5f08'
-                    : '#a4321f',
-                  marginLeft: 4,
-                }}>
-                  {day.bias_attribution.knn.confidence} conf.
+                <span className={`${styles.confPip} ${styles[`conf_${day.bias_attribution.knn.confidence}`]}`}>
+                  {day.bias_attribution.knn.confidence} confidence
                 </span>
               )}
             </div>
           )}
-        </div>
-
-        <div className={`${styles.stamp} ${styles[`stamp_${day.color_class}`]}`}>
-          {day.verdict}
         </div>
       </div>
 
@@ -252,15 +277,6 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
         <SwellChart days={trendDays} selectedIndex={selectedIndex} onSelect={onSelectDay} units={units} />
       )}
 
-      <div className={styles.barContainer}>
-        <div className={styles.barLabels}>
-          <span>0m</span><span>5m</span><span>10m</span><span>15m</span>
-        </div>
-        <div className={styles.barTrack}>
-          <div className={`${styles.barFill} ${styles[`bg_${day.color_class}`]}`} style={{ width: `${pct}%` }} />
-        </div>
-      </div>
-
       {/* Conditions — secondary metrics, collapsed on mobile */}
       <button
         className={styles.toggleConditions}
@@ -269,53 +285,74 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
         aria-label={showConditions ? 'Hide conditions' : 'Show conditions'}
       >
         Conditions
-        <span className={styles.toggleArrow} aria-hidden="true">{showConditions ? ' ▲' : ' ▼'}</span>
+        {showConditions ? <IconChevronUp className={styles.toggleArrow} aria-hidden="true" /> : <IconChevronDown className={styles.toggleArrow} aria-hidden="true" />}
       </button>
 
       {showConditions && (
         <div className={styles.metricsBar}>
-          <div className={styles.metricChip} style={{ borderColor: `${airSev.color}40` }}>
-            <div className={styles.metricChipLabel}>Air Temp</div>
-            <div className={styles.metricChipValue} style={{ color: airSev.color }}>{day.air_temp.toFixed(1)}°C</div>
-            {airSev.note && <div className={styles.metricChipNote} style={{ color: airSev.color }}>{airSev.note}</div>}
+          <div className={styles.metricChip}>
+            <IconThermometer className={styles.metricChipIcon} style={{ color: airSev.color }} aria-hidden="true" />
+            <div className={styles.metricChipBody}>
+              <div className={styles.metricChipLabel}>Air Temp</div>
+              <div className={styles.metricChipValue} style={{ color: airSev.color }}>{day.air_temp.toFixed(1)}°C</div>
+              {airSev.note && <div className={styles.metricChipNote} style={{ color: airSev.color }}>{airSev.note}</div>}
+            </div>
           </div>
           {seaSev && day.sea_temp != null && (
-            <div className={styles.metricChip} style={{ borderColor: `${seaSev.color}40` }}>
-              <div className={styles.metricChipLabel}>Sea Temp</div>
-              <div className={styles.metricChipValue} style={{ color: seaSev.color }}>{day.sea_temp.toFixed(1)}°C</div>
-              {seaSev.note && <div className={styles.metricChipNote} style={{ color: seaSev.color }}>{seaSev.note}</div>}
+            <div className={styles.metricChip}>
+              <IconThermometer className={styles.metricChipIcon} style={{ color: seaSev.color }} aria-hidden="true" />
+              <div className={styles.metricChipBody}>
+                <div className={styles.metricChipLabel}>Sea Temp</div>
+                <div className={styles.metricChipValue} style={{ color: seaSev.color }}>{day.sea_temp.toFixed(1)}°C</div>
+                {seaSev.note && <div className={styles.metricChipNote} style={{ color: seaSev.color }}>{seaSev.note}</div>}
+              </div>
             </div>
           )}
-          <div className={styles.metricChip} style={{ borderColor: '#a83b0c40' }}>
-            <div className={styles.metricChipLabel}>Wave / Swell</div>
-            <div className={styles.metricChipValue} style={{ color: '#a83b0c' }}>
-              {Math.max(day.wave_height, day.swell_height).toFixed(1)}{units}
-            </div>
-            <div className={styles.metricChipNote} style={{ color: '#a83b0c' }}>
-              {day.wave_height.toFixed(1)} / {day.swell_height.toFixed(1)}{units}
+          <div className={styles.metricChip}>
+            <IconWaves className={styles.metricChipIcon} aria-hidden="true" />
+            <div className={styles.metricChipBody}>
+              <div className={styles.metricChipLabel}>Wave / Swell</div>
+              <div className={styles.metricChipValue}>
+                {Math.max(day.wave_height, day.swell_height).toFixed(1)}{units}
+              </div>
+              <div className={styles.metricChipNote}>
+                {day.wave_height.toFixed(1)} / {day.swell_height.toFixed(1)}{units}
+              </div>
             </div>
           </div>
           {day.swell_dir_label != null && (
-            <div className={styles.metricChip} style={{ borderColor: '#a83b0c40' }}>
-              <div className={styles.metricChipLabel}>Swell Dir</div>
-              <div className={styles.metricChipValue} style={{ color: '#a83b0c' }}>{day.swell_dir_label}</div>
-              {day.swell_direction != null && <div className={styles.metricChipNote} style={{ color: '#a83b0c' }}>{Math.round(day.swell_direction)}°</div>}
+            <div className={styles.metricChip}>
+              <IconCompass className={styles.metricChipIcon} aria-hidden="true" />
+              <div className={styles.metricChipBody}>
+                <div className={styles.metricChipLabel}>Swell Dir</div>
+                <div className={styles.metricChipValue}>{day.swell_dir_label}</div>
+                {day.swell_direction != null && <div className={styles.metricChipNote}>{Math.round(day.swell_direction)}°</div>}
+              </div>
             </div>
           )}
-          <div className={styles.metricChip} style={{ borderColor: '#a83b0c40' }}>
-            <div className={styles.metricChipLabel}>Wind</div>
-            <div className={styles.metricChipValue} style={{ color: '#a83b0c' }}>{Math.round(day.wind_speed)}kn</div>
-            {day.wind_dir_label && <div className={styles.metricChipNote} style={{ color: '#a83b0c' }}>{day.wind_dir_label}</div>}
+          <div className={styles.metricChip}>
+            <IconWind className={styles.metricChipIcon} aria-hidden="true" />
+            <div className={styles.metricChipBody}>
+              <div className={styles.metricChipLabel}>Wind</div>
+              <div className={styles.metricChipValue}>{Math.round(day.wind_speed)}kn</div>
+              {day.wind_dir_label && <div className={styles.metricChipNote}>{day.wind_dir_label}</div>}
+            </div>
           </div>
-          <div className={styles.metricChip} style={{ borderColor: '#a83b0c40' }}>
-            <div className={styles.metricChipLabel}>Rain</div>
-            <div className={styles.metricChipValue} style={{ color: '#a83b0c' }}>{day.precipitation.toFixed(1)}</div>
-            <div className={styles.metricChipNote} style={{ color: '#a83b0c' }}>mm/h</div>
+          <div className={styles.metricChip}>
+            <IconDroplet className={styles.metricChipIcon} aria-hidden="true" />
+            <div className={styles.metricChipBody}>
+              <div className={styles.metricChipLabel}>Rain</div>
+              <div className={styles.metricChipValue}>{day.precipitation.toFixed(1)}</div>
+              <div className={styles.metricChipNote}>mm/h</div>
+            </div>
           </div>
-          <div className={styles.metricChip} style={{ borderColor: `${humSev.color}40` }}>
-            <div className={styles.metricChipLabel}>Humidity</div>
-            <div className={styles.metricChipValue} style={{ color: humSev.color }}>{Math.round(day.humidity)}%</div>
-            {humSev.note && <div className={styles.metricChipNote} style={{ color: humSev.color }}>{humSev.note}</div>}
+          <div className={styles.metricChip}>
+            <IconDroplet className={styles.metricChipIcon} style={{ color: humSev.color }} aria-hidden="true" />
+            <div className={styles.metricChipBody}>
+              <div className={styles.metricChipLabel}>Humidity</div>
+              <div className={styles.metricChipValue} style={{ color: humSev.color }}>{Math.round(day.humidity)}%</div>
+              {humSev.note && <div className={styles.metricChipNote} style={{ color: humSev.color }}>{humSev.note}</div>}
+            </div>
           </div>
         </div>
       )}
@@ -335,7 +372,10 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
       {elevatedWarnings.length > 0 && (
         <div className={styles.warningBanner}>
           {elevatedWarnings.map((w, i) => (
-            <div key={i} className={styles.warningItem}>{w}</div>
+            <div key={i} className={styles.warningItem}>
+              <IconAlertTriangle className={styles.warningIcon} aria-hidden="true" />
+              {w}
+            </div>
           ))}
         </div>
       )}
@@ -348,6 +388,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
           shallowWarning.severity === 'high' ? styles.shallowNoteHigh : '',
         ].filter(Boolean).join(' ')}>
           <div className={styles.shallowNoteLabel}>
+            <IconAlertTriangle className={styles.warningIcon} aria-hidden="true" />
             Shallow-water advisory · max {maxDiveDepth}m
           </div>
           <div className={[
@@ -393,7 +434,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
           aria-label={showAdvanced ? 'Hide detailed breakdown' : 'Show detailed breakdown'}
         >
           {showAdvanced ? 'Hide details' : 'Show detailed breakdown'}
-          <span className={styles.toggleArrow} aria-hidden="true">{showAdvanced ? ' ▲' : ' ▼'}</span>
+          {showAdvanced ? <IconChevronUp className={styles.toggleArrow} aria-hidden="true" /> : <IconChevronDown className={styles.toggleArrow} aria-hidden="true" />}
         </button>
       )}
 
@@ -418,7 +459,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                 {globalBiasOffset !== null && (
                   <div className={styles.debugRow}>
                     <span className={styles.debugLabel}>Global bias offset</span>
-                    <span className={styles.debugValue} style={{ color: globalBiasOffset < 0 ? '#e05555' : '#4ecb8d' }}>
+                    <span className={styles.debugValue} style={{ color: globalBiasOffset < 0 ? 'var(--sev-poor-face)' : 'var(--sev-good-face)' }}>
                       {globalBiasOffset >= 0 ? '+' : ''}{globalBiasOffset.toFixed(2)}m
                     </span>
                   </div>
@@ -426,7 +467,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                 {biasOffset !== null && (
                   <div className={styles.debugRow}>
                     <span className={styles.debugLabel}>Local bias ({reportCount} reports)</span>
-                    <span className={styles.debugValue} style={{ color: biasOffset < 0 ? '#e05555' : '#4ecb8d' }}>
+                    <span className={styles.debugValue} style={{ color: biasOffset < 0 ? 'var(--sev-poor-face)' : 'var(--sev-good-face)' }}>
                       {biasOffset >= 0 ? '+' : ''}{biasOffset.toFixed(2)}m
                     </span>
                   </div>
@@ -456,9 +497,9 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                     <span
                       className={styles.debugDelta}
                       style={{
-                        color: row.penalty < 0 ? '#e05555'
+                        color: row.penalty < 0 ? 'var(--sev-poor-face)'
                           : row.isSubtotal ? 'rgba(255,255,255,0.25)'
-                          : row.penalty > 0 ? '#4ecb8d'
+                          : row.penalty > 0 ? 'var(--sev-good-face)'
                           : 'rgba(255,255,255,0.25)',
                       }}
                     >
@@ -477,16 +518,16 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                   <div className={styles.debugSectionTitle}>KNN BIAS CORRECTION</div>
                   <div className={styles.debugRow}>
                     <span className={styles.debugLabel}>KNN bias offset</span>
-                    <span className={styles.debugValue} style={{ color: day.bias_attribution.knn.bias < 0 ? '#e05555' : '#4ecb8d' }}>
+                    <span className={styles.debugValue} style={{ color: day.bias_attribution.knn.bias < 0 ? 'var(--sev-poor-face)' : 'var(--sev-good-face)' }}>
                       {day.bias_attribution.knn.bias >= 0 ? '+' : ''}{day.bias_attribution.knn.bias.toFixed(3)}m
                     </span>
                   </div>
                   <div className={styles.debugRow}>
                     <span className={styles.debugLabel}>Confidence</span>
                     <span className={styles.debugValue} style={{
-                      color: day.bias_attribution.knn.confidence === 'high' ? '#4ecb8d'
-                        : day.bias_attribution.knn.confidence === 'medium' ? '#8f5f08'
-                        : '#e05555'
+                      color: day.bias_attribution.knn.confidence === 'high' ? 'var(--sev-good-face)'
+                        : day.bias_attribution.knn.confidence === 'medium' ? '#985c16'
+                        : 'var(--sev-poor-face)'
                     }}>
                       {day.bias_attribution.knn.confidence.toUpperCase().replace('_', ' ')}
                     </span>
@@ -514,7 +555,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                     <span className={styles.debugLabel} style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.72rem' }}>
                       {day.bias_attribution.total_reports} logs at this spot · avg error on similar days
                     </span>
-                    <span className={styles.debugValue} style={{ color: day.bias_attribution.mean_error < 0 ? '#e05555' : '#4ecb8d' }}>
+                    <span className={styles.debugValue} style={{ color: day.bias_attribution.mean_error < 0 ? 'var(--sev-poor-face)' : 'var(--sev-good-face)' }}>
                       {day.bias_attribution.mean_error > 0 ? '+' : ''}{day.bias_attribution.mean_error.toFixed(2)}m
                     </span>
                   </div>
@@ -530,10 +571,10 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                         {(() => { const [y,m,d] = r.date.split('-').map(Number); return new Date(y, (m??1)-1, d??1).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) })()}
                       </span>
                       <span className={styles.debugDetail}>{r.conditions}</span>
-                      <span className={styles.debugDelta} style={{ color: '#4ecb8d' }}>
+                      <span className={styles.debugDelta} style={{ color: 'var(--sev-good-face)' }}>
                         {r.actual_vis.toFixed(1)}m
                       </span>
-                      <span className={styles.debugRunningDives} style={{ color: r.error < 0 ? '#e05555' : r.error > 0 ? '#4ecb8d' : 'rgba(255,255,255,0.5)' }}>
+                      <span className={styles.debugRunningDives} style={{ color: r.error < 0 ? 'var(--sev-poor-face)' : r.error > 0 ? 'var(--sev-good-face)' : 'rgba(255,255,255,0.5)' }}>
                         {r.model_predicted.toFixed(1)}m
                         <span style={{ fontSize: '0.7rem', marginLeft: 4, opacity: 0.7 }}>
                           ({r.error > 0 ? '+' : ''}{r.error.toFixed(1)})
@@ -549,13 +590,13 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                 <div className={styles.debugSectionTitle}>HARD GATE CHECKS</div>
                 <div className={styles.debugRow}>
                   <span className={styles.debugLabel}>Wave &gt; 4m override</span>
-                  <span className={styles.debugValue} style={{ color: waveGate ? '#e05555' : '#4ecb8d' }}>
+                  <span className={styles.debugValue} style={{ color: waveGate ? 'var(--sev-poor-face)' : 'var(--sev-good-face)' }}>
                     {dominantWave.toFixed(2)}{units} ({dominantWaveM.toFixed(2)}m) — {waveGate ? 'TRIGGERED → 0m' : 'clear'}
                   </span>
                 </div>
                 <div className={styles.debugRow}>
                   <span className={styles.debugLabel}>Wind &gt;35kn + wave &gt;2m</span>
-                  <span className={styles.debugValue} style={{ color: windWaveGate ? '#e05555' : '#4ecb8d' }}>
+                  <span className={styles.debugValue} style={{ color: windWaveGate ? 'var(--sev-poor-face)' : 'var(--sev-good-face)' }}>
                     {windKn.toFixed(0)}kn / {dominantWave.toFixed(2)}{units} ({dominantWaveM.toFixed(2)}m) — {windWaveGate ? 'TRIGGERED → 0m' : 'clear'}
                   </span>
                 </div>
@@ -610,7 +651,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                   {day.turbidity_penalty != null && (
                     <div className={styles.debugRow}>
                       <span className={styles.debugLabel}>Turbidity penalty</span>
-                      <span className={styles.debugValue} style={{ color: day.turbidity_penalty > 0 ? '#e05555' : '#4ecb8d' }}>
+                      <span className={styles.debugValue} style={{ color: day.turbidity_penalty > 0 ? 'var(--sev-poor-face)' : 'var(--sev-good-face)' }}>
                         −{day.turbidity_penalty.toFixed(2)}m
                       </span>
                     </div>
@@ -638,7 +679,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                 <div
                   className={styles.waterQualityFill}
                   style={{
-                    width: `${Math.round(day.nutrient_factor! * 100)}%`,
+                    transform: `scaleX(${day.nutrient_factor!})`,
                     background: waterQuality.color,
                   }}
                 />
@@ -662,7 +703,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                 <div
                   className={styles.waterQualityFill}
                   style={{
-                    width: `${Math.min(100, Math.round((day.turbidity_penalty! / 5.0) * 100))}%`,
+                    transform: `scaleX(${Math.min(1, day.turbidity_penalty! / 5.0)})`,
                     background: turbidity.color,
                   }}
                 />
@@ -690,7 +731,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                 <div
                   className={styles.waterQualityFill}
                   style={{
-                    width: `${Math.min(100, Math.round((day.resuspension.penalty / 5.0) * 100))}%`,
+                    transform: `scaleX(${Math.min(1, day.resuspension.penalty / 5.0)})`,
                     background: getRiskColor(day.resuspension.risk_level),
                   }}
                 />
@@ -739,7 +780,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                 <div
                   className={styles.waterQualityFill}
                   style={{
-                    width: `${Math.min(100, Math.round((day.river_discharge.penalty / 3.0) * 100))}%`,
+                    transform: `scaleX(${Math.min(1, day.river_discharge.penalty / 3.0)})`,
                     background: getRiskColor(day.river_discharge.risk_level),
                   }}
                 />
@@ -780,7 +821,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                 {day.water_quality.bgc_source && (
                   <div
                     className={styles.waterQualityBadge}
-                    style={{ color: day.water_quality.bgc_source.toUpperCase() === 'FALLBACK' ? '#8f5f08' : '#a83b0c' }}
+                    style={{ color: day.water_quality.bgc_source.toUpperCase() === 'FALLBACK' ? 'var(--sev-marginal)' : 'var(--accent-text)' }}
                   >
                     {day.water_quality.bgc_source.toUpperCase()}
                   </div>
@@ -838,14 +879,16 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                 const { label, color } = getImpact(f.penalty, f.max_penalty)
                 const barPct = Math.min(100, (Math.abs(f.penalty) / f.max_penalty) * 100)
                 const ratio = Math.abs(f.penalty) / f.max_penalty
-                const barColor = ratio === 0 ? '#2f6b46' : ratio < 0.4 ? '#8f5f08' : ratio < 0.75 ? '#96470f' : '#a4321f'
+                const barColor = ratio === 0 ? '#237744' : ratio < 0.4 ? '#985c16' : ratio < 0.75 ? '#a2571b' : '#bd3a3a'
                 return (
                   <div key={f.name} className={styles.factorCard}>
                     <div className={styles.factorName}>{f.name}</div>
                     <div className={styles.factorValue}>{f.value}</div>
                     {f.note && <div className={styles.factorNote}>{f.note}</div>}
                     <div className={styles.factorImpact} style={{ color }}>{label}</div>
-                    <div className={styles.factorBar} style={{ width: `${barPct}%`, background: barColor }} />
+                    <div className={styles.factorBarTrack}>
+                      <div className={styles.factorBar} style={{ transform: `scaleX(${barPct / 100})`, background: barColor }} />
+                    </div>
                   </div>
                 )
               })}

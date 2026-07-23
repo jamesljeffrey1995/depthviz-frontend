@@ -1,0 +1,21 @@
+.svg {
+  display: block;
+  overflow: visible;
+}
+
+.tickLabel {
+  font-family: var(--font-sans);
+  font-size: 9px;
+  font-weight: 600;
+  fill: var(--face-ink-faint);
+  letter-spacing: 0.02em;
+}
+
+.center {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}

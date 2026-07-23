@@ -44,7 +44,7 @@
   display: flex;
   gap: 4px;
   margin-bottom: 16px;
-  border-bottom: 1px solid rgba(0, 201, 255, 0.15);
+  border-bottom: 1px solid rgba(14, 124, 134, 0.15);
 }
 
 .tab {
@@ -78,7 +78,7 @@
 
 .chip {
   background: rgba(10, 61, 92, 0.4);
-  border: 1px solid rgba(0, 201, 255, 0.15);
+  border: 1px solid rgba(14, 124, 134, 0.15);
   color: var(--text);
   font-family: var(--font-mono);
   font-size: 10px;
@@ -89,8 +89,8 @@
 }
 
 .chipActive {
-  background: rgba(0, 201, 255, 0.15);
-  border-color: rgba(0, 201, 255, 0.5);
+  background: rgba(14, 124, 134, 0.15);
+  border-color: rgba(14, 124, 134, 0.5);
   color: var(--accent);
 }
 
@@ -101,8 +101,8 @@
 }
 
 .newBtn {
-  background: rgba(0, 201, 255, 0.1);
-  border: 1px solid rgba(0, 201, 255, 0.4);
+  background: rgba(14, 124, 134, 0.1);
+  border: 1px solid rgba(14, 124, 134, 0.4);
   color: var(--accent);
   font-family: var(--font-mono);
   font-size: 11px;
@@ -114,7 +114,7 @@
 }
 
 .newBtn:hover {
-  background: rgba(0, 201, 255, 0.2);
+  background: rgba(14, 124, 134, 0.2);
 }
 
 .empty {
@@ -133,14 +133,14 @@
 
 .card {
   background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(0, 201, 255, 0.12);
+  border: 1px solid rgba(14, 124, 134, 0.12);
   padding: 16px 18px;
   cursor: pointer;
   transition: border-color 0.15s, transform 0.15s;
 }
 
 .card:hover {
-  border-color: rgba(0, 201, 255, 0.35);
+  border-color: rgba(14, 124, 134, 0.35);
   transform: translateY(-1px);
 }
 
@@ -177,7 +177,7 @@
 .badgeBeginner { color: var(--good); border-color: rgba(26, 138, 90, 0.5); }
 .badgeIntermediate { color: var(--warn); border-color: rgba(212, 133, 10, 0.5); }
 .badgeExpert { color: var(--danger); border-color: rgba(192, 57, 43, 0.5); }
-.badgeType { color: var(--accent); border-color: rgba(0, 201, 255, 0.4); }
+.badgeType { color: var(--accent); border-color: rgba(14, 124, 134, 0.4); }
 .badgeSystem { color: var(--text); border-color: rgba(139, 184, 204, 0.4); }
 .badgePublic { color: var(--excellent); border-color: rgba(15, 179, 122, 0.5); }
 .badgePrivate { color: var(--text); border-color: rgba(139, 184, 204, 0.3); }

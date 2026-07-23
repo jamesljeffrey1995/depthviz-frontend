@@ -1,144 +1,163 @@
 .card {
-  background: var(--paper-raised);
-  border: 1px solid var(--rule);
-  padding: 28px;
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
   margin-bottom: 16px;
   position: relative;
   overflow: hidden;
   box-shadow: var(--shadow-card);
 }
 
-/* ── Station header — reads as a stamped log entry ── */
+/* ── Station header ── */
 .stationHeader {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
-  margin-bottom: 20px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--rule);
+  margin-bottom: 16px;
 }
 
 .stationMeta {}
 
 .stationLabel {
-  font-size: 9px;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 600;
   color: var(--ink-faint);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .stationName {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: -0.01em;
   color: var(--ink);
   margin-bottom: 2px;
 }
 
 .stationDate {
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text);
-  opacity: 0.75;
+  font-size: 13px;
+  color: var(--ink-dim);
 }
 
 .forecastBadge {
   display: inline-block;
-  font-size: 8px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 600;
   border: 1px solid var(--accent);
-  color: var(--accent);
-  padding: 3px 7px;
+  color: var(--accent-text);
+  background: var(--accent-soft);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
   flex-shrink: 0;
 }
 
-/* ── Reading row — the number + the rubber-stamp verdict ── */
-.readingRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
+/* ── The instrument face — hero reading ── */
+.face {
+  position: relative;
+  background: var(--face);
+  border-radius: var(--radius-lg);
+  padding: 28px 20px 20px;
   margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: var(--shadow-face);
+  overflow: hidden;
 }
 
-.visBlock {}
+.faceSheen {
+  position: absolute;
+  inset: 0;
+  background: var(--lens-sheen);
+  pointer-events: none;
+}
+
+.reading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
 
 .visNumber {
-  font-family: var(--font-display);
-  font-size: clamp(52px, 15vw, 88px);
+  font-family: var(--font-sans);
+  font-size: 44px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
   line-height: 1;
-  transition: color 0.4s;
+  color: var(--face-ink);
+  font-variant-numeric: tabular-nums;
 }
 
 .visUnit {
-  font-size: 11px;
-  letter-spacing: 0.15em;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--face-ink-faint);
+  margin-top: 2px;
   text-transform: uppercase;
-  color: var(--text);
-  opacity: 0.7;
+  letter-spacing: 0.06em;
 }
 
+.faceFooter {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.verdictTag {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+}
+
+.verdict_blocked   { color: var(--sev-blocked-face); }
+.verdict_poor      { color: var(--sev-poor-face); }
+.verdict_marginal  { color: var(--sev-marginal-face); }
+.verdict_decent    { color: var(--sev-decent-face); }
+.verdict_good      { color: var(--sev-good-face); }
+.verdict_excellent { color: var(--sev-excellent-face); }
+
 .correctedNote {
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  color: var(--text);
-  opacity: 0.7;
-  margin-top: 2px;
+  font-size: 11px;
+  color: var(--face-ink-dim);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .correctedOffset {
   font-variant-numeric: tabular-nums;
-  opacity: 0.9;
+  color: var(--face-ink);
 }
 
-/* Verdict rendered as a rubber stamp — double-ruled border, canted, one ink
-   colour per severity. currentColor keeps stamp_* single-purpose. */
-.stamp {
-  align-self: center;
-  border: 3px solid currentColor;
-  border-radius: var(--radius-md);
-  padding: 9px 16px;
-  font-family: var(--font-display);
-  font-size: clamp(16px, 4vw, 22px);
-  letter-spacing: 0.1em;
+.confPip {
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  text-align: center;
-  line-height: 1.15;
-  white-space: nowrap;
-  transform: rotate(-3deg);
-  position: relative;
-  flex-shrink: 0;
+  letter-spacing: 0.03em;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
 }
 
-.stamp::before {
-  content: '';
-  position: absolute;
-  inset: 3px;
-  border: 1px solid currentColor;
-  border-radius: 1px;
-  opacity: 0.55;
-}
-
-.stamp_blocked   { color: var(--blocked); }
-.stamp_poor      { color: var(--danger); }
-.stamp_marginal  { color: var(--warn); }
-.stamp_decent    { color: var(--decent); }
-.stamp_good      { color: var(--good); }
-.stamp_excellent { color: var(--excellent); }
+.conf_high   { color: var(--sev-good-face); background: rgba(99, 230, 160, 0.14); }
+.conf_medium { color: var(--sev-marginal-face); background: rgba(255, 180, 84, 0.14); }
+.conf_low    { color: var(--sev-poor-face); background: rgba(255, 107, 107, 0.14); }
 
 /* Plain-language visibility-trend summary */
 .summaryLine {
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 15px;
+  line-height: 1.55;
   color: var(--ink);
   margin-bottom: 14px;
-  padding-left: 10px;
-  border-left: 2px solid var(--accent);
+  padding: 10px 14px;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-md);
 }
 
 /* Conditions (secondary metrics) toggle */
@@ -149,19 +168,18 @@
   width: 100%;
   background: transparent;
   border: none;
-  border-top: 1px solid var(--rule);
-  color: var(--text);
-  padding: 10px 2px;
+  border-top: 1px solid var(--surface-border);
+  color: var(--ink-dim);
+  padding: 12px 2px;
   margin-bottom: 12px;
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  transition: color 0.2s;
+  transition: color var(--transition-fast);
 }
 
 .toggleConditions:hover {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .toggleConditions:focus-visible {
@@ -169,7 +187,12 @@
   outline-offset: 2px;
 }
 
-/* Metrics top bar */
+.toggleArrow {
+  width: 16px;
+  height: 16px;
+}
+
+/* Metrics chips */
 .metricsBar {
   display: flex;
   gap: 8px;
@@ -179,41 +202,60 @@
 }
 
 .metricChip {
-  background: var(--paper-dim);
-  border: 1px solid;
-  padding: 6px 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
   flex: 1;
+  min-width: 96px;
+}
+
+.metricChipIcon {
+  width: 16px;
+  height: 16px;
+  color: var(--ink-faint);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.metricChipBody {
+  min-width: 0;
 }
 
 .metricChipLabel {
-  font-size: 7px;
-  letter-spacing: 0.2em;
+  font-size: 10px;
+  font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--ink-faint);
-  margin-bottom: 3px;
+  margin-bottom: 2px;
   white-space: nowrap;
 }
 
 .metricChipValue {
-  font-family: var(--font-display);
-  font-size: 18px;
-  line-height: 1;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
 }
 
 .metricChipNote {
-  font-size: 7px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  opacity: 0.85;
-  margin-top: 2px;
+  font-size: 10px;
+  color: var(--ink-faint);
+  margin-top: 1px;
 }
 
 /* Algae */
 .algaeCard {
-  background: var(--paper-dim);
-  border: 1px solid var(--rule);
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
   padding: 14px 16px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .algaeHeader {
@@ -224,28 +266,24 @@
 }
 
 .algaeLabel {
-  font-size: 9px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 600;
   color: var(--ink-faint);
 }
 
 .algaeRisk {
-  font-size: 10px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
+  font-size: 12px;
   font-weight: 700;
 }
 
-.algaeLow      { color: var(--good); }
-.algaeModerate { color: var(--warn); }
-.algaeHigh     { color: var(--danger); }
+.algaeLow      { color: var(--sev-good); }
+.algaeModerate { color: var(--sev-marginal); }
+.algaeHigh     { color: var(--sev-poor); }
 
 .algaeDrivers {
-  font-size: 10px;
-  color: var(--text);
-  opacity: 0.75;
-  line-height: 1.8;
+  font-size: 12px;
+  color: var(--ink-dim);
+  line-height: 1.7;
 }
 
 /* Factors */
@@ -256,94 +294,80 @@
 }
 
 .factorCard {
-  background: var(--paper-dim);
-  border: 1px solid var(--rule);
-  padding: 14px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
   position: relative;
 }
 
 .factorName {
-  font-size: 9px;
-  letter-spacing: 0.25em;
+  font-size: 11px;
+  font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ink-faint);
+  margin-bottom: 5px;
+}
+
+.factorValue {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.factorNote {
+  font-size: 11px;
   color: var(--ink-faint);
   margin-bottom: 6px;
 }
 
-.factorValue {
-  font-family: var(--font-display);
-  font-size: 20px;
-  color: var(--ink);
-  margin-bottom: 2px;
-}
-
-.factorNote {
-  font-size: 9px;
-  letter-spacing: 0.12em;
-  color: var(--ink-faint);
-  margin-bottom: 3px;
-}
-
 .factorImpact {
-  font-size: 9px;
-  letter-spacing: 0.18em;
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 8px;
+}
+
+.factorBarTrack {
+  height: 4px;
+  background: var(--surface-border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
 }
 
 .factorBar {
-  position: absolute;
-  bottom: 0; left: 0;
-  height: 2px;
-  transition: width 0.6s ease;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-full);
+  transform-origin: left;
+  transition: transform 0.6s var(--ease-out);
 }
 
-/* Color classes */
-.blocked   { color: var(--blocked); }
-.poor      { color: var(--danger); }
-.marginal  { color: var(--warn); }
-.decent    { color: var(--decent); }
-.good      { color: var(--good); }
-.excellent { color: var(--excellent); }
-
-/* Bar vis — ruled depth scale */
-.barContainer { margin-bottom: 20px; }
+/* Color classes (used by DisputeForm/other callers of the same styles) */
+.blocked   { color: var(--sev-blocked); }
+.poor      { color: var(--sev-poor); }
+.marginal  { color: var(--sev-marginal); }
+.decent    { color: var(--sev-decent); }
+.good      { color: var(--sev-good); }
+.excellent { color: var(--sev-excellent); }
 
 .compassContainer {
   display: flex;
   justify-content: center;
   padding: 12px 0 16px;
   margin-bottom: 12px;
-  border-bottom: 1px solid var(--rule);
+  border-bottom: 1px solid var(--surface-border);
 }
-.barLabels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 9px;
-  letter-spacing: 0.15em;
-  color: var(--ink-faint);
-  margin-bottom: 6px;
-  text-transform: uppercase;
-}
-.barTrack {
-  height: 6px;
-  background: var(--paper-dim);
-  border: 1px solid var(--rule);
-  overflow: hidden;
-}
-.barFill {
-  height: 100%;
-  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.bg_blocked   { background: var(--blocked); }
-.bg_poor      { background: var(--danger); }
-.bg_marginal  { background: var(--warn); }
-.bg_decent    { background: var(--decent); }
-.bg_good      { background: var(--good); }
-.bg_excellent { background: var(--excellent); }
 
 .waterQualityCard {
-  background: var(--paper-dim);
-  border: 1px solid var(--rule);
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
   padding: 12px 16px;
   margin-bottom: 12px;
 }
@@ -354,52 +378,50 @@
   margin-bottom: 8px;
 }
 .waterQualityLabelText {
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  color: var(--text);
-  opacity: 0.8;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-dim);
 }
 .waterQualityBadge {
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.08em;
 }
 .waterQualityBar {
-  height: 3px;
-  background: rgba(168, 59, 12, 0.12);
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: var(--surface-border);
   margin-bottom: 8px;
+  overflow: hidden;
 }
 .waterQualityFill {
+  width: 100%;
   height: 100%;
-  transition: width 0.3s ease;
+  border-radius: var(--radius-full);
+  transform-origin: left;
+  transition: transform 0.3s ease;
 }
 .waterQualitySub {
-  font-size: 10px;
-  color: var(--text);
-  opacity: 0.7;
-  letter-spacing: 0.05em;
+  font-size: 11px;
+  color: var(--ink-faint);
 }
 .waterQualityNote {
-  font-size: 11px;
+  font-size: 12px;
   margin-top: 6px;
-  letter-spacing: 0.03em;
 }
 
 .waterQualityMeta {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11px;
+  font-size: 12px;
   margin-top: 4px;
-  letter-spacing: 0.04em;
 }
 
 .waterQualityPenalty {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 700;
-  color: var(--danger);
+  color: var(--sev-poor);
 }
 
 /* Risk stats row (resuspension / river discharge) */
@@ -407,10 +429,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px 16px;
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  color: var(--text);
-  opacity: 0.75;
+  font-size: 11px;
+  color: var(--ink-faint);
   margin-bottom: 6px;
 }
 
@@ -423,64 +443,74 @@
 }
 
 .clarityStat {
-  background: var(--paper-dim);
-  border: 1px solid var(--rule);
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
   padding: 8px 10px;
 }
 
 .clarityLabel {
-  font-size: 8px;
-  letter-spacing: 0.2em;
+  font-size: 10px;
+  font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.03em;
   color: var(--ink-faint);
   margin-bottom: 4px;
 }
 
 .clarityValue {
-  font-family: var(--font-display);
-  font-size: 16px;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 700;
   color: var(--ink);
 }
 
 /* Warning banner for elevated risks (promoted to simple view) */
 .warningBanner {
-  background: rgba(164, 50, 31, 0.08);
-  border: 1px solid rgba(164, 50, 31, 0.3);
-  border-left: 3px solid var(--danger);
-  padding: 10px 14px;
+  background: rgba(189, 58, 58, 0.08);
+  border: 1px solid rgba(189, 58, 58, 0.24);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
   margin-bottom: 16px;
 }
 
 .warningItem {
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  color: var(--moderate);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--sev-marginal);
   line-height: 1.6;
 }
 
-.warningItem::before {
-  content: '⚠ ';
+.warningIcon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
 /* Toggle button for advanced details */
 .toggleAdvanced {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   width: 100%;
-  background: rgba(168, 59, 12, 0.06);
-  border: 1px solid rgba(168, 59, 12, 0.25);
-  color: var(--accent);
-  padding: 10px 16px;
+  background: var(--accent-soft);
+  border: 1px solid rgba(var(--accent-rgb), 0.25);
+  color: var(--accent-text);
+  padding: 11px 16px;
   margin-bottom: 16px;
-  font-size: 11px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  text-align: center;
-  transition: background 0.2s;
+  transition: background var(--transition-fast);
 }
 
 .toggleAdvanced:hover {
-  background: rgba(168, 59, 12, 0.12);
+  background: rgba(var(--accent-rgb), 0.18);
 }
 
 .toggleAdvanced:focus-visible {
@@ -488,31 +518,30 @@
   outline-offset: 2px;
 }
 
-.toggleArrow {
-  font-size: 10px;
-}
-
-/* ── Admin debug trace panel — deliberately kept dark, like a photostat
-   carbon-copy clipped into the log; everything else on the page is paper. ── */
+/* ── Admin debug trace panel — deliberately its own dark surface, like a
+   telemetry printout clipped into an otherwise light instrument-panel UI;
+   not part of the diver-facing palette, admin-only. ── */
 .debugPanel {
-  background: rgba(20, 17, 12, 0.94);
-  border: 1px solid rgba(255, 80, 80, 0.22);
+  background: var(--face);
+  border: 1px solid var(--face-border);
+  border-radius: var(--radius-md);
   margin-bottom: 16px;
   overflow: hidden;
 }
 
 .debugPanelTitle {
-  background: rgba(255, 60, 60, 0.1);
-  border-bottom: 1px solid rgba(255, 80, 80, 0.18);
+  background: rgba(255, 107, 107, 0.1);
+  border-bottom: 1px solid rgba(255, 107, 107, 0.18);
   color: rgba(255, 130, 130, 0.75);
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  font-size: 8px;
-  letter-spacing: 0.3em;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  padding: 7px 14px;
+  padding: 8px 14px;
 }
 
 .debugPanelTitleMain {
@@ -532,7 +561,7 @@
 }
 
 .debugSection {
-  padding: 9px 14px;
+  padding: 10px 14px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -541,8 +570,9 @@
 }
 
 .debugSectionTitle {
-  font-size: 7px;
-  letter-spacing: 0.35em;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: rgba(255, 130, 130, 0.5);
   margin-bottom: 5px;
@@ -567,14 +597,13 @@
 }
 
 .debugLabel {
-  font-size: 10px;
-  letter-spacing: 0.03em;
+  font-size: 11px;
   color: rgba(240, 235, 225, 0.55);
 }
 
 .debugValue {
-  font-size: 11px;
-  letter-spacing: 0.05em;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
   color: rgba(250, 246, 234, 0.92);
 }
 
@@ -582,8 +611,9 @@
   display: grid;
   grid-template-columns: 1.8fr 1.4fr 48px 72px;
   gap: 4px;
-  font-size: 7px;
-  letter-spacing: 0.2em;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.25);
   padding-bottom: 4px;
@@ -611,14 +641,12 @@
 }
 
 .debugStep {
-  font-size: 10px;
-  letter-spacing: 0.02em;
+  font-size: 11px;
   color: rgba(240, 235, 225, 0.65);
 }
 
 .debugDetail {
-  font-size: 9px;
-  letter-spacing: 0.01em;
+  font-size: 10px;
   color: rgba(240, 235, 225, 0.35);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -626,14 +654,14 @@
 }
 
 .debugDelta {
-  font-size: 10px;
-  letter-spacing: 0.03em;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
   text-align: right;
 }
 
 .debugRunning {
-  font-size: 11px;
-  letter-spacing: 0.04em;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
   color: rgba(250, 246, 234, 0.92);
   text-align: right;
   overflow: hidden;
@@ -646,8 +674,9 @@
   display: grid;
   grid-template-columns: auto 1fr 56px minmax(90px, 1fr);
   gap: 4px;
-  font-size: 7px;
-  letter-spacing: 0.2em;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.25);
   padding-bottom: 4px;
@@ -669,8 +698,8 @@
 }
 
 .debugRunningDives {
-  font-size: 11px;
-  letter-spacing: 0.04em;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
   color: rgba(250, 246, 234, 0.92);
   text-align: right;
   white-space: nowrap;
@@ -678,51 +707,50 @@
 
 /* ── Shallow-water depth advisory ── */
 .shallowNote {
-  background: rgba(143, 95, 8, 0.08);
-  border: 1px solid rgba(143, 95, 8, 0.3);
-  border-left: 3px solid var(--warn);
-  padding: 10px 14px;
+  background: rgba(152, 92, 22, 0.08);
+  border: 1px solid rgba(152, 92, 22, 0.28);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
   margin-bottom: 16px;
 }
 
 .shallowNoteMod {
-  background: rgba(150, 71, 15, 0.08);
-  border-color: rgba(150, 71, 15, 0.35);
-  border-left-color: var(--moderate);
+  background: rgba(162, 87, 27, 0.08);
+  border-color: rgba(162, 87, 27, 0.32);
 }
 
 .shallowNoteHigh {
-  background: rgba(164, 50, 31, 0.08);
-  border-color: rgba(164, 50, 31, 0.35);
-  border-left-color: var(--danger);
+  background: rgba(189, 58, 58, 0.08);
+  border-color: rgba(189, 58, 58, 0.32);
 }
 
 .shallowNoteLabel {
-  font-size: 8px;
-  letter-spacing: 0.25em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
-  color: var(--text);
-  opacity: 0.8;
+  letter-spacing: 0.03em;
+  color: var(--ink-dim);
   margin-bottom: 4px;
 }
 
 .shallowNoteText {
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  color: var(--warn);
+  font-size: 13px;
+  color: var(--sev-marginal);
   line-height: 1.55;
 }
 
 .shallowNoteTextMod { color: var(--moderate); }
-.shallowNoteTextHigh { color: var(--danger); }
+.shallowNoteTextHigh { color: var(--sev-poor); }
 
 @media (max-width: 480px) {
-  .readingRow {
-    flex-direction: column;
-    align-items: flex-start;
+  .card {
+    padding: 16px;
   }
 
-  .stamp {
-    align-self: flex-start;
+  .visNumber {
+    font-size: 38px;
   }
 }

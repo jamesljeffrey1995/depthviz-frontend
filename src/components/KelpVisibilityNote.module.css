@@ -1,8 +1,9 @@
 .note {
   margin-bottom: 16px;
-  background: rgba(26, 138, 90, 0.06);
-  border: 1px solid rgba(26, 138, 90, 0.22);
-  border-left: 3px solid #1a8a5a;
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
 }
 
 .toggle {
@@ -12,16 +13,15 @@
   width: 100%;
   background: transparent;
   border: none;
-  color: var(--text);
-  padding: 10px 14px;
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  color: var(--ink-dim);
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
 }
 
 .toggle:hover {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .toggle:focus-visible {
@@ -30,8 +30,10 @@
 }
 
 .toggleArrow {
-  opacity: 0.6;
-  font-size: 9px;
+  width: 15px;
+  height: 15px;
+  color: var(--ink-faint);
+  flex-shrink: 0;
 }
 
 .body {
@@ -39,9 +41,9 @@
 }
 
 .lead {
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.6;
-  color: var(--text-bright);
+  color: var(--ink);
   margin: 0 0 12px;
 }
 
@@ -51,57 +53,54 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .factor {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding-left: 12px;
-  border-left: 2px solid rgba(26, 138, 90, 0.35);
 }
 
 .factorTitle {
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  color: #4ecb8d;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sev-good);
 }
 
 .factorDetail {
-  font-size: 11px;
-  line-height: 1.5;
-  color: var(--text);
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--ink-dim);
 }
 
 .tip {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  background: rgba(0, 201, 255, 0.06);
-  border-left: 3px solid var(--accent);
-  padding: 8px 12px;
+  background: var(--accent-soft);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
   margin-bottom: 12px;
 }
 
 .tipLabel {
-  font-size: 8px;
-  letter-spacing: 0.25em;
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  color: var(--accent);
-  opacity: 0.8;
+  letter-spacing: 0.04em;
+  color: var(--accent-text);
 }
 
 .tipText {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.55;
-  color: var(--text-bright);
+  color: var(--ink);
 }
 
 .footnote {
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.55;
-  color: var(--text);
-  opacity: 0.7;
+  color: var(--ink-faint);
   margin: 0;
 }

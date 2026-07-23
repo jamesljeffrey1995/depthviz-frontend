@@ -51,7 +51,7 @@
 /* ── Form card ── */
 .card {
   background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(0, 201, 255, 0.1);
+  border: 1px solid rgba(14, 124, 134, 0.1);
   padding: 24px;
   margin-bottom: 16px;
 }
@@ -76,7 +76,7 @@
 .input, .select {
   width: 100%;
   background: rgba(10, 61, 92, 0.3);
-  border: 1px solid rgba(0, 201, 255, 0.15);
+  border: 1px solid rgba(14, 124, 134, 0.15);
   color: var(--text-bright);
   font-family: var(--font-mono);
   font-size: 13px;
@@ -85,7 +85,7 @@
   transition: border-color 0.2s;
 }
 
-.input:focus, .select:focus { border-color: rgba(0, 201, 255, 0.4); }
+.input:focus, .select:focus { border-color: rgba(14, 124, 134, 0.4); }
 
 .select option { background: var(--ocean-mid); }
 
@@ -96,7 +96,7 @@
   display: flex;
   gap: 0;
   margin-bottom: 18px;
-  border: 1px solid rgba(0, 201, 255, 0.15);
+  border: 1px solid rgba(14, 124, 134, 0.15);
 }
 
 .segmented { margin-bottom: 0; }
@@ -116,11 +116,11 @@
 }
 
 .unitBtn + .unitBtn, .segBtn + .segBtn {
-  border-left: 1px solid rgba(0, 201, 255, 0.15);
+  border-left: 1px solid rgba(14, 124, 134, 0.15);
 }
 
 .unitActive, .segActive {
-  background: rgba(0, 201, 255, 0.14);
+  background: rgba(14, 124, 134, 0.14);
   color: var(--text-bright);
 }
 
@@ -153,8 +153,8 @@
 
 /* ── Result ── */
 .resultCard {
-  background: linear-gradient(180deg, rgba(0, 201, 255, 0.1), rgba(4, 30, 46, 0.6));
-  border: 1px solid rgba(0, 201, 255, 0.3);
+  background: linear-gradient(180deg, rgba(14, 124, 134, 0.1), rgba(4, 30, 46, 0.6));
+  border: 1px solid rgba(14, 124, 134, 0.3);
   padding: 24px;
   margin-bottom: 16px;
   text-align: center;
@@ -174,7 +174,7 @@
   line-height: 1;
   color: var(--text-bright);
   letter-spacing: 0.04em;
-  text-shadow: 0 0 24px rgba(0, 201, 255, 0.4);
+  text-shadow: 0 0 24px rgba(14, 124, 134, 0.4);
 }
 
 .resultRange {
@@ -186,7 +186,7 @@
 
 .breakdown {
   margin-top: 20px;
-  border-top: 1px solid rgba(0, 201, 255, 0.12);
+  border-top: 1px solid rgba(14, 124, 134, 0.12);
   padding-top: 14px;
   text-align: left;
 }
@@ -205,7 +205,7 @@
 /* ── How-to ── */
 .howto {
   background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(0, 201, 255, 0.1);
+  border: 1px solid rgba(14, 124, 134, 0.1);
   padding: 20px 24px;
   margin-bottom: 16px;
 }

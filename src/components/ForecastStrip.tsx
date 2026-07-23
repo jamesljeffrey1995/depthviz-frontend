@@ -1,5 +1,6 @@
 import { memo } from 'react'
 import type { DayForecast, VisibilityFactor } from '../types'
+import { InstrumentGauge } from './InstrumentGauge'
 import styles from './ForecastStrip.module.css'
 
 interface Props {
@@ -24,21 +25,21 @@ function primaryDriver(factors: VisibilityFactor[]): string | null {
   if (!negative.length) return null
   const worst = negative.reduce((a, b) => b.penalty < a.penalty ? b : a)
   const n = worst.name
-  if (n.startsWith('Swell')) return `SWELL ${worst.value}`
-  if (n === 'Wind') return `WIND ${worst.value}`
-  if (n === 'Precip') return `RAIN ${worst.value}`
+  if (n.startsWith('Swell')) return `Swell ${worst.value}`
+  if (n === 'Wind') return `Wind ${worst.value}`
+  if (n === 'Precip') return `Rain ${worst.value}`
   if (n === 'Sea Temp') {
     const raw = worst.note?.replace('Algae: ', '') ?? ''
-    return `ALGAE ${raw === 'high' ? 'HIGH' : 'MOD'}`
+    return `Algae ${raw === 'high' ? 'high' : 'mod'}`
   }
-  if (n.startsWith('Turbidity')) return 'TURBID'
+  if (n.startsWith('Turbidity')) return 'Turbid'
   if (n.startsWith('CDM')) return 'CDM'
-  if (n.startsWith('Seabed')) return 'SEABED'
-  if (n.startsWith('River')) return 'RIVER'
-  if (n === 'Cloud Cover') return 'CLOUD'
+  if (n.startsWith('Seabed')) return 'Seabed'
+  if (n.startsWith('River')) return 'River'
+  if (n === 'Cloud Cover') return 'Cloud'
   if (n.startsWith('BGC')) return 'BGC'
-  if (n === 'Wind Dir') return 'ONSHORE'
-  return n.slice(0, 7).toUpperCase()
+  if (n === 'Wind Dir') return 'Onshore'
+  return n.slice(0, 9)
 }
 
 export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, onSelect }: Props) {
@@ -47,7 +48,8 @@ export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, 
       <div className={styles.row}>
         {days.map((day, i) => {
           const vis = day.vis_corrected ?? day.vis_estimate
-          const colorClass = styles[day.color_class as keyof typeof styles] ?? ''
+          const colorVar = `var(--sev-${day.color_class})`
+          const faceColorVar = `var(--sev-${day.color_class}-face)`
           const cls = [
             styles.day,
             i === selectedIndex ? styles.active : '',
@@ -64,16 +66,19 @@ export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, 
               aria-label={`${formatDate(day.date)}: ${vis.toFixed(1)} metres visibility, ${day.verdict}${day.algae.risk !== 'low' ? `, algae risk ${day.algae.risk}` : ''}${driver ? `, main factor: ${driver}` : ''}`}
             >
               <div className={styles.dateLabel}>{formatDate(day.date)}</div>
-              <div className={`${styles.vis} ${colorClass}`} aria-hidden="true">{vis.toFixed(1)}</div>
-              <div className={styles.unit} aria-hidden="true">metres</div>
-              <div className={`${styles.verdict} ${colorClass}`} title={day.verdict} aria-hidden="true">
-                {day.verdict}
+              <div className={styles.dial}>
+                <InstrumentGauge value={vis} color={faceColorVar} size={56} compact>
+                  <span className={styles.dialValue}>{vis.toFixed(1)}</span>
+                </InstrumentGauge>
                 {day.algae.risk !== 'low' && (
                   <span className={`${styles.algaePip} ${styles[`algae${day.algae.risk.charAt(0).toUpperCase() + day.algae.risk.slice(1)}`]}`} />
                 )}
               </div>
+              <div className={styles.verdict} style={{ color: colorVar }} title={day.verdict}>
+                {day.verdict}
+              </div>
               {driver && (
-                <div className={styles.driver} aria-hidden="true">{driver}</div>
+                <div className={styles.driver}>{driver}</div>
               )}
             </button>
           )

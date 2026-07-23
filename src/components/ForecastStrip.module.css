@@ -1,31 +1,29 @@
 .strip {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
 .row {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   min-width: max-content;
   padding-bottom: 4px;
 }
 
-/* Each day reads as an index tab clipped to a station log — squared off,
-   ruled border, a bit of "clipped-to-the-page" overlap via negative margin
-   would fight the scroll strip, so we keep them separate but tab-like. */
 .day {
-  background: var(--paper-raised);
-  border: 1px solid var(--rule);
-  border-bottom: 2px solid var(--rule);
-  padding: 12px 10px;
-  width: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px 12px;
+  width: 88px;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
-  position: relative;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
   flex-shrink: 0;
-  text-align: left;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
 }
 
 .day:focus-visible {
@@ -34,85 +32,82 @@
 }
 
 .day:hover {
-  border-color: var(--rule-strong);
-  background: var(--paper);
+  border-color: var(--surface-border-strong);
+  transform: translateY(-1px);
 }
 
 .day.active {
-  border-color: var(--rule-strong);
-  border-bottom: 2px solid var(--accent);
-  background: var(--paper);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
 }
 
-.day.forecast::after {
-  content: 'FCST';
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  font-size: 6px;
-  letter-spacing: 0.1em;
+.day.forecast .dateLabel::after {
+  content: '·';
   color: var(--ink-faint);
+  margin-left: 3px;
 }
 
 .dateLabel {
-  font-size: 9px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 600;
   margin-bottom: 6px;
   color: var(--ink-faint);
 }
 
-.vis {
-  font-family: var(--font-display);
-  font-size: 28px;
+.dial {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 6px;
+}
+
+.dial::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: var(--face);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  z-index: -1;
+}
+
+.dialValue {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 800;
   line-height: 1;
-  margin-bottom: 2px;
-}
-
-.unit {
-  font-size: 8px;
-  letter-spacing: 0.1em;
-  color: var(--ink-faint);
-}
-
-.verdict {
-  font-size: 8px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  margin-top: 6px;
-  line-height: 1.3;
-  font-weight: 700;
+  color: var(--face-ink);
+  letter-spacing: -0.02em;
 }
 
 .algaePip {
-  display: inline-block;
-  width: 5px;
-  height: 5px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  margin-left: 3px;
-  vertical-align: middle;
 }
 
 .algaeLow      { background: transparent; }
-.algaeModerate { background: var(--warn); }
-.algaeHigh     { background: var(--danger); }
+.algaeModerate { background: var(--sev-marginal); }
+.algaeHigh     { background: var(--sev-poor); }
+
+.verdict {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+  text-align: center;
+}
 
 .driver {
-  font-size: 7px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  margin-top: 4px;
-  color: var(--accent);
-  opacity: 0.7;
-  line-height: 1.2;
+  font-size: 10px;
+  color: var(--ink-faint);
+  margin-top: 2px;
+  line-height: 1.3;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  max-width: 100%;
 }
-
-.blocked   { color: var(--blocked); }
-.poor      { color: var(--danger); }
-.marginal  { color: var(--warn); }
-.decent    { color: var(--decent); }
-.good      { color: var(--good); }
-.excellent { color: var(--excellent); }

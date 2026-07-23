@@ -1,70 +1,122 @@
 .home {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2xl);
+  gap: var(--space-xl);
 }
 
 /* ── Hero ── */
 .hero {
   text-align: center;
-  padding: var(--space-md) 0 var(--space-lg);
+  padding: var(--space-lg) 0 var(--space-md);
 }
 
 .heroTitle {
-  font-family: var(--font-display);
-  font-size: clamp(40px, 9vw, 64px);
-  letter-spacing: 0.04em;
-  color: var(--text-bright);
-  margin: 0 0 var(--space-md);
-  line-height: 0.95;
+  font-family: var(--font-sans);
+  font-size: clamp(32px, 8vw, 48px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  margin: 0 0 var(--space-sm);
+  line-height: 1.08;
 }
 
 .heroLead {
-  font-size: 14px;
-  line-height: 1.7;
-  color: var(--text);
-  max-width: 540px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--ink-dim);
+  max-width: 480px;
   margin: 0 auto var(--space-lg);
 }
 
 .heroActions {
   display: flex;
-  gap: var(--space-md);
+  gap: var(--space-sm);
   justify-content: center;
   flex-wrap: wrap;
 }
 
 .primaryBtn,
 .secondaryBtn {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 12px 22px;
-  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 13px 22px;
+  border-radius: var(--radius-full);
   cursor: pointer;
   transition: all var(--transition-base);
 }
 
+.primaryBtn svg,
+.secondaryBtn svg {
+  width: 16px;
+  height: 16px;
+}
+
 .primaryBtn {
   background: var(--accent);
-  color: var(--paper);
+  color: var(--accent-on);
   border: 1px solid var(--accent);
-  font-weight: 700;
 }
 
 .primaryBtn:hover {
+  background: var(--accent-strong);
   box-shadow: var(--shadow-glow);
 }
 
 .secondaryBtn {
   background: transparent;
-  color: var(--accent);
-  border: 1px solid rgba(168, 59, 12, 0.4);
+  color: var(--ink-dim);
+  border: 1px solid var(--surface-border);
 }
 
 .secondaryBtn:hover {
-  background: rgba(168, 59, 12, 0.08);
+  border-color: var(--surface-border-strong);
+  color: var(--ink);
+}
+
+/* ── Quick links — a compact shortcut row, not a grid of feature cards ── */
+.quickLinks {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;
+}
+
+.quickLink {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  width: 84px;
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  padding: 14px 8px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-dim);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.quickLink:hover {
+  border-color: var(--accent-text);
+  color: var(--ink);
+  transform: translateY(-1px);
+}
+
+.quickLinkIcon {
+  width: 22px;
+  height: 22px;
+  color: var(--accent-text);
 }
 
 /* ── Sections ── */
@@ -81,21 +133,30 @@
 }
 
 .sectionTitle {
-  font-family: var(--font-display);
-  font-size: 26px;
-  letter-spacing: 0.06em;
-  color: var(--text-bright);
+  font-family: var(--font-sans);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--ink);
   margin: 0;
 }
 
 .moreLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   background: none;
   border: none;
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.08em;
+  color: var(--accent-text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
+}
+
+.moreLink svg {
+  width: 14px;
+  height: 14px;
 }
 
 .moreLink:hover {
@@ -103,8 +164,7 @@
 }
 
 .muted {
-  color: var(--text);
-  opacity: 0.6;
+  color: var(--ink-faint);
   font-size: 13px;
 }
 
@@ -122,16 +182,16 @@
   display: block;
   width: 100%;
   text-align: left;
-  background: rgba(230, 220, 195, 0.5);
-  border: 1px solid rgba(168, 59, 12, 0.12);
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
   padding: var(--space-md);
   cursor: pointer;
-  transition: border-color var(--transition-base);
+  transition: border-color var(--transition-fast);
 }
 
 .newsItem:hover {
-  border-color: rgba(168, 59, 12, 0.35);
+  border-color: var(--surface-border-strong);
 }
 
 .newsItemHead {
@@ -142,81 +202,40 @@
 }
 
 .pin {
-  font-size: 9px;
-  letter-spacing: 0.1em;
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  color: var(--paper);
+  color: var(--accent-on);
   background: var(--accent);
-  padding: 2px 6px;
-  border-radius: var(--radius-sm);
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
 }
 
 .newsBadge {
-  font-size: 9px;
-  letter-spacing: 0.1em;
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  color: var(--accent);
-  background: rgba(168, 59, 12, 0.1);
-  border: 1px solid rgba(168, 59, 12, 0.4);
+  color: var(--accent-text);
+  background: var(--accent-soft);
   padding: 2px 7px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-full);
 }
 
 .newsTitle {
-  color: var(--text-bright);
+  color: var(--ink);
   font-size: 14px;
   font-weight: 700;
 }
 
 .newsDate {
   margin-left: auto;
-  color: var(--text);
-  opacity: 0.6;
-  font-size: 11px;
+  color: var(--ink-faint);
+  font-size: 12px;
 }
 
 .newsExcerpt {
   margin: var(--space-sm) 0 0;
-  color: var(--text);
-  font-size: 12px;
+  color: var(--ink-dim);
+  font-size: 13px;
   line-height: 1.6;
-}
-
-/* ── Explore tiles ── */
-.tileGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--space-md);
-}
-
-.tile {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-  text-align: left;
-  background: rgba(230, 220, 195, 0.5);
-  border: 1px solid rgba(168, 59, 12, 0.12);
-  border-radius: var(--radius-md);
-  padding: var(--space-lg);
-  cursor: pointer;
-  transition: all var(--transition-base);
-}
-
-.tile:hover {
-  border-color: var(--accent);
-  transform: translateY(-2px);
-}
-
-.tileLabel {
-  font-family: var(--font-display);
-  font-size: 20px;
-  letter-spacing: 0.05em;
-  color: var(--text-bright);
-}
-
-.tileDesc {
-  font-size: 12px;
-  line-height: 1.6;
-  color: var(--text);
-  opacity: 0.8;
 }

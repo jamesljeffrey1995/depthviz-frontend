@@ -2,60 +2,75 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 32px;
+  gap: 10px;
+  margin-bottom: 24px;
 }
 
 .inputRow {
   position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 16px;
+  width: 18px;
+  height: 18px;
+  color: var(--ink-faint);
+  pointer-events: none;
 }
 
 .input {
   width: 100%;
-  background: rgba(250, 246, 234, 0.3);
-  border: 1px solid rgba(168, 59, 12, 0.15);
-  color: var(--text-bright);
-  font-size: 13px;
-  padding: 14px 18px;
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  padding: 14px 16px 14px 44px;
   outline: none;
-  transition: border-color 0.2s, background 0.2s;
-  letter-spacing: 0.05em;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .input::placeholder {
-  color: rgba(42, 37, 30, 0.4);
+  color: var(--ink-faint);
 }
 
 .input:focus {
-  border-color: rgba(168, 59, 12, 0.4);
-  background: rgba(250, 246, 234, 0.5);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .suggestions {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 6px);
   left: 0;
   right: 0;
-  background: var(--ocean-mid);
-  border: 1px solid rgba(168, 59, 12, 0.2);
-  border-top: none;
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
   z-index: 10;
   list-style: none;
+  overflow: hidden;
+  padding: 4px;
 }
 
 .suggestion {
-  padding: 10px 18px;
-  font-size: 12px;
+  padding: 10px 12px;
+  font-size: 14px;
   cursor: pointer;
-  color: var(--text);
-  transition: background 0.15s;
-  border-bottom: 1px solid rgba(168, 59, 12, 0.05);
+  color: var(--ink-dim);
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
 }
 
 .suggestion:hover,
 .suggestionActive {
-  background: rgba(168, 59, 12, 0.08);
-  color: var(--text-bright);
+  background: var(--accent-soft);
+  color: var(--ink);
 }
 
 .btnDive:focus-visible,
@@ -72,37 +87,44 @@
 .btnDive,
 .btnLocate {
   flex: 1;
-  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-sans);
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  padding: 14px 22px;
+  padding: 13px 18px;
   border: none;
-  transition: all 0.2s;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.btnDive svg,
+.btnLocate svg {
+  width: 16px;
+  height: 16px;
 }
 
 .btnDive {
-  background: rgba(168, 59, 12, 0.1);
-  border: 1px solid rgba(168, 59, 12, 0.3);
-  color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-on);
 }
 
 .btnDive:hover {
-  background: rgba(168, 59, 12, 0.2);
-  border-color: rgba(168, 59, 12, 0.6);
-  box-shadow: 0 0 20px rgba(168, 59, 12, 0.1);
+  background: var(--accent-strong);
 }
 
 .btnLocate {
-  background: rgba(47, 107, 70, 0.2);
-  border: 1px solid rgba(31, 81, 56, 0.3);
-  color: var(--excellent);
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  color: var(--ink-dim);
 }
 
 .btnLocate:hover {
-  background: rgba(47, 107, 70, 0.35);
-  border-color: rgba(31, 81, 56, 0.6);
-  box-shadow: 0 0 20px rgba(31, 81, 56, 0.1);
+  border-color: var(--surface-border-strong);
+  color: var(--ink);
 }
 
 .btnDive:active,

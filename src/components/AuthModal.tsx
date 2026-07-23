@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useDialog } from '../hooks/useDialog'
+import { IconClose, IconMail } from './icons'
 import styles from './AuthModal.module.css'
 
 interface Props {
@@ -44,14 +45,16 @@ export function AuthModal({ onClose }: Props) {
         aria-labelledby="auth-modal-title"
         tabIndex={-1}
       >
-        <button className={styles.close} onClick={onClose} aria-label="Close sign in dialog">✕</button>
+        <button className={styles.close} onClick={onClose} aria-label="Close sign in dialog">
+          <IconClose />
+        </button>
 
-        <div className={styles.title} id="auth-modal-title">SIGN IN</div>
-        <div className={styles.sub}>No password needed — we'll email you a magic link</div>
+        <div className={styles.title} id="auth-modal-title">Sign in</div>
+        <div className={styles.sub}>No password needed — we&rsquo;ll email you a magic link</div>
 
         {sent ? (
           <div className={styles.sent} aria-live="polite">
-            <div className={styles.sentIcon} aria-hidden="true">✉</div>
+            <div className={styles.sentIcon} aria-hidden="true"><IconMail /></div>
             <div className={styles.sentText}>Link sent to <strong>{email}</strong></div>
             <div className={styles.sentHint}>Check your inbox and tap the link to sign in. You can close this.</div>
           </div>
@@ -78,10 +81,10 @@ export function AuthModal({ onClose }: Props) {
               disabled={!email || loading}
               aria-busy={loading}
             >
-              {loading ? 'Sending...' : 'Send Magic Link'}
+              {loading ? 'Sending…' : 'Send magic link'}
             </button>
             <div className={styles.why}>
-              Signing in lets you submit dive reports, save private spots, and helps the AI learn from your data.
+              Signing in lets you submit dive reports, save private spots, and helps the model learn from your data.
             </div>
           </>
         )}

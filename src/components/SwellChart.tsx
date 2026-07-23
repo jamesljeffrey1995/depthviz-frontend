@@ -16,10 +16,10 @@ const PAD = { top: 16, right: 30, bottom: 24, left: 14 }
 const FT_PER_M = 3.28084
 
 const COLORS = {
-  calm:     '#2f6b46',
-  light:    '#8f5f08',
-  moderate: '#96470f',
-  rough:    '#a4321f',
+  calm:     '#237744',
+  light:    '#985c16',
+  moderate: '#a2571b',
+  rough:    '#bd3a3a',
 }
 
 function maxScale(units: 'ft' | 'm') {

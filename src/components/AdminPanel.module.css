@@ -1,6 +1,6 @@
 .panel {
   background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(0, 201, 255, 0.1);
+  border: 1px solid rgba(14, 124, 134, 0.1);
   padding: 20px;
   margin-bottom: 16px;
 }
@@ -32,18 +32,18 @@
   display: flex; gap: 8px; margin-bottom: 20px;
 }
 .stat {
-  flex: 1; background: rgba(2,13,20,0.4); border: 1px solid rgba(0,201,255,0.06); padding: 12px 10px; text-align: center;
+  flex: 1; background: rgba(2,13,20,0.4); border: 1px solid rgba(14, 124, 134,0.06); padding: 12px 10px; text-align: center;
 }
 .statVal { font-family: var(--font-display); font-size: 20px; color: var(--text-bright); margin-bottom: 3px; }
 .statLbl { font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; opacity: .4; }
 
 .tabs { display: flex; gap: 6px; margin-bottom: 14px; }
 .tab {
-  flex: 1; background: rgba(4,30,46,0.6); border: 1px solid rgba(0,201,255,0.08);
+  flex: 1; background: rgba(4,30,46,0.6); border: 1px solid rgba(14, 124, 134,0.08);
   color: var(--text); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.2em;
   text-transform: uppercase; padding: 8px; cursor: pointer;
 }
-.tab.tabActive { border-color: rgba(0,201,255,0.35); color: var(--accent); background: rgba(0,201,255,0.08); }
+.tab.tabActive { border-color: rgba(14, 124, 134,0.35); color: var(--accent); background: rgba(14, 124, 134,0.08); }
 
 .error {
   background: rgba(192,57,43,0.1); border: 1px solid rgba(192,57,43,0.3);
@@ -58,7 +58,7 @@
 
 .statDetail {
   display: flex; justify-content: space-between; align-items: center;
-  background: rgba(2,13,20,0.4); border: 1px solid rgba(0,201,255,0.05);
+  background: rgba(2,13,20,0.4); border: 1px solid rgba(14, 124, 134,0.05);
   padding: 10px 12px; font-size: 11px; opacity: 0.7;
 }
 .statDetailVal { color: var(--text-bright); font-family: var(--font-display); font-size: 16px; }
@@ -68,7 +68,7 @@
 
 .reportRow {
   display: flex; align-items: center; gap: 10px;
-  background: rgba(2,13,20,0.4); border: 1px solid rgba(0,201,255,0.05);
+  background: rgba(2,13,20,0.4); border: 1px solid rgba(14, 124, 134,0.05);
   padding: 10px 12px; font-size: 11px;
 }
 .reportMeta { display: flex; flex-direction: column; gap: 2px; min-width: 120px; }
@@ -95,11 +95,11 @@
 .actionRow { display: flex; gap: 10px; margin-bottom: 12px; }
 
 .previewBtn {
-  flex: 1; background: rgba(0,201,255,0.08); border: 1px solid rgba(0,201,255,0.2);
+  flex: 1; background: rgba(14, 124, 134,0.08); border: 1px solid rgba(14, 124, 134,0.2);
   color: var(--accent); font-family: var(--font-mono); font-size: 10px;
   letter-spacing: 0.15em; text-transform: uppercase; padding: 10px; cursor: pointer;
 }
-.previewBtn:hover { background: rgba(0,201,255,0.15); }
+.previewBtn:hover { background: rgba(14, 124, 134,0.15); }
 .previewBtn:disabled { opacity: .4; cursor: not-allowed; }
 
 .cleanBtn {
@@ -111,7 +111,7 @@
 .cleanBtn:disabled { opacity: .4; cursor: not-allowed; }
 
 .previewResult, .cleanResult {
-  background: rgba(2,13,20,0.4); border: 1px solid rgba(0,201,255,0.08);
+  background: rgba(2,13,20,0.4); border: 1px solid rgba(14, 124, 134,0.08);
   padding: 14px;
 }
 .previewHeader, .cleanHeader {
@@ -141,7 +141,7 @@
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
 }
 .metricCard {
-  background: rgba(2,13,20,0.4); border: 1px solid rgba(0,201,255,0.06);
+  background: rgba(2,13,20,0.4); border: 1px solid rgba(14, 124, 134,0.06);
   padding: 12px 10px; text-align: center;
 }
 .metricVal { font-family: var(--font-display); font-size: 22px; color: var(--text-bright); margin-bottom: 4px; }
@@ -168,7 +168,7 @@
   flex: 0 0 38%; color: var(--text-bright); white-space: nowrap;
   overflow: hidden; text-overflow: ellipsis;
 }
-.barTrack { flex: 1; height: 6px; background: rgba(0,201,255,0.07); border-radius: 3px; overflow: hidden; }
+.barTrack { flex: 1; height: 6px; background: rgba(14, 124, 134,0.07); border-radius: 3px; overflow: hidden; }
 .barFill { display: block; height: 100%; background: var(--accent); opacity: 0.7; border-radius: 3px; }
 .barMeta { flex: 1; text-align: right; opacity: .45; font-size: 10px; font-family: var(--font-mono); }
 .barCount {
@@ -183,7 +183,7 @@
 /* Status pills */
 .pillRow { display: flex; flex-wrap: wrap; gap: 8px; }
 .pill {
-  background: rgba(2,13,20,0.5); border: 1px solid rgba(0,201,255,0.1);
+  background: rgba(2,13,20,0.5); border: 1px solid rgba(14, 124, 134,0.1);
   padding: 5px 10px; font-size: 10px; letter-spacing: 0.05em;
   text-transform: capitalize; font-family: var(--font-mono);
 }

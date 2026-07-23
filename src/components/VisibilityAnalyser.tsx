@@ -241,10 +241,10 @@ export default function VisibilityAnalyser({ calib = 4.0, onResult, className }:
               <div className={styles.validationScore}>
                 <span style={{
                   color: report.validation.confidence >= 0.7
-                    ? '#1f5138'
+                    ? '#107852'
                     : report.validation.confidence >= 0.3
-                      ? '#8f5f08'
-                      : '#a4321f',
+                      ? '#985c16'
+                      : '#bd3a3a',
                 }}>
                   {report.validation.confidence >= 0.7
                     ? 'Underwater footage confirmed'

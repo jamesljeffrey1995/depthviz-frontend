@@ -208,8 +208,8 @@ export function TidesPage({ lat, lon, locationName }: Props) {
           <svg viewBox="0 0 600 200" className={styles.chart} preserveAspectRatio="none">
             <defs>
               <linearGradient id="tideFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(0,201,255,0.25)" />
-                <stop offset="100%" stopColor="rgba(0,201,255,0.02)" />
+                <stop offset="0%" stopColor="rgba(14, 124, 134,0.25)" />
+                <stop offset="100%" stopColor="rgba(14, 124, 134,0.02)" />
               </linearGradient>
             </defs>
 
@@ -219,7 +219,7 @@ export function TidesPage({ lat, lon, locationName }: Props) {
               const y = 20 + chartH - ((v - minH) / (maxH - minH || 1)) * chartH
               return (
                 <g key={v}>
-                  <line x1="0" y1={y} x2="600" y2={y} stroke="rgba(0,201,255,0.06)" strokeWidth="1" />
+                  <line x1="0" y1={y} x2="600" y2={y} stroke="rgba(14, 124, 134,0.06)" strokeWidth="1" />
                   <text x="4" y={y - 4} fill="rgba(139,184,204,0.4)" fontSize="9" fontFamily="var(--font-mono)">{v.toFixed(1)}m</text>
                 </g>
               )

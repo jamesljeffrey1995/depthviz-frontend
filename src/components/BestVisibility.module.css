@@ -23,7 +23,7 @@
 .progressBar {
   width: 100%;
   height: 3px;
-  background: rgba(0, 201, 255, 0.08);
+  background: rgba(14, 124, 134, 0.08);
   margin-bottom: 16px;
   overflow: hidden;
 }
@@ -56,7 +56,7 @@
   align-items: center;
   gap: 12px;
   background: rgba(4, 30, 46, 0.5);
-  border: 1px solid rgba(0, 201, 255, 0.06);
+  border: 1px solid rgba(14, 124, 134, 0.06);
   padding: 14px 16px;
 }
 
@@ -75,9 +75,9 @@
 .skelVisUnit {
   background: linear-gradient(
     90deg,
-    rgba(0, 201, 255, 0.04) 25%,
-    rgba(0, 201, 255, 0.13) 37%,
-    rgba(0, 201, 255, 0.04) 63%
+    rgba(14, 124, 134, 0.04) 25%,
+    rgba(14, 124, 134, 0.13) 37%,
+    rgba(14, 124, 134, 0.04) 63%
   );
   background-size: 400% 100%;
   animation: shimmer 1.4s ease-in-out infinite;
@@ -146,14 +146,14 @@
   align-items: center;
   gap: 12px;
   background: rgba(4, 30, 46, 0.5);
-  border: 1px solid rgba(0, 201, 255, 0.06);
+  border: 1px solid rgba(14, 124, 134, 0.06);
   padding: 14px 16px;
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
 }
 
 .spotRow:hover {
-  border-color: rgba(0, 201, 255, 0.25);
+  border-color: rgba(14, 124, 134, 0.25);
   background: rgba(4, 30, 46, 0.85);
 }
 

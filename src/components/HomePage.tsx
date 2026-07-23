@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getNews } from '../lib/api'
 import type { Announcement } from '../types'
+import {
+  IconArrowRight, IconActivity, IconFish, IconTimer, IconScale, IconCompass,
+} from './icons'
 import styles from './HomePage.module.css'
 
 /** Compact relative date, e.g. "3 days ago". */
@@ -17,19 +20,18 @@ function timeAgo(iso: string): string {
   return new Date(iso).toLocaleDateString()
 }
 
-interface Tile {
+interface QuickLink {
   label: string
-  desc: string
   path: string
+  icon: typeof IconActivity
 }
 
-const TILES: Tile[] = [
-  { label: 'Check Visibility', desc: 'AI-calibrated 7-day underwater visibility forecast for any coast.', path: '/map' },
-  { label: 'Discussions', desc: 'Talk spots, gear, safety and catches with other divers.', path: '/forum' },
-  { label: 'Weight Belt', desc: 'Work out your neutral-buoyancy weighting in seconds.', path: '/weight' },
-  { label: 'Best Visibility', desc: 'Find where the water is clearest right now.', path: '/best' },
-  { label: 'Apnea Training', desc: 'Run O₂ and CO₂ tables to build your breath-hold.', path: '/training' },
-  { label: 'Activity Feed', desc: 'Latest dive reports and catches from the community.', path: '/feed' },
+const QUICK_LINKS: QuickLink[] = [
+  { label: 'Best visibility', path: '/best', icon: IconCompass },
+  { label: 'Apnea training', path: '/training', icon: IconTimer },
+  { label: 'Activity feed', path: '/feed', icon: IconActivity },
+  { label: 'Catches', path: '/catches', icon: IconFish },
+  { label: 'Weight belt', path: '/weight', icon: IconScale },
 ]
 
 export function HomePage() {
@@ -49,15 +51,15 @@ export function HomePage() {
   return (
     <div className={styles.home}>
       <section className={styles.hero}>
-        <h1 className={styles.heroTitle}>Dive smarter.</h1>
+        <h1 className={styles.heroTitle}>Know before you go in.</h1>
         <p className={styles.heroLead}>
-          DepthViz forecasts underwater visibility for spearfishers and freedivers,
-          then sharpens it with reports from divers in the water. Check the vis,
-          plan your session, and swap notes with the community.
+          A calibrated underwater-visibility forecast for spearfishers and freedivers —
+          sharpened by reports from divers already in the water at your spot.
         </p>
         <div className={styles.heroActions}>
           <button className={styles.primaryBtn} onClick={() => navigate('/map')}>
             Check visibility
+            <IconArrowRight aria-hidden="true" />
           </button>
           <button className={styles.secondaryBtn} onClick={() => navigate('/forum')}>
             Join the discussion
@@ -65,11 +67,21 @@ export function HomePage() {
         </div>
       </section>
 
+      <nav className={styles.quickLinks} aria-label="Quick links">
+        {QUICK_LINKS.map(({ label, path, icon: Icon }) => (
+          <button key={path} className={styles.quickLink} onClick={() => navigate(path)}>
+            <Icon className={styles.quickLinkIcon} aria-hidden="true" />
+            <span>{label}</span>
+          </button>
+        ))}
+      </nav>
+
       <section className={styles.section} aria-labelledby="news-heading">
         <div className={styles.sectionHead}>
           <h2 id="news-heading" className={styles.sectionTitle}>Latest news</h2>
           <button className={styles.moreLink} onClick={() => navigate('/news')}>
-            All news →
+            All news
+            <IconArrowRight aria-hidden="true" />
           </button>
         </div>
         {loadingNews ? (
@@ -95,18 +107,6 @@ export function HomePage() {
             ))}
           </ul>
         )}
-      </section>
-
-      <section className={styles.section} aria-labelledby="explore-heading">
-        <h2 id="explore-heading" className={styles.sectionTitle}>Explore</h2>
-        <div className={styles.tileGrid}>
-          {TILES.map(t => (
-            <button key={t.path} className={styles.tile} onClick={() => navigate(t.path)}>
-              <span className={styles.tileLabel}>{t.label}</span>
-              <span className={styles.tileDesc}>{t.desc}</span>
-            </button>
-          ))}
-        </div>
       </section>
     </div>
   )

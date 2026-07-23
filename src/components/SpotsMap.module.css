@@ -12,7 +12,7 @@
 
 .mapContainer {
   background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(0, 201, 255, 0.1);
+  border: 1px solid rgba(14, 124, 134, 0.1);
   overflow: hidden;
   position: relative;
   isolation: isolate;
@@ -89,8 +89,8 @@
 }
 
 .addSpotBtn {
-  background: rgba(0, 201, 255, 0.08);
-  border: 1px solid rgba(0, 201, 255, 0.25);
+  background: rgba(14, 124, 134, 0.08);
+  border: 1px solid rgba(14, 124, 134, 0.25);
   color: var(--accent);
   font-family: var(--font-mono);
   font-size: 10px;
@@ -102,8 +102,8 @@
 }
 
 .addSpotBtn:hover {
-  background: rgba(0, 201, 255, 0.15);
-  border-color: rgba(0, 201, 255, 0.5);
+  background: rgba(14, 124, 134, 0.15);
+  border-color: rgba(14, 124, 134, 0.5);
 }
 
 .userSpotsCount {
@@ -118,7 +118,7 @@
 .addForm {
   margin-top: 12px;
   background: rgba(4, 30, 46, 0.7);
-  border: 1px solid rgba(0, 201, 255, 0.15);
+  border: 1px solid rgba(14, 124, 134, 0.15);
   padding: 16px;
 }
 
@@ -162,7 +162,7 @@
 .addFormInput {
   width: 100%;
   background: rgba(10, 61, 92, 0.3);
-  border: 1px solid rgba(0, 201, 255, 0.2);
+  border: 1px solid rgba(14, 124, 134, 0.2);
   color: var(--text-bright);
   font-family: var(--font-mono);
   font-size: 13px;
@@ -172,7 +172,7 @@
 }
 
 .addFormInput:focus {
-  border-color: rgba(0, 201, 255, 0.5);
+  border-color: rgba(14, 124, 134, 0.5);
 }
 
 .addFormActions {
@@ -183,8 +183,8 @@
 
 .addFormSaveBtn {
   flex: 1;
-  background: rgba(0, 201, 255, 0.12);
-  border: 1px solid rgba(0, 201, 255, 0.4);
+  background: rgba(14, 124, 134, 0.12);
+  border: 1px solid rgba(14, 124, 134, 0.4);
   color: var(--accent);
   font-family: var(--font-mono);
   font-size: 10px;
@@ -197,7 +197,7 @@
 }
 
 .addFormSaveBtn:hover:not(:disabled) {
-  background: rgba(0, 201, 255, 0.22);
+  background: rgba(14, 124, 134, 0.22);
 }
 
 .addFormSaveBtn:disabled {
@@ -266,7 +266,7 @@
   display: block;
   width: 100%;
   background: var(--ocean-mid);
-  border: 1px solid rgba(0, 201, 255, 0.3);
+  border: 1px solid rgba(14, 124, 134, 0.3);
   color: var(--accent);
   font-family: var(--font-mono);
   font-size: 10px;
@@ -280,8 +280,8 @@
 }
 
 .popupBtn:hover {
-  background: rgba(0, 201, 255, 0.15);
-  border-color: rgba(0, 201, 255, 0.5);
+  background: rgba(14, 124, 134, 0.15);
+  border-color: rgba(14, 124, 134, 0.5);
 }
 
 .popupRemoveBtn {
@@ -342,8 +342,8 @@
 }
 
 .voteBtnActive {
-  background: rgba(0, 201, 255, 0.15);
-  border-color: #00c9ff;
+  background: rgba(14, 124, 134, 0.15);
+  border-color: #0e7c86;
 }
 
 .voteCount {

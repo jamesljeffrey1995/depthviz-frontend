@@ -19,7 +19,7 @@
 
 .scopeBtn {
   background: rgba(4, 30, 46, 0.5);
-  border: 1px solid rgba(0, 201, 255, 0.15);
+  border: 1px solid rgba(14, 124, 134, 0.15);
   color: var(--text);
   font-family: var(--font-mono);
   font-size: 12px;
@@ -44,7 +44,7 @@
 }
 
 .scopeActive {
-  background: rgba(0, 201, 255, 0.15);
+  background: rgba(14, 124, 134, 0.15);
   color: var(--accent);
   border-color: var(--accent);
 }
@@ -61,7 +61,7 @@
 
 .filterChip {
   background: transparent;
-  border: 1px solid rgba(0, 201, 255, 0.12);
+  border: 1px solid rgba(14, 124, 134, 0.12);
   color: var(--text);
   font-family: var(--font-mono);
   font-size: 11px;
@@ -74,11 +74,11 @@
 }
 
 .filterChip:hover {
-  border-color: rgba(0, 201, 255, 0.3);
+  border-color: rgba(14, 124, 134, 0.3);
 }
 
 .filterActive {
-  background: rgba(0, 201, 255, 0.12);
+  background: rgba(14, 124, 134, 0.12);
   border-color: var(--accent);
   color: var(--accent);
 }
@@ -91,14 +91,14 @@
 
 .feedCard {
   background: rgba(4, 30, 46, 0.6);
-  border: 1px solid rgba(0, 201, 255, 0.08);
+  border: 1px solid rgba(14, 124, 134, 0.08);
   padding: 20px 24px;
   border-radius: 2px;
   transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .feedCard:hover {
-  border-color: rgba(0, 201, 255, 0.2);
+  border-color: rgba(14, 124, 134, 0.2);
   background: rgba(4, 30, 46, 0.75);
 }
 
@@ -161,7 +161,7 @@
 
 .visBadgePredicted {
   display: inline-block;
-  background: rgba(0, 201, 255, 0.1);
+  background: rgba(14, 124, 134, 0.1);
   color: var(--accent);
   font-family: var(--font-mono);
   font-size: 12px;
@@ -202,7 +202,7 @@
   background: rgba(7, 40, 64, 0.6);
   padding: 3px 10px;
   border-radius: 3px;
-  border: 1px solid rgba(0, 201, 255, 0.08);
+  border: 1px solid rgba(14, 124, 134, 0.08);
 }
 
 .notes {
@@ -219,8 +219,8 @@
   width: 100%;
   margin-top: 20px;
   padding: 12px;
-  background: rgba(0, 201, 255, 0.08);
-  border: 1px solid rgba(0, 201, 255, 0.2);
+  background: rgba(14, 124, 134, 0.08);
+  border: 1px solid rgba(14, 124, 134, 0.2);
   color: var(--accent);
   font-family: var(--font-mono);
   font-size: 12px;
@@ -232,7 +232,7 @@
 }
 
 .loadMore:hover:not(:disabled) {
-  background: rgba(0, 201, 255, 0.15);
+  background: rgba(14, 124, 134, 0.15);
 }
 
 .loadMore:disabled {

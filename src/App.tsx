@@ -12,6 +12,10 @@ import { SeabedEditor } from './components/SeabedEditor'
 import { CookieBanner } from './components/CookieBanner'
 import { TopNav } from './components/TopNav'
 import PwaStatus from './components/PwaStatus'
+import {
+  IconHome, IconCompass, IconActivity, IconFish, IconTimer, IconScale, IconUser,
+  IconLock, IconGauge, IconCheck, IconPlus,
+} from './components/icons'
 import { getLocations, createLocation, getMyProfile } from './lib/api'
 import { encryptCoords } from './lib/spotCrypto'
 import { formatLocationName } from './types'
@@ -297,8 +301,8 @@ export default function App() {
   const todayIndex = forecast?.days.findIndex(d => d.date === new Date().toISOString().split('T')[0]) ?? -1
 
   if (authLoading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-      <div style={{ color: 'var(--accent)', fontFamily: 'var(--font-display)', fontSize: '36px', letterSpacing: '0.2em' }}>DEPTHVIZ</div>
+    <div className={styles.bootScreen}>
+      <IconGauge className={styles.bootMark} aria-hidden="true" />
     </div>
   )
 
@@ -314,27 +318,26 @@ export default function App() {
       </Suspense>
 
       <header className={styles.header}>
-        <div
-          className={styles.logo}
-          aria-label="DepthViz — go to home"
-          role="button"
-          tabIndex={0}
-          style={{ cursor: 'pointer' }}
-          onClick={() => navigate('/')}
-          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') navigate('/') }}
-        >DEPTH<span>VIZ</span></div>
-        <div className={styles.tagline}>Underwater visibility forecast</div>
-        <p className={styles.valueProp}>
-          AI-calibrated 7-day forecasts · swell, current &amp; ocean data · community-verified
-        </p>
-        <button
-          type="button"
-          className={user ? styles.authBtnAvatar : styles.authBtn}
-          onClick={() => { if (user) navigate('/profile'); else setShowAuth(true) }}
-          aria-label={user ? `View profile for ${user.email?.split('@')[0] ?? 'user'}` : 'Sign in to your account'}
-        >
-          {user ? (user.email ?? 'U')[0].toUpperCase() : 'Sign in'}
-        </button>
+        <div className={styles.headerRow}>
+          <button
+            type="button"
+            className={styles.logo}
+            aria-label="DepthViz — go to home"
+            onClick={() => navigate('/')}
+          >
+            <IconGauge className={styles.logoMark} aria-hidden="true" />
+            DEPTH<span>VIZ</span>
+          </button>
+          <button
+            type="button"
+            className={user ? styles.authBtnAvatar : styles.authBtn}
+            onClick={() => { if (user) navigate('/profile'); else setShowAuth(true) }}
+            aria-label={user ? `View profile for ${user.email?.split('@')[0] ?? 'user'}` : 'Sign in to your account'}
+          >
+            {user ? (user.email ?? 'U')[0].toUpperCase() : (<><IconUser aria-hidden="true" /><span>Sign in</span></>)}
+          </button>
+        </div>
+        <div className={styles.tagline}>Underwater visibility forecast for spearfishers &amp; freedivers</div>
       </header>
 
       <TopNav />
@@ -396,7 +399,7 @@ export default function App() {
             aria-current={currentPath === '/report' ? 'page' : undefined}
           >
             Log Dive
-            {!user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}
+            {!user && <IconLock className={styles.lockIcon} aria-hidden="true" />}
           </button>
           <button
             className={`${styles.navBtn} ${selectedLocationId ? styles.navActive : ''}`}
@@ -404,7 +407,7 @@ export default function App() {
             disabled={!!selectedLocationId}
             aria-label={selectedLocationId ? 'Location already saved' : !user ? 'Save this location (sign in required)' : 'Save this location'}
           >
-            {selectedLocationId ? 'Saved ✓' : <><span>+ Save</span>{!user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}</>}
+            {selectedLocationId ? <><IconCheck className={styles.lockIcon} aria-hidden="true" /><span>Saved</span></> : <><IconPlus className={styles.lockIcon} aria-hidden="true" /><span>Save</span>{!user && <IconLock className={styles.lockIcon} aria-hidden="true" />}</>}
           </button>
           {!selectedLocationId && (
             <button
@@ -412,7 +415,7 @@ export default function App() {
               onClick={() => handleSaveLocation(true)}
               aria-label={!user ? 'Save as private spot (sign in required)' : 'Save as private spot — coordinates encrypted'}
             >
-              + Private{!user && <span className={styles.lockIcon} aria-hidden="true"> &#128274;</span>}
+              <IconLock className={styles.lockIcon} aria-hidden="true" /><span>Private</span>
             </button>
           )}
           {selectedLocationId && (
@@ -579,7 +582,7 @@ export default function App() {
               )}
               {status === 'idle' && (
                 <div className={styles.empty}>
-                  <div className={styles.emptyIcon} aria-hidden="true">&#129343;</div>
+                  <IconGauge className={styles.emptyIcon} aria-hidden="true" />
                   <div className={styles.emptyText}>Enter a location to check<br />underwater visibility conditions</div>
                 </div>
               )}
@@ -822,10 +825,7 @@ export default function App() {
           aria-label="Home"
           aria-current={currentPath === '/' ? 'page' : undefined}
         >
-          <svg className={styles.bottomNavIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" />
-          </svg>
+          <span className={styles.bottomNavIconWrap}><IconHome className={styles.bottomNavIcon} /></span>
           <span>Home</span>
         </button>
         <button
@@ -834,9 +834,7 @@ export default function App() {
           aria-label="Map"
           aria-current={MAP_GROUP_ROUTES.includes(currentPath) ? 'page' : undefined}
         >
-          <svg className={styles.bottomNavIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-          </svg>
+          <span className={styles.bottomNavIconWrap}><IconCompass className={styles.bottomNavIcon} /></span>
           <span>Map</span>
         </button>
         <button
@@ -845,11 +843,7 @@ export default function App() {
           aria-label="Feed"
           aria-current={currentPath === '/feed' ? 'page' : undefined}
         >
-          <svg className={styles.bottomNavIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path d="M4 11a9 9 0 019 9" />
-            <path d="M4 4a16 16 0 0116 16" />
-            <circle cx="5" cy="19" r="1" />
-          </svg>
+          <span className={styles.bottomNavIconWrap}><IconActivity className={styles.bottomNavIcon} /></span>
           <span>Feed</span>
         </button>
         <button
@@ -858,10 +852,7 @@ export default function App() {
           aria-label="Catches"
           aria-current={currentPath === '/catches' ? 'page' : undefined}
         >
-          <svg className={styles.bottomNavIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path d="M20 12c0 4.418-3.582 8-8 8s-8-3.582-8-8c0-2 1-4 2-5l6 3 6-3c1 1 2 3 2 5z" />
-            <path d="M12 3v12" />
-          </svg>
+          <span className={styles.bottomNavIconWrap}><IconFish className={styles.bottomNavIcon} /></span>
           <span>Catches</span>
         </button>
         <button
@@ -870,10 +861,7 @@ export default function App() {
           aria-label="Apnea training tables"
           aria-current={currentPath.startsWith('/training') ? 'page' : undefined}
         >
-          <svg className={styles.bottomNavIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <circle cx="12" cy="12" r="9" />
-            <polyline points="12 7 12 12 15 14" />
-          </svg>
+          <span className={styles.bottomNavIconWrap}><IconTimer className={styles.bottomNavIcon} /></span>
           <span>Train</span>
         </button>
         <button
@@ -882,13 +870,7 @@ export default function App() {
           aria-label="Weight belt calculator"
           aria-current={currentPath === '/weight' ? 'page' : undefined}
         >
-          <svg className={styles.bottomNavIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
-            <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
-            <path d="M7 21h10" />
-            <path d="M12 3v18" />
-            <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" />
-          </svg>
+          <span className={styles.bottomNavIconWrap}><IconScale className={styles.bottomNavIcon} /></span>
           <span>Weight</span>
         </button>
         <button
@@ -897,10 +879,7 @@ export default function App() {
           aria-label={user ? 'Profile' : 'Profile (sign in required)'}
           aria-current={currentPath === '/profile' ? 'page' : undefined}
         >
-          <svg className={styles.bottomNavIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4-4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
+          <span className={styles.bottomNavIconWrap}><IconUser className={styles.bottomNavIcon} /></span>
           <span>Profile</span>
         </button>
       </nav>

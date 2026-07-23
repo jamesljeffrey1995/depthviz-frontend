@@ -83,7 +83,7 @@
 
 /* ── Image upload ── */
 .dropZone {
-  border: 2px dashed rgba(0, 201, 255, 0.25);
+  border: 2px dashed rgba(14, 124, 134, 0.25);
   border-radius: var(--radius-lg);
   min-height: 140px;
   display: flex;
@@ -98,7 +98,7 @@
 .dropZone:hover,
 .dropZone:focus {
   border-color: var(--accent);
-  background: rgba(0, 201, 255, 0.04);
+  background: rgba(14, 124, 134, 0.04);
   outline: none;
 }
 
@@ -210,7 +210,7 @@
 /* ── Success state ── */
 .successCard {
   background: var(--ocean-mid);
-  border: 1px solid rgba(0, 201, 255, 0.15);
+  border: 1px solid rgba(14, 124, 134, 0.15);
   border-radius: var(--radius-lg);
   padding: var(--space-lg);
   display: flex;
@@ -239,8 +239,8 @@
 
 /* ── AI result ── */
 .aiResult {
-  background: rgba(0, 201, 255, 0.05);
-  border: 1px solid rgba(0, 201, 255, 0.15);
+  background: rgba(14, 124, 134, 0.05);
+  border: 1px solid rgba(14, 124, 134, 0.15);
   border-radius: var(--radius-md);
   padding: var(--space-md);
   display: flex;
@@ -299,7 +299,7 @@
 
 .closeBtn {
   background: transparent;
-  border: 1px solid rgba(0, 201, 255, 0.3);
+  border: 1px solid rgba(14, 124, 134, 0.3);
   color: var(--accent);
   font-family: var(--font-mono);
   font-size: 13px;
@@ -312,5 +312,5 @@
 }
 
 .closeBtn:hover {
-  background: rgba(0, 201, 255, 0.08);
+  background: rgba(14, 124, 134, 0.08);
 }
