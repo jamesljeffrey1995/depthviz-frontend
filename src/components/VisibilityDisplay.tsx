@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { VisibilityResult } from '../types'
 import { getImpact } from '../lib/visibility'
+import { clarityFillToken } from '../lib/severity'
 import styles from './VisibilityDisplay.module.css'
 
 interface VisibilityDisplayProps {
@@ -83,7 +84,9 @@ export function FactorGrid({ factors }: FactorGridProps) {
         // severity colour from dividing by zero.
         const ratio = f.max_penalty > 0 ? Math.abs(f.penalty) / f.max_penalty : 0
         const barPct = Math.min(100, ratio * 100)
-        const barColor = ratio === 0 ? 'var(--sev-good)' : ratio < 0.4 ? 'var(--sev-decent)' : ratio < 0.75 ? 'var(--sev-marginal)' : 'var(--sev-poor)'
+        // Single source for the ratio → clarity-token mapping (thresholds shared
+        // with impactToken via impactBand); see src/lib/severity.ts.
+        const barColor = clarityFillToken(ratio)
 
         return (
           <div key={f.name} className={styles.factorCard}>

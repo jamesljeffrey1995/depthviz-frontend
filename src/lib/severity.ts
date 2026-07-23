@@ -25,18 +25,60 @@ export const SEVERITY_TOKEN: Record<Severity, string> = {
   high: 'var(--ds-danger)',
 }
 
+/** The four impact bands a 0–1 ratio falls into, low → high. */
+export type ImpactBand = 'none' | 'low' | 'moderate' | 'high'
+
 /**
- * Map a 0–1 impact ratio (penalty ÷ max penalty) to a severity token — the
- * shared colour for factor/meter fills. Thresholds match the legacy bar logic
- * so this is a pure colour-source swap, not a behaviour change.
+ * Classify a 0–1 impact ratio (penalty ÷ max penalty) into a band — the single
+ * source of the threshold boundaries every ratio → colour mapping shares, so the
+ * status ramp (alert text) and the clarity ramp (meter fill) can never drift
+ * apart. Defensive: a non-finite ratio (e.g. a zero-max factor divided through)
+ * must not fall through to the high band and cry wolf.
+ */
+export function impactBand(ratio: number): ImpactBand {
+  if (!Number.isFinite(ratio) || ratio <= 0) return 'none'
+  if (ratio < 0.4) return 'low'
+  if (ratio < 0.75) return 'moderate'
+  return 'high'
+}
+
+/** Band → status token, for grading *alert* colour (algae, turbidity, …). */
+const BAND_STATUS: Record<ImpactBand, Severity> = {
+  none: 'safe',
+  low: 'low',
+  moderate: 'moderate',
+  high: 'high',
+}
+
+/**
+ * Band → six-step clarity token, for a factor/meter *fill*. A distinct ramp
+ * from the status one on purpose: a murky-but-safe day and a hazardous day
+ * must not read in the same language.
+ */
+const BAND_CLARITY: Record<ImpactBand, string> = {
+  none: 'var(--sev-good)',
+  low: 'var(--sev-decent)',
+  moderate: 'var(--sev-marginal)',
+  high: 'var(--sev-poor)',
+}
+
+/**
+ * Map a 0–1 impact ratio to a status token — the shared colour for factor/meter
+ * *alert text*. Thresholds live in `impactBand`, so this is a pure band → token
+ * lookup, not a behaviour change.
  */
 export function impactToken(ratio: number): string {
-  // Defensive: a non-finite ratio (e.g. a zero-max factor divided through)
-  // must not fall through to the high-severity band and cry wolf.
-  if (!Number.isFinite(ratio) || ratio <= 0) return SEVERITY_TOKEN.safe
-  if (ratio < 0.4) return SEVERITY_TOKEN.low
-  if (ratio < 0.75) return SEVERITY_TOKEN.moderate
-  return SEVERITY_TOKEN.high
+  return SEVERITY_TOKEN[BAND_STATUS[impactBand(ratio)]]
+}
+
+/**
+ * Map a 0–1 impact ratio to a step on the six-step clarity ramp (`--sev-*`) —
+ * the *fill* colour for factor/meter bars. Shares `impactBand`'s thresholds
+ * with `impactToken` but rides the clarity ramp rather than the status ramp,
+ * so the two never drift.
+ */
+export function clarityFillToken(ratio: number): string {
+  return BAND_CLARITY[impactBand(ratio)]
 }
 
 /** Map a named risk level (`none` | `low` | `moderate` | `high`) to a token. */
