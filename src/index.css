@@ -13,26 +13,26 @@
 
 :root {
   /* ── Colour system — "Precision Marine Instrument" ──
-     A light instrument chassis carries the app; one dark instrument-face
-     panel (the hero visibility reading, gauge thumbnails) is the deliberate
-     dark register, not the whole theme. One teal working accent. Severity
-     is a small functional signal set, kept in two registers — "on light"
-     for chassis surfaces, "on face" for the dark instrument panel — so
-     contrast holds in both places. See DESIGN.md for full rationale. */
-  --surface: #f2f0e8;
-  --surface-raised: #faf9f4;
-  --surface-sunken: #e7e5dc;
-  --surface-border: #cbc8bc;
-  --surface-border-strong: #87877f;
+     A near-black navy instrument chassis carries the app, with an even denser
+     instrument-face register for focused readings such as the hero gauge.
+     One teal working accent. Severity is a small functional signal set, kept
+     in two registers — one for the dark chassis surfaces, one for the denser
+     face surfaces — so contrast holds in both places. See DESIGN.md for full
+     rationale. */
+  --surface: #06121b;
+  --surface-raised: #0a1b27;
+  --surface-sunken: #030b11;
+  --surface-border: #193442;
+  --surface-border-strong: #315463;
 
-  --ink: #182528;
-  --ink-dim: #3e5052;
+  --ink: #edf7f8;
+  --ink-dim: #a9c1c8;
   /* Darkened from an initial #8a96a3 (2.78:1) — that failed AA even for large
-     text against --surface-sunken. This value clears 4.5:1 against every
-     light surface in the system. */
-  --ink-faint: #667476;
+     text against --surface-sunken. This value clears 4.5:1 against every dark
+     chassis surface in the system. */
+  --ink-faint: #6f8c96;
 
-  /* Instrument face — the one dark surface in the system. */
+  /* Instrument face — the denser panel register within the dark theme. */
   --face: #0b1622;
   --face-raised: #142334;
   --face-border: rgba(255, 255, 255, 0.1);
@@ -43,20 +43,18 @@
      reads as light catching an instrument's cover glass, not decoration. */
   --lens-sheen: linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 38%, rgba(255, 255, 255, 0.03) 60%, rgba(255, 255, 255, 0.1) 100%);
 
-  --accent: #0f545c;
-  --accent-rgb: 15, 84, 92;
-  --accent-strong: #093f46;
-  --accent-soft: rgba(15, 84, 92, 0.10);
+  --accent: #25b8c2;
+  --accent-rgb: 37, 184, 194;
+  --accent-strong: #58d6dc;
+  --accent-soft: rgba(37, 184, 194, 0.09);
   --accent-on: #ffffff;
-  /* Text-on-light variant — --accent itself only clears ~4.2:1 against
-     --surface-sunken, short of AA for small text; this darker value clears
-     4.5:1 and should be used wherever the accent is a text/link color rather
-     than a button fill or icon stroke. */
+  /* Brighter cyan for small text and links on the dark instrument surfaces.
+     Keep the base accent for fills and use this token for readable labels. */
   --accent-text: var(--accent-strong);
 
-  /* Severity — "on light" register (chips, badges, factor rows, text on
+  /* Severity — default dark-surface register (chips, badges, factor rows, text on
      --surface/--surface-raised). Safety-relevant; keep distinguishable.
-     Values are chosen to clear 4.5:1 against every light surface in the
+     Values are chosen to clear 4.5:1 against every dark chassis surface in the
      system (surface, surface-raised, surface-sunken) as plain text, not
      just the 3:1 large-text minimum — an initial brighter pass failed AA
      for several of these (sev-decent measured 2.96:1). */
@@ -100,9 +98,9 @@
   --text-bright: var(--ink);
 
   /* ── Typography — one refined grotesque, the range does the work ── */
-  --font-sans: Arial, Helvetica, sans-serif;
+  --font-sans: Bahnschrift, 'Arial Narrow', Arial, sans-serif;
   --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
-  --font-display: Georgia, 'Times New Roman', serif;
+  --font-display: Bahnschrift, 'Arial Narrow', Arial, sans-serif;
 
   /* ── Spacing scale ── */
   --space-xs: 4px;
@@ -126,7 +124,7 @@
   --shadow-glow: none;
   --shadow-xs: none;
   --shadow-card: none;
-  --shadow-lg: 0 6px 18px rgba(16, 24, 32, 0.18);
+  --shadow-lg: 0 10px 26px rgba(0, 0, 0, 0.38);
   --shadow-face: 0 24px 60px -16px rgba(11, 22, 34, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
@@ -150,9 +148,9 @@ html, body, #root {
 body {
   background-color: var(--surface);
   background-image:
-    linear-gradient(rgba(24, 37, 40, .025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(24, 37, 40, .025) 1px, transparent 1px);
-  background-size: 32px 32px;
+    linear-gradient(rgba(88, 214, 220, .025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(88, 214, 220, .025) 1px, transparent 1px);
+  background-size: 40px 40px;
   color: var(--ink-dim);
   font-family: var(--font-sans);
   font-feature-settings: 'tnum' 1, 'cv05' 1;

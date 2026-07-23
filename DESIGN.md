@@ -1,11 +1,11 @@
 # DepthViz interface direction
 
-## North star: the coastal field reference
+## North star: marine avionics without theatre
 
 DepthViz is a decision-support tool used by people who are about to enter the
-water. It should resemble a well-maintained chart, tide table, or field
-reference: direct, specific, information-dense, and calm. It must not resemble
-a generic SaaS landing page or a simulated dive-computer dashboard.
+water. It should resemble dependable marine avionics: matte, dark, calibrated,
+information-dense, and legible under pressure. It must not resemble a generic
+SaaS landing page or a theatrical sci-fi dive-computer dashboard.
 
 The interface is deliberately editorial rather than promotional. A screen
 starts with the question the user needs answered, then exposes evidence,
@@ -13,14 +13,14 @@ uncertainty, and safety constraints in that order.
 
 ## Visual language
 
-- Warm chart-paper ground (`#f2f0e8`) with dark blue-black ink (`#182528`).
-- Fine grid lines are permitted as a quiet spatial reference. Glows, blobs,
-  glass panels, and atmospheric gradients are not.
-- Teal (`#0f545c`) is a working colour for links, focus, selection, and active
+- Near-black navy ground (`#06121b`) with pale instrument ink (`#edf7f8`).
+- Fine grid lines are permitted as a quiet calibration reference. Glows,
+  blobs, glass panels, and atmospheric gradients are not.
+- Cyan (`#25b8c2`) is a working colour for links, focus, selection, and active
   state. It is not decorative.
-- Georgia is used sparingly for page and section headings; Arial is the
-  workhorse UI face; IBM Plex Mono is reserved for references, coordinates,
-  times, labels, and measurements.
+- Bahnschrift or a narrow system sans carries headings and interface copy;
+  IBM Plex Mono is reserved for references, coordinates, times, labels, and
+  measurements.
 - Corners are nearly square. A component gets a boundary only when the
   boundary explains grouping, containment, or interaction.
 - Shadows are absent from ordinary content. A modal or mobile navigation tray
