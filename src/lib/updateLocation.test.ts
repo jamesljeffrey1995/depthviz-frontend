@@ -41,7 +41,7 @@ describe('updateLocation', () => {
   test('PATCHes the location endpoint with a JSON body', async () => {
     const result = await updateLocation(5, { depth_m: 8, seabed_class: 'mud' })
 
-    const [url, init] = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0]
+    const [url, init] = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0]!
     expect(String(url)).toContain('/locations/5')
     expect(init.method).toBe('PATCH')
     expect(JSON.parse(init.body)).toEqual({ depth_m: 8, seabed_class: 'mud' })

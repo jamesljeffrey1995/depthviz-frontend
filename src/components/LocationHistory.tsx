@@ -22,9 +22,9 @@ type Log = {
 
 function errorColor(err: number): string {
   const abs = Math.abs(err)
-  if (abs <= 1) return 'var(--excellent)'
-  if (abs <= 2.5) return 'var(--warn)'
-  return 'var(--danger)'
+  if (abs <= 1) return 'var(--ds-q-excellent)'
+  if (abs <= 2.5) return 'var(--ds-warn)'
+  return 'var(--ds-danger)'
 }
 
 export function LocationHistory({ locationId, locationName }: Props) {

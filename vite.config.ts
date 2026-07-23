@@ -23,6 +23,10 @@ const cspValue = [
   // by URL safety check").
   "media-src 'self' blob:",
   "worker-src 'self' blob:",
+  // Lock down plugin/embedded objects and stop an injected <base> from
+  // repointing relative URLs (§ hardening — no legitimate use of either here).
+  "object-src 'none'",
+  "base-uri 'self'",
   "frame-ancestors 'none'",
 ].join('; ')
 

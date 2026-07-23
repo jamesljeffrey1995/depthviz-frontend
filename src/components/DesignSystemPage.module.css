@@ -1,0 +1,115 @@
+.page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: var(--ds-space-6) var(--ds-space-4) var(--ds-space-8);
+  font-family: var(--ds-font-sans);
+  color: var(--ds-text-body);
+}
+
+.masthead { margin-bottom: var(--ds-space-7); }
+.eyebrow {
+  font-size: var(--ds-text-label);
+  font-weight: var(--ds-fw-semi);
+  letter-spacing: var(--ds-tracking-label);
+  text-transform: uppercase;
+  color: var(--ds-accent);
+  margin-bottom: var(--ds-space-3);
+}
+.title {
+  font-size: var(--ds-text-hero);
+  font-weight: var(--ds-fw-bold);
+  line-height: var(--ds-lh-tight);
+  letter-spacing: var(--ds-tracking-tight);
+  color: var(--ds-text-strong);
+  margin-bottom: var(--ds-space-4);
+}
+.lede {
+  max-width: 60ch;
+  font-size: var(--ds-text-card);
+  line-height: var(--ds-lh-body);
+  color: var(--ds-text-muted);
+}
+.lede strong { color: var(--ds-text-strong); font-weight: var(--ds-fw-semi); }
+
+.section {
+  padding: var(--ds-space-6) 0;
+  border-top: 1px solid var(--ds-hairline);
+}
+.section:first-of-type { border-top: none; }
+
+/* colour */
+.swatchRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--ds-space-3);
+  margin-bottom: var(--ds-space-5);
+}
+.swatch {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--ds-space-3);
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-hairline);
+  border-radius: var(--ds-radius-md);
+}
+.swatchChip { height: 44px; border-radius: var(--ds-radius-sm); }
+.swatchName { font-size: var(--ds-text-body); font-weight: var(--ds-fw-semi); color: var(--ds-text-strong); }
+.swatchToken { font-family: var(--ds-font-num); font-size: var(--ds-text-label); color: var(--ds-text-faint); }
+
+.rampRow { display: flex; flex-wrap: wrap; gap: 4px; }
+.rampChip { width: 46px; height: 34px; border-radius: var(--ds-radius-sm); border: 1px solid var(--ds-hairline); }
+
+/* typography */
+.typeCard { display: flex; flex-direction: column; gap: 0; }
+.typeRow {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: var(--ds-space-4);
+  align-items: center;
+  padding: var(--ds-space-4) 0;
+  border-top: 1px solid var(--ds-hairline);
+}
+.typeRow:first-child { border-top: none; }
+.typeMeta { min-width: 0; }
+.typeRole { font-size: var(--ds-text-body); font-weight: var(--ds-fw-semi); color: var(--ds-text-strong); }
+.typeSpec { font-family: var(--ds-font-num); font-size: var(--ds-text-label); color: var(--ds-text-faint); }
+.tHero  { font-family: var(--ds-font-display); font-size: var(--ds-text-h1); font-weight: 700; letter-spacing: var(--ds-tracking-tight); color: var(--ds-text-strong); }
+.tH2    { font-family: var(--ds-font-display); font-size: var(--ds-text-h2); font-weight: 700; letter-spacing: var(--ds-tracking-tight); color: var(--ds-text-strong); }
+.tH3    { font-family: var(--ds-font-display); font-size: var(--ds-text-h3); font-weight: 600; color: var(--ds-text-strong); }
+.tBody  { font-size: var(--ds-text-body); font-weight: 400; line-height: var(--ds-lh-body); color: var(--ds-text-body); }
+.tMeta  { font-size: var(--ds-text-meta); font-weight: 500; color: var(--ds-text-muted); }
+.tLabel { font-size: var(--ds-text-label); font-weight: 600; letter-spacing: var(--ds-tracking-label); text-transform: uppercase; color: var(--ds-text-muted); }
+.tMono  { font-family: var(--ds-font-mono); font-size: var(--ds-text-meta); font-weight: 500; color: var(--ds-text-body); letter-spacing: 0.01em; }
+
+/* gauges */
+.gaugeRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--ds-space-4);
+  justify-items: center;
+}
+.gaugeCell {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  padding: var(--ds-space-4);
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-hairline);
+  border-radius: var(--ds-radius-md);
+}
+
+/* layout helpers */
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--ds-space-4);
+  align-items: start;
+}
+.stack { display: flex; flex-direction: column; gap: var(--ds-space-4); }
+.inlineRow { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-space-3); margin-bottom: var(--ds-space-4); }
+.tileGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--ds-space-3); }
+
+@media (max-width: 560px) {
+  .typeRow { grid-template-columns: 1fr; gap: var(--ds-space-2); }
+}

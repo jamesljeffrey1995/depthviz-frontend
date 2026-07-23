@@ -21,7 +21,7 @@
 .stationMeta {}
 
 .stationLabel {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   font-weight: 600;
   color: var(--ink-faint);
   margin-bottom: 2px;
@@ -42,7 +42,7 @@
 
 .forecastBadge {
   display: inline-block;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   font-weight: 600;
   border: 1px solid var(--accent);
   color: var(--accent-text);
@@ -91,7 +91,7 @@
 }
 
 .visUnit {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   font-weight: 600;
   color: var(--face-ink-faint);
   margin-top: 2px;
@@ -122,7 +122,7 @@
 .verdict_excellent { color: var(--sev-excellent-face); }
 
 .correctedNote {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   color: var(--face-ink-dim);
   display: flex;
   align-items: center;
@@ -137,7 +137,7 @@
 }
 
 .confPip {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -226,7 +226,7 @@
 }
 
 .metricChipLabel {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -244,7 +244,7 @@
 }
 
 .metricChipNote {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   color: var(--ink-faint);
   margin-top: 1px;
 }
@@ -302,7 +302,7 @@
 }
 
 .factorName {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -320,13 +320,13 @@
 }
 
 .factorNote {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   color: var(--ink-faint);
   margin-bottom: 6px;
 }
 
 .factorImpact {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -401,7 +401,7 @@
   transition: transform 0.3s ease;
 }
 .waterQualitySub {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   color: var(--ink-faint);
 }
 .waterQualityNote {
@@ -429,7 +429,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px 16px;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   color: var(--ink-faint);
   margin-bottom: 6px;
 }
@@ -450,7 +450,7 @@
 }
 
 .clarityLabel {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -537,7 +537,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -570,7 +570,7 @@
 }
 
 .debugSectionTitle {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -597,7 +597,7 @@
 }
 
 .debugLabel {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   color: rgba(240, 235, 225, 0.55);
 }
 
@@ -611,7 +611,7 @@
   display: grid;
   grid-template-columns: 1.8fr 1.4fr 48px 72px;
   gap: 4px;
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -641,12 +641,12 @@
 }
 
 .debugStep {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   color: rgba(240, 235, 225, 0.65);
 }
 
 .debugDetail {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   color: rgba(240, 235, 225, 0.35);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -654,7 +654,7 @@
 }
 
 .debugDelta {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
@@ -674,7 +674,7 @@
   display: grid;
   grid-template-columns: auto 1fr 56px minmax(90px, 1fr);
   gap: 4px;
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -728,7 +728,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;

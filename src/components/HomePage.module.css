@@ -202,7 +202,7 @@
 }
 
 .pin {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   font-weight: 700;
   text-transform: uppercase;
   color: var(--accent-on);
@@ -212,7 +212,7 @@
 }
 
 .newsBadge {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   font-weight: 700;
   text-transform: uppercase;
   color: var(--accent-text);

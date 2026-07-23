@@ -115,12 +115,12 @@ function analyseFrame(
 
   const dcData = new Float32Array(darkChannel.data32F)
   const numPx = dcData.length
-  const dcThreshold = Float32Array.from(dcData).sort()[numPx - Math.max(1, Math.floor(numPx * 0.001))]
+  const dcThreshold = Float32Array.from(dcData).sort()[numPx - Math.max(1, Math.floor(numPx * 0.001))] ?? 0
 
   const fGd = fG.data32F, fBd = fB.data32F
   let sAG = 0, sAB = 0, cA = 0
   for (let i = 0; i < numPx; i++) {
-    if (dcData[i] >= dcThreshold) { sAG += fGd[i]; sAB += fBd[i]; cA++ }
+    if (dcData[i]! >= dcThreshold) { sAG += fGd[i]; sAB += fBd[i]; cA++ }
   }
   const AG = sAG / Math.max(cA, 1), AB = sAB / Math.max(cA, 1)
 
@@ -139,7 +139,7 @@ function analyseFrame(
 
   const tData = new Float32Array(darkNormE.data32F)
   const tValues = new Array<number>(tData.length)
-  for (let i = 0; i < tData.length; i++) tValues[i] = transmissionFromDarkChannel(tData[i])
+  for (let i = 0; i < tData.length; i++) tValues[i] = transmissionFromDarkChannel(tData[i]!)
   darkNormE.delete(); darkChannel.delete()
 
   tValues.sort((a, b) => a - b)
@@ -173,7 +173,7 @@ function analyseFrame(
 
   for (let i = 0; i < frames.length; i++) {
     post({ type: 'progress', phase: 'analysing', current: i + 1, total: frames.length })
-    const r = analyseFrame(frames[i], downsample)
+    const r = analyseFrame(frames[i]!, downsample)
     const vis = beerLambert(r.t_median, calib)
     frameResults.push({ index: i, ...r, visibility_m: vis })
     allVis.push(vis)

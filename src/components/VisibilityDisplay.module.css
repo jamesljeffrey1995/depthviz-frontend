@@ -12,12 +12,12 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  background: linear-gradient(90deg, transparent, var(--ds-accent), transparent);
   opacity: 0.3;
 }
 
 .location {
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   opacity: 0.45;
@@ -34,7 +34,7 @@
 }
 
 .number {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: clamp(72px, 20vw, 120px);
   line-height: 1;
   transition: color 0.6s;
@@ -45,7 +45,7 @@
 }
 
 .unitLabel {
-  font-size: 10px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.25em;
   text-transform: uppercase;
   opacity: 0.5;
@@ -67,7 +67,7 @@
 .barLabels {
   display: flex;
   justify-content: space-between;
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   opacity: 0.4;
   margin-bottom: 8px;
@@ -107,14 +107,14 @@
 .marker {
   position: absolute;
   transform: translateX(-50%);
-  font-size: 8px;
+  font-size: var(--ds-text-label);
   opacity: 0.3;
   letter-spacing: 0.1em;
 }
 
 /* Verdict */
 .verdict {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 28px;
   letter-spacing: 0.15em;
   margin-bottom: 6px;
@@ -125,26 +125,26 @@
   background: rgba(192, 57, 43, 0.08);
   border: 1px solid rgba(192, 57, 43, 0.25);
   padding: 14px 18px;
-  font-size: 11px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.05em;
   line-height: 1.7;
   margin-top: 16px;
 }
 
 /* Color classes */
-.blocked  { color: #4a4a5a; }
-.poor     { color: var(--danger); }
-.marginal { color: var(--warn); }
-.decent   { color: #7fb87a; }
-.good     { color: var(--good); }
-.excellent { color: var(--excellent); }
+.blocked  { color: var(--ds-q-blown); }
+.poor     { color: var(--ds-danger); }
+.marginal { color: var(--ds-warn); }
+.decent   { color: var(--ds-q-workable); }
+.good     { color: var(--ds-q-good); }
+.excellent { color: var(--ds-q-excellent); }
 
-.bg_blocked  { background: #4a4a5a; }
-.bg_poor     { background: var(--danger); }
-.bg_marginal { background: var(--warn); }
-.bg_decent   { background: #7fb87a; }
-.bg_good     { background: var(--good); }
-.bg_excellent { background: var(--excellent); }
+.bg_blocked  { background: var(--ds-q-blown); }
+.bg_poor     { background: var(--ds-danger); }
+.bg_marginal { background: var(--ds-warn); }
+.bg_decent   { background: var(--ds-q-workable); }
+.bg_good     { background: var(--ds-q-good); }
+.bg_excellent { background: var(--ds-q-excellent); }
 
 /* Factor grid */
 .grid {
@@ -162,7 +162,7 @@
 }
 
 .factorName {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.25em;
   text-transform: uppercase;
   opacity: 0.45;
@@ -170,7 +170,7 @@
 }
 
 .factorValue {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 20px;
   letter-spacing: 0.08em;
   color: var(--text-bright);
@@ -178,14 +178,14 @@
 }
 
 .factorNote {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.15em;
   opacity: 0.5;
   margin-bottom: 3px;
 }
 
 .factorImpact {
-  font-size: 9px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
 }
 

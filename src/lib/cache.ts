@@ -69,6 +69,10 @@ export function cacheDelete(key: string): void {
  * `stats:1` would also wipe `stats:10`, `stats:12`, … which is almost never intended.
  */
 export function cacheDeleteByPrefix(prefix: string): void {
+  // An empty prefix matches every key (startsWith('') is always true), which
+  // would silently flush the entire cache. That's never what a prefix delete
+  // means — guard it so a bug upstream can't wipe everything.
+  if (!prefix) return
   for (const key of store.keys()) {
     if (key.startsWith(prefix)) {
       store.delete(key)

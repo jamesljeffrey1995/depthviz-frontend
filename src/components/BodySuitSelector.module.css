@@ -1,0 +1,154 @@
+.wrap {
+  margin-bottom: 18px;
+}
+
+.hint {
+  font-size: var(--ds-text-label);
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  opacity: 0.85;
+  margin: 0 0 14px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 18px;
+  align-items: center;
+}
+
+@media (max-width: 480px) {
+  .layout {
+    grid-template-columns: 120px 1fr;
+    gap: 12px;
+  }
+}
+
+/* ── The clickable figure ── */
+.figure {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.region {
+  stroke: var(--ds-hairline-strong);
+  stroke-width: 1.5;
+  cursor: pointer;
+  outline: none;
+  transition: fill 0.18s, stroke 0.18s;
+}
+
+.region:hover {
+  stroke: var(--ds-accent);
+}
+
+.region:focus-visible {
+  stroke: var(--ds-accent);
+  stroke-width: 2.5;
+}
+
+.regionSelected {
+  stroke: var(--ds-accent);
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 6px rgba(0, 201, 255, 0.5));
+}
+
+.badge {
+  font-family: var(--ds-font-sans);
+  font-size: 15px;
+  fill: var(--text-bright);
+  pointer-events: none;
+  letter-spacing: 0.02em;
+}
+
+/* ── Thickness controls ── */
+.controls {
+  min-width: 0;
+}
+
+.controlsLabel {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ds-accent);
+  margin-bottom: 8px;
+}
+
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.choice {
+  min-width: 42px;
+  background: rgba(10, 61, 92, 0.3);
+  border: 1px solid rgba(0, 201, 255, 0.15);
+  color: var(--text);
+  font-family: var(--ds-font-sans);
+  font-size: 13px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.choice:hover {
+  border-color: rgba(0, 201, 255, 0.4);
+}
+
+.choiceActive {
+  background: rgba(0, 201, 255, 0.16);
+  border-color: var(--ds-accent);
+  color: var(--text-bright);
+}
+
+.mmUnit {
+  font-size: var(--ds-text-label);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  margin-top: 6px;
+}
+
+/* ── Per-region summary list ── */
+.summary {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  border-top: 1px solid rgba(0, 201, 255, 0.12);
+}
+
+.summaryRow button {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(0, 201, 255, 0.08);
+  color: var(--text);
+  font-family: var(--ds-font-sans);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  padding: 8px 4px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.summaryRow button:hover {
+  color: var(--text-bright);
+}
+
+.summaryActive button {
+  color: var(--ds-accent);
+}
+
+.summaryMm {
+  color: var(--text-bright);
+}
+
+.summaryBare {
+  opacity: 0.5;
+}

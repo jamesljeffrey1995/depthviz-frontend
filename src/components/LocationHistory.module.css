@@ -4,8 +4,8 @@
   text-align: center;
   padding: 32px 16px;
   color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   letter-spacing: 0.1em;
   opacity: 0.6;
 }
@@ -24,13 +24,13 @@
   text-align: center;
 }
 .summaryVal {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 22px;
   color: var(--text-bright);
   letter-spacing: 0.05em;
 }
 .summaryLbl {
-  font-size: 8px;
+  font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   opacity: 0.4;
@@ -55,16 +55,16 @@
   gap: 10px;
 }
 .logDate {
-  font-family: var(--font-mono);
-  font-size: 10px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   color: var(--text);
   letter-spacing: 0.05em;
   min-width: 120px;
 }
 .logDiver {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--accent);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
+  color: var(--ds-accent);
   opacity: 0.7;
   flex: 1;
   overflow: hidden;
@@ -77,19 +77,19 @@
   gap: 8px;
 }
 .logActual {
-  font-family: var(--font-display);
+  font-family: var(--ds-font-sans);
   font-size: 18px;
   color: var(--text-bright);
   letter-spacing: 0.05em;
 }
 .logPred {
-  font-family: var(--font-mono);
-  font-size: 9px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   opacity: 0.4;
 }
 .logError {
-  font-family: var(--font-mono);
-  font-size: 10px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   font-weight: 700;
   letter-spacing: 0.05em;
 }
@@ -102,16 +102,16 @@
 .conditions {
   display: flex;
   gap: 12px;
-  font-family: var(--font-mono);
-  font-size: 9px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   opacity: 0.5;
   margin-bottom: 6px;
 }
 .notes {
-  font-family: var(--font-mono);
-  font-size: 10px;
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-label);
   color: var(--text);
   opacity: 0.6;
   font-style: italic;

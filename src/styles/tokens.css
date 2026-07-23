@@ -1,0 +1,356 @@
+/* ============================================================================
+   DepthViz Design System — Design Tokens
+   ----------------------------------------------------------------------------
+   The single source of truth for the redesign. Every new component styles
+   itself from these `--ds-*` variables so the whole product reads as one
+   system. Tokens are namespaced (`--ds-`) so they can be introduced
+   progressively alongside the legacy `index.css` variables without collisions.
+
+   Layers:
+     1. Primitive scales   — raw values (never referenced directly in a card)
+     2. Semantic tokens    — role-based aliases the components actually use
+     3. Dive-quality scale — the 6-step visibility rating, colour + on-colour
+     4. Theme surfaces      — dark (default) and light overrides
+
+   Colour is never the only signal: every quality step ships with a label and
+   an icon in the component layer, and each accent has a paired "on" colour
+   verified for WCAG AA contrast.
+   ========================================================================== */
+
+:root {
+  /* ── 1. Primitive scales ────────────────────────────────────────────────
+     The palette is built from the six working colours agreed in the design
+     doc — Abyssal Navy #001F3F, Prussian #003153, Classic Ocean #006994,
+     Shallow Blue #1CA3EC, Teal Seawater #2E8B99 and Aquamarine #7FFFD4 —
+     narrowed from the wider candidate pool so repeated, meaningful hues beat
+     a large decorative one. Every value below is a raw scale stop; components
+     never touch these directly, only the semantic aliases in §2/§4. */
+
+  /* Ink / neutral ramp (cool, ocean-tinted greys). Anchored on Abyssal Navy
+     at the deep end and a bright shallow-water tint at the light end so the
+     ramp doubles as both the dark-surface stack and the light-mode inks. */
+  --ds-ink-950: #001f3f;   /* Abyssal Navy — app canvas (dark) */
+  --ds-ink-900: #002845;
+  --ds-ink-850: #003153;   /* Prussian — default card surface (dark) */
+  --ds-ink-800: #0a3d63;   /* one elevation step above base (dark) */
+  --ds-ink-700: #17496f;
+  --ds-ink-600: #36506a;   /* light-mode secondary text */
+  --ds-ink-500: #567a94;
+  --ds-ink-400: #7f9db4;
+  --ds-ink-300: #a6c0d1;
+  --ds-ink-200: #b8cbd9;   /* dark-mode secondary text */
+  --ds-ink-150: #ddeaf3;   /* light-mode raised surface */
+  --ds-ink-100: #eaf3f8;   /* light-mode base surface */
+  --ds-ink-050: #f6fbfd;   /* light-mode canvas */
+  --ds-white:   #ffffff;
+
+  /* Ocean accent (primary brand). Classic Ocean is the stable brand accent;
+     Shallow Blue is the brighter interactive/edge signal that does the
+     pointing on dark surfaces. A dominant deep field carries the product; the
+     bright edge is where the eye is drawn. */
+  --ds-ocean-100: #d3f4ff;
+  --ds-ocean-300: #7fd3f4;
+  --ds-ocean-400: #1ca3ec;   /* Shallow Blue — interactive on dark */
+  --ds-ocean-500: #0a83bd;
+  --ds-ocean-600: #006994;   /* Classic Ocean — brand accent */
+  --ds-ocean-700: #024f70;
+  --ds-ocean-edge: #7fffd4;  /* Aquamarine — sharp signal: hairlines, "now" */
+
+  /* Depth accent (secondary — teal seawater for charts + quiet emphasis) */
+  --ds-depth-400: #3fa0af;
+  --ds-depth-500: #2e8b99;   /* Teal Seawater — secondary chart series */
+
+  /* Water-clarity quality ramp. Per the design doc this deliberately does NOT
+     imitate a red–amber–green traffic light: poor conditions read as darker,
+     murkier tones and good conditions as brighter, clearer aqua, so colour
+     encodes water clarity itself. The steps climb monotonically in luminance
+     so they stay distinguishable without relying on hue (colourblind-safe),
+     and colour is always paired with a label + bar count + numeric score in
+     the component layer. */
+  --ds-q-blown:     #31556b;  /* murkiest slate — not worth getting wet */
+  --ds-q-poor:      #35586f;  /* murky */
+  --ds-q-marginal:  #2e7c8c;  /* deep, clearing teal */
+  --ds-q-workable:  #2e8b99;  /* Teal Seawater — workable */
+  --ds-q-good:      #1ca3ec;  /* Shallow Blue — good, clear water */
+  --ds-q-excellent: #7fffd4;  /* Aquamarine — excellent, gin-clear */
+
+  /* Status hues. Kept for genuine alert semantics only — errors, destructive
+     actions, stale/warning banners — NOT for grading dive conditions, which
+     use the water-clarity ramp above. */
+  --ds-danger:  #e5533d;
+  --ds-caution: #e06c00;  /* elevated alert — the "moderate" step between warn
+                             and danger. Used for moderate risk levels (algae,
+                             turbidity, resuspension, river discharge) where the
+                             two-step warn/danger scale would flatten a real
+                             safety distinction. Always paired with a text label. */
+  --ds-warn:    #f0a01f;
+  --ds-success: #22b573;
+  --ds-info:    #1ca3ec;
+
+  /* Categorical (qualitative) palette. For series and map markers where hue
+     distinguishes a *category* — not a magnitude, quality or alert. Ordered
+     for maximum separation (blue → teal → amber → violet → coral → green) so
+     adjacent categories stay distinguishable, including for the common
+     colour-vision deficiencies; each is always paired with a legend label.
+     Deliberately direct hex, not theme-mapped: a qualitative key must stay the
+     same colour in both themes, and — unlike var() references — a flat hex is
+     resolvable via getComputedStyle for contexts that can't read a CSS
+     variable (SVG data-URI markers, canvas). See src/lib/cssVar.ts. */
+  --ds-cat-1: #1ca3ec;  /* blue   — Shallow Blue (brand-adjacent) */
+  --ds-cat-2: #17d1a6;  /* teal   — aquamarine green */
+  --ds-cat-3: #f0a01f;  /* amber  */
+  --ds-cat-4: #9b7dff;  /* violet */
+  --ds-cat-5: #ff6b6b;  /* coral  */
+  --ds-cat-6: #22b573;  /* green  */
+
+  /* ── 2. Spacing — strict 8px system (4 is the only sub-step) ─────────── */
+  --ds-space-1:  4px;
+  --ds-space-2:  8px;
+  --ds-space-3:  12px;
+  --ds-space-4:  16px;
+  --ds-space-5:  24px;
+  --ds-space-6:  32px;
+  --ds-space-7:  48px;
+  --ds-space-8:  64px;
+
+  /* ── Radii ──────────────────────────────────────────────────────────── */
+  --ds-radius-sm:   8px;
+  --ds-radius-md:  12px;   /* cards */
+  --ds-radius-lg:  16px;   /* large cards / hero */
+  --ds-radius-xl:  24px;   /* modals / sheets */
+  --ds-radius-pill: 999px;
+
+  /* ── Typography ─────────────────────────────────────────────────────── */
+  /* Two families with distinct jobs. Space Grotesk is the distinctive
+     display voice: a geometric grotesque with a tall x-height and
+     characterful digits that gives headings a signature, non-generic feel.
+     Inter stays the workhorse for body copy and, crucially, for tabular
+     figures where legibility of the numbers beats personality. */
+  --ds-font-display: 'Space Grotesk Variable', 'Space Grotesk', 'Inter Variable',
+                     -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ds-font-sans: 'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont,
+                  'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  /* Aligned tabular figures for stat cards, tables and chart labels stay in
+     Inter (legibility of the number beats personality). */
+  --ds-font-num:  'Inter Variable', 'Inter', ui-monospace, monospace;
+  /* Technical readouts — coordinates, buoy IDs, timestamps, sensor payloads —
+     use IBM Plex Mono so they read as instrument data, visibly distinct from
+     the decision metrics. */
+  --ds-font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas,
+                  monospace;
+
+  /* Type scale (size / line-height / weight handled per role in components) */
+  --ds-text-hero:    clamp(36px, 7vw, 48px);
+  --ds-text-display: clamp(28px, 5vw, 34px);
+  --ds-text-h1:      28px;
+  --ds-text-h2:      24px;
+  --ds-text-h3:      20px;
+  --ds-text-card:    17px;
+  --ds-text-body:    15px;
+  --ds-text-meta:    13px;
+  --ds-text-label:   12px;
+
+  --ds-lh-tight: 1.1;
+  --ds-lh-snug:  1.3;
+  --ds-lh-body:  1.55;
+
+  --ds-fw-regular: 400;
+  --ds-fw-medium:  500;
+  --ds-fw-semi:    600;
+  --ds-fw-bold:    700;
+
+  --ds-tracking-tight: -0.02em;
+  --ds-tracking-label:  0.04em;
+
+  /* ── Motion ─────────────────────────────────────────────────────────── */
+  --ds-dur-fast:  150ms;
+  --ds-dur-base:  220ms;
+  --ds-dur-slow:  300ms;
+  --ds-dur-reveal: 620ms;   /* the one orchestrated page-load reveal */
+  --ds-ease:        cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ds-ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Page-load choreography. Motion is spent on a single high-impact moment:
+     when a page mounts, its sections reveal in a staggered cascade rather
+     than all at once. `--ds-stagger-step` is multiplied by each section's
+     index to build the cascade; `--ds-reveal-shift` is how far they travel. */
+  --ds-stagger-step: 80ms;
+  --ds-reveal-shift: 16px;
+
+  /* ── 4a. Dark theme surfaces (default) ────────────────────────────────
+     Deep-ocean base. Canvas = Abyssal Navy, cards = Prussian, and one
+     elevation step (#0A3D63) for hover / expand / modal. Primary text is a
+     near-white that clears WCAG AA on every surface (15.9:1 on canvas,
+     12.9:1 on base, 10.9:1 on the raised step). */
+  --ds-bg:            #001f3f;                  /* color-surface-canvas */
+  --ds-surface:       #003153e6;                /* frosted card over base */
+  --ds-surface-solid: #003153;                  /* color-surface-base */
+  --ds-surface-raised:#0a3d63;                  /* color-surface-raised */
+  --ds-surface-sunken:#001a35;
+  --ds-hairline:      rgba(184, 203, 217, 0.16);
+  --ds-hairline-strong: rgba(184, 203, 217, 0.30);
+
+  --ds-text-strong:  #f7fbff;                   /* color-text-primary */
+  --ds-text-body:    var(--ds-ink-200);         /* #B8CBD9 — secondary text */
+  --ds-text-muted:   var(--ds-ink-400);
+  --ds-text-faint:   var(--ds-ink-500);
+
+  --ds-accent:       var(--ds-ocean-600);       /* Classic Ocean — brand */
+  --ds-accent-strong:var(--ds-ocean-400);       /* Shallow Blue — hero accent */
+  --ds-accent-edge:  var(--ds-ocean-edge);      /* Aquamarine — signal moments */
+  --ds-on-accent:    #f7fbff;
+  --ds-accent-wash:  rgba(28, 163, 236, 0.14);
+
+  /* Interactive: links, active controls, focus. Bright Shallow Blue reads
+     clearly on dark (5.92:1 on canvas) and stays distinct from the brand fill. */
+  --ds-interactive:  var(--ds-ocean-400);
+  --ds-focus-ring:   var(--ds-ocean-400);
+
+  /* ── Atmosphere — the page background is a field of depth, not a flat fill.
+     These layers compose in index.css into a dived-into gradient with a
+     light shaft from the surface and a deep vignette at the seabed. */
+  --ds-atmos-surface: rgba(28, 163, 236, 0.10);  /* light entering from above */
+  --ds-atmos-mid:     rgba(0, 49, 83, 0.55);      /* mid-water wash */
+  --ds-atmos-body:    #002845;                     /* base gradient mid-water body */
+  --ds-atmos-deep:    #00101f;                     /* abyssal floor */
+  --ds-atmos-vignette:rgba(0, 0, 0, 0.55);         /* corner sink */
+  --ds-atmos-shaft:   rgba(127, 255, 212, 0.05);   /* god-ray from the surface */
+
+  /* Shadows — used only to establish hierarchy, never for decoration */
+  --ds-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --ds-shadow-2: 0 8px 24px rgba(0, 0, 0, 0.40);
+  --ds-shadow-3: 0 20px 48px rgba(0, 0, 0, 0.52);
+  --ds-shadow-focus: 0 0 0 3px rgba(28, 163, 236, 0.40);
+
+  /* Chart ink — trend line, gridline, area fill. Primary series favours the
+     bright interactive Shallow Blue so non-text marks stay above 3:1 on the
+     dark plot; the secondary series is Teal Seawater. */
+  --ds-chart-grid:  rgba(184, 203, 217, 0.10);
+  --ds-chart-axis:  var(--ds-ink-500);
+  --ds-chart-line:  var(--ds-ocean-400);
+  --ds-chart-secondary: var(--ds-depth-500);
+  --ds-chart-area:  rgba(28, 163, 236, 0.16);
+  --ds-chart-now:   var(--ds-ocean-edge);
+}
+
+/* ── 4b. Light theme ──────────────────────────────────────────────────── */
+:root[data-ds-theme='light'] {
+  --ds-bg:            var(--ds-ink-050);   /* #F6FBFD — color-surface-canvas */
+  --ds-surface:       #eaf3f8f2;
+  --ds-surface-solid: var(--ds-ink-100);   /* #EAF3F8 — color-surface-base */
+  --ds-surface-raised:var(--ds-ink-150);   /* #DDEAF3 — color-surface-raised */
+  --ds-surface-sunken:#e2edf4;
+  --ds-hairline:      rgba(10, 26, 43, 0.10);
+  --ds-hairline-strong: rgba(10, 26, 43, 0.18);
+
+  --ds-text-strong:  #0a1a2b;              /* color-text-primary (16.84:1) */
+  --ds-text-body:    var(--ds-ink-600);    /* #36506A (7.43:1) */
+  --ds-text-muted:   var(--ds-ink-500);
+  --ds-text-faint:   var(--ds-ink-400);
+
+  --ds-accent:       var(--ds-ocean-600);  /* Classic Ocean (5.84:1 on canvas) */
+  --ds-accent-strong:var(--ds-ocean-700);
+  --ds-accent-edge:  var(--ds-ocean-600);
+  --ds-on-accent:    #ffffff;
+  --ds-accent-wash:  rgba(0, 105, 148, 0.10);
+
+  /* In light mode links/controls darken to Classic Ocean for contrast. */
+  --ds-interactive:  var(--ds-ocean-600);
+  --ds-focus-ring:   var(--ds-ocean-600);
+
+  /* Atmosphere for the light theme: a bright, shallow-water field. */
+  --ds-atmos-surface: rgba(28, 163, 236, 0.14);
+  --ds-atmos-mid:     rgba(221, 234, 243, 0.60);
+  --ds-atmos-body:    #dbeaf4;
+  --ds-atmos-deep:    #eaf3f8;
+  --ds-atmos-vignette:rgba(10, 26, 43, 0.10);
+  --ds-atmos-shaft:   rgba(0, 105, 148, 0.05);
+
+  --ds-shadow-1: 0 1px 2px rgba(10, 26, 43, 0.08);
+  --ds-shadow-2: 0 8px 24px rgba(10, 26, 43, 0.10);
+  --ds-shadow-3: 0 20px 48px rgba(10, 26, 43, 0.16);
+
+  --ds-chart-grid:  rgba(10, 26, 43, 0.08);
+  --ds-chart-axis:  var(--ds-ink-500);
+  --ds-chart-line:  var(--ds-ocean-600);
+  --ds-chart-secondary: var(--ds-depth-500);
+  --ds-chart-area:  rgba(0, 105, 148, 0.12);
+  --ds-chart-now:   var(--ds-ocean-600);
+}
+
+/* Respect OS preference when the app hasn't pinned a theme. The live app is
+   dark today, so light only activates via the explicit attribute above; this
+   block keeps the tokens correct if the shell later opts into system theme. */
+@media (prefers-color-scheme: light) {
+  :root[data-ds-theme='system'] {
+    --ds-bg: var(--ds-ink-050);
+    --ds-surface: #eaf3f8f2;
+    --ds-surface-solid: var(--ds-ink-100);
+    --ds-text-strong: #0a1a2b;
+    --ds-text-body: var(--ds-ink-600);
+    --ds-text-muted: var(--ds-ink-500);
+    --ds-accent: var(--ds-ocean-600);
+    --ds-interactive: var(--ds-ocean-600);
+    --ds-on-accent: #ffffff;
+  }
+}
+
+/* ============================================================================
+   3b. Public design-token aliases (`--color-*`)
+   ----------------------------------------------------------------------------
+   The design doc names its tokens `--color-*`. These aliases expose that
+   vocabulary on top of the `--ds-*` engine so new work (and external design
+   references) can be written against the documented names; both point at the
+   same theme-aware values, so a single theme switch updates everything.
+   ========================================================================== */
+:root {
+  --color-surface-canvas:   var(--ds-bg);
+  --color-surface-base:     var(--ds-surface-solid);
+  --color-surface-raised:   var(--ds-surface-raised);
+  --color-text-primary:     var(--ds-text-strong);
+  --color-text-secondary:   var(--ds-text-body);
+  --color-accent-primary:   var(--ds-accent);
+  --color-interactive:      var(--ds-interactive);
+  --color-chart-secondary:  var(--ds-chart-secondary);
+  --color-focus-ring:       var(--ds-focus-ring);
+
+  /* Water-clarity condition ramp. The shipped scale is the six-step
+     `--ds-q-*` engine that every component renders from, so these public
+     aliases mirror it one-to-one (murkiest → clearest) rather than offsetting
+     the design doc's shorter poor→excellent shorthand onto it — that keeps a
+     single, complete source of truth and stops a consumer picking the wrong
+     colour for a band. The doc's five labels map onto steps 2–6 of this ramp
+     (poor→poor, fair→marginal, good→workable, very-good→good,
+     excellent→excellent); `blown` is the sixth, blown-out step. */
+  --color-status-blown:     var(--ds-q-blown);
+  --color-status-poor:      var(--ds-q-poor);
+  --color-status-marginal:  var(--ds-q-marginal);
+  --color-status-workable:  var(--ds-q-workable);
+  --color-status-good:      var(--ds-q-good);
+  --color-status-excellent: var(--ds-q-excellent);
+
+  /* Font families */
+  --color-font-ui:      var(--ds-font-sans);
+  --color-font-display: var(--ds-font-display);
+  --color-font-mono:    var(--ds-font-mono);
+}
+
+/* ── Utility: a11y-friendly focus ring for any DS component ───────────── */
+.ds-focusable:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-shadow-focus);
+  border-radius: var(--ds-radius-sm);
+}
+
+/* Screen-reader-only helper reused across DS components */
+.ds-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
