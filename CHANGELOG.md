@@ -1,3 +1,10 @@
+## [1.24.4](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.24.3...v1.24.4) (2026-07-23)
+
+
+### Performance Improvements
+
+* **map:** replace expensive tile filter with overlay tint ([2b19602](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/2b196024b40ca3a7889f01e77933f27be0883497))
+
 ## [1.24.3](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.24.2...v1.24.3) (2026-07-23)
 
 
