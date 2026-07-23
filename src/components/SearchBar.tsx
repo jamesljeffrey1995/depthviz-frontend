@@ -156,7 +156,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
             </ul>
           )}
         </div>
-        <button className={styles.btnDive} onClick={handleSubmit} aria-label="Search for this location">
+        <button className={styles.btnDive} onClick={handleSubmit} aria-label="Show forecast">
           <span>Show forecast</span>
           <IconArrowRight aria-hidden="true" />
         </button>
