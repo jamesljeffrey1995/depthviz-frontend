@@ -19,11 +19,11 @@
      is a small functional signal set, kept in two registers — "on light"
      for chassis surfaces, "on face" for the dark instrument panel — so
      contrast holds in both places. See DESIGN.md for full rationale. */
-  --surface: #f3f6f8;
-  --surface-raised: #ffffff;
-  --surface-sunken: #e7ecef;
-  --surface-border: #d8dee3;
-  --surface-border-strong: #b9c2c9;
+  --surface: #e8f0f3;
+  --surface-raised: #f7fafb;
+  --surface-sunken: #dce7eb;
+  --surface-border: #c6d5db;
+  --surface-border-strong: #9fb3bc;
 
   --ink: #101820;
   --ink-dim: #4b5661;
