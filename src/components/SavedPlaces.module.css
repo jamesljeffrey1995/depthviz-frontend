@@ -149,9 +149,13 @@
   color: var(--ink-dim);
 }
 
+/* Destructive confirm — an alert, so it rides the status ramp. It was on
+   --sev-poor, borrowing the clarity ramp for something that is not a
+   visibility reading; --danger-deep also clears AA for the white label
+   (7.39:1) where the old fill did not (2.16:1). */
 .confirmYes {
-  background: var(--sev-poor);
-  border: 1px solid var(--sev-poor);
+  background: var(--danger-deep);
+  border: 1px solid var(--danger-deep);
   border-radius: var(--radius-full);
   color: #ffffff;
   font-family: var(--font-sans);

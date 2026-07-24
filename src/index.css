@@ -52,27 +52,58 @@
      Keep the base accent for fills and use this token for readable labels. */
   --accent-text: var(--accent-strong);
 
-  /* Severity — default dark-surface register (chips, badges, factor rows, text on
-     --surface/--surface-raised). Safety-relevant; keep distinguishable.
-     Values are chosen to clear 4.5:1 against every dark chassis surface in the
-     system (surface, surface-raised, surface-sunken) as plain text, not
-     just the 3:1 large-text minimum — an initial brighter pass failed AA
-     for several of these (sev-decent measured 2.96:1). */
-  --sev-blocked: #9aa8b2;
-  --sev-poor: #ff7777;
-  --sev-marginal: #f4b35d;
-  --sev-decent: #c8d96f;
-  --sev-good: #66d99a;
-  --sev-excellent: #55e0bb;
+  /* ── Water-clarity ramp — default dark-surface register (chips, badges,
+     factor rows, text on --surface/--surface-raised).
 
-  /* Severity — "on face" register (the instrument-panel gauge arc/needle on
-     --face). Lighter/brighter so each still clears contrast on near-black. */
+     This grades *how clear the water is*, which is a magnitude, so it is
+     encoded in lightness first and hue second: the five steps climb
+     monotonically in relative luminance from poor to excellent, ~0.14 apart.
+     Desaturate a screenshot and the ramp still reads in order — which is the
+     same property that keeps it legible with red-green colour deficiency,
+     around 1 in 14 of the men who use this app.
+
+     The hue journey is the physical one rather than a traffic light. Murky
+     water is silt-brown and algal-khaki; clear water is teal going to
+     gin-clear aquamarine. The deliberate hue break between `marginal` and
+     `decent` is where the water stops being suspended sediment and starts
+     being water, which is also where the dive/don't-dive decision sits — the
+     eye finds that boundary without reading the numbers.
+
+     A red-to-green scale was the obvious alternative and is wrong twice over:
+     it is unreadable desaturated (the old ramp peaked at `decent` and fell
+     away again, so `decent` looked *clearer* than `excellent` in greyscale)
+     and it borrows alert semantics for a reading that is not an alert. Genuine
+     hazards ride the separate status ramp — see src/lib/severity.ts.
+
+     Values clear 4.5:1 against every dark chassis surface (surface,
+     surface-raised, surface-sunken) as plain text, not just the 3:1
+     large-text minimum. That AA floor is why the murky end is not as dark as
+     murky water actually is. Enforced by src/lib/conditionRamp.test.ts. */
+
+  /* `blocked` is a safety state, not a clarity step: neutral by design so it
+     is never mistaken for "just murky", and always paired with the STAY
+     ASHORE label and alert glyph from getVerdict(). */
+  --sev-blocked: #9aa8b2;
+  --sev-poor: #ba794d;       /* L 0.25 — silt-laden, nothing to see */
+  --sev-marginal: #b6aa5d;   /* L 0.39 — algal khaki, still murky */
+  --sev-decent: #73d3cc;     /* L 0.55 — clearing, workable */
+  --sev-good: #58efd8;       /* L 0.69 — clear */
+  --sev-excellent: #96ffe1;  /* L 0.83 — gin-clear */
+
+  /* Water-clarity ramp — "on face" register (the instrument-panel gauge
+     arc/needle on --face). Same ramp, lifted one notch: --face-raised is the
+     lightest surface in the system, so it sets a higher AA floor. */
   --sev-blocked-face: #9ca3af;
-  --sev-poor-face: #ff6b6b;
-  --sev-marginal-face: #ffb454;
-  --sev-decent-face: #d7de6e;
-  --sev-good-face: #63e6a0;
-  --sev-excellent-face: #4cd9b0;
+  --sev-poor-face: #c07f54;
+  --sev-marginal-face: #baae5e;
+  --sev-decent-face: #74d5cf;
+  --sev-good-face: #5af1da;
+  --sev-excellent-face: #a3ffe5;
+
+  /* Ink for text sitting ON a clarity fill. The clear end of the ramp is light
+     by construction (that is what makes it survive desaturation), so anything
+     filled with it needs dark text, not white. */
+  --sev-on-clear: var(--surface);
 
   /* Legacy alias block — kept alive so components not yet given a bespoke
      pass this redesign (see DESIGN.md "Rollout") still render on-system;
@@ -82,10 +113,16 @@
   --paper-dim: var(--surface-sunken);
   --rule: var(--surface-border);
   --rule-strong: var(--surface-border-strong);
-  --danger: var(--sev-poor);
+  /* Alert aliases point at the *status* ramp, never the clarity ramp above.
+     They used to be `var(--sev-poor)` / `var(--sev-marginal)`, which made a
+     warning and a murky forecast the same colour — the conflation
+     src/lib/severity.ts exists to prevent. `--moderate` was also its own hex
+     (#a2571b) that failed AA at 3.27:1 on --surface-raised. */
+  --danger: var(--ds-danger);
   --danger-deep: #9b2f2f;
-  --warn: var(--sev-marginal);
-  --moderate: #a2571b;
+  --warn: var(--ds-warn);
+  --moderate: var(--ds-caution);
+  /* Clarity aliases stay on the clarity ramp — they name clarity steps. */
   --good: var(--sev-good);
   --excellent: var(--sev-excellent);
   --decent: var(--sev-decent);

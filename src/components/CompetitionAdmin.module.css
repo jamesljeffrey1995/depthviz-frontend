@@ -223,7 +223,7 @@
 .badge_not_arrived { color: var(--text); border-color: rgba(139, 184, 204, 0.4); }
 .badge_registered { color: var(--ds-accent); border-color: var(--ds-accent); }
 .badge_in_water { color: var(--ocean-deep); background: var(--ds-accent); border-color: var(--ds-accent); }
-.badge_returned { color: var(--ocean-deep); background: var(--ds-q-excellent); border-color: var(--ds-q-excellent); }
+.badge_returned { color: var(--sev-on-clear); background: var(--ds-q-excellent); border-color: var(--ds-q-excellent); }
 .badge_late { color: var(--ocean-deep); background: var(--ds-warn); border-color: var(--ds-warn); }
 .badge_withdrawn { color: var(--text); opacity: 0.7; border-color: rgba(139, 184, 204, 0.3); }
 .badgeOverdue { color: #fff; background: var(--ds-danger); border-color: var(--ds-danger); }
@@ -267,7 +267,7 @@
   flex: 1 1 auto;
 }
 .actWater { background: var(--ds-accent); color: var(--ocean-deep); border-color: var(--ds-accent); }
-.actReturn { background: var(--ds-q-excellent); color: var(--ocean-deep); border-color: var(--ds-q-excellent); }
+.actReturn { background: var(--ds-q-excellent); color: var(--sev-on-clear); border-color: var(--ds-q-excellent); }
 .actBtnGhost { background: transparent; color: var(--text); }
 .actBtn:disabled, .actBtnGhost:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -293,7 +293,7 @@
   cursor: pointer;
   min-height: 34px;
 }
-.tagOn { background: var(--ds-q-good); color: #fff; border: 1px solid var(--ds-q-good); }
+.tagOn { background: var(--ds-q-good); color: var(--sev-on-clear); border: 1px solid var(--ds-q-good); }
 .tagOff { background: transparent; color: var(--ds-warn); border: 1px solid var(--ds-warn); }
 
 .linkBtn, .linkBtnDanger {

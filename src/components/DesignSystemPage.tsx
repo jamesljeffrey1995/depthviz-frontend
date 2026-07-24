@@ -11,13 +11,20 @@ import styles from './DesignSystemPage.module.css'
 /* A living style guide — the design system rendered from the very components
    the product ships, so the documentation can never drift from the code. */
 
+/* Clearest → murkiest. Each swatch paints from the very token it names, not a
+   copied hex and not the `--sev-*` step underneath: a literal would go stale
+   the next time the ramp is retuned, and reaching past the alias would make
+   the page render correctly even if the alias chain broke — it would document
+   an aliasing bug rather than expose one. `--ds-q-*` resolves through to
+   `--sev-*` in CSS, so painting the displayed name is what makes this page
+   worth looking at. */
 const QUALITY = [
-  { name: 'Excellent', token: '--ds-q-excellent', hex: '#7fffd4' },
-  { name: 'Good', token: '--ds-q-good', hex: '#1ca3ec' },
-  { name: 'Workable', token: '--ds-q-workable', hex: '#2e8b99' },
-  { name: 'Marginal', token: '--ds-q-marginal', hex: '#2e7c8c' },
-  { name: 'Poor', token: '--ds-q-poor', hex: '#35586f' },
-  { name: 'Blown out', token: '--ds-q-blown', hex: '#31556b' },
+  { name: 'Excellent', token: '--ds-q-excellent' },
+  { name: 'Good', token: '--ds-q-good' },
+  { name: 'Workable', token: '--ds-q-workable' },
+  { name: 'Marginal', token: '--ds-q-marginal' },
+  { name: 'Poor', token: '--ds-q-poor' },
+  { name: 'Blown out', token: '--ds-q-blown' },
 ]
 
 const NEUTRALS = ['950', '900', '850', '800', '700', '600', '500', '400', '300', '200', '100', '050']
@@ -71,7 +78,7 @@ export function DesignSystemPage() {
         <div className={styles.swatchRow}>
           {QUALITY.map(q => (
             <div key={q.name} className={styles.swatch}>
-              <span className={styles.swatchChip} style={{ background: q.hex }} />
+              <span className={styles.swatchChip} style={{ background: `var(${q.token})` }} />
               <span className={styles.swatchName}>{q.name}</span>
               <span className={styles.swatchToken}>{q.token}</span>
             </div>
