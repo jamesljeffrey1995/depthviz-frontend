@@ -69,7 +69,7 @@
 .buddyStatus.pending, .statusInWater { border-color: rgba(14,124,134,.4); background: var(--accent-soft); }
 .buddyStatus.warn, .statusWaiting { border-color: rgba(152,92,22,.35); background: rgba(152,92,22,.08); }
 .sectionTitle { color: var(--ink); font-size: .9rem; margin: var(--space-lg) 0 var(--space-xs); letter-spacing: .06em; text-transform: uppercase; }
-.liveTag { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: var(--radius-full); font-size: .68rem; font-weight: 800; letter-spacing: .06em; color: white; background: var(--sev-poor); }
+.liveTag { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: var(--radius-full); font-size: .68rem; font-weight: 800; letter-spacing: .06em; color: white; background: var(--danger-deep); }
 .statusBanner { margin-top: 8px; font-size: .92rem; }
 .statusBanner strong { color: var(--ink); }
 .statusHint { font-size: .78rem; color: var(--ink-faint); margin: 4px 0 0; }

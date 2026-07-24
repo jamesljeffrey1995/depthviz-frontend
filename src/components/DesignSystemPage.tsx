@@ -11,13 +11,17 @@ import styles from './DesignSystemPage.module.css'
 /* A living style guide — the design system rendered from the very components
    the product ships, so the documentation can never drift from the code. */
 
+/* Clearest → murkiest. The swatch paints from `var(--sev-*)` rather than a
+   copied hex so this page keeps its promise not to drift: `--ds-q-*` is an
+   alias onto that ramp, and a literal here would silently go stale the next
+   time the ramp is retuned. Both names are shown because both are in use. */
 const QUALITY = [
-  { name: 'Excellent', token: '--ds-q-excellent', hex: '#7fffd4' },
-  { name: 'Good', token: '--ds-q-good', hex: '#1ca3ec' },
-  { name: 'Workable', token: '--ds-q-workable', hex: '#2e8b99' },
-  { name: 'Marginal', token: '--ds-q-marginal', hex: '#2e7c8c' },
-  { name: 'Poor', token: '--ds-q-poor', hex: '#35586f' },
-  { name: 'Blown out', token: '--ds-q-blown', hex: '#31556b' },
+  { name: 'Excellent', token: '--ds-q-excellent', fill: 'var(--sev-excellent)' },
+  { name: 'Good', token: '--ds-q-good', fill: 'var(--sev-good)' },
+  { name: 'Workable', token: '--ds-q-workable', fill: 'var(--sev-decent)' },
+  { name: 'Marginal', token: '--ds-q-marginal', fill: 'var(--sev-marginal)' },
+  { name: 'Poor', token: '--ds-q-poor', fill: 'var(--sev-poor)' },
+  { name: 'Blown out', token: '--ds-q-blown', fill: 'var(--sev-blocked)' },
 ]
 
 const NEUTRALS = ['950', '900', '850', '800', '700', '600', '500', '400', '300', '200', '100', '050']
@@ -71,7 +75,7 @@ export function DesignSystemPage() {
         <div className={styles.swatchRow}>
           {QUALITY.map(q => (
             <div key={q.name} className={styles.swatch}>
-              <span className={styles.swatchChip} style={{ background: q.hex }} />
+              <span className={styles.swatchChip} style={{ background: q.fill }} />
               <span className={styles.swatchName}>{q.name}</span>
               <span className={styles.swatchToken}>{q.token}</span>
             </div>

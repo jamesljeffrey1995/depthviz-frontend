@@ -198,21 +198,25 @@
 .algaemoderate { color: var(--warn); }
 .algaehigh { color: var(--danger); }
 
-/* ── Condition color classes (applied to .dayCard) ── */
+/* ── Condition color classes (applied to .dayCard) ──
+   Every step reads off the clarity ramp. These had drifted onto the alert
+   vocabulary — `marginal` borrowed --warn and `poor` borrowed --danger, so a
+   murky-but-safe day was coloured like a hazard, and `decent` was pointed at
+   --sev-good, rendering two adjacent steps identically. */
 .excellent .vis,
-.excellent .verdict { color: var(--excellent); }
+.excellent .verdict { color: var(--sev-excellent); }
 
 .good .vis,
-.good .verdict { color: var(--good); }
+.good .verdict { color: var(--sev-good); }
 
 .decent .vis,
-.decent .verdict { color: var(--sev-good); }
+.decent .verdict { color: var(--sev-decent); }
 
 .marginal .vis,
-.marginal .verdict { color: var(--warn); }
+.marginal .verdict { color: var(--sev-marginal); }
 
 .poor .vis,
-.poor .verdict { color: var(--danger); }
+.poor .verdict { color: var(--sev-poor); }
 
 .blocked .vis,
 .blocked .verdict { color: var(--sev-blocked); }
