@@ -1,0 +1,24 @@
+{
+  "desktop": {
+    "/": { "color-contrast": 3 },
+    "/weight": { "color-contrast": 5 },
+    "/legal/privacy": { "color-contrast": 3 },
+    "/legal/terms": { "color-contrast": 3 },
+    "/legal/cookies": { "color-contrast": 3 },
+    "/legal/accessibility": { "color-contrast": 3, "link-in-text-block": 1 },
+    "/news": { "color-contrast": 2 },
+    "/feed": { "color-contrast": 3 },
+    "/places": { "color-contrast": 2 }
+  },
+  "mobile": {
+    "/": { "color-contrast": 3 },
+    "/weight": { "color-contrast": 4 },
+    "/legal/privacy": { "color-contrast": 3 },
+    "/legal/terms": { "color-contrast": 3 },
+    "/legal/cookies": { "color-contrast": 3 },
+    "/legal/accessibility": { "color-contrast": 2, "link-in-text-block": 1 },
+    "/news": { "color-contrast": 2 },
+    "/feed": { "color-contrast": 3 },
+    "/places": { "color-contrast": 2 }
+  }
+}

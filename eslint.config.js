@@ -9,7 +9,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 // is intentionally left off so `npm run lint` stays fast and doesn't require a
 // full type-check pass (tsc already gates that in `npm run build`).
 export default tseslint.config(
-  { ignores: ['dist', 'dev-dist', 'node_modules', 'coverage'] },
+  { ignores: ['dist', 'dev-dist', 'node_modules', 'coverage', 'playwright-report', 'test-results', '.lighthouseci'] },
   {
     files: ['**/*.{ts,tsx}'],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
