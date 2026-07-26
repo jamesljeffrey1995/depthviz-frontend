@@ -94,6 +94,10 @@ jobs:
             .lighthouseci/
           retention-days: 7
           if-no-files-found: ignore
+          # .lighthouseci is a dot-directory, and upload-artifact skips hidden
+          # files by default — without this the Lighthouse reports are silently
+          # dropped and only the Playwright report survives.
+          include-hidden-files: true
 
   audit:
     name: Dependency audit
