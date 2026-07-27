@@ -35,8 +35,12 @@ module.exports = {
         // PWA people open on a boat. ("mobile" is not a valid preset value;
         // the presets are perf/experimental/desktop.)
         chromeFlags: '--no-sandbox --disable-dev-shm-usage',
-        // The SPA fallback serves index.html for unknown paths, so a 404 can't
-        // be detected by status code — skip the redirect audit's noise instead.
+        // uses-http2: the preview server is plain HTTP/1.1, so this always
+        //   fails locally and says nothing about production, which is served
+        //   by nginx/Cloudflare (see nginx.conf.example).
+        // canonical: an SPA serves the same index.html for every path, so
+        //   there is no per-route canonical tag to find.
+        // Neither is a real signal here; both would be permanent noise.
         skipAudits: ['uses-http2', 'canonical'],
       },
     },

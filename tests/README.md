@@ -6,8 +6,8 @@ CSP headers and the built service worker.
 
 | Command | What it does |
 | --- | --- |
-| `npm run test:a11y` | Playwright + axe-core: WCAG 2.1 A/AA scan of every route, desktop and mobile viewports |
-| `npm run test:lighthouse` | Lighthouse CI: performance, accessibility, best-practices, SEO and PWA scores with assertion thresholds |
+| `npm run test:a11y` | Playwright + axe-core: WCAG 2.1 A/AA scan of the routes listed in `audit-routes.json`, desktop and mobile viewports |
+| `npm run test:lighthouse` | Lighthouse CI: performance, accessibility, best-practices and SEO, over `staticRoutes` only |
 | `npm run test:a11y -- --ui` | Same axe run in Playwright's interactive UI mode |
 
 Both are wired into the `ux-audit` job in `.github/workflows/ci.yml`.

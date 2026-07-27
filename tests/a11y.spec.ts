@@ -19,14 +19,42 @@ const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']
 const EXCLUDED_SELECTORS = ['.leaflet-container']
 
 /**
+ * The API base baked into the build. Mirrors the default in src/lib/api.ts, so
+ * an audit run with a non-default VITE_API_URL still intercepts the right URLs
+ * instead of silently letting them through.
+ */
+const API_BASE = process.env.VITE_API_URL ?? '/api'
+
+/** The only origin the audited page is allowed to talk to. */
+const PREVIEW_ORIGIN = `http://localhost:${auditRoutes.previewPort}`
+
+/** A glob matching any request to the API base, absolute or origin-relative. */
+const API_GLOB = /^https?:\/\//.test(API_BASE)
+  ? `${API_BASE.replace(/\/$/, '')}/**`
+  : `**${API_BASE.startsWith('/') ? '' : '/'}${API_BASE.replace(/\/$/, '')}/**`
+
+/**
  * CI has no backend (the API lives in a separate repo), so an un-stubbed page
  * would race between a 404 from the preview server's SPA fallback and a real
  * timeout. Pinning every API call to a 503 makes the resulting error state
  * deterministic — and error states are exactly where labelling and focus order
  * tend to regress, so they're worth auditing.
+ *
+ * Handlers are registered least-specific first: Playwright matches routes in
+ * reverse registration order, so the specific stubs below win over the
+ * catch-all.
  */
 async function stubBackend(page: Page) {
-  await page.route('**/api/**', route =>
+  // Deny-all for anything off the preview origin. Belt-and-braces against the
+  // case that actually bites: VITE_API_URL is baked in at build time, so a
+  // developer with a real API host in their .env would otherwise point this
+  // audit straight at production. Nothing here needs the network — every font
+  // and asset is self-hosted — so refusing outright is both safer and more
+  // deterministic than hoping the globs below cover every case. Map tiles get
+  // blocked too, which is fine: .leaflet-container is excluded from axe anyway.
+  await page.route(url => url.origin !== PREVIEW_ORIGIN, route => route.abort())
+
+  await page.route(API_GLOB, route =>
     route.fulfill({
       status: 503,
       contentType: 'application/json',
