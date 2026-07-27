@@ -23,7 +23,7 @@
     "leaflet": "^1.9.4",
     "mp4box": "^2.3.0",
     "qrcode": "^1.5.4",
-    "react": "^19.2.7",
+    "react": "^19.2.8",
     "react-dom": "^19.2.7",
     "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.13.1"
