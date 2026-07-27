@@ -6,3 +6,8 @@ dist-ssr
 .env.local
 .DS_Store
 .impeccable/hook.cache.json
+
+# UX audit output (Playwright/axe + Lighthouse CI)
+playwright-report
+test-results
+.lighthouseci

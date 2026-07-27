@@ -141,6 +141,10 @@ export default defineConfig({
     headers: securityHeaders,
   },
   test: {
+    // Scoped so Vitest only owns the unit tests that sit next to their module.
+    // Without this, Vitest's default glob would also collect the Playwright
+    // specs under tests/ (accessibility audits) and fail on `@playwright/test`.
+    include: ['src/**/*.test.{ts,tsx}'],
     // src/lib/supabase.ts throws at import time without these, which broke
     // any test that (transitively) imports lib/api.ts on a fresh clone with
     // no .env. Tests never talk to Supabase — stub values are enough.

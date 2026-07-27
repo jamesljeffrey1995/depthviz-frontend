@@ -41,6 +41,64 @@ jobs:
       - name: Lint
         run: npm run lint
 
+  ux-audit:
+    name: UX audit (axe + Lighthouse)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      # Pin both tools to the same browser binary rather than whatever Chrome
+      # happens to ship in the runner image, so a runner-image bump can't move
+      # the Lighthouse scores or the axe results underneath us.
+      - name: Pin browser for both audits
+        run: node -e "console.log('CHROME_PATH=' + require('@playwright/test').chromium.executablePath())" >> "$GITHUB_ENV"
+
+      # Both audits run against `vite preview`, which serves the built app —
+      # so the build has to happen first. The Supabase values are throwaway:
+      # src/lib/supabase.ts throws at import time when they're missing, which
+      # would leave every audited page blank. Nothing ever reaches Supabase.
+      # VITE_API_URL is left at its default (/api) so the Playwright request
+      # stub matches it.
+      - name: Build
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: https://stub.supabase.co
+          VITE_SUPABASE_ANON_KEY: stub-anon-key
+
+      - name: Accessibility (axe, WCAG 2.1 AA)
+        run: npm run test:a11y
+
+      - name: Lighthouse
+        run: npm run test:lighthouse
+
+      - name: Upload audit reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ux-audit-reports
+          path: |
+            playwright-report/
+            .lighthouseci/
+          retention-days: 7
+          if-no-files-found: ignore
+          # .lighthouseci is a dot-directory, and upload-artifact skips hidden
+          # files by default — without this the Lighthouse reports are silently
+          # dropped and only the Playwright report survives.
+          include-hidden-files: true
+
   audit:
     name: Dependency audit
     runs-on: ubuntu-latest

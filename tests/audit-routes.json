@@ -1,0 +1,16 @@
+{
+  "previewPort": 4173,
+  "staticRoutes": [
+    "/",
+    "/weight",
+    "/legal/privacy",
+    "/legal/terms",
+    "/legal/cookies",
+    "/legal/accessibility"
+  ],
+  "apiRoutes": [
+    "/news",
+    "/feed",
+    "/places"
+  ]
+}

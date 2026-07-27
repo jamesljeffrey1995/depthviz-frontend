@@ -13,14 +13,19 @@ npm install
 npm run dev        # Vite dev server
 npm run build      # tsc typecheck + vite build — this IS the typecheck step, there's no separate `tsc --noEmit` script
 npm run preview    # serve the production build locally (needed to test PWA/offline behavior — the SW is disabled in `dev`)
-npm test           # vitest run (all tests, one-shot)
+npm test           # vitest run (all unit tests, one-shot)
+npm run lint       # eslint flat config; fails CI on errors, warnings are advisory
+npm run test:a11y  # Playwright + axe-core, WCAG 2.1 AA, desktop + mobile
+npm run test:lighthouse  # Lighthouse CI against the production build
+npm run test:ux    # both of the above
 ```
 
 Run a single test file: `npx vitest run src/lib/units.test.ts`
 Run tests matching a name: `npx vitest run -t "some test name"`
-There is no lint script yet (CI runs `npm run lint --if-present` as a no-op placeholder for issue #165).
 
-Tests live next to the module they cover (`foo.ts` / `foo.test.ts`), all under `src/lib/`. `vite.config.ts` stubs `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` for the test environment since `src/lib/supabase.ts` throws at import time if they're missing — tests never talk to Supabase.
+Unit tests live next to the module they cover (`foo.ts` / `foo.test.ts`), almost all under `src/lib/`. `vite.config.ts` stubs `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` for the test environment since `src/lib/supabase.ts` throws at import time if they're missing — tests never talk to Supabase. Vitest's `include` is scoped to `src/**/*.test.{ts,tsx}` so it doesn't collect the Playwright specs.
+
+The UX audits are separate and live in `tests/` — see `tests/README.md` before changing thresholds or the accessibility baseline. They run against `vite preview` (a real production build with the real CSP headers), never the dev server, and they need a build first. Both honour `CHROME_PATH` if you want to pin the browser.
 
 ## Environment variables
 
