@@ -1,0 +1,1589 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Five further interactive design directions for the DepthViz forecast screen, on the same sample dataset.">
+<title>DepthViz directions 06 to 10</title>
+
+<style>
+/* ============================================================
+   GALLERY SHELL
+   Same shell, spacing scale and type ramp as directions 01 to 05,
+   so the two sets can be compared without visual noise.
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+:root {
+  --s1: 4px;  --s2: 8px;  --s3: 12px; --s4: 16px; --s5: 20px;
+  --s6: 24px; --s8: 32px; --s10: 40px; --s12: 48px; --s16: 64px;
+
+  --t-2xs: 11px; --lh-2xs: 14px;
+  --t-xs: 12px;  --lh-xs: 16px;
+  --t-sm: 13px;  --lh-sm: 20px;
+  --t-md: 15px;  --lh-md: 24px;
+  --t-lg: 17px;  --lh-lg: 26px;
+  --t-xl: 21px;  --lh-xl: 28px;
+  --t-2xl: 28px; --lh-2xl: 34px;
+  --t-3xl: 38px; --lh-3xl: 42px;
+
+  --f-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --f-cond: "Bahnschrift", "DIN Alternate", "Roboto Condensed", "Arial Narrow", ui-sans-serif, system-ui, sans-serif;
+  --f-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --f-serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+
+  --sh-bg: #f7f8f8;
+  --sh-panel: #ffffff;
+  --sh-ink: #101a1f;
+  --sh-ink-dim: #4d6068;
+  --sh-ink-faint: #6f838b;
+  --sh-rule: #dde3e5;
+  --sh-rule-strong: #b9c4c8;
+  --sh-accent: #17606f;
+  --sh-accent-ink: #ffffff;
+  --sh-focus: #0f7d90;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sh-bg: #0d1113; --sh-panel: #14191c;
+    --sh-ink: #eaf0f1; --sh-ink-dim: #a3b3b8; --sh-ink-faint: #7d8f95;
+    --sh-rule: #232c30; --sh-rule-strong: #37454a;
+    --sh-accent: #6fd0dd; --sh-accent-ink: #071215; --sh-focus: #6fd0dd;
+  }
+}
+:root[data-theme="dark"] {
+  --sh-bg: #0d1113; --sh-panel: #14191c;
+  --sh-ink: #eaf0f1; --sh-ink-dim: #a3b3b8; --sh-ink-faint: #7d8f95;
+  --sh-rule: #232c30; --sh-rule-strong: #37454a;
+  --sh-accent: #6fd0dd; --sh-accent-ink: #071215; --sh-focus: #6fd0dd;
+}
+:root[data-theme="light"] {
+  --sh-bg: #f7f8f8; --sh-panel: #ffffff;
+  --sh-ink: #101a1f; --sh-ink-dim: #4d6068; --sh-ink-faint: #6f838b;
+  --sh-rule: #dde3e5; --sh-rule-strong: #b9c4c8;
+  --sh-accent: #17606f; --sh-accent-ink: #ffffff; --sh-focus: #0f7d90;
+}
+
+body {
+  margin: 0; background: var(--sh-bg); color: var(--sh-ink);
+  font-family: var(--f-sans); font-size: var(--t-md); line-height: var(--lh-md);
+  -webkit-font-smoothing: antialiased;
+}
+:where(a) { color: inherit; }
+:where(button) { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--sh-focus); outline-offset: 2px; }
+
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 var(--s6); }
+
+.masthead { border-bottom: 1px solid var(--sh-rule); background: var(--sh-bg); }
+.masthead .wrap { padding-top: var(--s12); padding-bottom: var(--s8); }
+.kicker {
+  font-family: var(--f-mono); font-size: var(--t-2xs); line-height: var(--lh-2xs);
+  letter-spacing: 0.09em; text-transform: uppercase; color: var(--sh-ink-faint);
+  margin: 0 0 var(--s3);
+}
+h1 {
+  font-family: var(--f-cond); font-size: var(--t-3xl); line-height: var(--lh-3xl);
+  font-weight: 600; letter-spacing: -0.01em; margin: 0 0 var(--s4); text-wrap: balance;
+}
+.lead { max-width: 62ch; margin: 0; color: var(--sh-ink-dim); font-size: var(--t-lg); line-height: var(--lh-lg); }
+.shellnotes { margin: var(--s6) 0 0; padding: 0; list-style: none; display: grid; gap: var(--s2); max-width: 68ch; }
+.shellnotes li {
+  font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--sh-ink-faint);
+  padding-left: var(--s5); position: relative;
+}
+.shellnotes li::before {
+  content: ""; position: absolute; left: 0; top: 9px; width: 10px; height: 1px;
+  background: var(--sh-rule-strong);
+}
+
+.toolbar {
+  position: sticky; top: 0; z-index: 20;
+  background: color-mix(in srgb, var(--sh-bg) 88%, transparent);
+  backdrop-filter: blur(8px); border-bottom: 1px solid var(--sh-rule);
+}
+.toolbar .wrap { display: flex; align-items: stretch; justify-content: space-between; gap: var(--s4); }
+[role="tablist"] { display: flex; gap: var(--s6); overflow-x: auto; scrollbar-width: none; }
+[role="tablist"]::-webkit-scrollbar { display: none; }
+[role="tab"] {
+  appearance: none; background: none; border: 0; border-bottom: 2px solid transparent;
+  padding: var(--s4) 0 calc(var(--s4) - 2px);
+  display: flex; align-items: baseline; gap: var(--s2);
+  cursor: pointer; white-space: nowrap; color: var(--sh-ink-faint);
+  transition: color 140ms ease, border-color 140ms ease;
+}
+[role="tab"] .num { font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.06em; }
+[role="tab"] .nm { font-size: var(--t-sm); line-height: var(--lh-sm); font-weight: 500; }
+[role="tab"]:hover { color: var(--sh-ink-dim); }
+[role="tab"][aria-selected="true"] { color: var(--sh-ink); border-bottom-color: var(--sh-accent); }
+
+.unitswitch { display: flex; align-items: center; gap: var(--s2); padding: var(--s3) 0; }
+.unitswitch .lbl {
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--sh-ink-faint);
+}
+.seg { display: flex; border: 1px solid var(--sh-rule-strong); border-radius: 4px; overflow: hidden; }
+.seg button {
+  appearance: none; border: 0; background: none; cursor: pointer;
+  font-family: var(--f-mono); font-size: var(--t-xs); line-height: 1;
+  padding: var(--s2) var(--s3); color: var(--sh-ink-dim);
+  transition: background 140ms ease, color 140ms ease;
+}
+.seg button + button { border-left: 1px solid var(--sh-rule-strong); }
+.seg button[aria-pressed="true"] { background: var(--sh-accent); color: var(--sh-accent-ink); }
+.seg button:hover:not([aria-pressed="true"]) { background: color-mix(in srgb, var(--sh-ink) 6%, transparent); }
+
+main { padding-bottom: var(--s16); }
+[role="tabpanel"] { padding-top: var(--s10); }
+[role="tabpanel"][hidden] { display: none; }
+
+.chead { display: grid; gap: var(--s4); padding-bottom: var(--s8); }
+.chead .ref {
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--sh-ink-faint);
+}
+.chead h2 {
+  font-family: var(--f-cond); font-size: var(--t-2xl); line-height: var(--lh-2xl);
+  font-weight: 600; margin: 0; letter-spacing: -0.005em;
+}
+.chead .thesis { margin: 0; max-width: 64ch; color: var(--sh-ink-dim); font-size: var(--t-lg); line-height: var(--lh-lg); }
+
+.frame {
+  container-type: inline-size;
+  border: 1px solid var(--sh-rule-strong); border-radius: 6px;
+  overflow: hidden; background: var(--sh-panel);
+}
+.framebar {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s4);
+  padding: var(--s2) var(--s4); border-bottom: 1px solid var(--sh-rule);
+  background: color-mix(in srgb, var(--sh-ink) 4%, var(--sh-panel));
+  font-family: var(--f-mono); font-size: var(--t-2xs); line-height: var(--lh-2xs);
+  letter-spacing: 0.07em; text-transform: uppercase; color: var(--sh-ink-faint);
+}
+
+.notes {
+  display: grid; gap: var(--s6);
+  grid-template-columns: repeat(auto-fit, minmax(232px, 1fr));
+  padding-top: var(--s8);
+}
+.note h3 {
+  font-family: var(--f-mono); font-size: var(--t-2xs); line-height: var(--lh-2xs);
+  letter-spacing: 0.09em; text-transform: uppercase; font-weight: 500;
+  color: var(--sh-ink-faint); margin: 0 0 var(--s3); padding-bottom: var(--s3);
+  border-bottom: 1px solid var(--sh-rule);
+}
+.note p { margin: 0; font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--sh-ink-dim); }
+.note p + p { margin-top: var(--s2); }
+.swatches { display: flex; flex-wrap: wrap; gap: var(--s2); margin: 0 0 var(--s3); padding: 0; list-style: none; }
+.swatches li { display: grid; gap: var(--s1); }
+.swatches .chip {
+  width: 100%; height: 24px; min-width: 56px; border-radius: 3px;
+  border: 1px solid color-mix(in srgb, var(--sh-ink) 18%, transparent);
+}
+.swatches code { font-family: var(--f-mono); font-size: var(--t-2xs); line-height: var(--lh-2xs); color: var(--sh-ink-faint); }
+
+/* shared mock behaviour */
+.mock { --sk-a: rgba(128,128,128,0.18); --sk-b: rgba(128,128,128,0.30); }
+.mock[data-loading="1"] .sk {
+  color: transparent !important;
+  background-image: linear-gradient(90deg, var(--sk-a) 0%, var(--sk-b) 50%, var(--sk-a) 100%);
+  background-size: 200% 100%; animation: shimmer 1.15s linear infinite; border-radius: 3px;
+}
+.mock[data-loading="1"] .sk > * { visibility: hidden; }
+.mock[data-loading="1"] .fades { opacity: 0.28; transition: opacity 180ms ease; }
+.mock[data-loading="1"] .daysel { pointer-events: none; opacity: 0.6; }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: 0 0; } }
+
+.spin {
+  width: 12px; height: 12px; flex: none;
+  border: 2px solid currentColor; border-right-color: transparent;
+  border-radius: 50%; animation: rot 700ms linear infinite;
+}
+@keyframes rot { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important; animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ============================================================
+   06 SIGHT LINE
+   Palette is derived from the forecast: the water in the scene is
+   the colour that water actually is at that clarity.
+   ============================================================ */
+.mock[data-c="6"] {
+  --bg: #060f12; --bg2: #0c1a1f; --ink: #f0f5f4; --dim: #a2b4b4; --faint: #74898a;
+  --rule: #1a2c31; --rule2: #2d4449;
+  --bone: #f0ece3; --alert: #d98b4a;
+  --q-poor: #b8865c; --q-marginal: #bfae67; --q-workable: #74cfc6; --q-good: #5fe9d2; --q-clear: #9dffe2;
+  --sk-a: rgba(240,245,244,0.08); --sk-b: rgba(240,245,244,0.18);
+  background: var(--bg); color: var(--ink); font-family: var(--f-sans);
+}
+.mock[data-c="6"] .scene { position: relative; }
+.mock[data-c="6"] .scene svg { display: block; width: 100%; height: auto; }
+.mock[data-c="6"] .overlay {
+  position: absolute; inset: auto var(--s6) var(--s5) var(--s6);
+  display: flex; align-items: flex-end; justify-content: space-between; gap: var(--s5); flex-wrap: wrap;
+}
+.mock[data-c="6"] .readout { display: flex; align-items: flex-end; gap: var(--s3); }
+.mock[data-c="6"] .big {
+  font-family: var(--f-cond); font-weight: 600; font-size: 76px; line-height: 0.84;
+  letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--bone);
+  text-shadow: 0 2px 24px rgba(0,0,0,0.55);
+}
+.mock[data-c="6"] .readout .u { display: grid; gap: var(--s1); padding-bottom: var(--s1); }
+.mock[data-c="6"] .readout .u .unit { font-family: var(--f-mono); font-size: var(--t-sm); color: var(--bone); opacity: 0.75; }
+.mock[data-c="6"] .readout .u .band {
+  font-family: var(--f-cond); font-size: var(--t-lg); line-height: var(--lh-lg);
+  letter-spacing: 0.05em; text-transform: uppercase; color: var(--band);
+}
+.mock[data-c="6"] .place {
+  text-align: right; font-family: var(--f-mono); font-size: var(--t-2xs); line-height: var(--lh-xs);
+  letter-spacing: 0.07em; text-transform: uppercase; color: var(--bone); opacity: 0.72;
+}
+.mock[data-c="6"] .topbar {
+  position: absolute; inset: var(--s4) var(--s6) auto var(--s6);
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s4);
+}
+.mock[data-c="6"] .btn {
+  appearance: none; cursor: pointer; background: rgba(6,15,18,0.55);
+  border: 1px solid rgba(240,236,227,0.28); border-radius: 3px;
+  color: var(--bone); padding: var(--s2) var(--s3);
+  display: inline-flex; align-items: center; gap: var(--s2);
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.08em; text-transform: uppercase;
+  backdrop-filter: blur(4px); transition: border-color 140ms ease, background 140ms ease;
+}
+.mock[data-c="6"] .btn:hover { border-color: var(--bone); background: rgba(6,15,18,0.75); }
+.mock[data-c="6"] .btn[disabled] { cursor: default; opacity: 0.8; }
+.mock[data-c="6"] .scenelabel {
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--bone); opacity: 0.66;
+}
+/* On a narrow screen the scene is too short to carry the reading on top of
+   it, so the overlay drops out of the image and sits under it instead. */
+@container (max-width: 560px) {
+  .mock[data-c="6"] .overlay {
+    position: static; flex-direction: column; align-items: flex-start;
+    gap: var(--s2); padding: var(--s4) var(--s5) 0;
+  }
+  .mock[data-c="6"] .big { font-size: 54px; text-shadow: none; }
+  .mock[data-c="6"] .place { text-align: left; }
+  .mock[data-c="6"] .topbar { inset: var(--s3) var(--s3) auto var(--s3); }
+}
+.mock[data-c="6"] .below { padding: var(--s6); display: grid; gap: var(--s6); }
+@container (max-width: 560px) { .mock[data-c="6"] .below { padding: var(--s5); } }
+.mock[data-c="6"] .sentence { margin: 0; max-width: 68ch; font-size: var(--t-lg); line-height: var(--lh-lg); color: var(--dim); }
+.mock[data-c="6"] .contrast { display: grid; gap: var(--s3); }
+.mock[data-c="6"] .contrasthead {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--s2) var(--s4);
+  padding-bottom: var(--s2); border-bottom: 1px solid var(--rule);
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--faint);
+}
+.mock[data-c="6"] .ranges { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--s3); }
+@container (max-width: 620px) { .mock[data-c="6"] .ranges { grid-template-columns: repeat(2, 1fr); } }
+.mock[data-c="6"] .range { display: grid; gap: var(--s2); }
+.mock[data-c="6"] .range .d { font-family: var(--f-mono); font-size: var(--t-xs); color: var(--dim); }
+.mock[data-c="6"] .range .p { font-family: var(--f-cond); font-size: var(--t-xl); line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
+.mock[data-c="6"] .range .m { font-size: var(--t-2xs); line-height: var(--lh-2xs); color: var(--faint); }
+.mock[data-c="6"] .range .swatch { height: 4px; background: var(--bone); }
+.mock[data-c="6"] .days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--s2); }
+/* seven equal columns need about 76px each before the labels break up, so
+   below that the week wraps to two rows rather than forcing the panel wide */
+@container (max-width: 620px) {
+  .mock[data-c="6"] .days { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.mock[data-c="6"] .day {
+  appearance: none; cursor: pointer; text-align: left; background: none;
+  border: 1px solid var(--rule); border-radius: 3px; padding: var(--s2) var(--s3);
+  display: grid; gap: var(--s1); min-width: 0;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+.mock[data-c="6"] .day .dl { font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); }
+.mock[data-c="6"] .day .dv { font-family: var(--f-mono); font-size: var(--t-sm); font-variant-numeric: tabular-nums; color: var(--band); }
+.mock[data-c="6"] .day:hover { border-color: var(--rule2); }
+.mock[data-c="6"] .day[aria-pressed="true"] { border-color: var(--bone); background: var(--bg2); }
+.mock[data-c="6"] .caveat {
+  margin: 0; padding-top: var(--s4); border-top: 1px solid var(--rule);
+  font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--faint);
+}
+.mock[data-c="6"] .caveat b { color: var(--alert); }
+
+/* ============================================================
+   07 VERDICT FIRST
+   ============================================================ */
+.mock[data-c="7"] {
+  --bg: #0b0c0d; --bg2: #151719; --ink: #f2f1ee; --dim: #a8a9a6; --faint: #77797a;
+  --rule: #232628; --rule2: #3a3e40;
+  --q-poor: #e0824f; --q-marginal: #ded07a; --q-workable: #7fd8a6; --q-good: #6fe0b0; --q-clear: #8ff0c4;
+  --sk-a: rgba(242,241,238,0.08); --sk-b: rgba(242,241,238,0.18);
+  background: var(--bg); color: var(--ink); font-family: var(--f-sans);
+  padding: var(--s8) var(--s6) var(--s6); display: grid; gap: var(--s8);
+}
+.mock[data-c="7"] .head {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--s4);
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--faint);
+}
+.mock[data-c="7"] .btn {
+  appearance: none; cursor: pointer; background: none; border: 1px solid var(--rule2);
+  border-radius: 2px; color: var(--ink); padding: var(--s2) var(--s3);
+  display: inline-flex; align-items: center; gap: var(--s2);
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.09em; text-transform: uppercase;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+.mock[data-c="7"] .btn:hover { border-color: var(--ink); background: var(--bg2); }
+.mock[data-c="7"] .btn[disabled] { cursor: default; color: var(--dim); }
+.mock[data-c="7"] .answer { display: grid; gap: var(--s4); }
+.mock[data-c="7"] .word {
+  font-family: var(--f-cond); font-weight: 600; letter-spacing: -0.015em;
+  font-size: clamp(56px, 11cqi, 116px); line-height: 0.86;
+  text-transform: uppercase; color: var(--band); margin: 0;
+}
+.mock[data-c="7"] .qual {
+  margin: 0; font-family: var(--f-mono);
+  font-size: var(--t-sm); line-height: var(--lh-sm);
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim);
+}
+.mock[data-c="7"] .figure {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s3);
+  font-family: var(--f-mono); font-size: var(--t-lg); color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.mock[data-c="7"] .figure span { color: var(--faint); }
+.mock[data-c="7"] .line { margin: 0; max-width: 56ch; font-size: var(--t-xl); line-height: var(--lh-xl); color: var(--dim); }
+.mock[data-c="7"] .footer {
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--s4);
+  border-top: 1px solid var(--rule); padding-top: var(--s4);
+}
+@container (max-width: 700px) { .mock[data-c="7"] .footer { grid-template-columns: repeat(3, 1fr); } }
+.mock[data-c="7"] .footer div { display: grid; gap: var(--s1); }
+.mock[data-c="7"] .footer .k {
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--faint);
+}
+.mock[data-c="7"] .footer .v { font-family: var(--f-mono); font-size: var(--t-sm); font-variant-numeric: tabular-nums; }
+.mock[data-c="7"] .wall { display: grid; gap: var(--s3); }
+.mock[data-c="7"] .wallhead {
+  display: flex; justify-content: space-between; gap: var(--s4);
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--faint);
+}
+.mock[data-c="7"] .bands { display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--s2); }
+.mock[data-c="7"] .bandcol {
+  appearance: none; cursor: pointer; background: var(--bg2); border: 0;
+  height: 168px; position: relative; padding: 0; overflow: hidden;
+  display: block; text-align: left; transition: background 140ms ease;
+}
+.mock[data-c="7"] .bandcol i {
+  position: absolute; left: 0; right: 0; bottom: 0; background: var(--band);
+  opacity: 0.42; transition: height 300ms cubic-bezier(0.22,0.61,0.36,1), opacity 140ms ease;
+}
+.mock[data-c="7"] .bandcol .lab {
+  position: absolute; left: var(--s2); right: var(--s2); bottom: var(--s2);
+  display: grid; gap: 2px;
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--ink);
+}
+.mock[data-c="7"] .bandcol .lab b { font-size: var(--t-sm); font-weight: 500; font-variant-numeric: tabular-nums; }
+.mock[data-c="7"] .bandcol:hover i { opacity: 0.6; }
+.mock[data-c="7"] .bandcol[aria-pressed="true"] i { opacity: 1; }
+.mock[data-c="7"] .bandcol[aria-pressed="true"] { box-shadow: inset 0 2px 0 var(--ink); }
+.mock[data-c="7"] .more {
+  appearance: none; cursor: pointer; background: none; border: 0;
+  border-bottom: 1px solid var(--rule2); color: var(--dim); padding: 0 0 2px;
+  justify-self: start; font-size: var(--t-sm); transition: color 140ms ease, border-color 140ms ease;
+}
+.mock[data-c="7"] .more:hover { color: var(--ink); border-color: var(--ink); }
+.mock[data-c="7"] .detail { display: grid; gap: var(--s2); }
+.mock[data-c="7"] .detail[hidden] { display: none; }
+.mock[data-c="7"] .drow {
+  display: grid; grid-template-columns: 1fr auto 96px; gap: var(--s4);
+  padding: var(--s2) 0; border-bottom: 1px solid var(--rule); align-items: baseline;
+}
+.mock[data-c="7"] .drow .n { font-size: var(--t-sm); }
+.mock[data-c="7"] .drow .o { font-family: var(--f-mono); font-size: var(--t-xs); color: var(--dim); }
+.mock[data-c="7"] .drow .p { font-family: var(--f-mono); font-size: var(--t-xs); text-align: right; color: var(--q-poor); }
+
+/* ============================================================
+   08 DIVE LOG
+   ============================================================ */
+.mock[data-c="8"] {
+  --bg: #e9eef1; --panel: #fbfcfc; --ink: #0f2430; --dim: #43606e; --faint: #6f8794;
+  --rule: #d3dde2; --rule2: #adbfc7; --grid: #c6d8e0;
+  --accent: #0e6e8c; --coral: #c4553b; --model: #0e6e8c; --actual: #12403f;
+  --q-poor: #a4522c; --q-marginal: #86671a; --q-workable: #0e6e6a; --q-good: #0b6a5c; --q-clear: #0a5f66;
+  --sk-a: rgba(15,36,48,0.08); --sk-b: rgba(15,36,48,0.16);
+  background: var(--bg); color: var(--ink); font-family: var(--f-sans);
+  padding: var(--s6); display: grid; gap: var(--s5);
+}
+.mock[data-c="8"] .head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s4); }
+.mock[data-c="8"] .head h3 { margin: 0; font-size: var(--t-xl); line-height: var(--lh-xl); font-weight: 600; letter-spacing: -0.01em; }
+.mock[data-c="8"] .head .sub {
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--faint); margin-top: var(--s1);
+}
+.mock[data-c="8"] .btn {
+  appearance: none; cursor: pointer; background: var(--panel); border: 1px solid var(--rule2);
+  border-radius: 3px; padding: var(--s2) var(--s3); color: var(--dim);
+  display: inline-flex; align-items: center; gap: var(--s2);
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.08em; text-transform: uppercase;
+  transition: border-color 140ms ease, color 140ms ease;
+}
+.mock[data-c="8"] .btn:hover { border-color: var(--accent); color: var(--accent); }
+.mock[data-c="8"] .btn[disabled] { cursor: default; }
+.mock[data-c="8"] .chartcard { background: var(--panel); border: 1px solid var(--rule); border-radius: 3px; padding: var(--s4); display: grid; gap: var(--s3); }
+.mock[data-c="8"] .chartcard svg { display: block; width: 100%; height: auto; }
+.mock[data-c="8"] .legend {
+  display: flex; flex-wrap: wrap; gap: var(--s4);
+  font-size: var(--t-2xs); line-height: var(--lh-2xs); color: var(--faint);
+}
+.mock[data-c="8"] .legend span { display: inline-flex; align-items: center; gap: var(--s2); }
+.mock[data-c="8"] .legend i { width: 18px; height: 2px; display: block; }
+.mock[data-c="8"] .legend i.dot { width: 8px; height: 8px; border-radius: 50%; }
+.mock[data-c="8"] .cols { display: grid; grid-template-columns: 1fr 264px; gap: var(--s5); }
+@container (max-width: 760px) { .mock[data-c="8"] .cols { grid-template-columns: 1fr; } }
+.mock[data-c="8"] .selected { display: grid; gap: var(--s3); align-content: start; }
+.mock[data-c="8"] .selhead { display: flex; align-items: baseline; gap: var(--s3); flex-wrap: wrap; }
+.mock[data-c="8"] .selhead .n {
+  font-size: 44px; line-height: 1; font-weight: 650; letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums; color: var(--band);
+}
+.mock[data-c="8"] .selhead .k { display: grid; gap: 2px; }
+.mock[data-c="8"] .selhead .k .a { font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); }
+.mock[data-c="8"] .selhead .k .b { font-size: var(--t-md); line-height: var(--lh-md); font-weight: 600; color: var(--band); }
+.mock[data-c="8"] .selected p { margin: 0; font-size: var(--t-md); line-height: var(--lh-md); color: var(--dim); max-width: 56ch; }
+.mock[data-c="8"] .tablewrap { overflow-x: auto; }
+.mock[data-c="8"] table { width: 100%; border-collapse: collapse; min-width: 420px; }
+.mock[data-c="8"] caption {
+  text-align: left; font-family: var(--f-mono); font-size: var(--t-2xs);
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); padding-bottom: var(--s2);
+}
+.mock[data-c="8"] th, .mock[data-c="8"] td {
+  text-align: left; padding: var(--s2) var(--s3) var(--s2) 0;
+  border-bottom: 1px solid var(--rule); font-size: var(--t-sm); line-height: var(--lh-sm);
+}
+.mock[data-c="8"] thead th {
+  font-family: var(--f-mono); font-weight: 500; font-size: var(--t-2xs);
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint);
+  border-bottom: 1px solid var(--rule2);
+}
+.mock[data-c="8"] td.n, .mock[data-c="8"] th.n {
+  text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums;
+  font-size: var(--t-xs); padding-right: 0;
+}
+.mock[data-c="8"] td.err { color: var(--coral); }
+.mock[data-c="8"] .stats { display: grid; gap: var(--s3); background: var(--panel); border: 1px solid var(--rule); border-radius: 3px; padding: var(--s4); align-content: start; }
+.mock[data-c="8"] .stats .row { display: flex; justify-content: space-between; gap: var(--s3); align-items: baseline; }
+.mock[data-c="8"] .stats .k { font-size: var(--t-sm); color: var(--dim); }
+.mock[data-c="8"] .stats .v { font-family: var(--f-mono); font-size: var(--t-sm); font-variant-numeric: tabular-nums; }
+.mock[data-c="8"] .stats h4 {
+  margin: 0; font-family: var(--f-mono); font-weight: 500; font-size: var(--t-2xs);
+  letter-spacing: 0.09em; text-transform: uppercase; color: var(--faint);
+  padding-bottom: var(--s2); border-bottom: 1px solid var(--rule);
+}
+.mock[data-c="8"] .stats p { margin: 0; font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--faint); }
+.mock[data-c="8"] .pt { cursor: pointer; }
+.mock[data-c="8"] .pt:hover circle { r: 6; }
+
+/* ============================================================
+   09 BAROGRAPH
+   ============================================================ */
+.mock[data-c="9"] {
+  --chassis: #1c1d1b; --chassis2: #262825; --face: #ede7d9; --face2: #e2dac9;
+  --ink: #23241f; --dim: #55564e; --faint: #7d7e73;
+  --chassis-ink: #eae7de; --chassis-dim: #a3a49a;
+  --rule: #33352f; --needle: #b23a2e; --ghost: #6b6c62;
+  --q-poor: #8c5a2b; --q-marginal: #8a7a2c; --q-workable: #2c6f66; --q-good: #26695a; --q-clear: #245f61;
+  --sk-a: rgba(234,231,222,0.10); --sk-b: rgba(234,231,222,0.20);
+  background: var(--chassis); color: var(--chassis-ink); font-family: var(--f-sans);
+  padding: var(--s6); display: grid; gap: var(--s6);
+}
+.mock[data-c="9"] .head {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--s4);
+  padding-bottom: var(--s3); border-bottom: 1px solid var(--rule);
+}
+.mock[data-c="9"] .head h3 { margin: 0; font-family: var(--f-serif); font-size: var(--t-xl); line-height: var(--lh-xl); font-weight: 600; }
+.mock[data-c="9"] .head .sub {
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--chassis-dim); margin-top: var(--s1);
+}
+.mock[data-c="9"] .btn {
+  appearance: none; cursor: pointer; background: var(--chassis2); border: 1px solid var(--rule);
+  border-radius: 2px; color: var(--chassis-ink); padding: var(--s2) var(--s3);
+  display: inline-flex; align-items: center; gap: var(--s2);
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.09em; text-transform: uppercase;
+  transition: border-color 140ms ease;
+}
+.mock[data-c="9"] .btn:hover { border-color: var(--face2); }
+.mock[data-c="9"] .btn[disabled] { cursor: default; color: var(--chassis-dim); }
+.mock[data-c="9"] .panel { display: grid; grid-template-columns: 340px 1fr; gap: var(--s6); align-items: start; }
+@container (max-width: 720px) { .mock[data-c="9"] .panel { grid-template-columns: 1fr; } }
+.mock[data-c="9"] .left { display: grid; gap: var(--s5); align-content: start; }
+.mock[data-c="9"] .dial { background: var(--face); border-radius: 4px; padding: var(--s4); }
+.mock[data-c="9"] .dial svg { display: block; width: 100%; height: auto; }
+.mock[data-c="9"] .dialcap {
+  display: flex; justify-content: space-between; gap: var(--s3);
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--faint); padding-top: var(--s2);
+  border-top: 1px solid rgba(35,36,31,0.14); margin-top: var(--s3);
+}
+.mock[data-c="9"] .readings { display: grid; gap: var(--s5); align-content: start; }
+.mock[data-c="9"] .verdict { display: grid; gap: var(--s2); }
+.mock[data-c="9"] .verdict .b {
+  font-family: var(--f-serif); font-size: var(--t-2xl); line-height: var(--lh-2xl); font-weight: 600;
+  color: var(--face); margin: 0;
+}
+.mock[data-c="9"] .verdict p { margin: 0; max-width: 58ch; color: var(--chassis-dim); font-size: var(--t-md); line-height: var(--lh-md); }
+.mock[data-c="9"] .plate { display: grid; }
+.mock[data-c="9"] .prow {
+  display: grid; grid-template-columns: 1fr auto 72px; gap: var(--s4);
+  padding: var(--s2) 0; border-bottom: 1px solid var(--rule); align-items: baseline;
+}
+.mock[data-c="9"] .prow:first-child { border-top: 1px solid var(--rule); }
+.mock[data-c="9"] .prow .n { font-size: var(--t-sm); }
+.mock[data-c="9"] .prow .v { font-family: var(--f-mono); font-size: var(--t-xs); color: var(--chassis-dim); }
+.mock[data-c="9"] .prow .p {
+  font-family: var(--f-mono); font-size: var(--t-xs); text-align: right;
+  letter-spacing: 0.05em; text-transform: uppercase;
+}
+.mock[data-c="9"] .prow .p[data-load="high"] { color: #d08a5a; }
+.mock[data-c="9"] .prow .p[data-load="moderate"] { color: #cbb96a; }
+.mock[data-c="9"] .prow .p[data-load="low"], .mock[data-c="9"] .prow .p[data-load="none"] { color: #83c3b6; }
+.mock[data-c="9"] .weekplate { display: grid; }
+.mock[data-c="9"] .wlab {
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--chassis-dim); padding-bottom: var(--s2);
+}
+.mock[data-c="9"] .wrow {
+  appearance: none; cursor: pointer; background: none; border: 0; text-align: left;
+  border-bottom: 1px solid var(--rule);
+  display: grid; grid-template-columns: 92px 1fr 76px 64px; gap: var(--s3);
+  align-items: center; padding: var(--s2) var(--s2);
+  transition: background 140ms ease;
+}
+.mock[data-c="9"] .wrow:hover { background: var(--chassis2); }
+.mock[data-c="9"] .wrow[aria-pressed="true"] { background: var(--chassis2); box-shadow: inset 2px 0 0 var(--needle); }
+.mock[data-c="9"] .wrow .dt { font-family: var(--f-mono); font-size: var(--t-xs); letter-spacing: 0.05em; text-transform: uppercase; color: var(--chassis-dim); }
+.mock[data-c="9"] .wrow .tick { height: 4px; background: var(--chassis2); position: relative; }
+.mock[data-c="9"] .wrow .tick i { position: absolute; inset: 0 auto 0 0; background: var(--band); }
+.mock[data-c="9"] .wrow .bd { font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--chassis-dim); }
+.mock[data-c="9"] .wrow .vv { font-family: var(--f-mono); font-size: var(--t-sm); font-variant-numeric: tabular-nums; text-align: right; }
+@container (max-width: 560px) {
+  .mock[data-c="9"] .wrow { grid-template-columns: 84px 1fr 60px; }
+  .mock[data-c="9"] .wrow .bd { display: none; }
+}
+.mock[data-c="9"] .stamp {
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--faint); border-top: 1px solid var(--rule);
+  padding-top: var(--s3);
+}
+
+/* ============================================================
+   10 COAST
+   ============================================================ */
+.mock[data-c="10"] {
+  --sea: #d8e5ea; --sea2: #c3d6de; --land: #efe9de; --panel: #fdfcfa;
+  --ink: #16232b; --dim: #46606c; --faint: #728793;
+  --rule: #dbe2e4; --rule2: #b6c4ca; --navy: #14425a;
+  --q-poor: #9d4f26; --q-marginal: #856618; --q-workable: #106b64; --q-good: #0c6357; --q-clear: #0a5a61;
+  --sk-a: rgba(22,35,43,0.08); --sk-b: rgba(22,35,43,0.16);
+  background: var(--panel); color: var(--ink); font-family: var(--f-sans);
+  display: grid; grid-template-rows: auto auto 1fr;
+}
+.mock[data-c="10"] .bar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s4);
+  padding: var(--s3) var(--s5); border-bottom: 1px solid var(--rule);
+}
+.mock[data-c="10"] .bar .t { display: grid; gap: 2px; }
+.mock[data-c="10"] .bar strong { font-size: var(--t-lg); line-height: var(--lh-lg); font-weight: 600; letter-spacing: -0.01em; }
+.mock[data-c="10"] .bar .sub { font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); }
+.mock[data-c="10"] .btn {
+  appearance: none; cursor: pointer; background: var(--panel); border: 1px solid var(--rule2);
+  border-radius: 3px; padding: var(--s2) var(--s3); color: var(--dim);
+  display: inline-flex; align-items: center; gap: var(--s2);
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.08em; text-transform: uppercase;
+  transition: border-color 140ms ease, color 140ms ease;
+}
+.mock[data-c="10"] .btn:hover { border-color: var(--navy); color: var(--navy); }
+.mock[data-c="10"] .btn[disabled] { cursor: default; }
+.mock[data-c="10"] .daystrip { display: flex; gap: var(--s2); padding: var(--s3) var(--s5); border-bottom: 1px solid var(--rule); overflow-x: auto; }
+.mock[data-c="10"] .daybtn {
+  appearance: none; cursor: pointer; background: none; border: 1px solid var(--rule);
+  border-radius: 3px; padding: var(--s2) var(--s3); white-space: nowrap;
+  display: grid; gap: 2px; justify-items: start;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+.mock[data-c="10"] .daybtn .d { font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); }
+.mock[data-c="10"] .daybtn .v { font-family: var(--f-mono); font-size: var(--t-sm); font-variant-numeric: tabular-nums; color: var(--band); }
+.mock[data-c="10"] .daybtn:hover { border-color: var(--rule2); }
+.mock[data-c="10"] .daybtn[aria-pressed="true"] { border-color: var(--navy); background: color-mix(in srgb, var(--navy) 7%, transparent); }
+.mock[data-c="10"] .split { display: grid; grid-template-columns: 1fr 300px; }
+@container (max-width: 760px) { .mock[data-c="10"] .split { grid-template-columns: 1fr; } }
+/* Land, not sea: the schematic ends at the foot of the svg, and whatever
+   height the docked panel adds below it has to keep reading as land. */
+.mock[data-c="10"] .map { background: var(--land); position: relative; }
+.mock[data-c="10"] .map svg { display: block; width: 100%; height: auto; }
+.mock[data-c="10"] .maplabel {
+  position: absolute; left: var(--s4); bottom: var(--s3);
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--faint);
+}
+.mock[data-c="10"] .pin { cursor: pointer; }
+.mock[data-c="10"] .pin text { font-family: var(--f-sans); font-size: 11px; }
+.mock[data-c="10"] .dock { border-left: 1px solid var(--rule); display: grid; gap: var(--s4); padding: var(--s5); align-content: start; }
+@container (max-width: 760px) { .mock[data-c="10"] .dock { border-left: 0; border-top: 1px solid var(--rule); } }
+.mock[data-c="10"] .dock h4 { margin: 0; font-size: var(--t-lg); line-height: var(--lh-lg); font-weight: 600; }
+.mock[data-c="10"] .dock .figure { display: flex; align-items: baseline; gap: var(--s2); }
+.mock[data-c="10"] .dock .figure .n {
+  font-size: 40px; line-height: 1; font-weight: 650; letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums; color: var(--band);
+}
+.mock[data-c="10"] .dock .figure .u { font-size: var(--t-md); color: var(--dim); }
+.mock[data-c="10"] .dock .assess { font-size: var(--t-md); font-weight: 600; color: var(--band); }
+.mock[data-c="10"] .dock p { margin: 0; font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--dim); }
+.mock[data-c="10"] .minirows { display: grid; }
+.mock[data-c="10"] .minirow {
+  display: grid; grid-template-columns: 1fr auto; gap: var(--s3);
+  padding: var(--s2) 0; border-bottom: 1px solid var(--rule); align-items: baseline;
+}
+.mock[data-c="10"] .minirow .k { font-size: var(--t-sm); }
+.mock[data-c="10"] .minirow .v { font-family: var(--f-mono); font-size: var(--t-xs); color: var(--dim); font-variant-numeric: tabular-nums; }
+.mock[data-c="10"] .dock .go {
+  appearance: none; cursor: pointer; width: 100%; background: var(--navy); color: #f6fafb;
+  border: 1px solid var(--navy); border-radius: 3px; padding: var(--s3);
+  font-size: var(--t-sm); font-weight: 600;
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s2);
+  transition: background 140ms ease;
+}
+.mock[data-c="10"] .dock .go:hover { background: #0e3247; }
+.mock[data-c="10"] .dock .note { font-size: var(--t-2xs); line-height: var(--lh-2xs); color: var(--faint); }
+
+.mock [data-band="poor"] { --band: var(--q-poor); }
+.mock [data-band="marginal"] { --band: var(--q-marginal); }
+.mock [data-band="workable"] { --band: var(--q-workable); }
+.mock [data-band="good"] { --band: var(--q-good); }
+.mock [data-band="clear"] { --band: var(--q-clear); }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <p class="kicker">DepthViz / front-end directions 06 to 10 / 29 July 2026</p>
+    <h1>Five more directions for the forecast screen</h1>
+    <p class="lead">
+      A second set, built on the same sample dataset as directions 01 to 05 so you can compare
+      them like for like. Each one leads with a different central device.
+    </p>
+    <ul class="shellnotes">
+      <li>Hope Cove, South Devon. Baseline clarity of 14.0 m less six penalties gives the visibility shown, in every direction here.</li>
+      <li>Sample data, not a live forecast. The dive history in direction 08 and the reports elsewhere are illustrative, not real people.</li>
+      <li>Interactive: switch days, pick sites, open the breakdown, hit refresh for the loading treatment.</li>
+      <li>Same 4pt spacing scale and type ramp as the first set. Palette, faces, density and the central device are what change.</li>
+      <li>Nothing here inherits any earlier house rules. Each direction is judged on what it does for a diver holding a phone and what it costs to build.</li>
+    </ul>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="wrap">
+    <div role="tablist" aria-label="Design directions" id="tabs"></div>
+    <div class="unitswitch">
+      <span class="lbl" id="unitlbl">Units</span>
+      <div class="seg" role="group" aria-labelledby="unitlbl">
+        <button type="button" data-unit="m" aria-pressed="true">m</button>
+        <button type="button" data-unit="ft" aria-pressed="false">ft</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main class="wrap" id="stage">
+  <noscript><p>These mocks are interactive and need JavaScript to render.</p></noscript>
+</main>
+
+<script>
+/* ============================================================
+   DATA, identical to directions 01 to 05
+   ============================================================ */
+const BASELINE = 14.0;
+
+const SITE = {
+  name: 'Hope Cove', region: 'South Devon',
+  lat: '50.2413° N', lon: '3.8577° W',
+  entry: 'Slip and beach entry, west end',
+  seabed: 'Sand over reef, 4 to 12 m',
+  updated: '06:40 BST', model: 'DV-7',
+};
+
+const FACTOR_MAX = { swell: 4.5, wind: 3.0, rain: 3.5, tide: 1.5, algae: 2.5, stir: 3.0 };
+
+const DAYS = [
+  { dow: 'Wed', dm: '29 Jul', long: 'Wednesday 29 July', today: true, conf: 74,
+    swell: { h: 0.6, p: 9, dir: 'SW' }, wind: { kt: 11, dir: 'SW' },
+    water: 17.1, rain: 8.4, chl: 1.2, stir: 'Low',
+    tide: { state: 'Flooding', next: 'High 13:42', range: 3.9 },
+    pen: { swell: 1.8, wind: 1.1, rain: 2.4, tide: 0.4, algae: 1.3, stir: 0.6 },
+    headline: 'Workable on the reef edge. Runoff from Monday night is still hanging in the top two metres.',
+    second: 'Best window is the last two hours of the flood, from about 11:40. Wind turns onshore after 15:00 and the cove will chop up.' },
+  { dow: 'Thu', dm: '30 Jul', long: 'Thursday 30 July', conf: 71,
+    swell: { h: 0.4, p: 8, dir: 'SSW' }, wind: { kt: 7, dir: 'W' },
+    water: 17.4, rain: 2.1, chl: 1.1, stir: 'Low',
+    tide: { state: 'Ebbing', next: 'Low 08:10', range: 3.6 },
+    pen: { swell: 1.2, wind: 0.7, rain: 1.4, tide: 0.2, algae: 1.2, stir: 0.4 },
+    headline: 'Good day. Swell drops away and the runoff has mostly cleared the cove.',
+    second: 'Light offshore wind all morning. Expect clean water past the reef and green water inshore of the slip.' },
+  { dow: 'Fri', dm: '31 Jul', long: 'Friday 31 July', conf: 66,
+    swell: { h: 0.3, p: 7, dir: 'S' }, wind: { kt: 5, dir: 'NW' },
+    water: 17.6, rain: 0.0, chl: 0.9, stir: 'Low',
+    tide: { state: 'Flooding', next: 'High 15:04', range: 3.2 },
+    pen: { swell: 0.6, wind: 0.4, rain: 0.5, tide: 0.1, algae: 0.9, stir: 0.3 },
+    headline: 'Clearest day in the window. No rain since Tuesday and almost no swell.',
+    second: 'If you only get one dive this week, take this one. Neap tides keep the flow gentle.' },
+  { dow: 'Sat', dm: '1 Aug', long: 'Saturday 1 August', conf: 62,
+    swell: { h: 1.4, p: 11, dir: 'SW' }, wind: { kt: 18, dir: 'SW' },
+    water: 17.2, rain: 4.6, chl: 1.0, stir: 'Moderate',
+    tide: { state: 'Ebbing', next: 'Low 10:22', range: 4.1 },
+    pen: { swell: 3.1, wind: 2.2, rain: 1.9, tide: 0.5, algae: 1.0, stir: 1.2 },
+    headline: 'Marginal. A new southwest swell fills in overnight and the shallows start stirring.',
+    second: 'Shore entry gets awkward on the ebb. If you go, stay outside the reef where the bottom is sand.' },
+  { dow: 'Sun', dm: '2 Aug', long: 'Sunday 2 August', conf: 58,
+    swell: { h: 1.9, p: 12, dir: 'SW' }, wind: { kt: 23, dir: 'WSW' },
+    water: 16.8, rain: 11.2, chl: 1.1, stir: 'High',
+    tide: { state: 'Springs', next: 'High 11:58', range: 4.6 },
+    pen: { swell: 3.8, wind: 2.4, rain: 2.3, tide: 0.5, algae: 1.0, stir: 1.8 },
+    headline: 'Poor. Swell peaks, the seabed is moving in the shallows and there is fresh runoff.',
+    second: 'Not a diving day at this site. Sheltered water east of Start Point is the fallback.' },
+  { dow: 'Mon', dm: '3 Aug', long: 'Monday 3 August', conf: 52,
+    swell: { h: 1.3, p: 10, dir: 'SW' }, wind: { kt: 15, dir: 'W' },
+    water: 16.9, rain: 9.0, chl: 1.1, stir: 'Moderate',
+    tide: { state: 'Ebbing', next: 'Low 12:40', range: 4.4 },
+    pen: { swell: 3.0, wind: 1.8, rain: 2.6, tide: 0.4, algae: 1.1, stir: 1.5 },
+    headline: 'Marginal and improving through the afternoon as the swell decays.',
+    second: 'Confidence is thinning this far out. Treat it as a maybe and check again Saturday.' },
+  { dow: 'Tue', dm: '4 Aug', long: 'Tuesday 4 August', conf: 47,
+    swell: { h: 0.8, p: 9, dir: 'SSW' }, wind: { kt: 9, dir: 'NW' },
+    water: 17.0, rain: 3.4, chl: 1.1, stir: 'Low',
+    tide: { state: 'Flooding', next: 'High 14:26', range: 3.8 },
+    pen: { swell: 1.6, wind: 0.9, rain: 2.0, tide: 0.3, algae: 1.1, stir: 0.6 },
+    headline: 'Back to workable as the swell decays and the runoff drains away.',
+    second: 'Six days out, so this is a planning figure rather than a forecast you should pack the car for.' },
+];
+
+DAYS.forEach(d => {
+  d.drop = Object.values(d.pen).reduce((a, b) => a + b, 0);
+  d.vis = Math.round((BASELINE - d.drop) * 10) / 10;
+});
+
+/* Sites for the map direction. x and y are positions on the schematic
+   coast, not real coordinates. Each site has its own baseline clarity and
+   its own exposure weights, so the ranking reorders as conditions change:
+   the sheltered cove wins on a big swell, the open sand wins on a calm
+   week. Hope Cove is weighted 1.0 across the board, which makes it agree
+   exactly with the figures in every other direction. */
+const SPOTS = [
+  { name: 'Sunny Cove', place: 'Salcombe', base: 12.5, x: 96, y: 150,
+    aspect: 'SE facing, sheltered from SW', w: { swell: 0.5, wind: 0.6, rain: 0.9, tide: 1.0, algae: 1.0, stir: 0.7 } },
+  { name: 'Hope Cove', place: 'South Devon', base: 14.0, x: 236, y: 176,
+    aspect: 'S facing, exposed on SW swell', w: { swell: 1.0, wind: 1.0, rain: 1.0, tide: 1.0, algae: 1.0, stir: 1.0 } },
+  { name: 'Thurlestone', place: 'South Devon', base: 14.5, x: 366, y: 158,
+    aspect: 'SW facing, open beach, clears fast', w: { swell: 1.25, wind: 1.15, rain: 0.9, tide: 1.0, algae: 1.0, stir: 1.1 } },
+  { name: 'Bantham', place: 'Avon estuary', base: 13.0, x: 486, y: 186,
+    aspect: 'Estuary mouth, runoff sensitive', w: { swell: 1.1, wind: 1.0, rain: 1.6, tide: 1.0, algae: 1.0, stir: 1.2 } },
+  { name: 'Bigbury-on-Sea', place: 'Burgh Island', base: 13.5, x: 604, y: 160,
+    aspect: 'W facing, strong tidal flow', w: { swell: 1.15, wind: 1.05, rain: 1.0, tide: 1.8, algae: 1.0, stir: 1.5 } },
+];
+
+/* Sample dive history for the log direction: what people reported
+   against what the model said that day. */
+const HISTORY = [
+  { d: -13, date: '16 Jul', actual: 8.5, model: 7.9 },
+  { d: -11, date: '18 Jul', actual: 6.0, model: 6.8 },
+  { d: -9,  date: '20 Jul', actual: 4.5, model: 4.0 },
+  { d: -8,  date: '21 Jul', actual: 2.0, model: 3.1 },
+  { d: -5,  date: '24 Jul', actual: 7.0, model: 6.6 },
+  { d: -4,  date: '25 Jul', actual: 7.5, model: 7.2 },
+  { d: -2,  date: '27 Jul', actual: 3.5, model: 4.2 },
+  { d: -1,  date: '28 Jul', actual: 5.0, model: 5.4 },
+];
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+const M_TO_FT = 3.28084;
+const state = { unit: 'm', active: 6, day: Array(11).fill(0), loading: {}, spot: 1, showDetail: false };
+
+const bandOf = v => v < 3 ? 'poor' : v < 5 ? 'marginal' : v < 8 ? 'workable' : v < 11 ? 'good' : 'clear';
+const BAND_LABEL = { poor: 'Poor', marginal: 'Marginal', workable: 'Workable', good: 'Good', clear: 'Clear' };
+const VERDICT = { poor: 'Stay ashore', marginal: 'Your call', workable: 'Divable', good: 'Go', clear: 'Go' };
+const SHOUT = { poor: 'No', marginal: 'Marginal', workable: 'Go', good: 'Go', clear: 'Go' };
+/* the qualifier carries what the single word cannot, without softening it */
+const QUAL = {
+  poor: 'Not this site, not today',
+  marginal: 'Judgement call, read the detail',
+  workable: 'With limits, see the window below',
+  good: 'Clean water expected',
+  clear: 'Best day in the window',
+};
+
+const unitLabel = () => state.unit === 'm' ? 'm' : 'ft';
+const num = (v, dp) => v.toFixed(dp === undefined ? 1 : dp);
+const dist = v => state.unit === 'm' ? num(v, 1) : num(v * M_TO_FT, 0);
+const distU = v => dist(v) + ' ' + unitLabel();
+const swellVal = h => state.unit === 'm' ? num(h, 1) + ' m' : num(h * M_TO_FT, 1) + ' ft';
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const loadBand = r => r <= 0 ? 'none' : r < 0.4 ? 'low' : r < 0.75 ? 'moderate' : 'high';
+const LOAD_LABEL = { none: 'None', low: 'Slight', moderate: 'Moderate', high: 'Strong' };
+
+function factorsOf(d) {
+  return [
+    { key: 'swell', n: 'Ground swell', v: swellVal(d.swell.h) + ' at ' + d.swell.p + ' s ' + d.swell.dir },
+    { key: 'wind', n: 'Wind chop', v: d.wind.kt + ' kt ' + d.wind.dir },
+    { key: 'rain', n: 'Rain, last 48 h', v: num(d.rain, 1) + ' mm' },
+    { key: 'tide', n: 'Tide state', v: d.tide.state + ', ' + distU(d.tide.range) + ' range' },
+    { key: 'algae', n: 'Algae', v: num(d.chl, 1) + ' mg/m³ chl-a' },
+    { key: 'stir', n: 'Seabed stirring', v: d.stir },
+  ].map(f => {
+    const pen = d.pen[f.key], max = FACTOR_MAX[f.key];
+    return Object.assign(f, { pen, max, ratio: pen / max, load: loadBand(pen / max) });
+  });
+}
+function biggest(d) {
+  const names = { swell: 'Ground swell', wind: 'Wind chop', rain: 'Rain', tide: 'Tide', algae: 'Algae', stir: 'Seabed stirring' };
+  const k = Object.keys(d.pen).reduce((a, x) => d.pen[x] > d.pen[a] ? x : a, 'swell');
+  return { name: names[k], pen: d.pen[k] };
+}
+
+const spin = label => '<span class="spin" aria-hidden="true"></span>' + label;
+const refreshLabel = (n, idle) => state.loading[n] ? spin('Updating') : idle;
+
+/* Contrast of a target at distance d, from the same Beer-Lambert
+   relation the video analyser uses. Visibility is the range at which
+   contrast falls to about 5%, so c = ln(20) / vis. */
+const attenuation = vis => Math.log(20) / Math.max(vis, 0.2);
+const contrastAt = (vis, d) => Math.exp(-attenuation(vis) * d);
+
+/* Water colour by clarity: silt brown through to gin clear. */
+const WATER = {
+  poor:      { top: '#6d5834', bot: '#2b2113', haze: '#8a723f' },
+  marginal:  { top: '#5f6337', bot: '#242815', haze: '#7d8348' },
+  workable:  { top: '#2b6a63', bot: '#0d2a2b', haze: '#3d8a80' },
+  good:      { top: '#1f6f74', bot: '#08272f', haze: '#2f8f92' },
+  clear:     { top: '#186d80', bot: '#062532', haze: '#2b93a6' },
+};
+
+function seeded(seed) {
+  let s = seed;
+  return () => { s = (s * 1664525 + 1013904223) % 4294967296; return s / 4294967296; };
+}
+
+/* ============================================================
+   CONCEPT METADATA
+   ============================================================ */
+const CONCEPTS = [
+  {
+    id: 6, name: 'Sight Line', tab: 'Sight Line',
+    thesis: 'Answers the question a diver actually asks: what will it look like down there. The scene is drawn from the forecast, with markers fading out at the range the model predicts.',
+    frame: 'Forecast screen / phone and desktop',
+    palette: [['#060f12', 'ground'], ['#2b6a63', 'water at 6 m'], ['#6d5834', 'water at 2 m'], ['#f0ece3', 'bone'], ['#d98b4a', 'alert']],
+    type: 'Condensed grotesque for the reading, platform mono for ranges and labels. Ships as Bahnschrift or Roboto Condensed plus IBM Plex Mono.',
+    devices: 'Rendered underwater scene with markers at 2, 4, 6, 8 and 10 m whose contrast follows Beer-Lambert. Water hue and particulate density both come from the forecast. Range table underneath gives the same thing as percentages.',
+    tradeoff: 'The most persuasive of all ten and the easiest to overpromise with. A rendered scene reads as a photograph of the day, so it has to be visibly a diagram, and the copy has to keep saying so.',
+    fit: 'The scene reusing your existing Beer-Lambert code. It is the same maths as the video analyser, run forwards instead of backwards, so the two features stay consistent.',
+  },
+  {
+    id: 7, name: 'Verdict First', tab: 'Verdict First',
+    thesis: 'One word, set as large as the screen allows, then the number, then a sentence. The week is a wall of seven columns you tap. Everything else is one more tap away.',
+    frame: 'Forecast screen / phone first, scales up',
+    palette: [['#0b0c0d', 'ground'], ['#f2f1ee', 'ink'], ['#7fd8a6', 'go'], ['#ded07a', 'marginal'], ['#e0824f', 'no']],
+    type: 'One condensed grotesque doing everything at three sizes, mono for figures. The type is the interface, so it wants a real display face: Bahnschrift, or GT America Condensed if you buy one.',
+    devices: 'Full-width verdict word, hairline figure row, seven column wall with fill height as visibility, one disclosure for the factor detail.',
+    tradeoff: 'Fastest to read of the ten and the least informative at rest. Works only if the verdict thresholds are genuinely trustworthy, because the design gives you nowhere to hedge.',
+    fit: 'Deciding what the words mean before you build it. Go, marginal and no are commitments, and a wrong call reads as the app being wrong rather than the water being marginal.',
+  },
+  {
+    id: 8, name: 'Dive Log', tab: 'Dive Log',
+    thesis: 'Puts the forecast at the right hand end of your own history at this site. One continuous chart of what divers reported, what the model said, and what it says next.',
+    frame: 'Forecast screen / desktop and tablet',
+    palette: [['#e9eef1', 'ground'], ['#fbfcfc', 'panel'], ['#0e6e8c', 'model'], ['#12403f', 'reported'], ['#c4553b', 'error']],
+    type: 'Neutral sans for structure, mono for every figure, tabular numerals throughout. Ships as Inter plus IBM Plex Mono.',
+    devices: 'Twenty-one day chart with the past as points and the forecast as a line inside a confidence ribbon that widens with lead time. Log table of reported against predicted, with signed error.',
+    tradeoff: 'The most honest direction and the only one that shows the model being wrong. That is a product decision as much as a design one.',
+    fit: 'Enough reports per site to draw a history. At a quiet site the chart is nearly empty, so it needs a real first-run state rather than an axis with nothing on it.',
+  },
+  {
+    id: 9, name: 'Barograph', tab: 'Barograph',
+    thesis: 'A calibrated dial rather than a screen full of numbers: printed scale, one red needle for the forecast, a grey ghost needle for the last thing a diver actually reported.',
+    frame: 'Forecast screen / desktop and tablet',
+    palette: [['#1c1d1b', 'chassis'], ['#ede7d9', 'dial face'], ['#23241f', 'printed ink'], ['#b23a2e', 'needle'], ['#6b6c62', 'ghost needle']],
+    type: 'An old-style serif for headings, as printed instruments use, with mono for the dial numerals. Ships as Signifier plus IBM Plex Mono.',
+    devices: 'Dial from 0 to 15 m with minor ticks every metre, graded band arc, forecast needle, ghost needle for the last report, ruled data plate and week list beneath.',
+    tradeoff: 'Warm and memorable, and a dial is a poor way to read a precise number. It earns its place only because the pairing of two needles tells you something a number cannot.',
+    fit: 'Careful restraint. One glossy highlight or bevel and this becomes a novelty dive-computer skin. It stays matte, printed and quiet or it does not work.',
+  },
+  {
+    id: 10, name: 'Coast', tab: 'Coast',
+    thesis: 'Starts from where you might go rather than where you already are. Sites sit on a schematic coast, coloured and sized by forecast visibility, with a docked panel for the one you pick.',
+    frame: 'Forecast screen / desktop and tablet',
+    palette: [['#d8e5ea', 'sea'], ['#efe9de', 'land'], ['#fdfcfa', 'panel'], ['#14425a', 'navy'], ['#106b64', 'good']],
+    type: 'Neutral sans for the interface, mono for figures and map labels. Ships as Inter plus IBM Plex Mono.',
+    devices: 'Schematic coast with site pins sized and coloured by the reading, a day strip that names the best site for each day, and a docked detail panel. Each site carries its own exposure weights, so the sheltered cove wins on a big swell and the open sand wins on a calm week.',
+    tradeoff: 'Best answer to "where should I dive on Saturday" and a slower answer to "what is it like at my usual spot". Needs a real map layer eventually, which brings tile loading and offline questions with it.',
+    fit: 'Being explicit that the coast is a diagram. A schematic that looks like a map but is not to scale will be read as navigation, so it needs the label it carries here and a route into the real map.',
+  },
+];
+
+/* ============================================================
+   06 SIGHT LINE
+   ============================================================ */
+function scene(d) {
+  const b = bandOf(d.vis);
+  const w = WATER[b];
+  const W = 760, H = 320;
+  const seabedY = x => 268 - (x / W) * 46;
+  const marks = [2, 4, 6, 8, 10];
+  const rnd = seeded(Math.round(d.vis * 1000) + 7);
+
+  /* suspended particulate: density tracks the murk, so a clear day is
+     almost empty and a poor day is full of backscatter */
+  const murk = 1 - Math.min(1, d.vis / 12);
+  const motes = Array.from({ length: Math.round(24 + murk * 130) }, () => {
+    const x = rnd() * W, y = 40 + rnd() * (H - 70), r = 0.6 + rnd() * 1.9;
+    return '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + r.toFixed(1) +
+      '" fill="' + w.haze + '" opacity="' + (0.10 + rnd() * 0.22).toFixed(2) + '"></circle>';
+  }).join('');
+
+  const posts = marks.map((m, i) => {
+    const x = 108 + i * 132;
+    const base = seabedY(x);
+    const h = 128 - i * 14;
+    const c = contrastAt(d.vis, m);
+    const op = Math.max(0.03, Math.min(1, c));
+    return '<g opacity="' + op.toFixed(3) + '">' +
+      '<rect x="' + (x - 5) + '" y="' + (base - h) + '" width="10" height="' + h + '" fill="#04100f"></rect>' +
+      '<rect x="' + (x - 16) + '" y="' + (base - h) + '" width="32" height="6" fill="#04100f"></rect>' +
+      '</g>' +
+      '<text x="' + x + '" y="' + (base + 20) + '" fill="' + w.haze + '" opacity="' + Math.max(0.35, op).toFixed(2) +
+        '" font-family="ui-monospace, monospace" font-size="12" text-anchor="middle">' +
+        (state.unit === 'm' ? m + ' m' : Math.round(m * M_TO_FT) + ' ft') + '</text>';
+  }).join('');
+
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Diagram of expected sight line at ' +
+      SITE.name + ' on ' + d.long + ': markers at 2, 4, 6, 8 and 10 metres fade out beyond ' + distU(d.vis) + '">' +
+    '<defs>' +
+      '<linearGradient id="wg' + b + '" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0" stop-color="' + w.top + '"></stop>' +
+        '<stop offset="1" stop-color="' + w.bot + '"></stop>' +
+      '</linearGradient>' +
+      '<linearGradient id="sf" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0" stop-color="' + w.haze + '" stop-opacity="0.5"></stop>' +
+        '<stop offset="1" stop-color="' + w.bot + '" stop-opacity="0.9"></stop>' +
+      '</linearGradient>' +
+    '</defs>' +
+    '<rect width="' + W + '" height="' + H + '" fill="url(#wg' + b + ')"></rect>' +
+    '<rect width="' + W + '" height="26" fill="' + w.haze + '" opacity="0.28"></rect>' +
+    motes +
+    /* seabed goes down before the markers so the range labels sit on top of it */
+    '<path d="M0 ' + seabedY(0) + ' L' + W + ' ' + seabedY(W) + ' L' + W + ' ' + H + ' L0 ' + H + ' Z" fill="url(#sf)"></path>' +
+    posts +
+  '</svg>';
+}
+
+function mock6() {
+  const d = DAYS[state.day[6]];
+  const b = bandOf(d.vis);
+  const big = biggest(d);
+  const marks = [2, 4, 6, 8, 10];
+
+  return '<div class="scene fades" data-band="' + b + '">' +
+      scene(d) +
+      '<div class="topbar">' +
+        '<span class="scenelabel">Diagram, not a photograph</span>' +
+        '<button type="button" class="btn" data-refresh="6"' + (state.loading[6] ? ' disabled' : '') + '>' +
+          refreshLabel(6, 'Refresh') + '</button>' +
+      '</div>' +
+      '<div class="overlay">' +
+        '<div class="readout">' +
+          '<span class="big sk">' + dist(d.vis) + '</span>' +
+          '<span class="u">' +
+            '<span class="unit">' + unitLabel() + ' of sight line</span>' +
+            '<span class="band">' + VERDICT[b] + ', ' + BAND_LABEL[b].toLowerCase() + '</span>' +
+          '</span>' +
+        '</div>' +
+        '<span class="place">' + SITE.name + ' / ' + d.long + '<br>' + SITE.model + ' run ' + SITE.updated + '</span>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="below">' +
+      '<p class="sentence sk">' + esc(d.headline) + ' ' + esc(d.second) + '</p>' +
+
+      '<div class="contrast" data-band="' + b + '">' +
+        '<div class="contrasthead">' +
+          '<span>What you can make out, by range</span>' +
+          '<span>Largest limit: ' + big.name.toLowerCase() + ', −' + dist(big.pen) + ' ' + unitLabel() + '</span>' +
+        '</div>' +
+        '<div class="ranges fades">' +
+          marks.map(m => {
+            const c = Math.round(contrastAt(d.vis, m) * 100);
+            const label = c >= 60 ? 'Clear detail' : c >= 25 ? 'Shape and colour' : c >= 8 ? 'Outline only' : 'Nothing';
+            return '<div class="range">' +
+              '<span class="swatch" style="opacity:' + Math.max(0.08, c / 100).toFixed(2) + '"></span>' +
+              '<span class="d">' + (state.unit === 'm' ? m + ' m' : Math.round(m * M_TO_FT) + ' ft') + '</span>' +
+              '<span class="p">' + c + '%</span>' +
+              '<span class="m">' + label + '</span>' +
+            '</div>';
+          }).join('') +
+        '</div>' +
+      '</div>' +
+
+      '<div class="days daysel" role="group" aria-label="Choose a day">' +
+        DAYS.map((x, i) => '<button type="button" class="day" data-day="' + i + '" data-band="' + bandOf(x.vis) + '" aria-pressed="' + (i === state.day[6]) + '">' +
+          '<span class="dl">' + x.dow + ' ' + x.dm + '</span>' +
+          '<span class="dv">' + distU(x.vis) + '</span>' +
+        '</button>').join('') +
+      '</div>' +
+
+      '<p class="caveat"><b>The scene is generated from the forecast</b>, not from a camera. ' +
+        'Contrast follows the same Beer-Lambert relation the app uses to analyse dive video. ' +
+        'Confidence ' + d.conf + '%. Sample data.</p>' +
+    '</div>';
+}
+
+/* ============================================================
+   07 VERDICT FIRST
+   ============================================================ */
+function mock7() {
+  const i = state.day[7];
+  const d = DAYS[i];
+  const b = bandOf(d.vis);
+  const f = factorsOf(d);
+  const maxVis = 12;
+
+  return '<div class="head">' +
+      '<span>' + SITE.name + ' / ' + d.long + ' / ' + SITE.model + ' run ' + SITE.updated + '</span>' +
+      '<button type="button" class="btn" data-refresh="7"' + (state.loading[7] ? ' disabled' : '') + '>' +
+        refreshLabel(7, 'Refresh') + '</button>' +
+    '</div>' +
+
+    '<div class="answer" data-band="' + b + '">' +
+      '<h3 class="word sk">' + SHOUT[b] + '</h3>' +
+      '<p class="qual">' + QUAL[b] + '</p>' +
+      '<div class="figure"><span class="sk">' + distU(d.vis) + '</span><span>visibility</span>' +
+        '<span class="sk">' + d.conf + '%</span><span>confidence</span></div>' +
+      '<p class="line sk">' + esc(d.headline) + '</p>' +
+    '</div>' +
+
+    '<div class="footer fades">' +
+      '<div><span class="k">Swell</span><span class="v">' + swellVal(d.swell.h) + ' ' + d.swell.p + ' s</span></div>' +
+      '<div><span class="k">Wind</span><span class="v">' + d.wind.kt + ' kt ' + d.wind.dir + '</span></div>' +
+      '<div><span class="k">Rain 48 h</span><span class="v">' + num(d.rain, 1) + ' mm</span></div>' +
+      '<div><span class="k">Tide</span><span class="v">' + d.tide.next + '</span></div>' +
+      '<div><span class="k">Water</span><span class="v">' + num(d.water, 1) + ' °C</span></div>' +
+      '<div><span class="k">Seabed</span><span class="v">' + d.stir + '</span></div>' +
+    '</div>' +
+
+    '<div class="wall">' +
+      '<div class="wallhead"><span>Seven days</span><span>Fill height is visibility, ' + unitLabel() + '</span></div>' +
+      '<div class="bands daysel" role="group" aria-label="Choose a day">' +
+        DAYS.map((x, j) => {
+          const xb = bandOf(x.vis);
+          const h = Math.max(8, Math.min(100, (x.vis / maxVis) * 100));
+          return '<button type="button" class="bandcol" data-day="' + j + '" data-band="' + xb + '" aria-pressed="' + (j === i) + '">' +
+            '<i style="height:' + h + '%"></i>' +
+            '<span class="lab">' + x.dow + '<b>' + dist(x.vis) + '</b></span>' +
+          '</button>';
+        }).join('') +
+      '</div>' +
+    '</div>' +
+
+    '<div>' +
+      '<button type="button" class="more" data-toggle="7" aria-expanded="' + state.showDetail + '" aria-controls="detail7">' +
+        (state.showDetail ? 'Hide what is limiting it' : 'What is limiting it') +
+      '</button>' +
+      '<div class="detail fades" id="detail7"' + (state.showDetail ? '' : ' hidden') + ' style="margin-top:var(--s4)">' +
+        f.map(x => '<div class="drow">' +
+            '<span class="n">' + x.n + '</span>' +
+            '<span class="o">' + esc(x.v) + '</span>' +
+            '<span class="p">−' + dist(x.pen) + ' ' + unitLabel() + '</span>' +
+          '</div>').join('') +
+        '<div class="drow"><span class="n">Baseline clarity at this site</span>' +
+          '<span class="o">' + SITE.seabed + '</span>' +
+          '<span class="p" style="color:var(--dim)">' + distU(BASELINE) + '</span></div>' +
+      '</div>' +
+    '</div>';
+}
+
+/* ============================================================
+   08 DIVE LOG
+   ============================================================ */
+function chart8(sel) {
+  const W = 760, H = 240;
+  const padL = 40, padR = 16, padT = 16, padB = 28;
+  const maxV = 14;
+  const dayMin = -14, dayMax = 6;
+  const x = t => padL + ((t - dayMin) / (dayMax - dayMin)) * (W - padL - padR);
+  const y = v => padT + (1 - v / maxV) * (H - padT - padB);
+
+  const gridY = [0, 3, 6, 9, 12].map(v =>
+    '<g><line x1="' + padL + '" y1="' + y(v) + '" x2="' + (W - padR) + '" y2="' + y(v) + '" stroke="var(--grid)" stroke-width="1"></line>' +
+    '<text x="' + (padL - 8) + '" y="' + (y(v) + 4) + '" text-anchor="end" font-family="ui-monospace, monospace" font-size="10" fill="var(--faint)">' +
+      (state.unit === 'm' ? v : Math.round(v * M_TO_FT)) + '</text></g>').join('');
+
+  /* forecast ribbon: half-width grows as confidence falls */
+  const fc = DAYS.map((d, i) => ({ t: i, v: d.vis, s: (1 - d.conf / 100) * d.vis * 0.9 }));
+  const top = fc.map(p => x(p.t).toFixed(1) + ',' + y(Math.min(maxV, p.v + p.s)).toFixed(1));
+  const bot = fc.slice().reverse().map(p => x(p.t).toFixed(1) + ',' + y(Math.max(0, p.v - p.s)).toFixed(1));
+  const ribbon = '<polygon points="' + top.concat(bot).join(' ') + '" fill="var(--model)" opacity="0.12"></polygon>';
+  const fline = '<polyline points="' + fc.map(p => x(p.t).toFixed(1) + ',' + y(p.v).toFixed(1)).join(' ') +
+    '" fill="none" stroke="var(--model)" stroke-width="2"></polyline>';
+
+  const mline = '<polyline points="' + HISTORY.map(h => x(h.d).toFixed(1) + ',' + y(h.model).toFixed(1)).join(' ') +
+    '" fill="none" stroke="var(--model)" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.85"></polyline>';
+
+  const pts = HISTORY.map(h =>
+    '<g><line x1="' + x(h.d) + '" y1="' + y(h.model) + '" x2="' + x(h.d) + '" y2="' + y(h.actual) +
+      '" stroke="var(--coral)" stroke-width="1"></line>' +
+    '<circle cx="' + x(h.d) + '" cy="' + y(h.actual) + '" r="4" fill="var(--actual)"></circle></g>').join('');
+
+  const fpts = DAYS.map((d, i) =>
+    '<g class="pt" data-day="' + i + '" role="button" tabindex="0" aria-label="Select ' + d.long + ', ' + distU(d.vis) + '">' +
+      '<circle cx="' + x(i) + '" cy="' + y(d.vis) + '" r="' + (i === sel ? 6 : 4) + '" fill="var(--panel)" stroke="var(--model)" stroke-width="2"></circle>' +
+      (i === sel ? '<circle cx="' + x(i) + '" cy="' + y(d.vis) + '" r="2" fill="var(--model)"></circle>' : '') +
+    '</g>').join('');
+
+  const todayX = x(-0.5);
+  const divider = '<line x1="' + todayX + '" y1="' + padT + '" x2="' + todayX + '" y2="' + (H - padB) +
+    '" stroke="var(--rule2)" stroke-width="1"></line>' +
+    '<text x="' + (todayX + 6) + '" y="' + (padT + 12) + '" font-family="ui-monospace, monospace" font-size="10" fill="var(--faint)">FORECAST</text>' +
+    '<text x="' + (todayX - 6) + '" y="' + (padT + 12) + '" text-anchor="end" font-family="ui-monospace, monospace" font-size="10" fill="var(--faint)">REPORTED</text>';
+
+  const xlabels = [{ t: -13, l: '16 Jul' }, { t: -8, l: '21 Jul' }, { t: -2, l: '27 Jul' }, { t: 0, l: '29 Jul' }, { t: 3, l: '1 Aug' }, { t: 6, l: '4 Aug' }]
+    .map(o => '<text x="' + x(o.t) + '" y="' + (H - 8) + '" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" fill="var(--faint)">' + o.l + '</text>').join('');
+
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Reported visibility over the last fourteen days against the model, and the seven day forecast with its confidence range">' +
+    gridY + ribbon + mline + fline + pts + fpts + divider + xlabels +
+  '</svg>';
+}
+
+function mock8() {
+  const sel = state.day[8];
+  const d = DAYS[sel];
+  const b = bandOf(d.vis);
+  const errs = HISTORY.map(h => h.model - h.actual);
+  const mae = errs.reduce((a, e) => a + Math.abs(e), 0) / errs.length;
+  const bias = errs.reduce((a, e) => a + e, 0) / errs.length;
+
+  return '<div class="head">' +
+      '<div><h3>' + SITE.name + '</h3>' +
+        '<div class="sub">' + SITE.region + ' / ' + HISTORY.length + ' reports in 14 days / ' + SITE.model + ' run ' + SITE.updated + '</div></div>' +
+      '<button type="button" class="btn" data-refresh="8"' + (state.loading[8] ? ' disabled' : '') + '>' +
+        refreshLabel(8, 'Refresh') + '</button>' +
+    '</div>' +
+
+    '<div class="chartcard">' +
+      '<div class="fades">' + chart8(sel) + '</div>' +
+      '<div class="legend">' +
+        '<span><i class="dot" style="background:var(--actual)"></i> Reported by divers</span>' +
+        '<span><i style="background:var(--model);height:0;border-top:2px dashed var(--model)"></i> Model, same day</span>' +
+        '<span><i style="background:var(--model)"></i> Forecast</span>' +
+        '<span><i style="background:var(--model);opacity:0.25;height:8px"></i> Confidence range</span>' +
+        '<span><i style="background:var(--coral)"></i> Error</span>' +
+        '<span>Visibility in ' + unitLabel() + '. Tap a forecast point to select a day.</span>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="cols">' +
+      '<div class="selected" data-band="' + b + '">' +
+        '<div class="selhead">' +
+          '<span class="n sk">' + dist(d.vis) + '</span>' +
+          '<span class="k">' +
+            '<span class="a">' + d.long + ' / ' + unitLabel() + ' / confidence ' + d.conf + '%</span>' +
+            '<span class="b">' + BAND_LABEL[b] + ', ' + VERDICT[b].toLowerCase() + '</span>' +
+          '</span>' +
+        '</div>' +
+        '<p class="sk">' + esc(d.headline) + ' ' + esc(d.second) + '</p>' +
+        '<div class="tablewrap daysel">' +
+          '<table>' +
+            '<caption>Dive log, this site</caption>' +
+            '<thead><tr><th scope="col">Date</th><th scope="col">Reported</th>' +
+              '<th scope="col" class="n">Diver</th><th scope="col" class="n">Model</th><th scope="col" class="n">Error</th></tr></thead>' +
+            '<tbody>' +
+              HISTORY.slice().reverse().map(h => {
+                const e = h.model - h.actual;
+                return '<tr><td>' + h.date + '</td>' +
+                  '<td>' + BAND_LABEL[bandOf(h.actual)] + '</td>' +
+                  '<td class="n">' + dist(h.actual) + '</td>' +
+                  '<td class="n">' + dist(h.model) + '</td>' +
+                  '<td class="n err">' + (e >= 0 ? '+' : '−') + dist(Math.abs(e)) + '</td></tr>';
+              }).join('') +
+            '</tbody>' +
+          '</table>' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="stats fades">' +
+        '<h4>Model against reality, this site</h4>' +
+        '<div class="row"><span class="k">Reports used</span><span class="v">' + HISTORY.length + '</span></div>' +
+        '<div class="row"><span class="k">Mean error</span><span class="v">' + dist(mae) + ' ' + unitLabel() + '</span></div>' +
+        '<div class="row"><span class="k">Bias</span><span class="v">' + (bias >= 0 ? '+' : '−') + dist(Math.abs(bias)) + ' ' + unitLabel() + '</span></div>' +
+        '<div class="row"><span class="k">Worst call</span><span class="v">21 Jul, +' + dist(1.1) + '</span></div>' +
+        '<p>The model has run about ' + dist(Math.abs(bias)) + ' ' + unitLabel() + ' ' + (bias >= 0 ? 'optimistic' : 'pessimistic') +
+          ' here over the last fortnight. Reports from you and other divers are what close that gap.</p>' +
+      '</div>' +
+    '</div>';
+}
+
+/* ============================================================
+   09 BAROGRAPH
+   ============================================================ */
+function dial(d) {
+  const b = bandOf(d.vis);
+  const S = 320, cx = 160, cy = 168, R = 128;
+  const A0 = 150, A1 = 390;               /* sweep, degrees clockwise from east */
+  const maxV = 15;
+  const ang = v => A0 + (Math.min(v, maxV) / maxV) * (A1 - A0);
+  const pt = (a, r) => [cx + r * Math.cos(a * Math.PI / 180), cy + r * Math.sin(a * Math.PI / 180)];
+  const arc = (v0, v1, r, sw, col, op) => {
+    const [x0, y0] = pt(ang(v0), r), [x1, y1] = pt(ang(v1), r);
+    const large = (ang(v1) - ang(v0)) > 180 ? 1 : 0;
+    return '<path d="M' + x0.toFixed(1) + ' ' + y0.toFixed(1) + ' A' + r + ' ' + r + ' 0 ' + large + ' 1 ' +
+      x1.toFixed(1) + ' ' + y1.toFixed(1) + '" fill="none" stroke="' + col + '" stroke-width="' + sw + '"' +
+      (op ? ' opacity="' + op + '"' : '') + '></path>';
+  };
+
+  let ticks = '';
+  for (let v = 0; v <= maxV; v++) {
+    const a = ang(v);
+    const major = v % 3 === 0;
+    const [ax, ay] = pt(a, R - 2), [bx, by] = pt(a, R - (major ? 16 : 9));
+    ticks += '<line x1="' + ax.toFixed(1) + '" y1="' + ay.toFixed(1) + '" x2="' + bx.toFixed(1) + '" y2="' + by.toFixed(1) +
+      '" stroke="var(--ink)" stroke-width="' + (major ? 1.8 : 1) + '" opacity="' + (major ? 0.9 : 0.45) + '"></line>';
+    if (major) {
+      const [tx, ty] = pt(a, R - 34);
+      ticks += '<text x="' + tx.toFixed(1) + '" y="' + (ty + 5).toFixed(1) + '" text-anchor="middle" ' +
+        'font-family="ui-monospace, monospace" font-size="15" fill="var(--ink)">' +
+        (state.unit === 'm' ? v : Math.round(v * M_TO_FT)) + '</text>';
+    }
+  }
+
+  const needleA = ang(d.vis);
+  const [nx, ny] = pt(needleA, R - 44);
+  const [tailx, taily] = pt(needleA + 180, 20);
+  const ghostA = ang(3.5);
+  const [gx, gy] = pt(ghostA, R - 52);
+
+  return '<svg viewBox="0 0 ' + S + ' 300" role="img" aria-label="Dial reading ' + distU(d.vis) +
+      ' forecast visibility, with a ghost needle at the last reported ' + distU(3.5) + '">' +
+    '<circle cx="' + cx + '" cy="' + cy + '" r="' + (R + 12) + '" fill="var(--face2)"></circle>' +
+    '<circle cx="' + cx + '" cy="' + cy + '" r="' + (R + 4) + '" fill="var(--face)"></circle>' +
+    arc(0, 3, R - 22, 6, 'var(--q-poor)', 0.85) +
+    arc(3, 5, R - 22, 6, 'var(--q-marginal)', 0.85) +
+    arc(5, 8, R - 22, 6, 'var(--q-workable)', 0.85) +
+    arc(8, 11, R - 22, 6, 'var(--q-good)', 0.85) +
+    arc(11, 15, R - 22, 6, 'var(--q-clear)', 0.85) +
+    ticks +
+    '<text x="' + cx + '" y="' + (cy + 52) + '" text-anchor="middle" font-family="ui-monospace, monospace" ' +
+      'font-size="11" letter-spacing="1.6" fill="var(--faint)">VISIBILITY ' + unitLabel().toUpperCase() + '</text>' +
+    '<text x="' + cx + '" y="' + (cy + 72) + '" text-anchor="middle" font-family="Iowan Old Style, Palatino, Georgia, serif" ' +
+      'font-size="15" fill="var(--dim)">' + SITE.name + '</text>' +
+    '<line x1="' + gx.toFixed(1) + '" y1="' + gy.toFixed(1) + '" x2="' + cx + '" y2="' + cy +
+      '" stroke="var(--ghost)" stroke-width="2" opacity="0.7"></line>' +
+    '<line x1="' + tailx.toFixed(1) + '" y1="' + taily.toFixed(1) + '" x2="' + nx.toFixed(1) + '" y2="' + ny.toFixed(1) +
+      '" stroke="var(--needle)" stroke-width="3.2" stroke-linecap="round"></line>' +
+    '<circle cx="' + cx + '" cy="' + cy + '" r="7" fill="var(--ink)"></circle>' +
+    '<circle cx="' + cx + '" cy="' + cy + '" r="3" fill="var(--face)"></circle>' +
+  '</svg>';
+}
+
+function mock9() {
+  const d = DAYS[state.day[9]];
+  const b = bandOf(d.vis);
+  const f = factorsOf(d);
+
+  return '<div class="head">' +
+      '<div><h3>' + SITE.name + '</h3>' +
+        '<div class="sub">' + SITE.lat + ' ' + SITE.lon + ' / ' + SITE.model + ' run ' + SITE.updated + ' / sample data</div></div>' +
+      '<button type="button" class="btn" data-refresh="9"' + (state.loading[9] ? ' disabled' : '') + '>' +
+        refreshLabel(9, 'Refresh') + '</button>' +
+    '</div>' +
+
+    '<div class="panel">' +
+      '<div class="left">' +
+        '<div class="dial fades">' +
+          dial(d) +
+          '<div class="dialcap"><span>Red: forecast</span><span>Grey: last report, 27 Jul</span></div>' +
+        '</div>' +
+        '<div class="weekplate">' +
+          '<span class="wlab">Seven day window</span>' +
+          '<div class="daysel" role="group" aria-label="Choose a day">' +
+            DAYS.map((x, i) => {
+              const xb = bandOf(x.vis);
+              return '<button type="button" class="wrow" data-day="' + i + '" data-band="' + xb + '" aria-pressed="' + (i === state.day[9]) + '">' +
+                '<span class="dt">' + x.dow + ' ' + x.dm + '</span>' +
+                '<span class="tick" aria-hidden="true"><i style="width:' + Math.min(100, (x.vis / 15) * 100) + '%"></i></span>' +
+                '<span class="bd">' + BAND_LABEL[xb] + '</span>' +
+                '<span class="vv">' + distU(x.vis) + '</span>' +
+              '</button>';
+            }).join('') +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="readings" data-band="' + b + '">' +
+        '<div class="verdict">' +
+          '<p class="b sk">' + dist(d.vis) + ' ' + unitLabel() + ', ' + BAND_LABEL[b].toLowerCase() + '. ' + VERDICT[b] + '.</p>' +
+          '<p class="sk">' + esc(d.headline) + '</p>' +
+        '</div>' +
+
+        '<div class="plate fades">' +
+          f.map(x => '<div class="prow">' +
+              '<span class="n">' + x.n + '</span>' +
+              '<span class="v">' + esc(x.v) + '</span>' +
+              '<span class="p" data-load="' + x.load + '">' + LOAD_LABEL[x.load] + '</span>' +
+            '</div>').join('') +
+          '<div class="prow"><span class="n">Confidence</span>' +
+            '<span class="v">' + (state.day[9] === 0 ? 'same day' : state.day[9] + ' day lead') + '</span>' +
+            '<span class="p" style="color:var(--chassis-dim)">' + d.conf + '%</span></div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<p class="stamp">Baseline clarity ' + distU(BASELINE) + ' less ' + distU(d.drop) +
+      ' of penalties. A forecast supports the decision at the slip, it does not replace it.</p>';
+}
+
+/* ============================================================
+   10 COAST
+   ============================================================ */
+/* Each site is scored from the same day's conditions through its own
+   weights, so "best" has to be recomputed per day. */
+function siteVis(spot, dayIdx) {
+  const pen = DAYS[dayIdx].pen;
+  const drop = Object.keys(pen).reduce((a, k) => a + pen[k] * spot.w[k], 0);
+  return Math.max(0.3, Math.round((spot.base - drop) * 10) / 10);
+}
+function bestSite(dayIdx) {
+  return SPOTS.map(s => ({ name: s.name, v: siteVis(s, dayIdx) }))
+    .reduce((a, x) => x.v > a.v ? x : a);
+}
+
+function coast(selSpot, dayIdx) {
+  const W = 720, H = 300;
+  const land = 'M0 232 C 60 226, 96 196, 148 190 C 196 184, 214 210, 262 214 ' +
+               'C 306 218, 340 190, 392 194 C 442 198, 462 226, 512 226 ' +
+               'C 560 226, 588 196, 640 192 C 682 189, 706 206, 720 208 L720 300 L0 300 Z';
+
+  const pins = SPOTS.map((s, i) => {
+    const v = siteVis(s, dayIdx);
+    const b = bandOf(v);
+    const on = i === selSpot;
+    /* pin radius carries the reading too, so the map reads without colour */
+    const r = (on ? 11 : 8) + Math.min(4, v / 4);
+    return '<g class="pin" data-spot="' + i + '" role="button" tabindex="0" data-band="' + b + '" ' +
+        'aria-label="' + s.name + ', ' + distU(v) + ', ' + BAND_LABEL[b] + '">' +
+      '<line x1="' + s.x + '" y1="' + s.y + '" x2="' + s.x + '" y2="' + (s.y + 34) + '" stroke="var(--rule2)" stroke-width="1"></line>' +
+      '<circle cx="' + s.x + '" cy="' + s.y + '" r="' + r + '" fill="var(--band)" opacity="' + (on ? 1 : 0.82) + '"></circle>' +
+      (on ? '<circle cx="' + s.x + '" cy="' + s.y + '" r="' + (r + 6) + '" fill="none" stroke="var(--navy)" stroke-width="1.5"></circle>' : '') +
+      '<text x="' + s.x + '" y="' + (s.y + 4) + '" text-anchor="middle" font-family="ui-monospace, monospace" ' +
+        'font-size="10" fill="#ffffff">' + dist(v) + '</text>' +
+      '<text x="' + s.x + '" y="' + (s.y - r - 8) + '" text-anchor="middle" font-size="11" ' +
+        'fill="var(--ink)" font-weight="' + (on ? '600' : '400') + '">' + s.name + '</text>' +
+    '</g>';
+  }).join('');
+
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Schematic coast with five dive sites, coloured by forecast visibility">' +
+    '<rect width="' + W + '" height="' + H + '" fill="var(--sea)"></rect>' +
+    Array.from({ length: 7 }, (_, i) =>
+      '<line x1="0" y1="' + (24 + i * 26) + '" x2="' + W + '" y2="' + (24 + i * 26) +
+      '" stroke="var(--sea2)" stroke-width="1" opacity="0.7"></line>').join('') +
+    '<path d="' + land + '" fill="var(--land)" stroke="var(--rule2)" stroke-width="1"></path>' +
+    '<text x="16" y="284" font-family="ui-monospace, monospace" font-size="10" fill="var(--faint)" letter-spacing="1">LAND</text>' +
+    '<text x="16" y="28" font-family="ui-monospace, monospace" font-size="10" fill="var(--faint)" letter-spacing="1">OPEN WATER</text>' +
+    pins +
+  '</svg>';
+}
+
+function mock10() {
+  const dayIdx = state.day[10];
+  const d = DAYS[dayIdx];
+  const s = SPOTS[state.spot];
+  const v = siteVis(s, dayIdx);
+  const b = bandOf(v);
+  const f = factorsOf(d).slice(0, 4);
+  const best = bestSite(dayIdx);
+  const ranked = SPOTS.map((x, i) => ({ i, name: x.name, v: siteVis(x, dayIdx) }))
+    .sort((a, x) => x.v - a.v);
+  const place = ranked.findIndex(r => r.i === state.spot) + 1;
+
+  return '<div class="bar">' +
+      '<span class="t"><strong>Where to dive</strong>' +
+        '<span class="sub">Five sites within 10 km / ' + SITE.model + ' run ' + SITE.updated + '</span></span>' +
+      '<button type="button" class="btn" data-refresh="10"' + (state.loading[10] ? ' disabled' : '') + '>' +
+        refreshLabel(10, 'Refresh') + '</button>' +
+    '</div>' +
+
+    '<div class="daystrip daysel" role="group" aria-label="Choose a day">' +
+      DAYS.map((x, i) => {
+        const best = bestSite(i);
+        return '<button type="button" class="daybtn" data-day="' + i + '" data-band="' + bandOf(best.v) + '" aria-pressed="' + (i === dayIdx) + '">' +
+          '<span class="d">' + x.dow + ' ' + x.dm + '</span>' +
+          '<span class="v">' + distU(best.v) + ' at ' + best.name + '</span>' +
+        '</button>';
+      }).join('') +
+    '</div>' +
+
+    '<div class="split">' +
+      '<div class="map fades">' +
+        coast(state.spot, dayIdx) +
+        '<span class="maplabel">Schematic, not to scale / pin value is forecast visibility in ' + unitLabel() + '</span>' +
+      '</div>' +
+
+      '<div class="dock" data-band="' + b + '">' +
+        '<div>' +
+          '<h4>' + s.name + '</h4>' +
+          '<p style="margin-top:var(--s1)">' + s.place + ' / ' + s.aspect + '</p>' +
+        '</div>' +
+        '<div>' +
+          '<div class="figure"><span class="n sk">' + dist(v) + '</span><span class="u">' + unitLabel() + ' visibility</span></div>' +
+          '<div class="assess sk" style="margin-top:var(--s1)">' + BAND_LABEL[b] + ', ' + VERDICT[b].toLowerCase() + '</div>' +
+        '</div>' +
+        '<p class="sk">' + (place === 1
+            ? 'Best of the five today, given its exposure.'
+            : 'Ranked ' + place + ' of 5 today. ' + best.name + ' is forecast at ' + distU(best.v) + '.') +
+          '</p>' +
+        '<p class="sk">' + esc(d.headline) + '</p>' +
+        '<div class="minirows fades">' +
+          f.map(x => '<div class="minirow"><span class="k">' + x.n + '</span><span class="v">' + esc(x.v) + '</span></div>').join('') +
+          '<div class="minirow"><span class="k">Confidence</span><span class="v">' + d.conf + '%</span></div>' +
+        '</div>' +
+        '<button type="button" class="go">Open ' + s.name + ' forecast</button>' +
+        '<span class="note">Sample data. Each site is scored from the same day with its own baseline clarity and exposure weights, which is why the ranking changes through the week.</span>' +
+      '</div>' +
+    '</div>';
+}
+
+const RENDERERS = { 6: mock6, 7: mock7, 8: mock8, 9: mock9, 10: mock10 };
+
+/* ============================================================
+   SHELL
+   ============================================================ */
+function buildShell() {
+  document.getElementById('tabs').innerHTML = CONCEPTS.map(c =>
+    '<button type="button" role="tab" id="tab-' + c.id + '" aria-controls="panel-' + c.id + '" ' +
+      'aria-selected="' + (c.id === state.active) + '" tabindex="' + (c.id === state.active ? '0' : '-1') + '">' +
+      '<span class="num">' + c.id + '</span><span class="nm">' + c.tab + '</span>' +
+    '</button>').join('');
+
+  document.getElementById('stage').insertAdjacentHTML('beforeend', CONCEPTS.map(c =>
+    '<section role="tabpanel" id="panel-' + c.id + '" aria-labelledby="tab-' + c.id + '" tabindex="0"' +
+      (c.id === state.active ? '' : ' hidden') + '>' +
+      '<div class="chead">' +
+        '<span class="ref">Direction ' + c.id + '</span>' +
+        '<h2>' + c.name + '</h2>' +
+        '<p class="thesis">' + c.thesis + '</p>' +
+      '</div>' +
+      '<div class="frame">' +
+        '<div class="framebar"><span>' + c.frame + '</span><span>Sample data</span></div>' +
+        '<div class="mock" data-c="' + c.id + '" id="mock-' + c.id + '"></div>' +
+      '</div>' +
+      '<div class="notes">' +
+        '<div class="note"><h3>Palette</h3><ul class="swatches">' +
+          c.palette.map(p => '<li><span class="chip" style="background:' + p[0] + '"></span><code>' + p[1] + '</code></li>').join('') +
+        '</ul><p>' + c.palette.map(p => p[0]).join(', ') + '</p></div>' +
+        '<div class="note"><h3>Type</h3><p>' + c.type + '</p></div>' +
+        '<div class="note"><h3>Devices</h3><p>' + c.devices + '</p></div>' +
+        '<div class="note"><h3>Trade-off</h3><p>' + c.tradeoff + '</p>' +
+          '<p style="margin-top:var(--s3)"><strong style="color:var(--sh-ink)">What it commits you to.</strong> ' + c.fit + '</p></div>' +
+      '</div>' +
+    '</section>').join(''));
+}
+
+function renderMock(id) {
+  const el = document.getElementById('mock-' + id);
+  if (!el) return;
+  el.dataset.loading = state.loading[id] ? '1' : '0';
+  el.innerHTML = RENDERERS[id]();
+}
+function renderAll() { CONCEPTS.forEach(c => renderMock(c.id)); }
+
+function selectTab(id, focus) {
+  state.active = id;
+  CONCEPTS.forEach(c => {
+    const tab = document.getElementById('tab-' + c.id);
+    const panel = document.getElementById('panel-' + c.id);
+    const on = c.id === id;
+    tab.setAttribute('aria-selected', String(on));
+    tab.tabIndex = on ? 0 : -1;
+    panel.hidden = !on;
+    if (on && focus) tab.focus();
+  });
+}
+
+document.getElementById('tabs').addEventListener('click', e => {
+  const tab = e.target.closest('[role="tab"]');
+  if (tab) selectTab(Number(tab.id.split('-')[1]), false);
+});
+document.getElementById('tabs').addEventListener('keydown', e => {
+  const keys = { ArrowRight: 1, ArrowLeft: -1 };
+  if (!(e.key in keys)) return;
+  e.preventDefault();
+  const idx = CONCEPTS.findIndex(c => c.id === state.active);
+  const next = (idx + keys[e.key] + CONCEPTS.length) % CONCEPTS.length;
+  selectTab(CONCEPTS[next].id, true);
+});
+
+document.querySelectorAll('.seg button[data-unit]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    state.unit = btn.dataset.unit;
+    document.querySelectorAll('.seg button[data-unit]').forEach(x =>
+      x.setAttribute('aria-pressed', String(x.dataset.unit === state.unit)));
+    renderAll();
+  });
+});
+
+function handleActivate(target, mock) {
+  const id = Number(mock.dataset.c);
+
+  const day = target.closest('[data-day]');
+  if (day && !state.loading[id]) { state.day[id] = Number(day.dataset.day); renderMock(id); return true; }
+
+  const spot = target.closest('[data-spot]');
+  if (spot) { state.spot = Number(spot.dataset.spot); renderMock(id); return true; }
+
+  const toggle = target.closest('[data-toggle]');
+  if (toggle) { state.showDetail = !state.showDetail; renderMock(id); return true; }
+
+  const refresh = target.closest('[data-refresh]');
+  if (refresh && !state.loading[id]) {
+    state.loading[id] = true;
+    renderMock(id);
+    setTimeout(() => { state.loading[id] = false; renderMock(id); }, 900);
+    return true;
+  }
+  return false;
+}
+
+document.getElementById('stage').addEventListener('click', e => {
+  const mock = e.target.closest('.mock');
+  if (mock) handleActivate(e.target, mock);
+});
+document.getElementById('stage').addEventListener('keydown', e => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const mock = e.target.closest('.mock');
+  if (!mock) return;
+  const hit = e.target.closest('[data-day], [data-spot]');
+  if (!hit) return;
+  e.preventDefault();
+  handleActivate(hit, mock);
+});
+
+buildShell();
+renderAll();
+</script>
+</body>
+</html>

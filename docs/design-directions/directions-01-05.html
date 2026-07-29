@@ -1,0 +1,1735 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Five interactive design directions for the DepthViz forecast screen, drawn from one shared sample dataset.">
+<title>DepthViz front-end directions</title>
+
+<style>
+/* ============================================================
+   GALLERY SHELL
+   One 4pt spacing scale and one type ramp are shared by the shell
+   and all five concepts. Concept-specific colour, radius and type
+   choices are scoped under .mock[data-c="N"].
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+:root {
+  /* spacing, 4pt */
+  --s1: 4px;  --s2: 8px;  --s3: 12px; --s4: 16px; --s5: 20px;
+  --s6: 24px; --s8: 32px; --s10: 40px; --s12: 48px; --s16: 64px;
+
+  /* type ramp, shared by every surface on this page */
+  --t-2xs: 11px; --lh-2xs: 14px;
+  --t-xs: 12px;  --lh-xs: 16px;
+  --t-sm: 13px;  --lh-sm: 20px;
+  --t-md: 15px;  --lh-md: 24px;
+  --t-lg: 17px;  --lh-lg: 26px;
+  --t-xl: 21px;  --lh-xl: 28px;
+  --t-2xl: 28px; --lh-2xl: 34px;
+  --t-3xl: 38px; --lh-3xl: 42px;
+
+  /* faces. The Artifact CSP blocks font CDNs, so these are platform
+     stacks. Each concept's notes name the face it would actually ship. */
+  --f-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --f-cond: "Bahnschrift", "DIN Alternate", "Roboto Condensed", "Arial Narrow", ui-sans-serif, system-ui, sans-serif;
+  --f-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --f-serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+
+  /* shell palette, light */
+  --sh-bg: #f7f8f8;
+  --sh-panel: #ffffff;
+  --sh-ink: #101a1f;
+  --sh-ink-dim: #4d6068;
+  --sh-ink-faint: #6f838b;
+  --sh-rule: #dde3e5;
+  --sh-rule-strong: #b9c4c8;
+  --sh-accent: #17606f;
+  --sh-accent-ink: #ffffff;
+  --sh-focus: #0f7d90;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sh-bg: #0d1113;
+    --sh-panel: #14191c;
+    --sh-ink: #eaf0f1;
+    --sh-ink-dim: #a3b3b8;
+    --sh-ink-faint: #7d8f95;
+    --sh-rule: #232c30;
+    --sh-rule-strong: #37454a;
+    --sh-accent: #6fd0dd;
+    --sh-accent-ink: #071215;
+    --sh-focus: #6fd0dd;
+  }
+}
+:root[data-theme="dark"] {
+  --sh-bg: #0d1113;
+  --sh-panel: #14191c;
+  --sh-ink: #eaf0f1;
+  --sh-ink-dim: #a3b3b8;
+  --sh-ink-faint: #7d8f95;
+  --sh-rule: #232c30;
+  --sh-rule-strong: #37454a;
+  --sh-accent: #6fd0dd;
+  --sh-accent-ink: #071215;
+  --sh-focus: #6fd0dd;
+}
+:root[data-theme="light"] {
+  --sh-bg: #f7f8f8;
+  --sh-panel: #ffffff;
+  --sh-ink: #101a1f;
+  --sh-ink-dim: #4d6068;
+  --sh-ink-faint: #6f838b;
+  --sh-rule: #dde3e5;
+  --sh-rule-strong: #b9c4c8;
+  --sh-accent: #17606f;
+  --sh-accent-ink: #ffffff;
+  --sh-focus: #0f7d90;
+}
+
+body {
+  margin: 0;
+  background: var(--sh-bg);
+  color: var(--sh-ink);
+  font-family: var(--f-sans);
+  font-size: var(--t-md);
+  line-height: var(--lh-md);
+  -webkit-font-smoothing: antialiased;
+}
+
+:where(a) { color: inherit; }
+:where(button) { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--sh-focus); outline-offset: 2px; }
+
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 var(--s6); }
+
+/* ---- masthead ---- */
+.masthead { border-bottom: 1px solid var(--sh-rule); background: var(--sh-bg); }
+.masthead .wrap { padding-top: var(--s12); padding-bottom: var(--s8); }
+.kicker {
+  font-family: var(--f-mono);
+  font-size: var(--t-2xs); line-height: var(--lh-2xs);
+  letter-spacing: 0.09em; text-transform: uppercase;
+  color: var(--sh-ink-faint);
+  margin: 0 0 var(--s3);
+}
+h1 {
+  font-family: var(--f-cond);
+  font-size: var(--t-3xl); line-height: var(--lh-3xl);
+  font-weight: 600; letter-spacing: -0.01em;
+  margin: 0 0 var(--s4); text-wrap: balance;
+}
+.lead {
+  max-width: 62ch; margin: 0;
+  color: var(--sh-ink-dim);
+  font-size: var(--t-lg); line-height: var(--lh-lg);
+}
+.shellnotes { margin: var(--s6) 0 0; padding: 0; list-style: none; display: grid; gap: var(--s2); max-width: 68ch; }
+.shellnotes li {
+  font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--sh-ink-faint);
+  padding-left: var(--s5); position: relative;
+}
+.shellnotes li::before {
+  content: ""; position: absolute; left: 0; top: 9px;
+  width: 10px; height: 1px; background: var(--sh-rule-strong);
+}
+
+/* ---- tab bar ---- */
+.toolbar {
+  position: sticky; top: 0; z-index: 20;
+  background: color-mix(in srgb, var(--sh-bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--sh-rule);
+}
+.toolbar .wrap {
+  display: flex; align-items: stretch; justify-content: space-between;
+  gap: var(--s4); padding: 0 var(--s6);
+}
+[role="tablist"] { display: flex; gap: var(--s6); overflow-x: auto; scrollbar-width: none; }
+[role="tablist"]::-webkit-scrollbar { display: none; }
+[role="tab"] {
+  appearance: none; background: none; border: 0;
+  border-bottom: 2px solid transparent;
+  padding: var(--s4) 0 calc(var(--s4) - 2px);
+  display: flex; align-items: baseline; gap: var(--s2);
+  cursor: pointer; white-space: nowrap;
+  color: var(--sh-ink-faint);
+  transition: color 140ms ease, border-color 140ms ease;
+}
+[role="tab"] .num { font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.06em; }
+[role="tab"] .nm { font-size: var(--t-sm); line-height: var(--lh-sm); font-weight: 500; }
+[role="tab"]:hover { color: var(--sh-ink-dim); }
+[role="tab"][aria-selected="true"] { color: var(--sh-ink); border-bottom-color: var(--sh-accent); }
+
+.unitswitch { display: flex; align-items: center; gap: var(--s2); padding: var(--s3) 0; }
+.unitswitch .lbl {
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--sh-ink-faint);
+}
+.seg { display: flex; border: 1px solid var(--sh-rule-strong); border-radius: 4px; overflow: hidden; }
+.seg button {
+  appearance: none; border: 0; background: none; cursor: pointer;
+  font-family: var(--f-mono); font-size: var(--t-xs); line-height: 1;
+  padding: var(--s2) var(--s3); color: var(--sh-ink-dim);
+  transition: background 140ms ease, color 140ms ease;
+}
+.seg button + button { border-left: 1px solid var(--sh-rule-strong); }
+.seg button[aria-pressed="true"] { background: var(--sh-accent); color: var(--sh-accent-ink); }
+.seg button:hover:not([aria-pressed="true"]) { background: color-mix(in srgb, var(--sh-ink) 6%, transparent); }
+
+/* ---- concept panel chrome ---- */
+main { padding-bottom: var(--s16); }
+[role="tabpanel"] { padding-top: var(--s10); }
+[role="tabpanel"][hidden] { display: none; }
+
+.chead { display: grid; gap: var(--s4); padding-bottom: var(--s8); }
+.chead .ref {
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--sh-ink-faint);
+}
+.chead h2 {
+  font-family: var(--f-cond); font-size: var(--t-2xl); line-height: var(--lh-2xl);
+  font-weight: 600; margin: 0; letter-spacing: -0.005em;
+}
+.chead .thesis { margin: 0; max-width: 64ch; color: var(--sh-ink-dim); font-size: var(--t-lg); line-height: var(--lh-lg); }
+
+/* ---- mock frame ---- */
+.frame {
+  container-type: inline-size;
+  border: 1px solid var(--sh-rule-strong);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--sh-panel);
+}
+.framebar {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s4);
+  padding: var(--s2) var(--s4);
+  border-bottom: 1px solid var(--sh-rule);
+  background: color-mix(in srgb, var(--sh-ink) 4%, var(--sh-panel));
+  font-family: var(--f-mono); font-size: var(--t-2xs); line-height: var(--lh-2xs);
+  letter-spacing: 0.07em; text-transform: uppercase; color: var(--sh-ink-faint);
+}
+
+/* ---- notes grid under each mock ---- */
+.notes {
+  display: grid; gap: var(--s6);
+  grid-template-columns: repeat(auto-fit, minmax(232px, 1fr));
+  padding-top: var(--s8);
+}
+.note h3 {
+  font-family: var(--f-mono); font-size: var(--t-2xs); line-height: var(--lh-2xs);
+  letter-spacing: 0.09em; text-transform: uppercase; font-weight: 500;
+  color: var(--sh-ink-faint);
+  margin: 0 0 var(--s3); padding-bottom: var(--s3);
+  border-bottom: 1px solid var(--sh-rule);
+}
+.note p { margin: 0; font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--sh-ink-dim); }
+.note p + p { margin-top: var(--s2); }
+.swatches { display: flex; flex-wrap: wrap; gap: var(--s2); margin: 0 0 var(--s3); padding: 0; list-style: none; }
+.swatches li { display: grid; gap: var(--s1); }
+.swatches .chip {
+  width: 100%; height: 24px; min-width: 56px; border-radius: 3px;
+  border: 1px solid color-mix(in srgb, var(--sh-ink) 18%, transparent);
+}
+.swatches code {
+  font-family: var(--f-mono); font-size: var(--t-2xs); line-height: var(--lh-2xs);
+  color: var(--sh-ink-faint);
+}
+
+/* ============================================================
+   SHARED MOCK BEHAVIOUR
+   ============================================================ */
+.mock { --sk-a: rgba(128,128,128,0.18); --sk-b: rgba(128,128,128,0.30); }
+.mock[data-loading="1"] .sk {
+  color: transparent !important;
+  background-image: linear-gradient(90deg, var(--sk-a) 0%, var(--sk-b) 50%, var(--sk-a) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.15s linear infinite;
+  border-radius: 3px;
+}
+.mock[data-loading="1"] .sk > * { visibility: hidden; }
+.mock[data-loading="1"] .fades { opacity: 0.28; transition: opacity 180ms ease; }
+.mock[data-loading="1"] .daysel { pointer-events: none; opacity: 0.6; }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: 0 0; } }
+
+.spin {
+  width: 12px; height: 12px; flex: none;
+  border: 2px solid currentColor; border-right-color: transparent;
+  border-radius: 50%; animation: rot 700ms linear infinite;
+}
+@keyframes rot { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ============================================================
+   01 BATHYMETRIC INSTRUMENT
+   ============================================================ */
+.mock[data-c="1"] {
+  --bg: #071317; --bg2: #0b1b21; --bg3: #050f13;
+  --ink: #e9f4f4; --dim: #9fb6ba; --faint: #6e878c;
+  --rule: #17313a; --rule2: #2a4b56;
+  --aqua: #7fe6d9; --caution: #e0a458;
+  --q-poor: #b8794f; --q-marginal: #bbab5f; --q-workable: #77d2c9; --q-good: #5cefd6; --q-clear: #9fffe4;
+  --r: 2px;
+  --sk-a: rgba(127,230,217,0.10); --sk-b: rgba(127,230,217,0.22);
+  background: var(--bg); color: var(--ink);
+  font-family: var(--f-sans);
+  padding: var(--s6);
+  display: grid; gap: var(--s6);
+}
+.mock[data-c="1"] .topline {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+  gap: var(--s4); padding-bottom: var(--s4); border-bottom: 1px solid var(--rule);
+}
+.mock[data-c="1"] .site { display: grid; gap: var(--s1); }
+.mock[data-c="1"] .site h3 {
+  font-family: var(--f-cond); font-weight: 600; letter-spacing: 0.01em;
+  font-size: var(--t-xl); line-height: var(--lh-xl); margin: 0;
+}
+.mock[data-c="1"] .coords {
+  font-family: var(--f-mono); font-size: var(--t-2xs); line-height: var(--lh-2xs);
+  letter-spacing: 0.07em; color: var(--faint);
+}
+.mock[data-c="1"] .stamp { display: flex; align-items: center; gap: var(--s4); }
+.mock[data-c="1"] .stamp .t {
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--faint); text-align: right;
+}
+.mock[data-c="1"] .btn {
+  appearance: none; cursor: pointer;
+  display: inline-flex; align-items: center; gap: var(--s2);
+  background: transparent; border: 1px solid var(--rule2); border-radius: var(--r);
+  color: var(--ink); padding: var(--s2) var(--s3);
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.08em; text-transform: uppercase;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+.mock[data-c="1"] .btn:hover { background: rgba(127,230,217,0.08); border-color: var(--aqua); }
+.mock[data-c="1"] .btn[disabled] { cursor: default; color: var(--dim); }
+.mock[data-c="1"] .btn:focus-visible { outline: 2px solid var(--aqua); outline-offset: 2px; }
+
+.mock[data-c="1"] .body { display: grid; gap: var(--s6); grid-template-columns: 232px 1fr; }
+@container (max-width: 700px) { .mock[data-c="1"] .body { grid-template-columns: 1fr; } }
+
+/* water column */
+.mock[data-c="1"] .column { display: grid; grid-template-columns: 40px 1fr; gap: var(--s3); }
+.mock[data-c="1"] .ladder {
+  display: grid; align-content: space-between;
+  font-family: var(--f-mono); font-size: var(--t-2xs); line-height: 1;
+  color: var(--faint); text-align: right; padding: 2px 0;
+}
+.mock[data-c="1"] .well {
+  position: relative; min-height: 280px; border-radius: var(--r);
+  background: linear-gradient(180deg, var(--bg2) 0%, var(--bg3) 100%);
+  border: 1px solid var(--rule); overflow: hidden;
+}
+.mock[data-c="1"] .well .tick {
+  position: absolute; left: 0; right: 0; height: 1px; background: var(--rule);
+}
+.mock[data-c="1"] .clear {
+  position: absolute; left: 0; right: 0; top: 0;
+  background: linear-gradient(180deg,
+    color-mix(in oklab, var(--band) 34%, transparent) 0%,
+    color-mix(in oklab, var(--band) 8%, transparent) 100%);
+  border-bottom: 2px solid var(--band);
+  transition: height 320ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.mock[data-c="1"] .edge {
+  position: absolute; right: var(--s2);
+  transform: translateY(-100%);
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.06em;
+  color: var(--band);
+  transition: top 320ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.mock[data-c="1"] .seabed {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 34px;
+  background: repeating-linear-gradient(-45deg, var(--rule) 0 1px, transparent 1px 6px);
+  border-top: 1px solid var(--rule2);
+}
+.mock[data-c="1"] .seabed span {
+  position: absolute; left: var(--s2); bottom: var(--s2);
+  font-family: var(--f-mono); font-size: var(--t-2xs); color: var(--faint);
+}
+
+/* reading block */
+.mock[data-c="1"] .reading { display: grid; gap: var(--s5); align-content: start; }
+.mock[data-c="1"] .headnum { display: flex; align-items: flex-end; gap: var(--s4); flex-wrap: wrap; }
+.mock[data-c="1"] .big {
+  font-family: var(--f-cond); font-weight: 600;
+  font-size: 68px; line-height: 0.86; letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums; color: var(--band);
+}
+.mock[data-c="1"] .bigmeta { display: grid; gap: var(--s1); padding-bottom: var(--s1); }
+.mock[data-c="1"] .unit { font-family: var(--f-mono); font-size: var(--t-sm); color: var(--dim); }
+.mock[data-c="1"] .verdict {
+  font-family: var(--f-cond); font-size: var(--t-lg); line-height: var(--lh-lg);
+  letter-spacing: 0.04em; text-transform: uppercase; color: var(--band);
+}
+.mock[data-c="1"] .headline {
+  margin: 0; max-width: 52ch; color: var(--dim);
+  font-size: var(--t-md); line-height: var(--lh-md);
+}
+.mock[data-c="1"] .conf {
+  display: flex; align-items: center; gap: var(--s3);
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--faint);
+}
+.mock[data-c="1"] .confbar { flex: 1; max-width: 160px; height: 3px; background: var(--rule); position: relative; }
+.mock[data-c="1"] .confbar i { position: absolute; inset: 0 auto 0 0; background: var(--aqua); transition: width 260ms ease; }
+
+/* factor rows */
+.mock[data-c="1"] .factors { display: grid; }
+.mock[data-c="1"] .frow {
+  display: grid; grid-template-columns: 1fr 132px 88px;
+  gap: var(--s4); align-items: center;
+  padding: var(--s3) 0; border-top: 1px solid var(--rule);
+}
+.mock[data-c="1"] .frow:last-child { border-bottom: 1px solid var(--rule); }
+.mock[data-c="1"] .fname { font-size: var(--t-sm); line-height: var(--lh-sm); }
+.mock[data-c="1"] .fval {
+  font-family: var(--f-mono); font-size: var(--t-xs); line-height: var(--lh-xs);
+  color: var(--dim); text-align: right;
+}
+.mock[data-c="1"] .fbar { height: 6px; background: var(--bg3); border: 1px solid var(--rule); position: relative; }
+.mock[data-c="1"] .fbar i { position: absolute; inset: 0 auto 0 0; background: var(--load); transition: width 260ms ease; }
+.mock[data-c="1"] .fbar[data-load="high"] { --load: var(--q-poor); }
+.mock[data-c="1"] .fbar[data-load="moderate"] { --load: var(--q-marginal); }
+.mock[data-c="1"] .fbar[data-load="low"] { --load: var(--q-workable); }
+.mock[data-c="1"] .fbar[data-load="none"] { --load: var(--q-good); }
+.mock[data-c="1"] .flabel {
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.07em; text-transform: uppercase;
+}
+.mock[data-c="1"] .fhead {
+  display: grid; grid-template-columns: 1fr 132px 88px; gap: var(--s4);
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--faint); padding-bottom: var(--s2);
+}
+.mock[data-c="1"] .fhead span:nth-child(2) { text-align: right; }
+
+/* 7 day rail */
+.mock[data-c="1"] .rail { display: grid; gap: var(--s3); }
+.mock[data-c="1"] .railhead {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--faint);
+  padding-bottom: var(--s2); border-bottom: 1px solid var(--rule);
+}
+.mock[data-c="1"] .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--s2); }
+.mock[data-c="1"] .day {
+  appearance: none; cursor: pointer; text-align: left;
+  background: none; border: 0; border-top: 2px solid transparent;
+  padding: var(--s2) 0 0; display: grid; gap: var(--s2);
+  transition: border-color 140ms ease;
+}
+.mock[data-c="1"] .day .dl {
+  font-family: var(--f-mono); font-size: var(--t-2xs); line-height: var(--lh-2xs);
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint);
+}
+.mock[data-c="1"] .day .dv {
+  font-family: var(--f-mono); font-size: var(--t-sm); font-variant-numeric: tabular-nums; color: var(--dim);
+}
+.mock[data-c="1"] .day .plot { height: 46px; display: flex; align-items: flex-end; }
+.mock[data-c="1"] .day .plot i { display: block; width: 100%; background: color-mix(in oklab, var(--band) 55%, transparent); transition: height 260ms ease; }
+.mock[data-c="1"] .day:hover .dl { color: var(--dim); }
+.mock[data-c="1"] .day[aria-pressed="true"] { border-top-color: var(--aqua); }
+.mock[data-c="1"] .day[aria-pressed="true"] .dl { color: var(--ink); }
+.mock[data-c="1"] .day[aria-pressed="true"] .plot i { background: var(--band); }
+.mock[data-c="1"] .caveat {
+  margin: 0; padding-top: var(--s4); border-top: 1px solid var(--rule);
+  display: flex; gap: var(--s3); align-items: flex-start;
+  font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--dim);
+}
+.mock[data-c="1"] .caveat b {
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--caution); flex: none; padding-top: 3px;
+}
+
+/* ============================================================
+   02 CHART ROOM
+   ============================================================ */
+.mock[data-c="2"] {
+  --paper: #edf1f2; --paper2: #e3e9ea; --shoal: #d5e4dd;
+  --ink: #0e2129; --dim: #3c565f; --faint: #6d848c;
+  --rule: #b6c5c9; --rule2: #8ea2a8;
+  --navy: #123b52; --magenta: #a8305b;
+  --q-poor: #8a5a33; --q-marginal: #7d7333; --q-workable: #1e6f6a; --q-good: #146b56; --q-clear: #0d5f66;
+  --r: 0px;
+  --sk-a: rgba(14,33,41,0.10); --sk-b: rgba(14,33,41,0.18);
+  background:
+    repeating-linear-gradient(0deg, rgba(14,33,41,0.045) 0 1px, transparent 1px 32px),
+    repeating-linear-gradient(90deg, rgba(14,33,41,0.045) 0 1px, transparent 1px 32px),
+    var(--paper);
+  color: var(--ink); font-family: var(--f-serif);
+  padding: var(--s8) var(--s8) var(--s6);
+}
+.mock[data-c="2"] .sheet { display: grid; gap: var(--s6); }
+.mock[data-c="2"] .mast {
+  border-top: 2px solid var(--ink); border-bottom: 1px solid var(--rule2);
+  padding: var(--s3) 0;
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s4);
+}
+.mock[data-c="2"] .mast h3 {
+  margin: 0; font-family: var(--f-serif); font-weight: 600;
+  font-size: var(--t-2xl); line-height: var(--lh-2xl); letter-spacing: 0.02em;
+}
+.mock[data-c="2"] .mast .sub {
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--faint); margin-top: var(--s1);
+}
+.mock[data-c="2"] .btn {
+  appearance: none; cursor: pointer; display: inline-flex; align-items: center; gap: var(--s2);
+  background: var(--navy); color: #f4f8f8; border: 1px solid var(--navy); border-radius: var(--r);
+  padding: var(--s2) var(--s4);
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.09em; text-transform: uppercase;
+  transition: background 140ms ease;
+}
+.mock[data-c="2"] .btn:hover { background: #0b2c3e; }
+.mock[data-c="2"] .btn[disabled] { cursor: default; opacity: 0.75; }
+
+.mock[data-c="2"] .cols { display: grid; grid-template-columns: 1fr 240px; gap: var(--s8); }
+@container (max-width: 720px) { .mock[data-c="2"] .cols { grid-template-columns: 1fr; gap: var(--s6); } }
+
+.mock[data-c="2"] .verdictline { display: flex; align-items: baseline; gap: var(--s4); flex-wrap: wrap; }
+.mock[data-c="2"] .sounding {
+  font-family: var(--f-serif); font-weight: 600; font-size: 56px; line-height: 0.9;
+  font-variant-numeric: tabular-nums; color: var(--band);
+}
+/* Admiralty charts print the decimal of a sounding as a small subscript
+   (6 with a low 4 means 6.4 m). Same convention here. */
+.mock[data-c="2"] .sounding sub {
+  font-size: 24px; font-weight: 500; vertical-align: baseline;
+  position: relative; bottom: -0.1em; margin-left: 1px;
+}
+.mock[data-c="2"] .vlabel { display: grid; gap: var(--s1); }
+.mock[data-c="2"] .vlabel .k {
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--faint);
+}
+.mock[data-c="2"] .vlabel .v { font-size: var(--t-lg); line-height: var(--lh-lg); color: var(--band); font-weight: 600; }
+.mock[data-c="2"] .prose { margin: var(--s4) 0 0; max-width: 60ch; font-size: var(--t-lg); line-height: 28px; }
+.mock[data-c="2"] .prose + .prose { margin-top: var(--s3); }
+.mock[data-c="2"] .caution {
+  margin: var(--s5) 0 0; padding: var(--s3) var(--s4);
+  border-left: 2px solid var(--magenta); background: rgba(168,48,91,0.06);
+  font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--dim);
+}
+.mock[data-c="2"] .caution b { color: var(--magenta); font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.08em; text-transform: uppercase; display: block; margin-bottom: var(--s1); }
+
+.mock[data-c="2"] .marg { display: grid; gap: var(--s5); align-content: start; border-left: 1px solid var(--rule); padding-left: var(--s5); }
+@container (max-width: 720px) { .mock[data-c="2"] .marg { border-left: 0; padding-left: 0; border-top: 1px solid var(--rule); padding-top: var(--s5); } }
+.mock[data-c="2"] .margblock h4 {
+  margin: 0 0 var(--s2); font-family: var(--f-mono); font-weight: 500;
+  font-size: var(--t-2xs); line-height: var(--lh-2xs); letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--faint);
+}
+.mock[data-c="2"] .dl { display: grid; gap: var(--s2); margin: 0; }
+.mock[data-c="2"] .dl div { display: flex; justify-content: space-between; gap: var(--s3); align-items: baseline; }
+.mock[data-c="2"] .dl dt { font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--dim); }
+.mock[data-c="2"] .dl dd {
+  margin: 0; font-family: var(--f-mono); font-size: var(--t-xs); line-height: var(--lh-sm);
+  font-variant-numeric: tabular-nums; text-align: right;
+}
+.mock[data-c="2"] .reports {
+  margin-top: var(--s6); padding-top: var(--s3);
+  border-top: 1px solid var(--rule2);
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s4);
+}
+@container (max-width: 560px) { .mock[data-c="2"] .reports { grid-template-columns: 1fr; } }
+.mock[data-c="2"] .reports h4 {
+  grid-column: 1 / -1; margin: 0;
+  font-family: var(--f-mono); font-weight: 500;
+  font-size: var(--t-2xs); line-height: var(--lh-2xs); letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--faint);
+}
+.mock[data-c="2"] .rep { display: grid; gap: var(--s1); border-left: 1px solid var(--rule); padding-left: var(--s3); }
+.mock[data-c="2"] .rep .rd {
+  display: flex; justify-content: space-between; gap: var(--s2); align-items: baseline;
+  font-family: var(--f-mono); font-size: var(--t-xs); font-variant-numeric: tabular-nums;
+}
+.mock[data-c="2"] .rep .rd b { font-weight: 500; }
+.mock[data-c="2"] .rep .rm { font-family: var(--f-mono); font-size: var(--t-2xs); color: var(--faint); }
+.mock[data-c="2"] .rep p { margin: 0; font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--dim); }
+.mock[data-c="2"] .tide { display: grid; gap: var(--s2); }
+.mock[data-c="2"] .tide svg { width: 100%; height: 72px; display: block; }
+.mock[data-c="2"] .tidecap { font-family: var(--f-mono); font-size: var(--t-2xs); color: var(--faint); letter-spacing: 0.06em; }
+
+.mock[data-c="2"] table { width: 100%; border-collapse: collapse; }
+.mock[data-c="2"] .tablewrap { overflow-x: auto; }
+.mock[data-c="2"] caption {
+  text-align: left; font-family: var(--f-mono); font-size: var(--t-2xs);
+  letter-spacing: 0.09em; text-transform: uppercase; color: var(--faint);
+  padding-bottom: var(--s2);
+}
+.mock[data-c="2"] th, .mock[data-c="2"] td {
+  text-align: left; padding: var(--s3) var(--s3) var(--s3) 0;
+  border-bottom: 1px solid var(--rule); font-size: var(--t-sm); line-height: var(--lh-sm);
+}
+.mock[data-c="2"] thead th {
+  border-bottom: 1px solid var(--rule2);
+  font-family: var(--f-mono); font-weight: 500; font-size: var(--t-2xs);
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint);
+}
+.mock[data-c="2"] td.n, .mock[data-c="2"] th.n {
+  text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums;
+  font-size: var(--t-xs); padding-right: 0;
+}
+.mock[data-c="2"] tbody tr { cursor: pointer; transition: background 120ms ease; }
+.mock[data-c="2"] tbody tr:hover { background: rgba(18,59,82,0.05); }
+.mock[data-c="2"] tbody tr[aria-selected="true"] { background: var(--shoal); }
+.mock[data-c="2"] tbody tr[aria-selected="true"] td:first-child { box-shadow: inset 2px 0 0 var(--navy); }
+.mock[data-c="2"] .bandname { color: var(--band); font-weight: 600; }
+.mock[data-c="2"] .foot {
+  border-top: 1px solid var(--rule2); padding-top: var(--s3);
+  display: flex; flex-wrap: wrap; gap: var(--s4); justify-content: space-between;
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--faint);
+}
+
+/* ============================================================
+   03 FIELD SIGNAL
+   ============================================================ */
+.mock[data-c="3"] {
+  --bg: #eff1f2; --card: #ffffff; --ink: #14202a; --dim: #4a5b67; --faint: #71828e;
+  --rule: #dfe4e7; --rule2: #c3ccd2;
+  --brand: #0f6b5c; --brand-ink: #ffffff;
+  --go: #0f6b5c; --wait: #8a6a12; --stop: #9c3b28;
+  --q-poor: #9c3b28; --q-marginal: #8a6a12; --q-workable: #0f6b5c; --q-good: #0f6b5c; --q-clear: #0f6b5c;
+  --r: 6px;
+  --sk-a: rgba(20,32,42,0.08); --sk-b: rgba(20,32,42,0.16);
+  background: var(--bg); color: var(--ink); font-family: var(--f-sans);
+  padding: var(--s6);
+  display: flex; justify-content: center;
+}
+.mock[data-c="3"] .phone { width: 100%; max-width: 408px; display: grid; gap: var(--s3); }
+.mock[data-c="3"] .appbar {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s3);
+  padding: 0 var(--s1) var(--s1);
+}
+.mock[data-c="3"] .appbar .place { display: grid; gap: 2px; }
+.mock[data-c="3"] .appbar .place strong { font-size: var(--t-lg); line-height: var(--lh-lg); font-weight: 600; letter-spacing: -0.01em; }
+.mock[data-c="3"] .appbar .place span { font-size: var(--t-xs); line-height: var(--lh-xs); color: var(--faint); }
+.mock[data-c="3"] .iconbtn {
+  appearance: none; cursor: pointer; background: var(--card);
+  border: 1px solid var(--rule2); border-radius: var(--r);
+  padding: var(--s2) var(--s3); display: inline-flex; align-items: center; gap: var(--s2);
+  font-size: var(--t-xs); line-height: var(--lh-xs); color: var(--dim);
+  transition: border-color 140ms ease, color 140ms ease;
+}
+.mock[data-c="3"] .iconbtn:hover { border-color: var(--brand); color: var(--brand); }
+.mock[data-c="3"] .iconbtn[disabled] { cursor: default; }
+
+.mock[data-c="3"] .card {
+  background: var(--card); border: 1px solid var(--rule); border-radius: var(--r);
+  padding: var(--s5); display: grid; gap: var(--s4);
+}
+.mock[data-c="3"] .statusrow { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); }
+.mock[data-c="3"] .pill {
+  display: inline-flex; align-items: center; gap: var(--s2);
+  border-radius: 999px; padding: var(--s1) var(--s3);
+  font-size: var(--t-xs); line-height: 18px; font-weight: 600; letter-spacing: 0.02em;
+  color: var(--brand-ink); background: var(--band);
+}
+.mock[data-c="3"] .updated { font-size: var(--t-xs); line-height: var(--lh-xs); color: var(--faint); }
+.mock[data-c="3"] .numrow { display: flex; align-items: baseline; gap: var(--s2); }
+.mock[data-c="3"] .num {
+  font-size: 60px; line-height: 0.92; font-weight: 650; letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.mock[data-c="3"] .numunit { font-size: var(--t-xl); line-height: var(--lh-xl); font-weight: 500; color: var(--dim); }
+.mock[data-c="3"] .why { margin: 0; font-size: var(--t-md); line-height: var(--lh-md); color: var(--dim); }
+.mock[data-c="3"] .scale { display: grid; gap: var(--s2); }
+.mock[data-c="3"] .track { height: 8px; border-radius: 4px; background: var(--bg); overflow: hidden; }
+.mock[data-c="3"] .track i { display: block; height: 100%; background: var(--band); transition: width 300ms cubic-bezier(0.22,0.61,0.36,1); }
+.mock[data-c="3"] .ticks {
+  display: flex; justify-content: space-between;
+  font-size: var(--t-2xs); line-height: var(--lh-2xs); color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+.mock[data-c="3"] .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s3); }
+.mock[data-c="3"] .tile {
+  background: var(--card); border: 1px solid var(--rule); border-radius: var(--r);
+  padding: var(--s3) var(--s4); display: grid; gap: var(--s1);
+}
+.mock[data-c="3"] .tile .k {
+  font-size: var(--t-2xs); line-height: var(--lh-2xs); letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--faint);
+}
+.mock[data-c="3"] .tile .v { font-size: var(--t-lg); line-height: var(--lh-lg); font-weight: 600; font-variant-numeric: tabular-nums; }
+.mock[data-c="3"] .tile .s { font-size: var(--t-2xs); line-height: var(--lh-2xs); color: var(--faint); }
+
+.mock[data-c="3"] .acc { background: var(--card); border: 1px solid var(--rule); border-radius: var(--r); overflow: hidden; }
+.mock[data-c="3"] .acctrigger {
+  appearance: none; width: 100%; cursor: pointer; background: none; border: 0;
+  padding: var(--s4) var(--s5); display: flex; align-items: center; justify-content: space-between; gap: var(--s3);
+  font-size: var(--t-md); line-height: var(--lh-md); font-weight: 600; text-align: left;
+}
+.mock[data-c="3"] .acctrigger:hover { background: color-mix(in srgb, var(--ink) 3%, transparent); }
+.mock[data-c="3"] .acctrigger .caret { transition: transform 180ms ease; color: var(--faint); }
+.mock[data-c="3"] .acctrigger[aria-expanded="true"] .caret { transform: rotate(90deg); }
+.mock[data-c="3"] .accpanel { padding: 0 var(--s5) var(--s4); display: grid; gap: var(--s3); }
+.mock[data-c="3"] .accpanel[hidden] { display: none; }
+.mock[data-c="3"] .frow { display: grid; grid-template-columns: 1fr auto; gap: var(--s1) var(--s3); align-items: baseline; }
+.mock[data-c="3"] .frow .fname { font-size: var(--t-sm); line-height: var(--lh-sm); }
+.mock[data-c="3"] .frow .fval {
+  font-size: var(--t-xs); line-height: var(--lh-sm); color: var(--dim);
+  font-variant-numeric: tabular-nums; text-align: right;
+}
+.mock[data-c="3"] .frow .fbar { grid-column: 1 / -1; height: 4px; border-radius: 2px; background: var(--bg); overflow: hidden; }
+.mock[data-c="3"] .frow .fbar i { display: block; height: 100%; transition: width 260ms ease; }
+.mock[data-c="3"] .frow .fbar[data-load="high"] i { background: var(--stop); }
+.mock[data-c="3"] .frow .fbar[data-load="moderate"] i { background: var(--wait); }
+.mock[data-c="3"] .frow .fbar[data-load="low"] i { background: var(--brand); }
+.mock[data-c="3"] .frow .fbar[data-load="none"] i { background: var(--rule2); }
+
+.mock[data-c="3"] .daysel { display: grid; gap: var(--s2); }
+.mock[data-c="3"] .dayhead {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: var(--t-2xs); line-height: var(--lh-2xs); letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--faint); padding: 0 var(--s1);
+}
+.mock[data-c="3"] .pills { display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--s2); }
+.mock[data-c="3"] .pillbtn {
+  appearance: none; cursor: pointer; background: var(--card);
+  border: 1px solid var(--rule); border-radius: var(--r);
+  padding: var(--s2) 0; display: grid; gap: 2px; justify-items: center;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+.mock[data-c="3"] .pillbtn .d { font-size: var(--t-2xs); line-height: var(--lh-2xs); color: var(--faint); text-transform: uppercase; letter-spacing: 0.04em; }
+.mock[data-c="3"] .pillbtn .v { font-size: var(--t-sm); line-height: var(--lh-sm); font-weight: 600; font-variant-numeric: tabular-nums; }
+.mock[data-c="3"] .pillbtn .dot { width: 100%; height: 3px; border-radius: 2px; background: var(--band); }
+.mock[data-c="3"] .pillbtn:hover { border-color: var(--rule2); }
+.mock[data-c="3"] .pillbtn[aria-pressed="true"] { border-color: var(--ink); background: color-mix(in srgb, var(--ink) 4%, var(--card)); }
+.mock[data-c="3"] .primary {
+  appearance: none; cursor: pointer; width: 100%;
+  background: var(--brand); color: var(--brand-ink);
+  border: 1px solid var(--brand); border-radius: var(--r);
+  padding: var(--s4); font-size: var(--t-md); line-height: var(--lh-md); font-weight: 600;
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s2);
+  transition: background 140ms ease;
+}
+.mock[data-c="3"] .primary:hover { background: #0b564a; }
+.mock[data-c="3"] .primary[disabled] { cursor: default; background: #0b564a; }
+.mock[data-c="3"] .smallprint { margin: 0; padding: 0 var(--s1); font-size: var(--t-xs); line-height: var(--lh-xs); color: var(--faint); }
+
+/* ============================================================
+   04 TIDE LEDGER
+   ============================================================ */
+.mock[data-c="4"] {
+  --bg: #14191a; --bg2: #1b2122; --ink: #e9ede9; --dim: #a8b3af; --faint: #7d8a86;
+  --rule: #262e2f; --rule2: #3b4644;
+  --glass: #93b7a6; --ochre: #c9a05c;
+  --q-poor: #c08a63; --q-marginal: #c3b070; --q-workable: #93c9bb; --q-good: #7fdcc4; --q-clear: #a6f0da;
+  --r: 0px;
+  --sk-a: rgba(233,237,233,0.08); --sk-b: rgba(233,237,233,0.16);
+  background: var(--bg); color: var(--ink); font-family: var(--f-sans);
+  padding: var(--s10) var(--s8);
+}
+.mock[data-c="4"] .doc { max-width: 720px; margin: 0 auto; display: grid; gap: var(--s8); }
+.mock[data-c="4"] .head {
+  display: flex; flex-wrap: wrap; gap: var(--s4); align-items: baseline; justify-content: space-between;
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--faint);
+}
+.mock[data-c="4"] .statement { display: grid; gap: var(--s4); }
+.mock[data-c="4"] .statement h3 {
+  margin: 0; font-family: var(--f-sans); font-weight: 400;
+  font-size: 34px; line-height: 42px; letter-spacing: -0.015em; text-wrap: balance;
+}
+.mock[data-c="4"] .statement h3 b { font-weight: 650; color: var(--band); font-variant-numeric: tabular-nums; }
+.mock[data-c="4"] .statement p { margin: 0; max-width: 60ch; color: var(--dim); font-size: var(--t-lg); line-height: var(--lh-lg); }
+.mock[data-c="4"] .btn {
+  appearance: none; cursor: pointer; background: none;
+  border: 0; border-bottom: 1px solid var(--rule2); color: var(--ink);
+  padding: 0 0 2px; display: inline-flex; align-items: center; gap: var(--s2);
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.09em; text-transform: uppercase;
+  transition: border-color 140ms ease, color 140ms ease;
+}
+.mock[data-c="4"] .btn:hover { color: var(--glass); border-color: var(--glass); }
+.mock[data-c="4"] .btn[disabled] { cursor: default; color: var(--dim); }
+
+.mock[data-c="4"] .ledger { display: grid; }
+.mock[data-c="4"] .lhead {
+  display: grid; grid-template-columns: 1fr 200px 96px; gap: var(--s4);
+  padding-bottom: var(--s2); border-bottom: 1px solid var(--rule2);
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--faint);
+}
+.mock[data-c="4"] .lhead span:last-child, .mock[data-c="4"] .lrow .amt { text-align: right; }
+.mock[data-c="4"] .lrow {
+  display: grid; grid-template-columns: 1fr 200px 96px; gap: var(--s4);
+  padding: var(--s3) 0; border-bottom: 1px solid var(--rule);
+  align-items: baseline;
+}
+.mock[data-c="4"] .lrow .what { font-size: var(--t-md); line-height: var(--lh-md); }
+.mock[data-c="4"] .lrow .obs {
+  font-family: var(--f-mono); font-size: var(--t-xs); line-height: var(--lh-md);
+  color: var(--dim); font-variant-numeric: tabular-nums;
+}
+.mock[data-c="4"] .lrow .amt {
+  font-family: var(--f-mono); font-size: var(--t-sm); line-height: var(--lh-md);
+  font-variant-numeric: tabular-nums; color: var(--ochre);
+}
+.mock[data-c="4"] .lrow.base .amt { color: var(--dim); }
+.mock[data-c="4"] .lrow.total {
+  border-bottom: 0; border-top: 1px solid var(--rule2); margin-top: var(--s2); padding-top: var(--s4);
+}
+.mock[data-c="4"] .lrow.total .what { font-size: var(--t-lg); line-height: var(--lh-lg); }
+.mock[data-c="4"] .lrow.total .amt { font-size: var(--t-xl); color: var(--band); }
+@container (max-width: 640px) {
+  .mock[data-c="4"] .lhead { grid-template-columns: 1fr 96px; }
+  .mock[data-c="4"] .lhead span:nth-child(2) { display: none; }
+  .mock[data-c="4"] .lrow { grid-template-columns: 1fr 96px; }
+  .mock[data-c="4"] .lrow .obs { grid-column: 1; font-size: var(--t-2xs); }
+}
+
+.mock[data-c="4"] .weeklab {
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--faint); margin-bottom: var(--s3);
+}
+.mock[data-c="4"] .daysel { display: grid; }
+.mock[data-c="4"] .drow {
+  appearance: none; cursor: pointer; background: none; border: 0;
+  border-bottom: 1px solid var(--rule);
+  display: grid; grid-template-columns: 84px 1fr 88px 72px; gap: var(--s4);
+  align-items: center; padding: var(--s3) var(--s2); text-align: left;
+  transition: background 140ms ease;
+}
+.mock[data-c="4"] .drow:hover { background: var(--bg2); }
+.mock[data-c="4"] .drow[aria-pressed="true"] { background: var(--bg2); box-shadow: inset 2px 0 0 var(--glass); }
+.mock[data-c="4"] .drow .dt { font-family: var(--f-mono); font-size: var(--t-xs); letter-spacing: 0.05em; text-transform: uppercase; color: var(--dim); }
+.mock[data-c="4"] .drow .sum { font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mock[data-c="4"] .drow .bandtxt { font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.07em; text-transform: uppercase; color: var(--band); }
+.mock[data-c="4"] .drow .val { font-family: var(--f-mono); font-size: var(--t-sm); font-variant-numeric: tabular-nums; text-align: right; color: var(--band); }
+@container (max-width: 640px) {
+  .mock[data-c="4"] .drow { grid-template-columns: 72px 1fr 68px; }
+  .mock[data-c="4"] .drow .sum { display: none; }
+}
+.mock[data-c="4"] .closing {
+  display: grid; gap: var(--s2); padding-top: var(--s6); border-top: 1px solid var(--rule);
+  font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--faint);
+}
+.mock[data-c="4"] .closing b { color: var(--ochre); }
+
+/* ============================================================
+   05 PLANNING MATRIX
+   ============================================================ */
+.mock[data-c="5"] {
+  --bg: #f3f5f5; --panel: #ffffff; --ink: #131c22; --dim: #4b5b64; --faint: #74848c;
+  --rule: #e0e5e7; --rule2: #c2ccd0; --sel: #0e5f74;
+  --heat-bad: #b4562f; --heat-mid: #b08a2a; --heat-good: #12776b;
+  --q-poor: #a2451f; --q-marginal: #8a6a12; --q-workable: #12776b; --q-good: #0e6b62; --q-clear: #0b5d63;
+  --r: 4px;
+  --sk-a: rgba(19,28,34,0.08); --sk-b: rgba(19,28,34,0.15);
+  background: var(--bg); color: var(--ink); font-family: var(--f-sans);
+  font-size: var(--t-sm); line-height: var(--lh-sm);
+  display: grid; grid-template-columns: 216px 1fr;
+  min-height: 520px;
+}
+@container (max-width: 780px) { .mock[data-c="5"] { grid-template-columns: 1fr; } }
+.mock[data-c="5"] .rail {
+  background: var(--panel); border-right: 1px solid var(--rule);
+  display: grid; grid-template-rows: auto 1fr; align-content: start;
+}
+@container (max-width: 780px) { .mock[data-c="5"] .rail { border-right: 0; border-bottom: 1px solid var(--rule); } }
+.mock[data-c="5"] .railtitle {
+  padding: var(--s4); border-bottom: 1px solid var(--rule);
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--faint);
+  display: flex; justify-content: space-between; gap: var(--s2);
+}
+.mock[data-c="5"] .spot {
+  appearance: none; cursor: pointer; background: none; border: 0; width: 100%;
+  border-bottom: 1px solid var(--rule); text-align: left;
+  padding: var(--s3) var(--s4);
+  display: grid; grid-template-columns: 1fr auto; gap: var(--s1) var(--s3); align-items: baseline;
+  transition: background 120ms ease;
+}
+.mock[data-c="5"] .spot:hover { background: color-mix(in srgb, var(--ink) 3%, transparent); }
+.mock[data-c="5"] .spot[aria-current="true"] { background: color-mix(in srgb, var(--sel) 8%, transparent); box-shadow: inset 2px 0 0 var(--sel); }
+.mock[data-c="5"] .spot .nm { grid-column: 1; grid-row: 1; font-size: var(--t-sm); line-height: var(--lh-sm); font-weight: 500; }
+.mock[data-c="5"] .spot .km { grid-column: 1; grid-row: 2; font-size: var(--t-2xs); line-height: var(--lh-2xs); color: var(--faint); }
+.mock[data-c="5"] .spot .vv {
+  grid-column: 2; grid-row: 1 / span 2; align-self: center; justify-self: end;
+  font-family: var(--f-mono); font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums; color: var(--band); font-weight: 600;
+}
+.mock[data-c="5"] .work { display: grid; grid-template-rows: auto auto 1fr; min-width: 0; }
+.mock[data-c="5"] .bar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s4);
+  padding: var(--s3) var(--s4); border-bottom: 1px solid var(--rule); background: var(--panel);
+}
+.mock[data-c="5"] .bar h3 { margin: 0; font-size: var(--t-lg); line-height: var(--lh-lg); font-weight: 600; letter-spacing: -0.01em; }
+.mock[data-c="5"] .bar .meta { font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.07em; text-transform: uppercase; color: var(--faint); }
+.mock[data-c="5"] .btn {
+  appearance: none; cursor: pointer; background: var(--panel);
+  border: 1px solid var(--rule2); border-radius: var(--r);
+  padding: var(--s2) var(--s3); color: var(--dim);
+  font-size: var(--t-xs); line-height: var(--lh-xs);
+  display: inline-flex; align-items: center; gap: var(--s2);
+  transition: border-color 140ms ease, color 140ms ease;
+}
+.mock[data-c="5"] .btn:hover { border-color: var(--sel); color: var(--sel); }
+.mock[data-c="5"] .btn[disabled] { cursor: default; }
+.mock[data-c="5"] .gridwrap { overflow-x: auto; padding: var(--s4); }
+.mock[data-c="5"] table { border-collapse: collapse; width: 100%; min-width: 620px; }
+.mock[data-c="5"] caption {
+  caption-side: top; text-align: left; padding-bottom: var(--s3);
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--faint);
+}
+.mock[data-c="5"] th, .mock[data-c="5"] td { padding: var(--s2) var(--s3); border-bottom: 1px solid var(--rule); }
+.mock[data-c="5"] thead th {
+  border-bottom: 1px solid var(--rule2); vertical-align: bottom;
+  font-weight: 500; text-align: center;
+}
+.mock[data-c="5"] thead th:first-child { text-align: left; }
+.mock[data-c="5"] thead th button {
+  appearance: none; cursor: pointer; background: none; border: 0; width: 100%;
+  display: grid; gap: 2px; padding: var(--s1) 0;
+  border-bottom: 2px solid transparent; transition: border-color 140ms ease;
+}
+.mock[data-c="5"] thead th button .d { font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); }
+.mock[data-c="5"] thead th button .dd { font-family: var(--f-mono); font-size: var(--t-2xs); color: var(--faint); }
+.mock[data-c="5"] thead th button:hover .d { color: var(--ink); }
+.mock[data-c="5"] thead th[aria-selected="true"] button { border-bottom-color: var(--sel); }
+.mock[data-c="5"] thead th[aria-selected="true"] button .d { color: var(--sel); font-weight: 600; }
+.mock[data-c="5"] tbody th {
+  text-align: left; font-weight: 400; font-size: var(--t-sm); white-space: nowrap;
+  border-bottom: 1px solid var(--rule);
+}
+.mock[data-c="5"] tbody td {
+  text-align: center; font-family: var(--f-mono); font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+  background: color-mix(in oklab, var(--cell) calc(var(--i) * 100%), transparent);
+}
+.mock[data-c="5"] tbody td[data-heat="bad"] { --cell: var(--heat-bad); }
+.mock[data-c="5"] tbody td[data-heat="mid"] { --cell: var(--heat-mid); }
+.mock[data-c="5"] tbody td[data-heat="good"] { --cell: var(--heat-good); }
+.mock[data-c="5"] tbody tr.totalrow th, .mock[data-c="5"] tbody tr.totalrow td {
+  border-top: 1px solid var(--rule2); font-weight: 600; background: none;
+}
+.mock[data-c="5"] tbody tr.totalrow td { color: var(--band); font-size: var(--t-sm); }
+.mock[data-c="5"] tbody tr.bandrow td {
+  font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.05em;
+  text-transform: uppercase; color: var(--band); background: none;
+}
+.mock[data-c="5"] tbody tr.bandrow th { color: var(--faint); }
+.mock[data-c="5"] td.selcol, .mock[data-c="5"] th.selcol { box-shadow: inset 1px 0 0 var(--sel), inset -1px 0 0 var(--sel); }
+.mock[data-c="5"] .legend {
+  display: flex; flex-wrap: wrap; gap: var(--s4); align-items: center;
+  padding: 0 var(--s4) var(--s4);
+  font-size: var(--t-2xs); line-height: var(--lh-2xs); color: var(--faint);
+}
+.mock[data-c="5"] .legend span { display: inline-flex; align-items: center; gap: var(--s2); }
+.mock[data-c="5"] .legend i { width: 20px; height: 8px; border-radius: 2px; display: block; }
+.mock[data-c="5"] .summary {
+  border-top: 1px solid var(--rule); background: var(--panel);
+  padding: var(--s4); display: grid; gap: var(--s3);
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+}
+.mock[data-c="5"] .summary .cell { display: grid; gap: var(--s1); }
+.mock[data-c="5"] .summary .k { font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.07em; text-transform: uppercase; color: var(--faint); }
+.mock[data-c="5"] .summary .v { font-size: var(--t-md); line-height: var(--lh-md); font-weight: 600; font-variant-numeric: tabular-nums; }
+.mock[data-c="5"] .summary .note { grid-column: 1 / -1; font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--dim); margin: 0; }
+
+/* band colour resolution, shared by every concept */
+.mock [data-band="poor"] { --band: var(--q-poor); }
+.mock [data-band="marginal"] { --band: var(--q-marginal); }
+.mock [data-band="workable"] { --band: var(--q-workable); }
+.mock [data-band="good"] { --band: var(--q-good); }
+.mock [data-band="clear"] { --band: var(--q-clear); }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <p class="kicker">DepthViz / front-end directions / 29 July 2026</p>
+    <h1>Five directions for the forecast screen</h1>
+    <p class="lead">
+      Same site, same forecast, same sample dataset, drawn five different ways. Pick a direction
+      (or parts of two) and it becomes the basis for the rebuild.
+    </p>
+    <ul class="shellnotes">
+      <li>Every number below comes from one shared dataset for Hope Cove, South Devon. The arithmetic is real: 14.0 m baseline clarity minus the six penalties equals the visibility shown.</li>
+      <li>Sample data, not a live forecast. Diver reports are illustrative placeholders, not real people.</li>
+      <li>Each mock is interactive. Switch days, open the breakdown, change units, hit refresh to see the loading treatment.</li>
+      <li>All five share one 4pt spacing scale and one type ramp. What changes is palette, face pairing, density and the central device.</li>
+      <li>No direction here inherits the old house rules about dark grounds, no cards or no light themes. Each one is judged on what it does for a diver holding a phone, and on what it costs to build.</li>
+    </ul>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="wrap">
+    <div role="tablist" aria-label="Design directions" id="tabs"></div>
+    <div class="unitswitch">
+      <span class="lbl" id="unitlbl">Units</span>
+      <div class="seg" role="group" aria-labelledby="unitlbl">
+        <button type="button" data-unit="m" aria-pressed="true">m</button>
+        <button type="button" data-unit="ft" aria-pressed="false">ft</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main class="wrap" id="stage">
+  <noscript><p>These mocks are interactive and need JavaScript to render.</p></noscript>
+</main>
+
+<script>
+/* ============================================================
+   DATA
+   One dataset, shared by all five concepts. Penalties are the
+   source of truth: visibility = BASELINE - sum(penalties).
+   ============================================================ */
+const BASELINE = 14.0;
+
+const SITE = {
+  name: 'Hope Cove',
+  region: 'South Devon',
+  lat: '50.2413° N',
+  lon: '3.8577° W',
+  entry: 'Slip and beach entry, west end',
+  seabed: 'Sand over reef, 4 to 12 m',
+  updated: '06:40 BST',
+  model: 'DV-7',
+};
+
+const FACTOR_MAX = {
+  swell: 4.5, wind: 3.0, rain: 3.5, tide: 1.5, algae: 2.5, stir: 3.0,
+};
+
+const DAYS = [
+  {
+    dow: 'Wed', dm: '29 Jul', long: 'Wednesday 29 July', today: true, conf: 74,
+    swell: { h: 0.6, p: 9, dir: 'SW' }, wind: { kt: 11, dir: 'SW' },
+    water: 17.1, rain: 8.4, chl: 1.2, stir: 'Low',
+    tide: { state: 'Flooding', next: 'High 13:42', range: 3.9 },
+    pen: { swell: 1.8, wind: 1.1, rain: 2.4, tide: 0.4, algae: 1.3, stir: 0.6 },
+    headline: 'Workable on the reef edge. Runoff from Monday night is still hanging in the top two metres.',
+    second: 'Best window is the last two hours of the flood, from about 11:40. Wind turns onshore after 15:00 and the cove will chop up.',
+  },
+  {
+    dow: 'Thu', dm: '30 Jul', long: 'Thursday 30 July', conf: 71,
+    swell: { h: 0.4, p: 8, dir: 'SSW' }, wind: { kt: 7, dir: 'W' },
+    water: 17.4, rain: 2.1, chl: 1.1, stir: 'Low',
+    tide: { state: 'Ebbing', next: 'Low 08:10', range: 3.6 },
+    pen: { swell: 1.2, wind: 0.7, rain: 1.4, tide: 0.2, algae: 1.2, stir: 0.4 },
+    headline: 'Good day. Swell drops away and the runoff has mostly cleared the cove.',
+    second: 'Light offshore wind all morning. Expect clean water past the reef and green water inshore of the slip.',
+  },
+  {
+    dow: 'Fri', dm: '31 Jul', long: 'Friday 31 July', conf: 66,
+    swell: { h: 0.3, p: 7, dir: 'S' }, wind: { kt: 5, dir: 'NW' },
+    water: 17.6, rain: 0.0, chl: 0.9, stir: 'Low',
+    tide: { state: 'Flooding', next: 'High 15:04', range: 3.2 },
+    pen: { swell: 0.6, wind: 0.4, rain: 0.5, tide: 0.1, algae: 0.9, stir: 0.3 },
+    headline: 'Clearest day in the window. No rain since Tuesday and almost no swell.',
+    second: 'If you only get one dive this week, take this one. Neap tides keep the flow gentle.',
+  },
+  {
+    dow: 'Sat', dm: '1 Aug', long: 'Saturday 1 August', conf: 62,
+    swell: { h: 1.4, p: 11, dir: 'SW' }, wind: { kt: 18, dir: 'SW' },
+    water: 17.2, rain: 4.6, chl: 1.0, stir: 'Moderate',
+    tide: { state: 'Ebbing', next: 'Low 10:22', range: 4.1 },
+    pen: { swell: 3.1, wind: 2.2, rain: 1.9, tide: 0.5, algae: 1.0, stir: 1.2 },
+    headline: 'Marginal. A new southwest swell fills in overnight and the shallows start stirring.',
+    second: 'Shore entry gets awkward on the ebb. If you go, stay outside the reef where the bottom is sand.',
+  },
+  {
+    dow: 'Sun', dm: '2 Aug', long: 'Sunday 2 August', conf: 58,
+    swell: { h: 1.9, p: 12, dir: 'SW' }, wind: { kt: 23, dir: 'WSW' },
+    water: 16.8, rain: 11.2, chl: 1.1, stir: 'High',
+    tide: { state: 'Springs', next: 'High 11:58', range: 4.6 },
+    pen: { swell: 3.8, wind: 2.4, rain: 2.3, tide: 0.5, algae: 1.0, stir: 1.8 },
+    headline: 'Poor. Swell peaks, the seabed is moving in the shallows and there is fresh runoff.',
+    second: 'Not a diving day at this site. Sheltered water east of Start Point is the fallback.',
+  },
+  {
+    dow: 'Mon', dm: '3 Aug', long: 'Monday 3 August', conf: 52,
+    swell: { h: 1.3, p: 10, dir: 'SW' }, wind: { kt: 15, dir: 'W' },
+    water: 16.9, rain: 9.0, chl: 1.1, stir: 'Moderate',
+    tide: { state: 'Ebbing', next: 'Low 12:40', range: 4.4 },
+    pen: { swell: 3.0, wind: 1.8, rain: 2.6, tide: 0.4, algae: 1.1, stir: 1.5 },
+    headline: 'Marginal and improving through the afternoon as the swell decays.',
+    second: 'Confidence is thinning this far out. Treat it as a maybe and check again Saturday.',
+  },
+  {
+    dow: 'Tue', dm: '4 Aug', long: 'Tuesday 4 August', conf: 47,
+    swell: { h: 0.8, p: 9, dir: 'SSW' }, wind: { kt: 9, dir: 'NW' },
+    water: 17.0, rain: 3.4, chl: 1.1, stir: 'Low',
+    tide: { state: 'Flooding', next: 'High 14:26', range: 3.8 },
+    pen: { swell: 1.6, wind: 0.9, rain: 2.0, tide: 0.3, algae: 1.1, stir: 0.6 },
+    headline: 'Back to workable as the swell decays and the runoff drains away.',
+    second: 'Six days out, so this is a planning figure rather than a forecast you should pack the car for.',
+  },
+];
+
+const SPOTS = [
+  { name: 'Hope Cove', km: 'Selected site', vis: 6.4 },
+  { name: 'Thurlestone', km: '3.1 km east', vis: 5.8 },
+  { name: 'Bantham', km: '6.4 km east', vis: 4.9 },
+  { name: 'Bigbury-on-Sea', km: '7.8 km east', vis: 4.2 },
+  { name: 'Sunny Cove, Salcombe', km: '9.2 km west', vis: 7.1 },
+];
+
+const REPORTS = [
+  { when: '27 Jul', vis: 3.5, model: 4.2, text: 'Green past the reef, better at 8 m.' },
+  { when: '24 Jul', vis: 7.0, model: 6.6, text: 'Clean on the slack, silted up on the ebb.' },
+  { when: '21 Jul', vis: 2.0, model: 3.1, text: 'Brown water after the weekend rain.' },
+];
+
+DAYS.forEach(d => {
+  d.drop = Object.values(d.pen).reduce((a, b) => a + b, 0);
+  d.vis = Math.round((BASELINE - d.drop) * 10) / 10;
+});
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+const M_TO_FT = 3.28084;
+const state = { unit: 'm', active: 1, day: Array(6).fill(0), loading: {}, openWhy: true, spot: 0 };
+
+const bandOf = v => v < 3 ? 'poor' : v < 5 ? 'marginal' : v < 8 ? 'workable' : v < 11 ? 'good' : 'clear';
+const BAND_LABEL = { poor: 'Poor', marginal: 'Marginal', workable: 'Workable', good: 'Good', clear: 'Clear' };
+const BAND_ACTION = { poor: 'Stay ashore', marginal: 'Your call', workable: 'Divable', good: 'Go', clear: 'Go' };
+
+const unitLabel = () => state.unit === 'm' ? 'm' : 'ft';
+const num = (v, dp) => v.toFixed(dp === undefined ? 1 : dp);
+const dist = v => state.unit === 'm' ? num(v, 1) : num(v * M_TO_FT, 0);
+const distU = v => dist(v) + ' ' + unitLabel();
+const swellVal = h => state.unit === 'm' ? num(h, 1) + ' m' : num(h * M_TO_FT, 1) + ' ft';
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const loadBand = r => r <= 0 ? 'none' : r < 0.4 ? 'low' : r < 0.75 ? 'moderate' : 'high';
+const LOAD_LABEL = { none: 'None', low: 'Slight', moderate: 'Moderate', high: 'Strong' };
+
+function factorsOf(d) {
+  return [
+    { key: 'swell', n: 'Ground swell', v: swellVal(d.swell.h) + ' at ' + d.swell.p + ' s ' + d.swell.dir },
+    { key: 'wind', n: 'Wind chop', v: d.wind.kt + ' kt ' + d.wind.dir },
+    { key: 'rain', n: 'Rain, last 48 h', v: num(d.rain, 1) + ' mm' },
+    { key: 'tide', n: 'Tide state', v: d.tide.state + ', ' + distU(d.tide.range) + ' range' },
+    { key: 'algae', n: 'Algae', v: num(d.chl, 1) + ' mg/m³ chl-a' },
+    { key: 'stir', n: 'Seabed stirring', v: d.stir },
+  ].map(f => {
+    const pen = d.pen[f.key], max = FACTOR_MAX[f.key];
+    return Object.assign(f, { pen, max, ratio: pen / max, load: loadBand(pen / max) });
+  });
+}
+
+const spin = label => '<span class="spin" aria-hidden="true"></span>' + label;
+const refreshLabel = (n, idle) => state.loading[n] ? spin('Updating') : idle;
+
+/* ============================================================
+   CONCEPT METADATA
+   ============================================================ */
+const CONCEPTS = [
+  {
+    id: 1, name: 'Bathymetric Instrument', tab: 'Instrument',
+    thesis: 'The reading is drawn as a water column, so "6.4 m of visibility in 11 m of water" is a picture before it is a number.',
+    frame: 'Forecast screen / desktop and tablet',
+    palette: [['#071317', 'ground'], ['#0b1b21', 'panel'], ['#7fe6d9', 'working'], ['#e0a458', 'caution'], ['#e9f4f4', 'ink']],
+    type: 'Condensed grotesque for headings and the large reading, platform mono for every label, coordinate and measurement. Ships as Bahnschrift or Roboto Condensed plus IBM Plex Mono, both already in your dependencies.',
+    devices: 'Vertical water column with a metre ladder and a seabed hatch. Factor rows carry a load bar rather than a card. The week is a small column plot you click.',
+    tradeoff: 'Strongest identity of the five and the most work to build, because the column has to stay honest at every site depth. Needs a real fallback when site depth is unknown.',
+    fit: 'Knowing site depth. Where you have it, from a saved spot or a mapped entry, this is the most memorable screen of the five. Where you do not, the column degrades to a plain bar and loses the reason it exists.',
+  },
+  {
+    id: 2, name: 'Chart Room', tab: 'Chart Room',
+    thesis: 'Borrows from admiralty charts: paper ground, sounding numerals, magenta reserved for cautions, and a margin column for the raw figures.',
+    frame: 'Forecast screen / desktop and tablet',
+    palette: [['#edf1f2', 'paper'], ['#d5e4dd', 'shoal'], ['#123b52', 'navy'], ['#a8305b', 'caution'], ['#0e2129', 'ink']],
+    type: 'An old-style serif for the reading and the prose, mono for soundings and metadata. Ships as Signifier or Freight Text Pro plus IBM Plex Mono.',
+    devices: 'Double rule masthead, verdict set as a sounding, hand-plotted tide curve, margin column of figures, ruled week table.',
+    tradeoff: 'Reads beautifully on a laptop and is the hardest of the five to keep legible in direct sun on a phone at the slip. Would need a paired dark field mode.',
+    fit: 'A second theme from day one. Paper loses to direct sun at the slip, so this needs a dark field variant, which is two designs to maintain rather than one.',
+  },
+  {
+    id: 3, name: 'Field Signal', tab: 'Field Signal',
+    thesis: 'One decision, one screen, thumb reach. Everything else is behind a working accordion, because at the car park you want Go or Wait, not six factors.',
+    frame: 'Forecast screen / phone, 408 px column',
+    palette: [['#eff1f2', 'ground'], ['#ffffff', 'card'], ['#0f6b5c', 'brand'], ['#8a6a12', 'wait'], ['#9c3b28', 'stop'], ['#14202a', 'ink']],
+    type: 'One humanist sans doing all the work, at four weights. Ships as Söhne or Inter. No mono, on purpose: nothing here is a coordinate.',
+    devices: 'Action pill, single large number, visibility scale with real markers, three stat tiles, accordion breakdown, seven day pills, one primary action.',
+    tradeoff: 'The most usable and the least distinctive. Looks like a well-built utility app rather than a marine instrument, and desktop needs a separate layout.',
+    fit: 'A separate desktop layout, because this column should not be stretched to 1200 px. In exchange it is the cheapest of the five to build and the least likely to age badly.',
+  },
+  {
+    id: 4, name: 'Tide Ledger', tab: 'Tide Ledger',
+    thesis: 'The model shows its working. Baseline clarity, then every penalty as a line item, then the total. No cards anywhere on the screen.',
+    frame: 'Forecast screen / one column, any width',
+    palette: [['#14191a', 'ground'], ['#1b2122', 'row'], ['#93b7a6', 'working'], ['#c9a05c', 'deduction'], ['#e9ede9', 'ink']],
+    type: 'A single neutral sans set large and light for the verdict sentence, mono for every figure. Ships as Inter Display plus IBM Plex Mono.',
+    devices: 'Plain-sentence verdict, a ledger of deductions with observed values, a ruled seven day list, closing note on confidence.',
+    tradeoff: 'Best at earning trust, weakest at a glance: there is no single graphic to read from two metres away. Long factor lists will need grouping.',
+    fit: 'A model that stays explainable line by line. The moment the backend adds a factor that cannot be stated as a clean deduction in metres, the central device wobbles.',
+  },
+  {
+    id: 5, name: 'Planning Matrix', tab: 'Planning Matrix',
+    thesis: 'For the diver planning a week off, not a morning. Seven days by six factors as one graded grid, with nearby sites ranked in the rail.',
+    frame: 'Planning screen / desktop first',
+    palette: [['#f3f5f5', 'ground'], ['#ffffff', 'panel'], ['#0e5f74', 'selection'], ['#12776b', 'good'], ['#b08a2a', 'mid'], ['#b4562f', 'bad']],
+    type: 'Sans for structure, mono for every cell, tabular figures throughout so columns align. Ships as Inter plus IBM Plex Mono.',
+    devices: 'Site rail with ranked visibility, heat-graded factor matrix, selectable day column, summary strip under the grid.',
+    tradeoff: 'Highest information density and the least emotion. Needs a phone layout of its own, since a seven by six grid cannot shrink honestly.',
+    fit: 'Two screens rather than one. This answers "which day this week", so something else still has to answer "can I dive right now". Best return if trips get planned days ahead.',
+  },
+];
+
+/* ============================================================
+   MOCK 1: BATHYMETRIC INSTRUMENT
+   ============================================================ */
+function mock1() {
+  const d = DAYS[state.day[1]];
+  const b = bandOf(d.vis);
+  const siteDepth = 12;
+  const pct = Math.min(100, (d.vis / siteDepth) * 100);
+  const ticks = [0, 2, 4, 6, 8, 10, 12];
+  const f = factorsOf(d);
+
+  return '<div class="topline">' +
+      '<div class="site">' +
+        '<h3>' + SITE.name + '</h3>' +
+        '<span class="coords">' + SITE.lat + ' ' + SITE.lon + ' / ' + SITE.seabed + '</span>' +
+      '</div>' +
+      '<div class="stamp">' +
+        '<span class="t">' + SITE.model + ' run ' + SITE.updated + '<br>Sample data</span>' +
+        '<button type="button" class="btn" data-refresh="1"' + (state.loading[1] ? ' disabled' : '') + '>' +
+          refreshLabel(1, 'Refresh') + '</button>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="body">' +
+      '<div class="column" data-band="' + b + '">' +
+        '<div class="ladder" aria-hidden="true">' +
+          ticks.map(t => '<span>' + (state.unit === 'm' ? t + 'm' : Math.round(t * M_TO_FT) + 'ft') + '</span>').join('') +
+        '</div>' +
+        '<div class="well fades">' +
+          ticks.slice(1, -1).map(t => '<span class="tick" style="top:' + ((t / siteDepth) * 100) + '%"></span>').join('') +
+          '<div class="clear" style="height:' + pct + '%"></div>' +
+          '<span class="edge" style="top:' + pct + '%">' + distU(d.vis) + '</span>' +
+          '<div class="seabed"><span>seabed 12 m</span></div>' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="reading" data-band="' + b + '">' +
+        '<div class="headnum">' +
+          '<span class="big sk">' + dist(d.vis) + '</span>' +
+          '<span class="bigmeta">' +
+            '<span class="unit">' + (state.unit === 'm' ? 'metres' : 'feet') + ' horizontal</span>' +
+            '<span class="verdict sk">' + BAND_LABEL[b] + '</span>' +
+          '</span>' +
+        '</div>' +
+        '<p class="headline sk">' + esc(d.headline) + '</p>' +
+        '<div class="conf">' +
+          '<span>Confidence ' + d.conf + '%</span>' +
+          '<span class="confbar" role="img" aria-label="Model confidence ' + d.conf + ' percent"><i style="width:' + d.conf + '%"></i></span>' +
+          '<span>' + (d.today ? 'Same day' : 'Lead ' + state.day[1] + ' d') + '</span>' +
+        '</div>' +
+        '<div>' +
+          '<div class="fhead"><span>Factor</span><span>Observed</span><span>Load</span></div>' +
+          '<div class="factors fades">' +
+            f.map(x => '<div class="frow">' +
+                '<span class="fname">' + x.n + '</span>' +
+                '<span class="fval">' + esc(x.v) + '</span>' +
+                '<span class="flabel" style="display:grid;gap:var(--s1)">' +
+                  '<span class="fbar" data-load="' + x.load + '"><i style="width:' + Math.round(x.ratio * 100) + '%"></i></span>' +
+                  LOAD_LABEL[x.load] +
+                '</span>' +
+              '</div>').join('') +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="rail">' +
+      '<div class="railhead"><span>Seven day window</span><span>Visibility, ' + unitLabel() + '</span></div>' +
+      '<div class="days daysel" role="group" aria-label="Choose a day">' +
+        DAYS.map((x, i) => {
+          const xb = bandOf(x.vis);
+          const h = Math.max(6, (x.vis / 12) * 46);
+          return '<button type="button" class="day" data-day="' + i + '" data-band="' + xb + '" aria-pressed="' + (i === state.day[1]) + '">' +
+            '<span class="dl">' + x.dow + '</span>' +
+            '<span class="plot" aria-hidden="true"><i style="height:' + h + 'px"></i></span>' +
+            '<span class="dv">' + dist(x.vis) + '</span>' +
+          '</button>';
+        }).join('') +
+      '</div>' +
+    '</div>' +
+
+    '<p class="caveat"><b>Before you go</b><span>' + esc(d.second) +
+      ' Check access and local advice at the slip. A forecast supports the decision, it does not make it.</span></p>';
+}
+
+/* ============================================================
+   MOCK 2: CHART ROOM
+   ============================================================ */
+function tideCurve(d) {
+  const pts = [];
+  const phase = d.tide.state === 'Ebbing' ? Math.PI : 0;
+  for (let i = 0; i <= 24; i++) {
+    const x = (i / 24) * 240;
+    const y = 36 - Math.sin(phase + (i / 24) * Math.PI * 2.2) * (d.tide.range / 4.6) * 26;
+    pts.push([x, y]);
+  }
+  return '<svg viewBox="0 0 240 72" role="img" aria-label="Tide curve for ' + d.long + ', range ' + d.tide.range + ' metres">' +
+    '<line x1="0" y1="36" x2="240" y2="36" stroke="currentColor" stroke-opacity="0.18" stroke-width="1"></line>' +
+    '<polyline points="' + pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ') + '" fill="none" stroke="#123b52" stroke-width="1.4"></polyline>' +
+    pts.filter((_, i) => i % 6 === 0).map(p => '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="2" fill="#123b52"></circle>').join('') +
+  '</svg>';
+}
+
+function mock2() {
+  const d = DAYS[state.day[2]];
+  const b = bandOf(d.vis);
+  const f = factorsOf(d);
+  /* Set like a chart sounding: whole number large, decimal raised. Derived from
+     the formatted string so the feet register (0 dp) simply has no decimal. */
+  const parts = dist(d.vis).split('.');
+  const sounding = parts[0] + (parts[1] ? '<sup>' + parts[1] + '</sup>' : '');
+
+  return '<div class="sheet">' +
+    '<div class="mast">' +
+      '<div>' +
+        '<h3>' + SITE.name + '</h3>' +
+        '<div class="sub">' + SITE.region + ' / ' + SITE.lat + ' ' + SITE.lon + ' / ' + SITE.entry + '</div>' +
+      '</div>' +
+      '<button type="button" class="btn" data-refresh="2"' + (state.loading[2] ? ' disabled' : '') + '>' +
+        refreshLabel(2, 'Refresh soundings') + '</button>' +
+    '</div>' +
+
+    '<div class="cols">' +
+      '<div class="main" data-band="' + b + '">' +
+        '<div class="verdictline">' +
+          '<span class="sounding sk">' + parts[0] + (parts[1] ? '<sub>' + parts[1] + '</sub>' : '') + '</span>' +
+          '<span class="vlabel">' +
+            '<span class="k">Horizontal visibility, ' + unitLabel() + '</span>' +
+            '<span class="v sk">' + BAND_LABEL[b] + '</span>' +
+            '<span class="k">' + d.long + ', confidence ' + d.conf + '%</span>' +
+          '</span>' +
+        '</div>' +
+        '<p class="prose sk">' + esc(d.headline) + '</p>' +
+        '<p class="prose sk">' + esc(d.second) + '</p>' +
+        '<p class="caution"><b>Caution</b>' + esc(SITE.entry) + ' is exposed on a southwest swell. ' +
+          'Check the state of the slip before you commit to a shore entry, and read the diver reports below against the model figure.</p>' +
+        '<div class="reports fades">' +
+          '<h4>Sample diver reports, this site</h4>' +
+          REPORTS.map(r => '<div class="rep">' +
+              '<span class="rd"><b>' + r.when + '</b><span>' + distU(r.vis) + '</span></span>' +
+              '<span class="rm">model said ' + distU(r.model) + '</span>' +
+              '<p>' + esc(r.text) + '</p>' +
+            '</div>').join('') +
+        '</div>' +
+      '</div>' +
+
+      '<div class="marg fades">' +
+        '<div class="margblock">' +
+          '<h4>Soundings</h4>' +
+          '<dl class="dl">' +
+            f.map(x => '<div><dt>' + x.n + '</dt><dd>' + esc(x.v) + '</dd></div>').join('') +
+            '<div><dt>Water temperature</dt><dd>' + num(d.water, 1) + ' °C</dd></div>' +
+          '</dl>' +
+        '</div>' +
+        '<div class="margblock tide">' +
+          '<h4>Tide, ' + d.dm + '</h4>' +
+          tideCurve(d) +
+          '<span class="tidecap">' + d.tide.next + ' / range ' + distU(d.tide.range) + ' / ' + d.tide.state.toLowerCase() + '</span>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="tablewrap daysel">' +
+      '<table>' +
+        '<caption>Seven day window, ' + SITE.model + ' run ' + SITE.updated + '</caption>' +
+        '<thead><tr>' +
+          '<th scope="col">Day</th><th scope="col">Assessment</th>' +
+          '<th scope="col" class="n">Swell</th><th scope="col" class="n">Wind</th>' +
+          '<th scope="col" class="n">Rain 48 h</th><th scope="col" class="n">Confidence</th>' +
+          '<th scope="col" class="n">Visibility</th>' +
+        '</tr></thead>' +
+        '<tbody>' +
+          DAYS.map((x, i) => {
+            const xb = bandOf(x.vis);
+            return '<tr data-day="' + i + '" data-band="' + xb + '" aria-selected="' + (i === state.day[2]) + '" tabindex="0">' +
+              '<td>' + x.dow + ' ' + x.dm + '</td>' +
+              '<td class="bandname">' + BAND_LABEL[xb] + '</td>' +
+              '<td class="n">' + swellVal(x.swell.h) + '</td>' +
+              '<td class="n">' + x.wind.kt + ' kt</td>' +
+              '<td class="n">' + num(x.rain, 1) + ' mm</td>' +
+              '<td class="n">' + x.conf + '%</td>' +
+              '<td class="n">' + distU(x.vis) + '</td>' +
+            '</tr>';
+          }).join('') +
+        '</tbody>' +
+      '</table>' +
+    '</div>' +
+
+    '<div class="foot">' +
+      '<span>Baseline clarity ' + distU(BASELINE) + ' less ' + distU(d.drop) + ' of penalties</span>' +
+      '<span>Sample data / not a live forecast</span>' +
+    '</div>' +
+  '</div>';
+}
+
+/* ============================================================
+   MOCK 3: FIELD SIGNAL
+   ============================================================ */
+function mock3() {
+  const d = DAYS[state.day[3]];
+  const b = bandOf(d.vis);
+  const f = factorsOf(d);
+  const scaleMax = 12;
+  const pct = Math.min(100, (d.vis / scaleMax) * 100);
+  const marks = state.unit === 'm' ? [0, 3, 6, 9, 12] : [0, 10, 20, 30, 39];
+
+  return '<div class="phone">' +
+    '<div class="appbar">' +
+      '<span class="place"><strong>' + SITE.name + '</strong><span>' + SITE.region + ' / ' + d.long + '</span></span>' +
+      '<button type="button" class="iconbtn" data-refresh="3"' + (state.loading[3] ? ' disabled' : '') + '>' +
+        refreshLabel(3, 'Refresh') + '</button>' +
+    '</div>' +
+
+    '<div class="card" data-band="' + b + '">' +
+      '<div class="statusrow">' +
+        '<span class="pill sk">' + BAND_ACTION[b] + '</span>' +
+        '<span class="updated">Updated ' + SITE.updated + '</span>' +
+      '</div>' +
+      '<div>' +
+        '<div class="numrow">' +
+          '<span class="num sk">' + dist(d.vis) + '</span>' +
+          '<span class="numunit">' + unitLabel() + ' visibility</span>' +
+        '</div>' +
+        '<p class="why sk" style="margin-top:var(--s3)">' + esc(d.headline) + '</p>' +
+      '</div>' +
+      '<div class="scale fades">' +
+        '<div class="track"><i style="width:' + pct + '%"></i></div>' +
+        '<div class="ticks">' + marks.map(m => '<span>' + m + '</span>').join('') + '</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="tiles fades">' +
+      '<div class="tile"><span class="k">Swell</span><span class="v">' + swellVal(d.swell.h) + '</span><span class="s">' + d.swell.p + ' s ' + d.swell.dir + '</span></div>' +
+      '<div class="tile"><span class="k">Wind</span><span class="v">' + d.wind.kt + ' kt</span><span class="s">' + d.wind.dir + '</span></div>' +
+      '<div class="tile"><span class="k">Water</span><span class="v">' + num(d.water, 1) + '°</span><span class="s">' + d.tide.state.toLowerCase() + '</span></div>' +
+    '</div>' +
+
+    '<div class="acc">' +
+      '<button type="button" class="acctrigger" aria-expanded="' + state.openWhy + '" aria-controls="why-panel" data-acc="1">' +
+        '<span>Why ' + dist(d.vis) + ' ' + unitLabel() + '</span>' +
+        '<span class="caret" aria-hidden="true">›</span>' +
+      '</button>' +
+      '<div class="accpanel fades" id="why-panel"' + (state.openWhy ? '' : ' hidden') + '>' +
+        f.map(x => '<div class="frow">' +
+            '<span class="fname">' + x.n + '</span>' +
+            '<span class="fval">' + esc(x.v) + '</span>' +
+            '<span class="fbar" data-load="' + x.load + '"><i style="width:' + Math.round(x.ratio * 100) + '%"></i></span>' +
+          '</div>').join('') +
+        '<p class="smallprint" style="padding:0">Baseline ' + distU(BASELINE) + ' less ' + distU(d.drop) + ' of penalties. Confidence ' + d.conf + '%.</p>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="daysel">' +
+      '<div class="dayhead"><span>Next seven days</span><span>' + unitLabel() + '</span></div>' +
+      '<div class="pills" role="group" aria-label="Choose a day">' +
+        DAYS.map((x, i) => '<button type="button" class="pillbtn" data-day="' + i + '" data-band="' + bandOf(x.vis) + '" aria-pressed="' + (i === state.day[3]) + '">' +
+          '<span class="d">' + x.dow + '</span>' +
+          '<span class="v">' + dist(x.vis) + '</span>' +
+          '<span class="dot" aria-hidden="true"></span>' +
+        '</button>').join('') +
+      '</div>' +
+    '</div>' +
+
+    '<button type="button" class="primary" data-log="3"' + (state.loading.log ? ' disabled' : '') + '>' +
+      (state.loading.log ? spin('Saving report') : 'Log what you actually saw') + '</button>' +
+    '<p class="smallprint">Reports from divers at this site are fed back into the model. Sample data shown, nothing is submitted from this page.</p>' +
+  '</div>';
+}
+
+/* ============================================================
+   MOCK 4: TIDE LEDGER
+   ============================================================ */
+function mock4() {
+  const d = DAYS[state.day[4]];
+  const b = bandOf(d.vis);
+  const f = factorsOf(d);
+
+  return '<div class="doc">' +
+    '<div class="head">' +
+      '<span>' + SITE.name + ' / ' + SITE.region + ' / ' + SITE.lat + ' ' + SITE.lon + '</span>' +
+      '<button type="button" class="btn" data-refresh="4"' + (state.loading[4] ? ' disabled' : '') + '>' +
+        refreshLabel(4, 'Refresh ' + SITE.model) + '</button>' +
+    '</div>' +
+
+    '<div class="statement" data-band="' + b + '">' +
+      '<h3 class="sk">Around <b>' + dist(d.vis) + ' ' + unitLabel() + '</b> at ' + SITE.name + ' on ' + d.long + '.</h3>' +
+      '<p class="sk">' + esc(d.headline) + ' ' + esc(d.second) + '</p>' +
+    '</div>' +
+
+    '<div class="ledger fades" data-band="' + b + '">' +
+      '<div class="lhead"><span>Line item</span><span>Observed</span><span>' + unitLabel() + '</span></div>' +
+      '<div class="lrow base">' +
+        '<span class="what">Baseline clarity at this site</span>' +
+        '<span class="obs">' + SITE.seabed + '</span>' +
+        '<span class="amt">' + dist(BASELINE) + '</span>' +
+      '</div>' +
+      f.map(x => '<div class="lrow">' +
+          '<span class="what">' + x.n + '</span>' +
+          '<span class="obs">' + esc(x.v) + '</span>' +
+          '<span class="amt">−' + dist(x.pen) + '</span>' +
+        '</div>').join('') +
+      '<div class="lrow total">' +
+        '<span class="what">Forecast visibility, ' + BAND_LABEL[b].toLowerCase() + '</span>' +
+        '<span class="obs">' + d.conf + '% confidence at ' + (state.day[4] === 0 ? 'same day' : state.day[4] + ' day lead') + '</span>' +
+        '<span class="amt sk">' + dist(d.vis) + '</span>' +
+      '</div>' +
+    '</div>' +
+
+    '<div>' +
+      '<p class="weeklab">Seven day window</p>' +
+      '<div class="daysel" role="group" aria-label="Choose a day">' +
+        DAYS.map((x, i) => {
+          const xb = bandOf(x.vis);
+          return '<button type="button" class="drow" data-day="' + i + '" data-band="' + xb + '" aria-pressed="' + (i === state.day[4]) + '">' +
+            '<span class="dt">' + x.dow + ' ' + x.dm + '</span>' +
+            '<span class="sum">' + esc(x.headline) + '</span>' +
+            '<span class="bandtxt">' + BAND_LABEL[xb] + '</span>' +
+            '<span class="val">' + distU(x.vis) + '</span>' +
+          '</button>';
+        }).join('') +
+      '</div>' +
+    '</div>' +
+
+    '<div class="closing">' +
+      '<span><b>Confidence falls with lead time.</b> Day one is ' + DAYS[0].conf + '%, day seven is ' + DAYS[6].conf + '%. Beyond about four days treat these as planning figures.</span>' +
+      '<span>Sample data. ' + SITE.model + ' run ' + SITE.updated + '. A forecast supports the decision at the slip, it does not replace it.</span>' +
+    '</div>' +
+  '</div>';
+}
+
+/* ============================================================
+   MOCK 5: PLANNING MATRIX
+   ============================================================ */
+function mock5() {
+  const sel = state.day[5];
+  const d = DAYS[sel];
+  const b = bandOf(d.vis);
+  const rows = [
+    { key: 'swell', n: 'Ground swell' }, { key: 'wind', n: 'Wind chop' },
+    { key: 'rain', n: 'Rain, last 48 h' }, { key: 'tide', n: 'Tide state' },
+    { key: 'algae', n: 'Algae' }, { key: 'stir', n: 'Seabed stirring' },
+  ];
+  const heat = r => r >= 0.6 ? 'bad' : r >= 0.3 ? 'mid' : 'good';
+
+  return '<div class="rail">' +
+      '<div class="railtitle"><span>Sites within 10 km</span><span>' + unitLabel() + '</span></div>' +
+      '<div>' +
+        SPOTS.map((s, i) => '<button type="button" class="spot" data-spot="' + i + '" data-band="' + bandOf(s.vis) + '" aria-current="' + (i === state.spot) + '">' +
+          '<span class="nm">' + s.name + '</span>' +
+          '<span class="vv">' + dist(s.vis) + '</span>' +
+          '<span class="km">' + s.km + '</span>' +
+        '</button>').join('') +
+      '</div>' +
+    '</div>' +
+
+    '<div class="work">' +
+      '<div class="bar">' +
+        '<div>' +
+          '<h3>' + SPOTS[state.spot].name + '</h3>' +
+          '<span class="meta">' + SITE.model + ' run ' + SITE.updated + ' / penalties in ' + unitLabel() + ' off a ' + distU(BASELINE) + ' baseline</span>' +
+        '</div>' +
+        '<button type="button" class="btn" data-refresh="5"' + (state.loading[5] ? ' disabled' : '') + '>' +
+          refreshLabel(5, 'Refresh grid') + '</button>' +
+      '</div>' +
+
+      '<div class="gridwrap fades">' +
+        '<table>' +
+          '<caption>Visibility penalties by day, seven day window</caption>' +
+          '<thead><tr><th scope="col">Factor</th>' +
+            DAYS.map((x, i) => '<th scope="col"' + (i === sel ? ' class="selcol" aria-selected="true"' : ' aria-selected="false"') + '>' +
+              '<button type="button" data-day="' + i + '"><span class="d">' + x.dow + '</span><span class="dd">' + x.dm + '</span></button>' +
+            '</th>').join('') +
+          '</tr></thead>' +
+          '<tbody>' +
+            rows.map(r => '<tr><th scope="row">' + r.n + '</th>' +
+              DAYS.map((x, i) => {
+                const ratio = x.pen[r.key] / FACTOR_MAX[r.key];
+                return '<td data-heat="' + heat(ratio) + '" style="--i:' + (0.12 + ratio * 0.62).toFixed(2) + '"' + (i === sel ? ' class="selcol"' : '') + '>' +
+                  '−' + dist(x.pen[r.key]) + '</td>';
+              }).join('') +
+            '</tr>').join('') +
+            '<tr class="totalrow"><th scope="row">Visibility</th>' +
+              DAYS.map((x, i) => '<td data-band="' + bandOf(x.vis) + '"' + (i === sel ? ' class="selcol"' : '') + '>' + dist(x.vis) + '</td>').join('') +
+            '</tr>' +
+            '<tr class="bandrow"><th scope="row">Assessment</th>' +
+              DAYS.map((x, i) => '<td data-band="' + bandOf(x.vis) + '"' + (i === sel ? ' class="selcol"' : '') + '>' + BAND_LABEL[bandOf(x.vis)] + '</td>').join('') +
+            '</tr>' +
+            '<tr class="bandrow"><th scope="row">Confidence</th>' +
+              DAYS.map((x, i) => '<td' + (i === sel ? ' class="selcol"' : '') + ' style="color:var(--faint)">' + x.conf + '%</td>').join('') +
+            '</tr>' +
+          '</tbody>' +
+        '</table>' +
+      '</div>' +
+
+      '<div class="legend" aria-hidden="true">' +
+        '<span>Penalty size</span>' +
+        '<span><i style="background:color-mix(in oklab, var(--heat-good) 40%, transparent)"></i> small</span>' +
+        '<span><i style="background:color-mix(in oklab, var(--heat-mid) 55%, transparent)"></i> moderate</span>' +
+        '<span><i style="background:color-mix(in oklab, var(--heat-bad) 70%, transparent)"></i> large</span>' +
+        '<span>Cells show metres lost from the baseline</span>' +
+      '</div>' +
+
+      '<div class="summary" data-band="' + b + '">' +
+        '<div class="cell"><span class="k">Selected</span><span class="v">' + d.dow + ' ' + d.dm + '</span></div>' +
+        '<div class="cell"><span class="k">Visibility</span><span class="v sk" style="color:var(--band)">' + distU(d.vis) + '</span></div>' +
+        '<div class="cell"><span class="k">Assessment</span><span class="v" style="color:var(--band)">' + BAND_LABEL[b] + '</span></div>' +
+        '<div class="cell"><span class="k">Biggest penalty</span><span class="v">' + biggest(d) + '</span></div>' +
+        '<div class="cell"><span class="k">Confidence</span><span class="v">' + d.conf + '%</span></div>' +
+        '<p class="note sk">' + esc(d.headline) + '</p>' +
+      '</div>' +
+    '</div>';
+}
+
+function biggest(d) {
+  const names = { swell: 'Ground swell', wind: 'Wind chop', rain: 'Rain', tide: 'Tide', algae: 'Algae', stir: 'Seabed' };
+  const k = Object.keys(d.pen).reduce((a, x) => d.pen[x] > d.pen[a] ? x : a, 'swell');
+  return names[k] + ' −' + dist(d.pen[k]);
+}
+
+const RENDERERS = { 1: mock1, 2: mock2, 3: mock3, 4: mock4, 5: mock5 };
+
+/* ============================================================
+   SHELL
+   ============================================================ */
+function buildShell() {
+  document.getElementById('tabs').innerHTML = CONCEPTS.map(c =>
+    '<button type="button" role="tab" id="tab-' + c.id + '" aria-controls="panel-' + c.id + '" ' +
+      'aria-selected="' + (c.id === state.active) + '" tabindex="' + (c.id === state.active ? '0' : '-1') + '">' +
+      '<span class="num">0' + c.id + '</span><span class="nm">' + c.tab + '</span>' +
+    '</button>').join('');
+
+  document.getElementById('stage').insertAdjacentHTML('beforeend', CONCEPTS.map(c =>
+    '<section role="tabpanel" id="panel-' + c.id + '" aria-labelledby="tab-' + c.id + '" tabindex="0"' +
+      (c.id === state.active ? '' : ' hidden') + '>' +
+      '<div class="chead">' +
+        '<span class="ref">Direction 0' + c.id + '</span>' +
+        '<h2>' + c.name + '</h2>' +
+        '<p class="thesis">' + c.thesis + '</p>' +
+      '</div>' +
+      '<div class="frame">' +
+        '<div class="framebar"><span>' + c.frame + '</span><span>Sample data</span></div>' +
+        '<div class="mock" data-c="' + c.id + '" id="mock-' + c.id + '"></div>' +
+      '</div>' +
+      '<div class="notes">' +
+        '<div class="note"><h3>Palette</h3><ul class="swatches">' +
+          c.palette.map(p => '<li><span class="chip" style="background:' + p[0] + '"></span><code>' + p[1] + '</code></li>').join('') +
+        '</ul><p>' + c.palette.map(p => p[0]).join(', ') + '</p></div>' +
+        '<div class="note"><h3>Type</h3><p>' + c.type + '</p></div>' +
+        '<div class="note"><h3>Devices</h3><p>' + c.devices + '</p></div>' +
+        '<div class="note"><h3>Trade-off</h3><p>' + c.tradeoff + '</p>' +
+          '<p style="margin-top:var(--s3)"><strong style="color:var(--sh-ink)">What it commits you to.</strong> ' + c.fit + '</p></div>' +
+      '</div>' +
+    '</section>').join(''));
+}
+
+function renderMock(id) {
+  const el = document.getElementById('mock-' + id);
+  if (!el) return;
+  el.dataset.loading = state.loading[id] ? '1' : '0';
+  el.innerHTML = RENDERERS[id]();
+}
+
+function renderAll() { CONCEPTS.forEach(c => renderMock(c.id)); }
+
+function selectTab(id, focus) {
+  state.active = id;
+  CONCEPTS.forEach(c => {
+    const tab = document.getElementById('tab-' + c.id);
+    const panel = document.getElementById('panel-' + c.id);
+    const on = c.id === id;
+    tab.setAttribute('aria-selected', String(on));
+    tab.tabIndex = on ? 0 : -1;
+    panel.hidden = !on;
+    if (on && focus) tab.focus();
+  });
+}
+
+/* ---- events ---- */
+document.getElementById('tabs').addEventListener('click', e => {
+  const tab = e.target.closest('[role="tab"]');
+  if (tab) selectTab(Number(tab.id.split('-')[1]), false);
+});
+
+document.getElementById('tabs').addEventListener('keydown', e => {
+  const keys = { ArrowRight: 1, ArrowLeft: -1 };
+  if (!(e.key in keys)) return;
+  e.preventDefault();
+  const next = ((state.active - 1 + keys[e.key]) + CONCEPTS.length) % CONCEPTS.length;
+  selectTab(next + 1, true);
+});
+
+document.querySelectorAll('.seg button[data-unit]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    state.unit = btn.dataset.unit;
+    document.querySelectorAll('.seg button[data-unit]').forEach(b =>
+      b.setAttribute('aria-pressed', String(b.dataset.unit === state.unit)));
+    renderAll();
+  });
+});
+
+document.getElementById('stage').addEventListener('click', e => {
+  const mock = e.target.closest('.mock');
+  if (!mock) return;
+  const id = Number(mock.dataset.c);
+
+  const day = e.target.closest('[data-day]');
+  if (day && !state.loading[id]) {
+    state.day[id] = Number(day.dataset.day);
+    renderMock(id);
+    return;
+  }
+  const spot = e.target.closest('[data-spot]');
+  if (spot) { state.spot = Number(spot.dataset.spot); renderMock(id); return; }
+
+  const acc = e.target.closest('[data-acc]');
+  if (acc) { state.openWhy = !state.openWhy; renderMock(id); return; }
+
+  const refresh = e.target.closest('[data-refresh]');
+  if (refresh && !state.loading[id]) {
+    state.loading[id] = true;
+    renderMock(id);
+    setTimeout(() => { state.loading[id] = false; renderMock(id); }, 900);
+    return;
+  }
+  const log = e.target.closest('[data-log]');
+  if (log && !state.loading.log) {
+    state.loading.log = true;
+    renderMock(id);
+    setTimeout(() => { state.loading.log = false; renderMock(id); }, 900);
+  }
+});
+
+/* keyboard support for the chart-room table rows */
+document.getElementById('stage').addEventListener('keydown', e => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const row = e.target.closest('tr[data-day]');
+  if (!row) return;
+  e.preventDefault();
+  const id = Number(row.closest('.mock').dataset.c);
+  state.day[id] = Number(row.dataset.day);
+  renderMock(id);
+});
+
+buildShell();
+renderAll();
+</script>
+</body>
+</html>
