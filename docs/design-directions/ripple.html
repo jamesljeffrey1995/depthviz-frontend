@@ -1,0 +1,776 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A soft-shaped direction for the DepthViz forecast screen, with real page chrome and no gallery framing.">
+<title>DepthViz: Ripple</title>
+
+<style>
+/* ============================================================
+   RIPPLE
+   A fresh direction. No gallery chrome, no white frame: the page
+   is the screen. Shape language comes from water rather than from
+   a table, so the system is built on circles, arcs and soft
+   panels. Deliberately absent: hairline rules, uppercase mono
+   micro-labels, hard corners, tabular grids.
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+:root {
+  /* spacing, 4pt */
+  --s1: 4px;  --s2: 8px;  --s3: 12px; --s4: 16px; --s5: 20px;
+  --s6: 24px; --s7: 28px; --s8: 32px; --s10: 40px; --s12: 48px; --s16: 64px;
+
+  /* radius: four steps, nothing improvised */
+  --r-sm: 10px; --r-md: 18px; --r-lg: 26px; --r-xl: 34px; --r-pill: 999px;
+
+  /* type: one family, five steps. No mono anywhere: mono caps are
+     most of what made the earlier drafts read as a terminal. */
+  --f: "Avenir Next", "Segoe UI Variable Display", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --t-xs: 12px;  --lh-xs: 18px;
+  --t-sm: 14px;  --lh-sm: 21px;
+  --t-md: 16px;  --lh-md: 25px;
+  --t-lg: 19px;  --lh-lg: 28px;
+  --t-xl: 24px;  --lh-xl: 32px;
+
+  /* two shadows, both soft and wide. These replace every rule. */
+  --sh-1: 0 1px 2px rgba(10, 42, 44, 0.05), 0 4px 12px rgba(10, 42, 44, 0.05);
+  --sh-2: 0 2px 6px rgba(10, 42, 44, 0.06), 0 18px 44px rgba(10, 42, 44, 0.09);
+
+  /* light: porcelain with a green bias, not white */
+  --bg: #eef3f1;
+  --bg-tint: #e2ebe8;
+  --panel: #fbfdfc;
+  --panel-soft: #edf4f2;
+  --ink: #102f2d;
+  --ink-dim: #4a6b68;
+  --ink-faint: #7a9793;
+  --accent: #0b7f7a;
+  --accent-soft: #d8ebe8;
+  --accent-ink: #ffffff;
+  --focus: #0b7f7a;
+
+  /* clarity: silt through to open water. On a light ground the step
+     is carried by fill length and label as well as hue, never hue
+     alone. */
+  --q-poor: #a05f36;
+  --q-marginal: #97803a;
+  --q-workable: #2f8a80;
+  --q-good: #1c8474;
+  --q-clear: #147a72;
+  --warm: #c8763f;
+
+  /* water body colour inside the ripple, per clarity band */
+  --w-1: #3f8f86;
+  --w-2: #1f6f74;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #081c22;
+    --bg-tint: #0c262e;
+    --panel: #0f2c34;
+    --panel-soft: #123640;
+    --ink: #eaf5f2;
+    --ink-dim: #a7c4bf;
+    --ink-faint: #7d9d99;
+    --accent: #5fd6c8;
+    --accent-soft: #14424a;
+    --accent-ink: #062226;
+    --focus: #5fd6c8;
+    --q-poor: #cf9463;
+    --q-marginal: #cbb872;
+    --q-workable: #63cfc0;
+    --q-good: #57ddc4;
+    --q-clear: #8bf0d9;
+    --warm: #e2a06a;
+    --sh-1: 0 1px 2px rgba(0, 0, 0, 0.28), 0 6px 16px rgba(0, 0, 0, 0.24);
+    --sh-2: 0 2px 8px rgba(0, 0, 0, 0.3), 0 22px 50px rgba(0, 0, 0, 0.34);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #081c22; --bg-tint: #0c262e; --panel: #0f2c34; --panel-soft: #123640;
+  --ink: #eaf5f2; --ink-dim: #a7c4bf; --ink-faint: #7d9d99;
+  --accent: #5fd6c8; --accent-soft: #14424a; --accent-ink: #062226; --focus: #5fd6c8;
+  --q-poor: #cf9463; --q-marginal: #cbb872; --q-workable: #63cfc0; --q-good: #57ddc4; --q-clear: #8bf0d9;
+  --warm: #e2a06a;
+  --sh-1: 0 1px 2px rgba(0, 0, 0, 0.28), 0 6px 16px rgba(0, 0, 0, 0.24);
+  --sh-2: 0 2px 8px rgba(0, 0, 0, 0.3), 0 22px 50px rgba(0, 0, 0, 0.34);
+}
+:root[data-theme="light"] {
+  --bg: #eef3f1; --bg-tint: #e2ebe8; --panel: #fbfdfc; --panel-soft: #edf4f2;
+  --ink: #102f2d; --ink-dim: #4a6b68; --ink-faint: #7a9793;
+  --accent: #0b7f7a; --accent-soft: #d8ebe8; --accent-ink: #ffffff; --focus: #0b7f7a;
+  --q-poor: #a05f36; --q-marginal: #97803a; --q-workable: #2f8a80; --q-good: #1c8474; --q-clear: #147a72;
+  --warm: #c8763f;
+  --sh-1: 0 1px 2px rgba(10, 42, 44, 0.05), 0 4px 12px rgba(10, 42, 44, 0.05);
+  --sh-2: 0 2px 6px rgba(10, 42, 44, 0.06), 0 18px 44px rgba(10, 42, 44, 0.09);
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(120% 80% at 50% -10%, var(--bg-tint) 0%, transparent 60%),
+    var(--bg);
+  color: var(--ink);
+  font-family: var(--f);
+  font-size: var(--t-md);
+  line-height: var(--lh-md);
+  -webkit-font-smoothing: antialiased;
+}
+:where(button) { font: inherit; color: inherit; }
+:where(a) { color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: var(--r-sm); }
+
+.screen {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: var(--s6) var(--s5) 128px;
+  display: grid;
+  gap: var(--s5);
+}
+/* grid and flex items default to a content-based minimum, which lets an
+   svg's intrinsic viewBox width push the whole column wider than the
+   viewport. Everything here is allowed to shrink instead. */
+.screen > *, .ripple, .curvewrap, .daypill, .sight-chip { min-width: 0; }
+.ripple svg, .curvewrap svg { max-width: 100%; }
+
+/* Band scope also carries the water body colour, so the disc inside the
+   ripple is silt on a poor day and open blue-green on a clear one. The mark
+   in the header and the footer keep the root values, since those are brand
+   rather than data. */
+[data-band="poor"]     { --band: var(--q-poor);     --w-1: #8a6a45; --w-2: #4c3a22; }
+[data-band="marginal"] { --band: var(--q-marginal); --w-1: #838150; --w-2: #454220; }
+[data-band="workable"] { --band: var(--q-workable); --w-1: #3f8f86; --w-2: #1f6f74; }
+[data-band="good"]     { --band: var(--q-good);     --w-1: #2f9b8b; --w-2: #16646b; }
+[data-band="clear"]    { --band: var(--q-clear);    --w-1: #229aa0; --w-2: #0f5f6b; }
+
+/* ---------- header: a soft place chip, not a bar ---------- */
+.top {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--s3); flex-wrap: wrap;
+}
+.place {
+  display: flex; align-items: center; gap: var(--s3);
+  background: var(--panel); border-radius: var(--r-pill);
+  padding: var(--s2) var(--s5) var(--s2) var(--s3);
+  box-shadow: var(--sh-1);
+}
+.place .mark {
+  width: 34px; height: 34px; border-radius: 50%; flex: none;
+  background: radial-gradient(circle at 34% 30%, var(--w-1), var(--w-2));
+  position: relative; overflow: hidden;
+}
+.place .mark::after {
+  content: ""; position: absolute; inset: 34% 0 0 0;
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 50% 50% 0 0 / 70% 70% 0 0;
+}
+.place .who { display: grid; }
+.place .who b { font-size: var(--t-md); line-height: var(--lh-sm); font-weight: 600; letter-spacing: -0.01em; }
+.place .who span { font-size: var(--t-xs); line-height: var(--lh-xs); color: var(--ink-faint); }
+.tools { display: flex; align-items: center; gap: var(--s2); }
+.units {
+  display: flex; background: var(--panel); border-radius: var(--r-pill);
+  padding: 3px; box-shadow: var(--sh-1);
+}
+.units button {
+  border: 0; background: none; cursor: pointer; border-radius: var(--r-pill);
+  padding: var(--s2) var(--s4); font-size: var(--t-sm); line-height: 1;
+  color: var(--ink-dim); transition: background 180ms ease, color 180ms ease;
+}
+.units button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.units button:hover:not([aria-pressed="true"]) { color: var(--ink); }
+.ghost {
+  display: inline-flex; align-items: center; gap: var(--s2);
+  border: 0; cursor: pointer; background: var(--panel); color: var(--ink-dim);
+  border-radius: var(--r-pill); padding: var(--s3) var(--s5);
+  font-size: var(--t-sm); line-height: 1; box-shadow: var(--sh-1);
+  transition: color 180ms ease, transform 180ms ease;
+}
+.ghost:hover { color: var(--ink); }
+.ghost:active { transform: scale(0.98); }
+.ghost[disabled] { cursor: default; }
+
+/* ---------- hero ---------- */
+.hero {
+  position: relative; overflow: hidden;
+  border-radius: var(--r-xl);
+  background: var(--panel);
+  box-shadow: var(--sh-2);
+  padding: var(--s8) var(--s7) var(--s7);
+  display: grid; gap: var(--s6);
+  grid-template-columns: 336px 1fr;
+  align-items: center;
+}
+@media (max-width: 780px) {
+  .hero { grid-template-columns: 1fr; padding: var(--s6) var(--s5) var(--s6); gap: var(--s5); }
+}
+.hero .surface {
+  position: absolute; inset: 0 0 auto 0; height: 108px; pointer-events: none;
+  opacity: 0.5;
+}
+.hero .surface svg { display: block; width: 100%; height: 100%; }
+.ripple { position: relative; justify-self: center; width: 100%; max-width: 336px; }
+.ripple svg { display: block; width: 100%; height: auto; }
+.ripple .ring { transition: opacity 300ms ease; }
+.ripple .sight { transition: r 420ms cubic-bezier(0.22, 0.7, 0.3, 1); }
+.ripplecap {
+  margin: var(--s3) 0 0; text-align: center;
+  font-size: var(--t-xs); line-height: var(--lh-xs); color: var(--ink-faint);
+}
+
+.reading { display: grid; gap: var(--s4); min-width: 0; }
+.verdictline { display: flex; align-items: center; gap: var(--s3); flex-wrap: wrap; }
+.chip {
+  display: inline-flex; align-items: center; gap: var(--s2);
+  border-radius: var(--r-pill); padding: 5px var(--s4);
+  background: color-mix(in srgb, var(--band) 16%, transparent);
+  color: var(--band); font-size: var(--t-sm); line-height: 20px; font-weight: 600;
+}
+.chip .bead { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex: none; }
+.when { font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--ink-faint); }
+.figure { display: flex; align-items: baseline; gap: var(--s3); }
+.figure .n {
+  font-size: clamp(62px, 12vw, 88px); line-height: 0.9; font-weight: 300;
+  letter-spacing: -0.035em; color: var(--band); font-variant-numeric: tabular-nums;
+}
+.figure .u { display: grid; gap: 2px; padding-bottom: var(--s2); }
+.figure .u b { font-size: var(--t-lg); line-height: var(--lh-sm); font-weight: 500; color: var(--ink); }
+.figure .u span { font-size: var(--t-sm); line-height: var(--lh-xs); color: var(--ink-faint); }
+.reading .story { margin: 0; font-size: var(--t-md); line-height: var(--lh-md); color: var(--ink-dim); max-width: 46ch; }
+.trust { display: flex; align-items: center; gap: var(--s3); flex-wrap: wrap; }
+.meter { width: 120px; height: 6px; border-radius: var(--r-pill); background: var(--panel-soft); overflow: hidden; }
+.meter i { display: block; height: 100%; border-radius: var(--r-pill); background: var(--accent); transition: width 400ms ease; }
+.trust span { font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--ink-faint); }
+
+/* ---------- what you can see ---------- */
+.section { display: grid; gap: var(--s4); }
+.section > h2 {
+  margin: 0; font-size: var(--t-lg); line-height: var(--lh-lg);
+  font-weight: 600; letter-spacing: -0.01em;
+}
+.section > h2 + .sub { margin-top: -10px; }
+.sub { margin: 0; font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--ink-faint); }
+
+.sights { display: flex; gap: var(--s3); flex-wrap: wrap; }
+.sight-chip {
+  flex: 1 1 156px; background: var(--panel); border-radius: var(--r-lg);
+  box-shadow: var(--sh-1); padding: var(--s4) var(--s5);
+  display: grid; gap: var(--s2);
+}
+.sight-chip .d { font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--ink-faint); }
+.sight-chip .v { font-size: var(--t-lg); line-height: var(--lh-sm); font-weight: 600; font-variant-numeric: tabular-nums; }
+.sight-chip .arc { height: 6px; border-radius: var(--r-pill); background: var(--panel-soft); overflow: hidden; }
+.sight-chip .arc i { display: block; height: 100%; border-radius: var(--r-pill); background: var(--band); transition: width 380ms ease; }
+
+/* ---------- week: a curve, not bars ---------- */
+.week {
+  background: var(--panel); border-radius: var(--r-xl); box-shadow: var(--sh-1);
+  padding: var(--s6) var(--s5) var(--s5);
+  display: grid; gap: var(--s4);
+}
+.weekhead { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s4); }
+.weekhead h2 { margin: 0; font-size: var(--t-lg); line-height: var(--lh-lg); font-weight: 600; letter-spacing: -0.01em; }
+.curvewrap { position: relative; }
+.curvewrap svg { display: block; width: 100%; height: auto; }
+.curvewrap .dot { cursor: pointer; transition: r 240ms ease; }
+.curvewrap .hitbox { cursor: pointer; }
+.daypills { display: flex; gap: var(--s2); }
+/* seven pills need about 52px each to hold a two digit reading, so below
+   that they wrap rather than squeezing the figures */
+@media (max-width: 520px) {
+  .daypills { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.daypill {
+  flex: 1; border: 0; cursor: pointer; background: var(--panel-soft);
+  border-radius: var(--r-md); padding: var(--s3) var(--s2);
+  display: grid; gap: 2px; justify-items: center; min-width: 0;
+  transition: background 200ms ease, transform 200ms ease;
+}
+.daypill .d { font-size: var(--t-xs); line-height: var(--lh-xs); color: var(--ink-faint); }
+.daypill .v { font-size: var(--t-sm); line-height: var(--lh-sm); font-weight: 600; font-variant-numeric: tabular-nums; color: var(--band); }
+.daypill:hover { background: color-mix(in srgb, var(--ink) 6%, var(--panel-soft)); }
+.daypill:active { transform: scale(0.97); }
+.daypill[aria-pressed="true"] { background: var(--accent-soft); }
+.daypill[aria-pressed="true"] .d { color: var(--ink); }
+
+/* ---------- factors ---------- */
+.factors {
+  background: var(--panel); border-radius: var(--r-xl); box-shadow: var(--sh-1);
+  padding: var(--s6) var(--s5);
+  display: grid; gap: var(--s5);
+}
+.factorhead { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s4); flex-wrap: wrap; }
+.factorhead h2 { margin: 0; font-size: var(--t-lg); line-height: var(--lh-lg); font-weight: 600; letter-spacing: -0.01em; }
+.flist { display: grid; gap: var(--s4); }
+.frow { display: grid; gap: var(--s2); grid-template-columns: 1fr auto; align-items: baseline; }
+.frow .fname { font-size: var(--t-md); line-height: var(--lh-sm); }
+.frow .fobs { font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--ink-faint); font-variant-numeric: tabular-nums; text-align: right; }
+.frow .fbar {
+  grid-column: 1 / -1; height: 8px; border-radius: var(--r-pill);
+  background: var(--panel-soft); overflow: hidden;
+}
+.frow .fbar i { display: block; height: 100%; border-radius: var(--r-pill); transition: width 380ms ease; }
+.frow[data-load="high"] .fbar i { background: var(--q-poor); }
+.frow[data-load="moderate"] .fbar i { background: var(--q-marginal); }
+.frow[data-load="low"] .fbar i { background: var(--accent); }
+.frow[data-load="none"] .fbar i { background: var(--ink-faint); }
+.frow .fnote { grid-column: 1 / -1; margin: 0; font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--ink-faint); }
+
+.notice {
+  display: flex; gap: var(--s4); align-items: flex-start;
+  background: color-mix(in srgb, var(--warm) 14%, var(--panel));
+  border-radius: var(--r-lg); padding: var(--s4) var(--s5);
+}
+.notice .bulb {
+  width: 26px; height: 26px; border-radius: 50%; flex: none;
+  background: color-mix(in srgb, var(--warm) 34%, transparent);
+  display: grid; place-items: center; color: var(--warm); font-weight: 700; font-size: var(--t-sm);
+}
+.notice p { margin: 0; font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--ink-dim); }
+
+/* ---------- footer: quiet, same language, no white slab ---------- */
+.foot {
+  display: grid; gap: var(--s4);
+  padding: var(--s6) var(--s5) 0;
+}
+.foot .fmark { display: flex; align-items: center; gap: var(--s3); }
+.foot .fmark .dotmark {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, var(--w-1), var(--w-2)); flex: none;
+}
+.foot .fmark b { font-size: var(--t-sm); font-weight: 600; }
+.foot p { margin: 0; font-size: var(--t-xs); line-height: var(--lh-xs); color: var(--ink-faint); max-width: 62ch; }
+.foot nav { display: flex; gap: var(--s4); flex-wrap: wrap; }
+.foot nav a {
+  font-size: var(--t-xs); line-height: var(--lh-xs); color: var(--ink-dim);
+  text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
+  padding-bottom: 1px; transition: color 180ms ease, border-color 180ms ease;
+}
+.foot nav a:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ---------- floating dock instead of a full-width tab bar ---------- */
+.dock {
+  position: fixed; left: 50%; bottom: var(--s5); transform: translateX(-50%);
+  display: flex; gap: var(--s1); z-index: 10;
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  backdrop-filter: blur(14px) saturate(1.4);
+  border-radius: var(--r-pill); padding: var(--s2);
+  box-shadow: var(--sh-2);
+  max-width: calc(100% - var(--s10));
+}
+.dock button {
+  border: 0; cursor: pointer; background: none; border-radius: var(--r-pill);
+  padding: var(--s3) var(--s5); font-size: var(--t-sm); line-height: 1;
+  color: var(--ink-faint); white-space: nowrap;
+  transition: background 200ms ease, color 200ms ease;
+}
+.dock button:hover { color: var(--ink); }
+.dock button[aria-current="page"] { background: var(--accent-soft); color: var(--ink); font-weight: 600; }
+@media (max-width: 560px) {
+  .dock button { padding: var(--s3) var(--s3); font-size: var(--t-xs); }
+}
+
+/* ---------- loading ---------- */
+.spin {
+  width: 13px; height: 13px; flex: none; border-radius: 50%;
+  border: 2px solid currentColor; border-right-color: transparent;
+  animation: rot 720ms linear infinite;
+}
+@keyframes rot { to { transform: rotate(360deg); } }
+
+[data-loading="1"] .sk {
+  color: transparent !important; border-radius: var(--r-pill);
+  background-image: linear-gradient(90deg,
+    color-mix(in srgb, var(--ink) 8%, transparent) 0%,
+    color-mix(in srgb, var(--ink) 15%, transparent) 50%,
+    color-mix(in srgb, var(--ink) 8%, transparent) 100%);
+  background-size: 200% 100%; animation: shimmer 1.3s linear infinite;
+}
+[data-loading="1"] .sk > * { visibility: hidden; }
+[data-loading="1"] .fades { opacity: 0.34; }
+[data-loading="1"] .daypills, [data-loading="1"] .curvewrap { pointer-events: none; }
+.fades { transition: opacity 220ms ease; }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: 0 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important; animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="screen" id="screen">
+  <noscript><p>This screen is interactive and needs JavaScript.</p></noscript>
+</div>
+
+<nav class="dock" aria-label="Sections">
+  <button type="button" aria-current="page">Forecast</button>
+  <button type="button">Map</button>
+  <button type="button">Spots</button>
+  <button type="button">Log</button>
+  <button type="button">You</button>
+</nav>
+
+<script>
+/* ============================================================
+   Same sample dataset as the ten earlier directions, so this can
+   be compared against them: 14.0 m baseline clarity for the site,
+   less six penalties, gives the visibility shown.
+   ============================================================ */
+const BASELINE = 14.0;
+const SITE = { name: 'Hope Cove', region: 'South Devon', seabed: 'sand over reef, 4 to 12 m', run: '06:40' };
+const FMAX = { swell: 4.5, wind: 3.0, rain: 3.5, tide: 1.5, algae: 2.5, stir: 3.0 };
+
+const DAYS = [
+  { dow: 'Wed', dm: '29 Jul', long: 'today', conf: 74,
+    swell: { h: 0.6, p: 9, dir: 'SW' }, wind: { kt: 11, dir: 'SW' }, water: 17.1, rain: 8.4, chl: 1.2, stir: 'low',
+    tide: { state: 'flooding', next: 'high at 13:42', range: 3.9 },
+    pen: { swell: 1.8, wind: 1.1, rain: 2.4, tide: 0.4, algae: 1.3, stir: 0.6 },
+    story: 'Workable on the reef edge. Runoff from Monday night is still hanging in the top two metres.',
+    advice: 'Best window is the last two hours of the flood, from about 11:40. The wind turns onshore after 15:00 and the cove will chop up.' },
+  { dow: 'Thu', dm: '30 Jul', long: 'Thursday', conf: 71,
+    swell: { h: 0.4, p: 8, dir: 'SSW' }, wind: { kt: 7, dir: 'W' }, water: 17.4, rain: 2.1, chl: 1.1, stir: 'low',
+    tide: { state: 'ebbing', next: 'low at 08:10', range: 3.6 },
+    pen: { swell: 1.2, wind: 0.7, rain: 1.4, tide: 0.2, algae: 1.2, stir: 0.4 },
+    story: 'A good day. The swell drops away and the runoff has mostly cleared the cove.',
+    advice: 'Light offshore wind all morning. Expect clean water past the reef and green water inshore of the slip.' },
+  { dow: 'Fri', dm: '31 Jul', long: 'Friday', conf: 66,
+    swell: { h: 0.3, p: 7, dir: 'S' }, wind: { kt: 5, dir: 'NW' }, water: 17.6, rain: 0.0, chl: 0.9, stir: 'low',
+    tide: { state: 'flooding', next: 'high at 15:04', range: 3.2 },
+    pen: { swell: 0.6, wind: 0.4, rain: 0.5, tide: 0.1, algae: 0.9, stir: 0.3 },
+    story: 'The clearest day in the window. No rain since Tuesday and almost no swell.',
+    advice: 'If you only get one dive this week, take this one. Neap tides keep the flow gentle.' },
+  { dow: 'Sat', dm: '1 Aug', long: 'Saturday', conf: 62,
+    swell: { h: 1.4, p: 11, dir: 'SW' }, wind: { kt: 18, dir: 'SW' }, water: 17.2, rain: 4.6, chl: 1.0, stir: 'moderate',
+    tide: { state: 'ebbing', next: 'low at 10:22', range: 4.1 },
+    pen: { swell: 3.1, wind: 2.2, rain: 1.9, tide: 0.5, algae: 1.0, stir: 1.2 },
+    story: 'Marginal. A new southwest swell fills in overnight and the shallows start stirring.',
+    advice: 'Shore entry gets awkward on the ebb. If you go, stay outside the reef where the bottom is sand.' },
+  { dow: 'Sun', dm: '2 Aug', long: 'Sunday', conf: 58,
+    swell: { h: 1.9, p: 12, dir: 'SW' }, wind: { kt: 23, dir: 'WSW' }, water: 16.8, rain: 11.2, chl: 1.1, stir: 'high',
+    tide: { state: 'springs', next: 'high at 11:58', range: 4.6 },
+    pen: { swell: 3.8, wind: 2.4, rain: 2.3, tide: 0.5, algae: 1.0, stir: 1.8 },
+    story: 'Poor. The swell peaks, the seabed is moving in the shallows and there is fresh runoff.',
+    advice: 'Not a diving day at this site. Sheltered water east of Start Point is the fallback.' },
+  { dow: 'Mon', dm: '3 Aug', long: 'Monday', conf: 52,
+    swell: { h: 1.3, p: 10, dir: 'SW' }, wind: { kt: 15, dir: 'W' }, water: 16.9, rain: 9.0, chl: 1.1, stir: 'moderate',
+    tide: { state: 'ebbing', next: 'low at 12:40', range: 4.4 },
+    pen: { swell: 3.0, wind: 1.8, rain: 2.6, tide: 0.4, algae: 1.1, stir: 1.5 },
+    story: 'Marginal, improving through the afternoon as the swell decays.',
+    advice: 'Confidence is thinning this far out. Treat it as a maybe and check again on Saturday.' },
+  { dow: 'Tue', dm: '4 Aug', long: 'Tuesday', conf: 47,
+    swell: { h: 0.8, p: 9, dir: 'SSW' }, wind: { kt: 9, dir: 'NW' }, water: 17.0, rain: 3.4, chl: 1.1, stir: 'low',
+    tide: { state: 'flooding', next: 'high at 14:26', range: 3.8 },
+    pen: { swell: 1.6, wind: 0.9, rain: 2.0, tide: 0.3, algae: 1.1, stir: 0.6 },
+    story: 'Back to workable as the swell decays and the runoff drains away.',
+    advice: 'Six days out, so this is a planning figure rather than a forecast to pack the car for.' },
+];
+DAYS.forEach(d => {
+  d.drop = Object.values(d.pen).reduce((a, b) => a + b, 0);
+  d.vis = Math.round((BASELINE - d.drop) * 10) / 10;
+});
+
+const M_TO_FT = 3.28084;
+const state = { unit: 'm', day: 0, loading: false };
+
+const bandOf = v => v < 3 ? 'poor' : v < 5 ? 'marginal' : v < 8 ? 'workable' : v < 11 ? 'good' : 'clear';
+const VERDICT = { poor: 'Stay ashore', marginal: 'Your call', workable: 'Divable', good: 'Good diving', clear: 'Clear water' };
+const CLARITY = { poor: 'poor', marginal: 'marginal', workable: 'workable', good: 'good', clear: 'clear' };
+
+const u = () => state.unit;
+const num = (v, dp) => v.toFixed(dp === undefined ? 1 : dp);
+const dist = v => state.unit === 'm' ? num(v, 1) : num(v * M_TO_FT, 0);
+const distU = v => dist(v) + ' ' + u();
+const swellVal = h => state.unit === 'm' ? num(h, 1) + ' m' : num(h * M_TO_FT, 1) + ' ft';
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+/* Beer-Lambert again: visibility is the range at which contrast falls to
+   about 5 per cent, so the attenuation coefficient is ln(20) / vis. The
+   rings and the range chips both read from this. */
+const contrastAt = (vis, d) => Math.exp(-(Math.log(20) / Math.max(vis, 0.2)) * d);
+
+const FACTORS = [
+  { key: 'swell', name: 'Ground swell', obs: d => swellVal(d.swell.h) + ' at ' + d.swell.p + ' s from the ' + d.swell.dir,
+    note: d => d.pen.swell > 2.5 ? 'Long-period energy is reaching the bottom and lifting sand off the shallows.' : null },
+  { key: 'rain', name: 'Rain in the last 48 hours', obs: d => num(d.rain, 1) + ' mm',
+    note: d => d.pen.rain > 2 ? 'River runoff carries silt into the cove and sits in the top couple of metres.' : null },
+  { key: 'wind', name: 'Wind chop', obs: d => d.wind.kt + ' kt from the ' + d.wind.dir, note: () => null },
+  { key: 'stir', name: 'Seabed stirring', obs: d => d.stir + ' over ' + SITE.seabed, note: () => null },
+  { key: 'algae', name: 'Algae', obs: d => num(d.chl, 1) + ' mg per m³ chlorophyll', note: () => null },
+  { key: 'tide', name: 'Tide', obs: d => d.tide.state + ', ' + d.tide.next, note: () => null },
+];
+const loadOf = r => r <= 0 ? 'none' : r < 0.4 ? 'low' : r < 0.75 ? 'moderate' : 'high';
+
+/* ============================================================
+   The ripple: concentric rings at 2 m intervals, each drawn at the
+   contrast it would actually have, with the sight line marked on
+   the ring where you stop being able to make anything out.
+   ============================================================ */
+function ripple(d) {
+  const S = 336, c = S / 2;
+  const R = m => 20 + (m / 12) * 124;
+  const rings = [2, 4, 6, 8, 10, 12];
+  const sightR = R(Math.min(d.vis, 12));
+
+  /* Two passes. The faint pass keeps the 2 m scale readable whatever the
+     forecast, so the device never looks empty. The bright pass carries the
+     actual contrast, so the fade means something. */
+  const scale = rings.map(m =>
+    '<circle cx="' + c + '" cy="' + c + '" r="' + R(m).toFixed(1) + '" fill="none" ' +
+      'stroke="var(--ink-faint)" stroke-width="1" opacity="0.22"></circle>').join('');
+
+  const lit = rings.map(m => {
+    const op = Math.max(0, Math.min(0.95, contrastAt(d.vis, m) * 1.5));
+    return '<circle class="ring" cx="' + c + '" cy="' + c + '" r="' + R(m).toFixed(1) + '" fill="none" ' +
+      'stroke="var(--band)" stroke-width="2.4" opacity="' + op.toFixed(3) + '"></circle>';
+  }).join('');
+
+  /* range labels stack up the vertical axis, clear of the rings */
+  const labels = [4, 8, 12].map(m =>
+    '<text x="' + c + '" y="' + (c - R(m) - 8).toFixed(1) + '" fill="var(--ink-faint)" font-size="11" ' +
+      'text-anchor="middle">' + (state.unit === 'm' ? m + ' m' : Math.round(m * M_TO_FT) + ' ft') + '</text>').join('');
+
+  const la = -40 * Math.PI / 180;
+  const lx = c + sightR * Math.cos(la), ly = c + sightR * Math.sin(la);
+
+  return '<svg viewBox="0 0 ' + S + ' ' + S + '" role="img" aria-label="Rings every two metres, fading out at about ' +
+      distU(d.vis) + ', which is how far you are expected to see">' +
+    '<defs>' +
+      '<radialGradient id="water" cx="42%" cy="34%" r="74%">' +
+        '<stop offset="0" stop-color="var(--w-1)" stop-opacity="0.42"></stop>' +
+        '<stop offset="1" stop-color="var(--w-2)" stop-opacity="0.20"></stop>' +
+      '</radialGradient>' +
+    '</defs>' +
+    '<circle cx="' + c + '" cy="' + c + '" r="' + (R(12) + 8) + '" fill="url(#water)"></circle>' +
+    scale + lit +
+    /* the sight line: solid, with a soft halo, because this is the one ring
+       that carries the answer */
+    '<circle class="sight" cx="' + c + '" cy="' + c + '" r="' + sightR.toFixed(1) + '" fill="none" ' +
+      'stroke="var(--band)" stroke-width="9" opacity="0.16"></circle>' +
+    '<circle class="sight" cx="' + c + '" cy="' + c + '" r="' + sightR.toFixed(1) + '" fill="none" ' +
+      'stroke="var(--band)" stroke-width="2.6"></circle>' +
+    '<circle cx="' + lx.toFixed(1) + '" cy="' + ly.toFixed(1) + '" r="4.5" fill="var(--band)"></circle>' +
+    '<text x="' + (lx + 10).toFixed(1) + '" y="' + (ly - 8).toFixed(1) + '" fill="var(--band)" font-size="13" ' +
+      'font-weight="600">' + distU(d.vis) + '</text>' +
+    labels +
+    '<circle cx="' + c + '" cy="' + c + '" r="14" fill="var(--band)" opacity="0.14"></circle>' +
+    '<circle cx="' + c + '" cy="' + c + '" r="4.5" fill="var(--band)"></circle>' +
+  '</svg>';
+}
+
+/* Catmull-Rom through the seven points, converted to cubic beziers, so the
+   week reads as one continuous curve rather than seven bars. */
+function spline(pts) {
+  let dd = 'M' + pts[0][0].toFixed(1) + ' ' + pts[0][1].toFixed(1);
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+    const c1x = p1[0] + (p2[0] - p0[0]) / 6, c1y = p1[1] + (p2[1] - p0[1]) / 6;
+    const c2x = p2[0] - (p3[0] - p1[0]) / 6, c2y = p2[1] - (p3[1] - p1[1]) / 6;
+    dd += ' C' + c1x.toFixed(1) + ' ' + c1y.toFixed(1) + ', ' + c2x.toFixed(1) + ' ' + c2y.toFixed(1) +
+          ', ' + p2[0].toFixed(1) + ' ' + p2[1].toFixed(1);
+  }
+  return dd;
+}
+
+function weekCurve() {
+  const W = 640, H = 168, padX = 26, padTop = 22, padBot = 26;
+  const maxV = 12;
+  const x = i => padX + (i / (DAYS.length - 1)) * (W - padX * 2);
+  const y = v => padTop + (1 - Math.min(v, maxV) / maxV) * (H - padTop - padBot);
+  const pts = DAYS.map((d, i) => [x(i), y(d.vis)]);
+  const path = spline(pts);
+  const area = path + ' L' + x(DAYS.length - 1).toFixed(1) + ' ' + (H - padBot + 10) +
+               ' L' + x(0).toFixed(1) + ' ' + (H - padBot + 10) + ' Z';
+
+  const dots = DAYS.map((d, i) => {
+    const on = i === state.day;
+    return '<g class="hitbox" data-day="' + i + '" role="button" tabindex="0" ' +
+        'aria-label="' + d.dow + ' ' + d.dm + ', ' + distU(d.vis) + '" data-band="' + bandOf(d.vis) + '">' +
+      '<rect x="' + (x(i) - 22) + '" y="0" width="44" height="' + H + '" fill="transparent"></rect>' +
+      (on ? '<line x1="' + x(i) + '" y1="' + (y(d.vis) + 8) + '" x2="' + x(i) + '" y2="' + (H - padBot + 6) +
+        '" stroke="var(--band)" stroke-width="1.5" opacity="0.34" stroke-linecap="round"></line>' : '') +
+      '<circle class="dot" cx="' + x(i) + '" cy="' + y(d.vis) + '" r="' + (on ? 7 : 4.5) + '" ' +
+        'fill="' + (on ? 'var(--band)' : 'var(--panel)') + '" stroke="var(--band)" stroke-width="2.5"></circle>' +
+    '</g>';
+  }).join('');
+
+  /* aspect ratio is preserved on purpose: stretching this would turn every
+     dot into an ellipse */
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" ' +
+      'role="img" aria-label="Visibility across the next seven days, from ' +
+      distU(Math.min.apply(null, DAYS.map(d => d.vis))) + ' to ' + distU(Math.max.apply(null, DAYS.map(d => d.vis))) + '">' +
+    '<defs><linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0" stop-color="var(--accent)" stop-opacity="0.22"></stop>' +
+      '<stop offset="1" stop-color="var(--accent)" stop-opacity="0"></stop>' +
+    '</linearGradient></defs>' +
+    '<path d="' + area + '" fill="url(#fill)"></path>' +
+    '<path d="' + path + '" fill="none" stroke="var(--accent)" stroke-width="2.5" ' +
+      'stroke-linecap="round" stroke-linejoin="round"></path>' +
+    dots +
+  '</svg>';
+}
+
+/* the wave along the top edge of the hero */
+function surfaceWave() {
+  return '<svg viewBox="0 0 1200 108" preserveAspectRatio="none" aria-hidden="true">' +
+    '<path d="M0 30 C 180 6, 300 62, 480 44 C 660 26, 780 74, 960 56 C 1080 44, 1150 58, 1200 52 L1200 0 L0 0 Z" ' +
+      'fill="var(--accent)" opacity="0.13"></path>' +
+    '<path d="M0 52 C 200 30, 320 84, 520 68 C 720 52, 830 96, 1010 80 C 1110 71, 1160 82, 1200 78 L1200 0 L0 0 Z" ' +
+      'fill="var(--accent)" opacity="0.08"></path>' +
+  '</svg>';
+}
+
+function render() {
+  const d = DAYS[state.day];
+  const band = bandOf(d.vis);
+  const big = Object.keys(d.pen).reduce((a, k) => d.pen[k] > d.pen[a] ? k : a, 'swell');
+  const bigName = FACTORS.find(f => f.key === big).name.toLowerCase();
+  const ranges = [2, 4, 6, 8];
+
+  const html =
+    '<header class="top">' +
+      '<div class="place">' +
+        '<span class="mark" aria-hidden="true"></span>' +
+        '<span class="who"><b>' + SITE.name + '</b><span>' + SITE.region + ', updated ' + SITE.run + '</span></span>' +
+      '</div>' +
+      '<div class="tools">' +
+        '<div class="units" role="group" aria-label="Units">' +
+          '<button type="button" data-unit="m" aria-pressed="' + (state.unit === 'm') + '">Metres</button>' +
+          '<button type="button" data-unit="ft" aria-pressed="' + (state.unit === 'ft') + '">Feet</button>' +
+        '</div>' +
+        '<button type="button" class="ghost" data-refresh' + (state.loading ? ' disabled' : '') + '>' +
+          (state.loading ? '<span class="spin" aria-hidden="true"></span>Updating' : 'Refresh') + '</button>' +
+      '</div>' +
+    '</header>' +
+
+    '<section class="hero" data-band="' + band + '" aria-label="Visibility ' + d.long + '">' +
+      '<div class="surface" aria-hidden="true">' + surfaceWave() + '</div>' +
+      '<div class="ripple fades">' + ripple(d) +
+        '<p class="ripplecap">Rings every 2 ' + (state.unit === 'm' ? 'metres' : 'metres, labelled in feet') +
+        '. The solid ring is your sight line.</p></div>' +
+      '<div class="reading">' +
+        '<div class="verdictline">' +
+          '<span class="chip sk"><span class="bead" aria-hidden="true"></span>' + VERDICT[band] + '</span>' +
+          '<span class="when">' + (state.day === 0 ? 'Today, ' + d.dm : d.long + ', ' + d.dm) + '</span>' +
+        '</div>' +
+        '<div class="figure">' +
+          '<span class="n sk">' + dist(d.vis) + '</span>' +
+          '<span class="u"><b>' + (state.unit === 'm' ? 'metres' : 'feet') + ' of visibility</b>' +
+            '<span>' + CLARITY[band] + ' water, horizontally</span></span>' +
+        '</div>' +
+        '<p class="story sk">' + esc(d.story) + '</p>' +
+        '<div class="trust">' +
+          '<span class="meter" role="img" aria-label="Confidence ' + d.conf + ' per cent"><i style="width:' + d.conf + '%"></i></span>' +
+          '<span>' + d.conf + '% confidence, ' + (state.day === 0 ? 'same day' : state.day + ' day lead') + '</span>' +
+        '</div>' +
+      '</div>' +
+    '</section>' +
+
+    '<section class="section" data-band="' + band + '">' +
+      '<h2>How far you will make things out</h2>' +
+      '<p class="sub">Contrast remaining at each range, from the same attenuation model the app uses on dive video.</p>' +
+      '<div class="sights fades">' +
+        ranges.map(m => {
+          const k = Math.round(contrastAt(d.vis, m) * 100);
+          /* 5% contrast is the threshold the visibility figure itself is
+             defined at, so the bands have to meet there or the chips will
+             contradict the headline number */
+          const label = k >= 60 ? 'Clear detail' : k >= 25 ? 'Shape and colour' : k >= 5 ? 'Outline only' : 'Nothing';
+          return '<div class="sight-chip">' +
+            '<span class="d">At ' + (state.unit === 'm' ? m + ' metres' : Math.round(m * M_TO_FT) + ' feet') + '</span>' +
+            '<span class="v">' + label + '</span>' +
+            '<span class="arc"><i style="width:' + Math.max(3, k) + '%"></i></span>' +
+          '</div>';
+        }).join('') +
+      '</div>' +
+    '</section>' +
+
+    '<section class="week" data-band="' + band + '">' +
+      '<div class="weekhead">' +
+        '<h2>The next seven days</h2>' +
+        '<span class="sub">Visibility in ' + (state.unit === 'm' ? 'metres' : 'feet') + '</span>' +
+      '</div>' +
+      '<div class="curvewrap fades">' + weekCurve() + '</div>' +
+      '<div class="daypills" role="group" aria-label="Choose a day">' +
+        DAYS.map((x, i) => '<button type="button" class="daypill" data-day="' + i + '" data-band="' + bandOf(x.vis) + '" ' +
+          'aria-pressed="' + (i === state.day) + '">' +
+          '<span class="d">' + x.dow + '</span><span class="v">' + dist(x.vis) + '</span>' +
+        '</button>').join('') +
+      '</div>' +
+    '</section>' +
+
+    '<section class="factors">' +
+      '<div class="factorhead">' +
+        '<h2>What is holding it back</h2>' +
+        '<span class="sub">' + distU(BASELINE) + ' possible here, ' + distU(d.drop) + ' lost, mostly to ' + bigName + '</span>' +
+      '</div>' +
+      '<div class="flist fades">' +
+        FACTORS.map(f => {
+          const pen = d.pen[f.key], ratio = pen / FMAX[f.key], note = f.note(d);
+          return '<div class="frow" data-load="' + loadOf(ratio) + '">' +
+            '<span class="fname">' + f.name + '</span>' +
+            '<span class="fobs">' + esc(f.obs(d)) + '</span>' +
+            '<span class="fbar"><i style="width:' + Math.max(2, Math.round(ratio * 100)) + '%"></i></span>' +
+            (note ? '<p class="fnote">' + esc(note) + '</p>' : '') +
+          '</div>';
+        }).join('') +
+      '</div>' +
+      '<div class="notice">' +
+        '<span class="bulb" aria-hidden="true">!</span>' +
+        '<p>' + esc(d.advice) + ' Check conditions at the slip before you commit. A forecast supports the decision, it does not make it.</p>' +
+      '</div>' +
+    '</section>' +
+
+    '<footer class="foot">' +
+      '<div class="fmark"><span class="dotmark" aria-hidden="true"></span><b>DepthViz</b></div>' +
+      '<p>Underwater visibility forecasts for spearfishers and freedivers. Figures on this page are sample data for a design review, not a live forecast. Model DV-7, run at ' + SITE.run + ', blending swell and weather models with diver reports.</p>' +
+      '<nav aria-label="Legal and support">' +
+        '<a href="#privacy">Privacy</a><a href="#terms">Terms</a><a href="#safety">Safety guidance</a>' +
+        '<a href="#sources">Data sources</a><a href="#contact">Contact</a>' +
+      '</nav>' +
+    '</footer>';
+
+  const screen = document.getElementById('screen');
+  screen.dataset.loading = state.loading ? '1' : '0';
+  screen.innerHTML = html;
+}
+
+function pick(target) {
+  const day = target.closest('[data-day]');
+  if (day && !state.loading) { state.day = Number(day.dataset.day); render(); return; }
+
+  const unit = target.closest('[data-unit]');
+  if (unit) { state.unit = unit.dataset.unit; render(); return; }
+
+  if (target.closest('[data-refresh]') && !state.loading) {
+    state.loading = true; render();
+    setTimeout(() => { state.loading = false; render(); }, 950);
+  }
+}
+
+document.getElementById('screen').addEventListener('click', e => pick(e.target));
+document.getElementById('screen').addEventListener('keydown', e => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const hit = e.target.closest('[data-day]');
+  if (!hit) return;
+  e.preventDefault();
+  pick(hit);
+});
+document.querySelectorAll('.dock button').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.dock button').forEach(x => x.removeAttribute('aria-current'));
+    b.setAttribute('aria-current', 'page');
+  });
+});
+
+render();
+</script>
+</body>
+</html>

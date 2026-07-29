@@ -12,16 +12,23 @@ the app ends up looking like, because they come from how DepthViz is used or
 because a test enforces them. Anything that is purely a matter of taste is now
 an open decision, not a rule.
 
-Ten candidate directions are drawn up as interactive mocks, all built on the
-same sample forecast so they can be compared like for like:
+Candidate directions are drawn up as interactive mocks, all built on the same
+sample forecast so they can be compared like for like:
 
-- Directions 01 to 05: `docs/design-directions/directions-01-05.html`
-- Directions 06 to 10: `docs/design-directions/directions-06-10.html`
+- `docs/design-directions/ripple.html`, the current front runner
+- `docs/design-directions/directions-01-05.html`
+- `docs/design-directions/directions-06-10.html`
 
 Open them in a browser. Each carries its own palette, type pairing, central
-device and stated trade-off. When one is chosen, this file gets a "Chosen
-direction" section describing it, and only then do aesthetic rules belong here
-again.
+device and stated trade-off.
+
+The first ten were reviewed and judged too rectilinear: monospace micro-labels
+in caps, hairline rules everywhere, hard corners, everything in a ruled grid.
+Ripple is the response to that and is the direction to build on unless it is
+overruled. It is not yet ratified here, so no aesthetic rules follow from it
+yet. When it is confirmed, this section is replaced by a "Chosen direction"
+section describing its spacing, radius, shadow, type and colour decisions, and
+only then do aesthetic rules belong in this file again.
 
 ## What the product has to do
 
