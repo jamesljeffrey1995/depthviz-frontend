@@ -1,3 +1,10 @@
+## [1.24.6](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.24.5...v1.24.6) (2026-07-30)
+
+
+### Bug Fixes
+
+* address review on the Ripple pass ([9a07121](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/9a07121be3955aad236161117f2342d066559b83))
+
 ## [1.24.5](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.24.4...v1.24.5) (2026-07-23)
 
 
