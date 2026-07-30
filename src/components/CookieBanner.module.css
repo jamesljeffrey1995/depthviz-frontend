@@ -6,9 +6,11 @@
   left: 8px;
   right: 8px;
   z-index: 1101;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-lg);
+  /* Was a hardcoded white sheet, which read as a light slab dropped onto a
+     dark page. It now sits on the panel colour like every other surface. */
+  background: color-mix(in srgb, var(--surface-raised) 92%, transparent);
+  border: none;
+  border-radius: var(--radius-xl);
   box-shadow: var(--shadow-lg);
   backdrop-filter: blur(16px);
   padding: 16px 18px;
@@ -31,7 +33,7 @@
 
 .text {
   flex: 1;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--ink-dim);
   line-height: 1.6;
   min-width: 200px;

@@ -127,7 +127,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
             value={query}
             onChange={e => handleInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Search a coastal spot…"
+            placeholder="Search a place"
             autoComplete="off"
           />
           {showSuggestions && (

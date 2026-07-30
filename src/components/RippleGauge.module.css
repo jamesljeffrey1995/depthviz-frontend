@@ -1,0 +1,57 @@
+.wrap {
+  width: 100%;
+  max-width: 336px;
+  min-width: 0;
+  justify-self: center;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Only the two things that change with the forecast animate: the ring opacities
+   as contrast shifts, and the sight-line radius as the reading moves. */
+.ring {
+  transition: opacity var(--transition-base);
+}
+
+.sight {
+  transition: r 420ms var(--ease-out);
+}
+
+.sightLabel {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.rangeLabel {
+  font-family: var(--font-sans);
+  font-size: 11px;
+}
+
+.caption {
+  margin: var(--space-sm) 0 0;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-faint);
+}
+
+/* Thumbnail form for the day strip. The centre is left clear so the caller can
+   lay the figure over it. */
+.compact {
+  position: relative;
+  max-width: none;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}

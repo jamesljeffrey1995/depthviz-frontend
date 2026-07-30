@@ -1,6 +1,6 @@
 import { memo } from 'react'
 import type { DayForecast, VisibilityFactor } from '../types'
-import { InstrumentGauge } from './InstrumentGauge'
+import { RippleGauge } from './RippleGauge'
 import styles from './ForecastStrip.module.css'
 
 interface Props {
@@ -67,9 +67,16 @@ export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, 
             >
               <div className={styles.dateLabel}>{formatDate(day.date)}</div>
               <div className={styles.dial}>
-                <InstrumentGauge value={vis} color={faceColorVar} size={56} compact>
+                <RippleGauge
+                  vis={vis}
+                  format={m => `${m} m`}
+                  compact
+                  size={56}
+                  className={styles.dialRings}
+                  style={{ color: faceColorVar }}
+                >
                   <span className={styles.dialValue}>{vis.toFixed(1)}</span>
-                </InstrumentGauge>
+                </RippleGauge>
                 {day.algae.risk !== 'low' && (
                   <span className={`${styles.algaePip} ${styles[`algae${day.algae.risk.charAt(0).toUpperCase() + day.algae.risk.slice(1)}`]}`} />
                 )}

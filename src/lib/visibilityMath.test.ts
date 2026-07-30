@@ -9,7 +9,13 @@
  * -Infinity; a percentile interpolated between two -Infinity values → NaN).
  */
 import { describe, expect, test } from 'vitest'
-import { beerLambert, percentile, transmissionFromDarkChannel } from './visibilityMath'
+import {
+  CONTRAST_THRESHOLD,
+  beerLambert,
+  contrastAtRange,
+  percentile,
+  transmissionFromDarkChannel,
+} from './visibilityMath'
 
 const CALIB = 4.0
 
@@ -124,6 +130,43 @@ describe('UDCP transmission → visibility contract for real dive footage', () =
     const vis = turbidDarkChannels.map((d) => beerLambert(transmissionFromDarkChannel(d), CALIB))
     for (let i = 1; i < vis.length; i++) {
       expect(vis[i]).toBeLessThan(vis[i - 1]!)
+    }
+  })
+})
+
+describe('contrastAtRange', () => {
+  test('hits the sighting threshold exactly at the visibility range', () => {
+    for (const vis of [1.5, 3, 6.4, 12, 25]) {
+      expect(contrastAtRange(vis, vis)).toBeCloseTo(CONTRAST_THRESHOLD, 6)
+    }
+  })
+
+  test('is full contrast at zero range and decays monotonically', () => {
+    expect(contrastAtRange(8, 0)).toBe(1)
+    const series = [1, 2, 4, 8, 16].map((d) => contrastAtRange(8, d))
+    for (let i = 1; i < series.length; i++) {
+      expect(series[i]!).toBeLessThan(series[i - 1]!)
+    }
+  })
+
+  test('clearer water keeps more contrast at the same range', () => {
+    expect(contrastAtRange(12, 5)).toBeGreaterThan(contrastAtRange(4, 5))
+  })
+
+  test('agrees with beerLambert about the same water', () => {
+    // beerLambert turns a transmission into a visibility; contrastAtRange turns
+    // that visibility back into a per-metre contrast. Round-tripping through
+    // both should land on the range we started from.
+    const vis = beerLambert(0.86, 1.2)
+    const c = contrastAtRange(vis, vis)
+    expect(c).toBeCloseTo(CONTRAST_THRESHOLD, 6)
+  })
+
+  test('never returns a non-finite number, even for a zero visibility', () => {
+    for (const vis of [0, -1, 0.0001]) {
+      const c = contrastAtRange(vis, 3)
+      expect(Number.isFinite(c)).toBe(true)
+      expect(c).toBeGreaterThanOrEqual(0)
     }
   })
 })

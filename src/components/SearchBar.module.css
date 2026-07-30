@@ -2,13 +2,16 @@
   position: relative;
   display: flex;
   align-items: stretch;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 24px;
 }
 
 .searchGroup {
   min-width: 0;
-  flex: 1;
+  /* Wide enough to hold the field and the submit button side by side; below
+     that the locate button wraps to its own line rather than being overlapped. */
+  flex: 1 1 300px;
   display: flex;
   align-items: stretch;
   background: var(--surface-raised);

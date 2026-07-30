@@ -8,7 +8,8 @@ import { VisTrendChart } from './VisTrendChart'
 import { SwellChart } from './SwellChart'
 import { KelpVisibilityNote } from './KelpVisibilityNote'
 import { SatelliteImageryCard } from './SatelliteImageryCard'
-import { InstrumentGauge, type GaugeConfidence } from './InstrumentGauge'
+import { type GaugeConfidence } from './InstrumentGauge'
+import { RippleGauge } from './RippleGauge'
 import {
   IconChevronDown, IconChevronUp, IconAlertTriangle,
   IconThermometer, IconWaves, IconCompass, IconWind, IconDroplet,
@@ -211,6 +212,15 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
   })() : null
 
   const confidence = gaugeConfidence(day)
+  const confidenceFill = { high: 1, medium: 0.66, low: 0.33, none: 0 }[confidence]
+
+  // The rings are laid out on a metre scale, so the gauge always takes metres
+  // and formats back into whatever unit the screen is showing.
+  const visM = units === 'ft' ? vis / 3.28084 : vis
+  const formatRange = (metres: number) => {
+    if (units === 'ft') return `${Math.round(metres * 3.28084)} ft`
+    return `${Number.isInteger(metres) ? metres : metres.toFixed(1)} m`
+  }
 
   return (
     <div className={styles.card}>
@@ -223,23 +233,32 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
         {day.is_forecast && <div className={styles.forecastBadge}>Forecast</div>}
       </div>
 
-      {/* The instrument face — the signature reading. Everything about this
-          panel is a real calibrated value: the arc position is the metres
-          reading against a 0–15m scale, the band width is model confidence,
-          not decoration. */}
+      {/* The signature reading. Every mark is a real value: a ring every 2 m
+          drawn at the contrast a target would actually keep at that range, and
+          the solid ring sitting where contrast reaches the 5% threshold that
+          the visibility figure is defined at (see contrastAtRange). */}
       <div className={styles.face}>
-        <div className={styles.faceSheen} aria-hidden="true" />
-        <InstrumentGauge
-          value={vis}
-          color={`var(--sev-${day.color_class}-face)`}
-          confidence={confidence}
-          size={216}
-        >
-          <div className={styles.reading}>
-            <div className={styles.visNumber}>{vis.toFixed(1)}</div>
-            <div className={styles.visUnit}>metres visibility</div>
+        <RippleGauge
+          vis={visM}
+          format={formatRange}
+          className={styles[`band_${day.color_class}`]}
+        />
+        <div className={styles.reading}>
+          <div className={`${styles.visNumber} ${styles[`band_${day.color_class}`]}`}>
+            {vis.toFixed(1)}
           </div>
-        </InstrumentGauge>
+          <div className={styles.visUnit}>
+            {units === 'ft' ? 'feet' : 'metres'} of visibility
+          </div>
+          {confidence !== 'none' && (
+            <div className={styles.confidenceRow}>
+              <span className={styles.confidenceTrack} aria-hidden="true">
+                <i style={{ width: `${confidenceFill * 100}%` }} />
+              </span>
+              <span>{confidence} confidence in the local correction</span>
+            </div>
+          )}
+        </div>
 
         <div className={styles.faceFooter}>
           <div className={`${styles.verdictTag} ${styles[`verdict_${day.color_class}`]}`}>

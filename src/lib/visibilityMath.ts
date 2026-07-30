@@ -35,6 +35,36 @@ export function beerLambert(tMedian: number, calib: number): number {
   return Math.min(calib / -Math.log(t), MAX_VISIBILITY_M)
 }
 
+/**
+ * Contrast threshold that *defines* a visibility range: the point at which a
+ * target's contrast against the background has decayed enough that a diver can
+ * no longer make it out. 5% (Duntley's widely used sighting threshold) is what
+ * the reported visibility figure means, so anything drawing "how far can I see"
+ * has to use the same number or it will contradict the headline.
+ */
+export const CONTRAST_THRESHOLD = 0.05
+
+/**
+ * The forward direction of the same Beer–Lambert relation: given a visibility
+ * in metres, how much of a target's contrast survives at `rangeM`.
+ *
+ * `beerLambert` above runs this backwards, turning a measured transmission from
+ * dive video into a visibility. This runs it forwards, turning a forecast
+ * visibility into what the diver will actually be able to pick out at 2 m, 4 m,
+ * 6 m and so on. Keeping both directions in one module is deliberate: the
+ * forecast display and the video analyser must not disagree about the physics.
+ *
+ * Attenuation follows from the definition of visibility: contrast falls to
+ * CONTRAST_THRESHOLD at exactly `visibilityM`, so c = ln(1/0.05) / visibility.
+ * Returns a value in (0, 1]; range 0 is full contrast.
+ */
+export function contrastAtRange(visibilityM: number, rangeM: number): number {
+  if (rangeM <= 0) return 1
+  const vis = Math.max(visibilityM, 0.2)
+  const attenuation = Math.log(1 / CONTRAST_THRESHOLD) / vis
+  return Math.exp(-attenuation * rangeM)
+}
+
 // Scattering coefficient ω in the dark-channel transmission map. Kept just below
 // 1 so even the clearest patch retains a little haze (a fully transparent t = 1
 // is physically unreachable underwater and would blow visibility up to the cap).

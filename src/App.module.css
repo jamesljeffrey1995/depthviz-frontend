@@ -15,6 +15,14 @@
   margin-inline: auto;
 }
 
+/* Every route is lazy-loaded behind a Suspense boundary, so the shell paints
+   with an empty main and the page jumps once the chunk resolves. Reserving the
+   space up front costs nothing and is most of the layout shift on first load. */
+.main,
+.mainWide {
+  min-height: 70vh;
+}
+
 .mainWide {
   width: 100%;
 }
@@ -64,10 +72,12 @@
   border: none;
   padding: 0;
   cursor: pointer;
-  font-family: var(--font-mono);
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  /* The wordmark was letterspaced monospace caps, which is the single most
+     terminal-looking thing on every screen. Same face as the product now. */
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
   color: var(--ink);
 }
 
@@ -84,12 +94,10 @@
 }
 
 .tagline {
-  font-family: var(--font-mono);
-  font-size: 10px;
+  font-family: var(--font-sans);
+  font-size: 14px;
   color: var(--ink-faint);
   margin-top: 4px;
-  letter-spacing: .04em;
-  text-transform: uppercase;
 }
 
 /* ── Forecast controls (unit toggle + depth select) ── */
@@ -259,13 +267,16 @@
 }
 
 /* ── Footer ── */
+/* Quiet and left-aligned, in the same language as the rest of the page: no
+   centred block of micro-type, no boxed slab. */
 .footer {
-  text-align: center;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--ink-faint);
   margin-top: var(--space-2xl);
-  line-height: 1.8;
-  padding-bottom: 20px;
+  padding: var(--space-lg) 0 var(--space-xl);
+  line-height: 1.7;
+  display: grid;
+  gap: var(--space-sm);
 }
 
 .footerAttribution {
@@ -279,28 +290,28 @@
 
 .footerLinks {
   display: flex;
-  justify-content: center;
-  gap: 2px;
+  gap: var(--space-md);
   flex-wrap: wrap;
-  margin-top: var(--space-sm);
+  margin-top: var(--space-xs);
 }
 
 .footerLink {
   background: none;
   border: none;
-  color: var(--ink-faint);
-  font-size: 12px;
+  border-bottom: 1px solid var(--surface-border-strong);
+  color: var(--ink-dim);
+  font-size: 13px;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 0 0 2px;
   min-height: 44px;
   display: inline-flex;
   align-items: center;
-  border-radius: var(--radius-sm);
-  transition: color var(--transition-base);
+  transition: color var(--transition-base), border-color var(--transition-base);
 }
 
 .footerLink:hover {
   color: var(--accent-text);
+  border-color: var(--accent);
 }
 
 .footerLink:focus-visible {
@@ -308,11 +319,7 @@
   outline-offset: 2px;
 }
 
-.footerLink + .footerLink::before {
-  content: '·';
-  margin-right: 8px;
-  color: var(--surface-border-strong);
-}
+
 
 .bmcLink {
   display: inline-block;
@@ -517,21 +524,27 @@
 }
 
 /* ── Bottom Navigation Bar ── */
+/* A floating dock centred on the thumb rather than a bar welded to the screen
+   edge. It sits on the panel colour with the large shadow, so it reads as
+   hovering above the page. */
 .bottomNav {
   position: fixed;
-  bottom: 8px;
-  left: 8px;
-  right: 8px;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: calc(100% - 24px);
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
   align-items: center;
-  background: rgba(6, 18, 27, 0.98);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-sm);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  gap: 2px;
+  /* Opaque on purpose. A translucent dock over blurred page content leaves the
+     label contrast dependent on whatever is scrolled underneath, which axe
+     reports as a violation and a diver in daylight experiences as one. */
+  background: var(--surface-raised);
+  border: none;
+  border-radius: var(--radius-full);
   box-shadow: var(--shadow-lg);
-  padding: 4px calc(4px + env(safe-area-inset-bottom, 0px)) calc(4px + env(safe-area-inset-bottom, 0px));
+  padding: 6px;
   z-index: 1100;
 }
 
@@ -540,18 +553,18 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 3px;
   background: none;
   border: none;
-  color: var(--ink-faint);
+  color: var(--ink-dim);
   font-family: var(--font-sans);
-  font-size: 10px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 500;
   min-height: 52px;
-  padding: 6px 8px;
-  border-radius: var(--radius-md);
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
   cursor: pointer;
-  transition: color var(--transition-fast);
+  transition: color var(--transition-fast), background var(--transition-fast);
   flex: 1;
 }
 
@@ -561,7 +574,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0;
+  border-radius: var(--radius-full);
   transition: background var(--transition-fast);
 }
 
@@ -569,18 +582,26 @@
   color: var(--ink-dim);
 }
 
-.bottomNavBtn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
+.bottomNavBtn:hover:not(.bottomNavActive) {
+  background: var(--accent-soft);
 }
 
+.bottomNavBtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Active state is a filled pill rather than an underline: the shape carries
+   it, so nothing depends on the accent colour alone. */
 .bottomNavActive {
-  color: var(--accent-text);
+  color: var(--ink);
+  background: var(--accent-soft);
+  font-weight: 600;
 }
 
 .bottomNavActive .bottomNavIconWrap {
   background: transparent;
-  border-bottom: 2px solid var(--accent);
+  color: var(--accent-text);
 }
 
 .bottomNavIcon {

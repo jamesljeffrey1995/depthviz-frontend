@@ -26,7 +26,7 @@ interface Props {
 const UK_CENTER: [number, number] = [54.5, -3.5]
 
 function pin(color: string, opacity = 1): L.Icon {
-  const hole = resolveCssVar('--ds-ink-950', '#001f3f')
+  const hole = resolveCssVar('--ds-ink-950', '#05161b')
   return new L.Icon({
     iconUrl: 'data:image/svg+xml,' + encodeURIComponent(
       '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="36" viewBox="0 0 24 36">' +
