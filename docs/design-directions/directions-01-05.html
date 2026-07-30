@@ -1295,7 +1295,6 @@ function mock2() {
   /* Set like a chart sounding: whole number large, decimal raised. Derived from
      the formatted string so the feet register (0 dp) simply has no decimal. */
   const parts = dist(d.vis).split('.');
-  const sounding = parts[0] + (parts[1] ? '<sup>' + parts[1] + '</sup>' : '');
 
   return '<div class="sheet">' +
     '<div class="mast">' +

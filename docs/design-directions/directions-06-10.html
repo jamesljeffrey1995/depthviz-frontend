@@ -1229,7 +1229,7 @@ function mock8() {
       '<div class="stats fades">' +
         '<h4>Model against reality, this site</h4>' +
         '<div class="row"><span class="k">Reports used</span><span class="v">' + HISTORY.length + '</span></div>' +
-        '<div class="row"><span class="k">Mean error</span><span class="v">' + dist(mae) + ' ' + unitLabel() + '</span></div>' +
+        '<div class="row"><span class="k">Mean absolute error</span><span class="v">' + dist(mae) + ' ' + unitLabel() + '</span></div>' +
         '<div class="row"><span class="k">Bias</span><span class="v">' + (bias >= 0 ? '+' : '−') + dist(Math.abs(bias)) + ' ' + unitLabel() + '</span></div>' +
         '<div class="row"><span class="k">Worst call</span><span class="v">21 Jul, +' + dist(1.1) + '</span></div>' +
         '<p>The model has run about ' + dist(Math.abs(bias)) + ' ' + unitLabel() + ' ' + (bias >= 0 ? 'optimistic' : 'pessimistic') +
@@ -1242,7 +1242,6 @@ function mock8() {
    09 BAROGRAPH
    ============================================================ */
 function dial(d) {
-  const b = bandOf(d.vis);
   const S = 320, cx = 160, cy = 168, R = 128;
   const A0 = 150, A1 = 390;               /* sweep, degrees clockwise from east */
   const maxV = 15;
