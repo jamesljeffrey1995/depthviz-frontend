@@ -55,6 +55,7 @@ const ForumIndex = lazy(() => import('./components/ForumPage').then(m => ({ defa
 const ForumCategoryPage = lazy(() => import('./components/ForumPage').then(m => ({ default: m.ForumCategoryPage })))
 const ForumThreadPage = lazy(() => import('./components/ForumPage').then(m => ({ default: m.ForumThreadPage })))
 const CompetitionRegister = lazy(() => import('./components/CompetitionRegister').then(m => ({ default: m.CompetitionRegister })))
+const CompetitionAdmin = lazy(() => import('./components/CompetitionAdmin').then(m => ({ default: m.CompetitionAdmin })))
 
 /** Routes that depend on a loaded location's conditions context (the forecast
  *  itself plus its forecast-adjacent pages — tides, report, history, dispute).
@@ -151,12 +152,18 @@ export default function App() {
   // by a client flag or a value baked into the bundle. The backend also
   // re-checks admin identity on every /admin/* route, so this only gates UI.
   const [isAdmin, setIsAdmin] = useState(false)
+  // `isAdmin` starts false and only becomes true once /profile/me answers, so
+  // an admin-gated route must wait for the answer rather than render its
+  // "access required" state during the round-trip.
+  const [adminChecked, setAdminChecked] = useState(false)
   useEffect(() => {
-    if (!user) { setIsAdmin(false); return }
+    if (!user) { setIsAdmin(false); setAdminChecked(false); return }
     let cancelled = false
+    setAdminChecked(false)
     getMyProfile()
       .then(p => { if (!cancelled) setIsAdmin(!!p.is_admin) })
       .catch(() => { if (!cancelled) setIsAdmin(false) })
+      .finally(() => { if (!cancelled) setAdminChecked(true) })
     return () => { cancelled = true }
   }, [user])
 
@@ -560,6 +567,24 @@ export default function App() {
             <Suspense fallback={<div className={styles.loadingText}>Loading competitions…</div>}>
               <CompetitionRegister />
             </Suspense>
+          } />
+
+          {/* Competition organiser console. Admin-only, but the gate here is UI
+              only — the backend re-checks admin identity on every /admin/*
+              request, so this never stands in for a real security boundary. */}
+          <Route path="/admin/competition" element={
+            !user ? (
+              <div className={styles.empty}>
+                <div className={styles.emptyText}>Sign in to open competition ops</div>
+                <button className={styles.navBtn} onClick={() => setShowAuth(true)} style={{ marginTop: 16 }}>Sign in</button>
+              </div>
+            ) : !adminChecked ? (
+              <div className={styles.loadingText}>Checking access…</div>
+            ) : (
+              <Suspense fallback={<div className={styles.loadingText}>Loading competition ops…</div>}>
+                <CompetitionAdmin isAdmin={isAdmin} />
+              </Suspense>
+            )
           } />
 
           {/* Map / Dashboard */}

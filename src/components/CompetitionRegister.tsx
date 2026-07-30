@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   listOpenCompetitions,
   listMyCompetitions,
@@ -233,6 +234,7 @@ function fmtDate(iso: string): string {
 }
 
 export function CompetitionRegister() {
+  const navigate = useNavigate()
   const [comps, setComps] = useState<OpenCompetition[] | null>(null)
   const [mine, setMine] = useState<MyCompetition[]>([])
   const [selected, setSelected] = useState<OpenCompetition | null>(null)
@@ -374,6 +376,11 @@ export function CompetitionRegister() {
     return (
       <div className={styles.container}>
         <h1 className={styles.title}>Competitions</h1>
+        {profile?.is_admin && (
+          <button className={styles.adminLink} onClick={() => navigate('/admin/competition')}>
+            Open competition ops →
+          </button>
+        )}
         {error && <div className={styles.error}>{error}</div>}
 
         {mine.length > 0 && (
