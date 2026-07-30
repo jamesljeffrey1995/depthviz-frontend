@@ -1,3 +1,10 @@
+## [1.24.7](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.24.6...v1.24.7) (2026-07-30)
+
+
+### Bug Fixes
+
+* route the competition admin console so admins can reach it ([ebf4b45](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/ebf4b4516ea14dcf54e06d77bf7005fceda511ac))
+
 ## [1.24.6](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.24.5...v1.24.6) (2026-07-30)
 
 
