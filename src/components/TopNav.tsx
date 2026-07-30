@@ -14,7 +14,7 @@ const ITEMS: NavItem[] = [
   { label: 'Best spots', path: '/best', match: p => p === '/best' },
   { label: 'Community', path: '/feed', match: p => ['/feed', '/catches', '/forum', '/news'].some(prefix => p.startsWith(prefix)) },
   { label: 'Training', path: '/training', match: p => p.startsWith('/training') },
-  { label: 'Competitions', path: '/competition', match: p => p === '/competition' },
+  { label: 'Competitions', path: '/competition', match: p => p === '/competition' || p === '/admin/competition' },
 ]
 
 /**

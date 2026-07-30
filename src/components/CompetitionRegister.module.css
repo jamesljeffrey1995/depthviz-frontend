@@ -12,6 +12,16 @@
   letter-spacing: -0.03em;
 }
 .muted { color: var(--ink-faint); }
+
+/* Organiser-only entry point to the competition ops console. Rendered above
+   the diver-facing lists, so it reads as a tool rather than a competition. */
+.adminLink {
+  min-height: 44px; margin-bottom: var(--space-md); padding: 10px 18px;
+  border-radius: var(--radius-full); border: 1px solid var(--accent);
+  background: var(--accent-soft); color: var(--accent-text); font-weight: 750;
+  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+}
+.adminLink:hover { background: var(--accent); color: var(--accent-on); box-shadow: var(--shadow-glow); }
 .notes { color: var(--ink-dim); margin: var(--space-sm) 0; white-space: pre-wrap; line-height: 1.6; }
 .empty { padding: var(--space-xl) var(--space-md); text-align: center; color: var(--ink-faint); background: var(--surface-sunken); border-radius: var(--radius-md); }
 
