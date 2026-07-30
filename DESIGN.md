@@ -1,34 +1,84 @@
 # DepthViz interface direction
 
-## Status: visual direction is open
+## Chosen direction: Ripple
 
-The previous version of this file prescribed one specific look, a dark matte
-"marine avionics" identity, and enforced it with a long list of prohibitions.
-That direction has been withdrawn. It is not the house style any more and
-should not be reintroduced from git history.
+Eleven candidate directions were drawn up as interactive mocks and reviewed
+together. The first ten were rejected as too rectilinear. Four things were doing
+that work, and naming them matters more than the palette:
 
-What remains below is deliberately narrower: the constraints that hold whatever
-the app ends up looking like, because they come from how DepthViz is used or
-because a test enforces them. Anything that is purely a matter of taste is now
-an open decision, not a rule.
+1. uppercase letterspaced monospace micro-labels on everything
+2. hairline rules as the only separator
+3. near-square corners (the radius scale topped out at 4px)
+4. data arranged as ruled grids and tables
 
-Candidate directions are drawn up as interactive mocks, all built on the same
-sample forecast so they can be compared like for like:
+Ripple is the direction built in response, and it is now the house style.
+The reference mock is `docs/design-directions/ripple.html`; the ten it replaced
+are kept alongside it for context.
 
-- `docs/design-directions/ripple.html`, the current front runner
-- `docs/design-directions/directions-01-05.html`
-- `docs/design-directions/directions-06-10.html`
+### What Ripple is
 
-Open them in a browser. Each carries its own palette, type pairing, central
-device and stated trade-off.
+The shape language comes from water rather than from an instrument panel.
+Boundaries are made by surface lift and soft shadow, not by lines. Nothing is
+square. Type is one family at four weights, and labels read as words.
 
-The first ten were reviewed and judged too rectilinear: monospace micro-labels
-in caps, hairline rules everywhere, hard corners, everything in a ruled grid.
-Ripple is the response to that and is the direction to build on unless it is
-overruled. It is not yet ratified here, so no aesthetic rules follow from it
-yet. When it is confirmed, this section is replaced by a "Chosen direction"
-section describing its spacing, radius, shadow, type and colour decisions, and
-only then do aesthetic rules belong in this file again.
+**Spacing.** 4pt scale, no exceptions: `--space-xs` 4, `--space-sm` 8,
+`--space-md` 16, `--space-lg` 24, `--space-xl` 40, `--space-2xl` 64.
+
+**Radius.** Four steps and a pill, and every surface takes one of them:
+`--radius-sm` 10 (chips, inputs), `--radius-md` 18 (cards), `--radius-lg` 26
+(large cards), `--radius-xl` 34 (hero panels, sheets, modals), `--radius-full`
+for anything the user presses. A fifth value is a bug.
+
+**Elevation.** Two soft, wide shadows carry the whole hierarchy:
+`--shadow-xs` for resting cards, `--shadow-card` for raised panels, and
+`--shadow-lg` for things that float (docks, sheets, modals). These replaced the
+hairlines, so they are structural. Do not add a third shadow, and do not put a
+border on something that already has one.
+
+**Type.** One family, `--font-sans`, for everything, with `--font-display`
+pointing at the same stack so a softer grotesque can be swapped in later without
+touching a component. Labels are sentence case. Large figures are set *light*
+(300) rather than heavy: scale carries them, not weight.
+
+Monospace is reserved for genuine machine data: coordinates, timestamps, buoy
+identifiers, sensor payloads. Never for labels, eyebrows, section headings,
+tags, or button text. This is the single rule most likely to be broken by
+accident and most responsible for how the old interface read.
+
+**Colour.** A deep-water ground with one aquamarine accent. The neutral ramp is
+biased green so it belongs to the accent rather than reading as an unconsidered
+grey. `--surface` is the page, `--surface-raised` a panel, `--surface-tint` a
+fill (bar tracks, pressed, selected), `--surface-sunken` an inset.
+
+**Numbering and eyebrows.** Only where the content is genuinely a sequence.
+Parallel options, tool lists and news items are not sequences, so they are not
+numbered.
+
+### Registers
+
+Two, both defined in `src/index.css`:
+
+- **Deep water** is the default, because that is what the app's screens are
+  written against.
+- **Porcelain** (`:root[data-theme='light']`) is what Ripple leads with, and is
+  not switched on yet. Two things have to land first: the hardcoded dark colours
+  still sitting in component stylesheets, and a text register for the clarity
+  ramp. On a light ground the ramp cannot be both monotonic in luminance and
+  AA-legible as small text (the arithmetic is in the note below), so clarity
+  colour becomes a fill and small text takes ink.
+
+### State of the rollout
+
+Converted: the token layer, the app shell, top and bottom navigation, the
+footer, the cookie banner, the home page, the search controls, and the forecast
+reading in `DayDetail`, whose arc gauge is now `RippleGauge`.
+
+Not yet converted: roughly 300 hardcoded colours remain in component
+stylesheets, concentrated in `CompetitionAdmin`, the apnea training screens and
+the admin console. They still render coherently because they are dark-on-dark,
+but they will not follow a theme switch. Convert them onto tokens as each screen
+gets its pass, and delete the legacy alias block in `src/index.css` as it
+empties.
 
 ## What the product has to do
 

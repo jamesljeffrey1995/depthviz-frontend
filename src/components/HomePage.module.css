@@ -1,103 +1,143 @@
+/* Home page, Ripple pass.
+   What changed and why: the monospace uppercase eyebrows, the reference codes
+   and the hairline rules between every row were the four things the redesign
+   set out to remove, so they are gone rather than restyled. Rows became soft
+   cards, the corner-bracket panel became a rounded one, and the section
+   labels now read as words. Numbering is kept only where the content is
+   genuinely a sequence, which none of these lists are. */
+
 .home { display: flex; flex-direction: column; gap: 56px; }
+
 .hero {
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, .72fr);
-  gap: clamp(40px, 7vw, 84px); align-items: stretch; padding: 44px 0 48px;
-  border-top: 1px solid var(--surface-border-strong); border-bottom: 1px solid var(--surface-border);
+  gap: clamp(40px, 7vw, 84px); align-items: stretch; padding: 40px 0 8px;
 }
+
+/* The old system line was a row of monospace codes: model area, window,
+   station. It reads as a status bar, so it now sits as one quiet sentence. */
 .systemLine {
-  display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 0 0 30px;
-  color: var(--accent-text); font-family: var(--font-mono); font-size: 10px;
-  font-weight: 600; letter-spacing: .12em;
+  display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0 0 26px;
+  color: var(--ink-faint); font-size: 14px; line-height: 1.5;
 }
-.systemLine span + span { color: var(--ink-faint); }
+.systemLine span:first-child { color: var(--accent-text); font-weight: 600; }
+
 .sectionIndex {
-  margin: 0 0 20px; color: var(--accent-text); font-family: var(--font-mono);
-  font-size: 11px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
+  margin: 0 0 12px; color: var(--accent-text);
+  font-size: 14px; font-weight: 600;
 }
+
 .heroTitle {
   max-width: 690px; margin: 0; color: var(--ink); font-family: var(--font-display);
-  font-size: clamp(38px, 5.5vw, 62px); font-weight: 600; letter-spacing: -.035em; line-height: 1.1;
+  font-size: clamp(38px, 5.5vw, 62px); font-weight: 600; letter-spacing: -.035em;
+  line-height: 1.08; text-wrap: balance;
 }
-.heroLead { max-width: 650px; margin: 26px 0 0; color: var(--ink-dim); font-size: 16px; line-height: 1.65; }
+.heroLead { max-width: 650px; margin: 26px 0 0; color: var(--ink-dim); font-size: 17px; line-height: 1.65; }
+
+/* Safety copy stays prominent, but as a soft panel with a bullet rather than a
+   bordered box of monospace. */
 .caution {
-  max-width: 620px; margin: 30px 0 0; padding: 13px 16px;
-  border: 1px solid color-mix(in srgb, var(--sev-marginal) 55%, transparent);
-  border-left: 3px solid var(--sev-marginal); background: rgba(255, 180, 84, .045);
-  color: var(--ink-dim); font-family: var(--font-mono); font-size: 10px; line-height: 1.6;
+  max-width: 620px; margin: 30px 0 0; padding: 16px 20px;
+  border: 0; border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--sev-marginal) 12%, transparent);
+  color: var(--ink-dim); font-family: var(--font-sans); font-size: 14px; line-height: 1.6;
 }
+
 .searchPanel {
-  position: relative; align-self: end; padding: 18px 18px 16px;
-  border: 1px solid var(--surface-border-strong); border-top: 3px solid var(--accent);
-  background: var(--surface-raised);
+  position: relative; align-self: end; padding: 24px;
+  border: 0; border-radius: var(--radius-xl);
+  background: var(--surface-raised); box-shadow: var(--shadow-card);
 }
-.searchPanel::after {
-  content: ''; position: absolute; right: -1px; bottom: -1px; width: 14px; height: 14px;
-  border-right: 2px solid var(--accent); border-bottom: 2px solid var(--accent);
-}
-.panelCode {
-  display: flex; justify-content: space-between; margin: 0 0 24px; color: var(--ink-faint);
-  font-family: var(--font-mono); font-size: 9px; letter-spacing: .12em;
-}
-.panelCode span:last-child { color: var(--accent-text); }
-.searchHead { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
-.searchLabel { display: block; color: var(--ink); font-family: var(--font-display); font-size: 23px; font-weight: 600; }
+
+/* .panelCode held "LOCATION INPUT / 01". The panel's own heading says what it
+   is, so the code line is redundant; the class stays for the markup that still
+   renders it and is simply not shown. */
+.panelCode { display: none; }
+
+.searchHead { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+.searchLabel { display: block; color: var(--ink); font-family: var(--font-display); font-size: 23px; font-weight: 600; letter-spacing: -.015em; }
 .searchHead p {
-  margin: 4px 0 0; color: var(--ink-faint); font-family: var(--font-mono);
-  font-size: 10px; text-transform: uppercase; letter-spacing: .05em;
+  margin: 4px 0 0; color: var(--ink-faint); font-family: var(--font-sans);
+  font-size: 14px; line-height: 1.5;
 }
+
 .textLink {
-  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 3px 0;
-  border: 0; border-bottom: 1px solid currentColor; border-radius: 0; background: transparent;
-  color: var(--accent-text); font-size: 12px; font-weight: 700;
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border: 0; border-radius: var(--radius-full);
+  background: var(--accent-soft); color: var(--accent-text);
+  font-size: 14px; font-weight: 600;
+  transition: background var(--transition-fast), color var(--transition-fast);
 }
-.textLink svg { width: 14px; height: 14px; }
-.directory { border-top: 1px solid var(--surface-border-strong); }
-.directoryHead { display: flex; justify-content: space-between; align-items: end; padding: 18px 0 16px; }
-.directoryHead .sectionIndex { display: block; margin-bottom: 7px; }
-.directoryHead h2 { margin: 0; color: var(--ink); font-family: var(--font-display); font-size: 24px; font-weight: 600; }
-.directoryHead > span { color: var(--ink-faint); font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; }
+.textLink:hover { background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--ink); }
+.textLink svg { width: 15px; height: 15px; }
+
+.directory { display: flex; flex-direction: column; gap: 12px; }
+.directoryHead { display: flex; justify-content: space-between; align-items: end; gap: 16px; padding: 0; }
+.directoryHead .sectionIndex { display: block; margin-bottom: 6px; }
+.directoryHead h2 { margin: 0; color: var(--ink); font-family: var(--font-display); font-size: 26px; font-weight: 600; letter-spacing: -.02em; }
+.directoryHead > span { color: var(--ink-faint); font-family: var(--font-sans); font-size: 14px; }
+
+/* Each tool is a soft card. The reference number column is dropped: these are
+   parallel options, not a sequence, so numbering them was decoration. */
 .tool {
-  display: grid; grid-template-columns: 46px minmax(150px, .65fr) minmax(220px, 1fr) 24px;
-  gap: 16px; align-items: baseline; width: 100%; min-height: 66px; padding: 15px 0;
-  border: 0; border-top: 1px solid var(--surface-border); border-radius: 0;
-  background: transparent; color: var(--ink); text-align: left;
+  display: grid; grid-template-columns: minmax(150px, .65fr) minmax(220px, 1fr) 24px;
+  gap: 16px; align-items: center; width: 100%; min-height: 68px;
+  padding: 18px 20px;
+  border: 0; border-radius: var(--radius-lg);
+  background: var(--surface-raised); box-shadow: var(--shadow-xs);
+  color: var(--ink); text-align: left;
+  transition: background var(--transition-fast), box-shadow var(--transition-fast);
 }
-.tool:last-child { border-bottom: 1px solid var(--surface-border); }
-.tool:hover, .newsItem:hover { background: rgba(var(--accent-rgb), .055); }
-.ref { color: var(--ink-faint); font-family: var(--font-mono); font-size: 10px; }
-.tool strong { font-family: var(--font-display); font-size: 16px; font-weight: 600; }
-.description { color: var(--ink-dim); font-size: 13px; line-height: 1.45; }
-.arrow { justify-self: end; color: var(--accent-text); font-family: var(--font-mono); }
-.section { display: flex; flex-direction: column; gap: 18px; }
-.sectionHead { display: flex; align-items: end; justify-content: space-between; }
-.sectionIndex { margin-bottom: 7px; }
-.sectionTitle { margin: 0; color: var(--ink); font-family: var(--font-display); font-size: 26px; font-weight: 600; }
-.muted { margin: 0; padding: 20px 0; border-top: 1px solid var(--surface-border); color: var(--ink-faint); font-size: 13px; }
-.newsList { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ink); }
+.tool:hover, .newsItem:hover {
+  background: var(--surface-tint);
+  box-shadow: var(--shadow-card);
+}
+.ref { display: none; }
+.tool strong { font-family: var(--font-display); font-size: 17px; font-weight: 600; }
+.description { color: var(--ink-dim); font-size: 14px; line-height: 1.5; }
+.arrow { justify-self: end; color: var(--accent-text); font-family: var(--font-sans); }
+
+.section { display: flex; flex-direction: column; gap: 16px; }
+.sectionHead { display: flex; align-items: end; justify-content: space-between; gap: 16px; }
+.sectionTitle { margin: 0; color: var(--ink); font-family: var(--font-display); font-size: 26px; font-weight: 600; letter-spacing: -.02em; }
+
+.muted {
+  margin: 0; padding: 20px; border: 0; border-radius: var(--radius-lg);
+  background: var(--surface-raised); color: var(--ink-faint); font-size: 14px;
+}
+
+.newsList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
 .newsItem {
-  width: 100%; padding: 18px 0; border: 0; border-bottom: 1px solid var(--surface-border);
-  border-radius: 0; background: transparent; color: var(--ink); text-align: left;
+  width: 100%; padding: 18px 20px;
+  border: 0; border-radius: var(--radius-lg);
+  background: var(--surface-raised); box-shadow: var(--shadow-xs);
+  color: var(--ink); text-align: left;
+  transition: background var(--transition-fast), box-shadow var(--transition-fast);
 }
-.newsItemHead { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.newsItemHead { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+
+/* The tag was 9px letterspaced monospace caps. It is a category, so it reads as
+   a word in a soft chip. */
 .tag {
-  padding: 0; color: var(--accent-text); font-family: var(--font-mono);
-  font-size: 9px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  padding: 3px 10px; border-radius: var(--radius-full);
+  background: var(--accent-soft); color: var(--accent-text);
+  font-family: var(--font-sans); font-size: 12px; font-weight: 600;
 }
-.newsTitle { color: var(--ink); font-family: var(--font-display); font-size: 16px; font-weight: 600; }
-.newsDate { margin-left: auto; color: var(--ink-faint); font-family: var(--font-mono); font-size: 10px; }
-.newsExcerpt { max-width: 760px; margin: 7px 0 0; color: var(--ink-dim); font-size: 13px; line-height: 1.55; }
+.newsTitle { color: var(--ink); font-family: var(--font-display); font-size: 17px; font-weight: 600; }
+.newsDate { margin-left: auto; color: var(--ink-faint); font-family: var(--font-sans); font-size: 13px; }
+.newsExcerpt { max-width: 760px; margin: 8px 0 0; color: var(--ink-dim); font-size: 14px; line-height: 1.55; }
+
 @media (max-width: 720px) {
-  .hero { grid-template-columns: 1fr; gap: 40px; padding: 32px 0 40px; }
-  .tool { grid-template-columns: 34px minmax(0, 1fr) 20px; }
-  .description { grid-column: 2 / 3; }
-  .arrow { grid-column: 3; grid-row: 1 / span 2; align-self: center; }
+  .hero { grid-template-columns: 1fr; gap: 36px; padding: 28px 0 0; }
+  .tool { grid-template-columns: minmax(0, 1fr) 20px; }
+  .description { grid-column: 1 / 2; }
+  .arrow { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
 }
 @media (max-width: 480px) {
-  .home { gap: 48px; }
+  .home { gap: 44px; }
   .heroTitle { font-size: 38px; }
-  .heroLead { font-size: 15px; }
+  .heroLead { font-size: 16px; }
   .sectionHead { align-items: flex-start; }
-  .textLink { margin-top: 24px; }
+  .textLink { margin-top: 20px; }
   .searchHead .textLink { margin-top: 0; }
   .newsDate { width: 100%; margin-left: 0; }
 }

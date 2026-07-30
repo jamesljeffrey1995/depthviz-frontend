@@ -61,22 +61,19 @@
   margin-bottom: 6px;
 }
 
-.dial::before {
-  content: '';
+/* The rings supply the disc now, so the inset lens plate and its highlight are
+   gone. */
+.dialRings {
   position: absolute;
-  inset: 4px;
-  border-radius: 50%;
-  background: var(--face);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  z-index: -1;
+  inset: 0;
 }
 
 .dialValue {
   font-family: var(--font-sans);
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 500;
   line-height: 1;
-  color: var(--face-ink);
+  color: var(--ink);
   letter-spacing: -0.02em;
 }
 

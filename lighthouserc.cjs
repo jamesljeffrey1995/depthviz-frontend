@@ -62,9 +62,11 @@ module.exports = {
         // promote to 'error' once the numbers are stable enough to trust.
         //
         // These are set at the recognised "good" targets, not at today's
-        // numbers, so they read as goals. Currently warning: performance ~0.81
-        // and CLS ~0.28, both driven by the shell painting before the
-        // lazy-loaded route resolves behind its `null` Suspense fallback.
+        // numbers, so they read as goals. Currently warning: CLS ~0.15, down
+        // from ~0.28 since `.main` reserves its height instead of collapsing
+        // while the lazy route resolves behind its `null` Suspense fallback.
+        // Performance now clears 0.85 and no longer warns; promote it to
+        // 'error' once a few runs confirm it is stable on CI hardware.
         'categories:performance': ['warn', { minScore: 0.85 }],
         'first-contentful-paint': ['warn', { maxNumericValue: 3000 }],
         'largest-contentful-paint': ['warn', { maxNumericValue: 4000 }],

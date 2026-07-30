@@ -702,7 +702,7 @@ export default function App() {
                     </Suspense>
                   ) : (
                     <>
-                      <ForecastStrip days={forecast.days} selectedIndex={selectedDay} onSelect={selectDay} />
+                      <ForecastStrip days={forecast.days} selectedIndex={selectedDay} onSelect={selectDay} units={units} />
                       {forecast.days[selectedDay] && (
                         <DayDetail
                           day={forecast.days[selectedDay]}

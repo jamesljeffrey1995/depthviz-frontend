@@ -35,8 +35,8 @@ export type ClarityStep = (typeof CLARITY_STEPS)[number]
  * one sets the floor, which is why the murky end of the ramp cannot be as
  * dark as murky water actually is.
  */
-export const CHASSIS_SURFACES = ['#06121b', '#0a1b27', '#030b11'] as const
-export const FACE_SURFACES = ['#0b1622', '#142334'] as const
+export const CHASSIS_SURFACES = ['#081c22', '#0f2c34', '#05161b'] as const
+export const FACE_SURFACES = ['#0f2c34', '#123640'] as const
 
 /** WCAG AA for normal-size text. The ramp is used on values as small as 12px. */
 export const AA_CONTRAST = 4.5

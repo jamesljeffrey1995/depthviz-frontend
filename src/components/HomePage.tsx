@@ -49,9 +49,9 @@ export function HomePage({ locationSearch }: HomePageProps) {
       <section className={styles.hero}>
         <div>
           <div className={styles.systemLine}>
-            <span>DV / FORECAST</span>
-            <span>MODEL AREA 50–62°N</span>
-            <span>7 DAY WINDOW</span>
+            <span>Visibility forecast</span>
+            <span>Northwest Europe, 50 to 62°N</span>
+            <span>Seven days ahead</span>
           </div>
           <h1 className={styles.heroTitle}>Can I see enough to dive here today?</h1>
           <p className={styles.heroLead}>
@@ -85,10 +85,10 @@ export function HomePage({ locationSearch }: HomePageProps) {
       <nav className={styles.directory} aria-label="DepthViz tools">
         <div className={styles.directoryHead}>
           <div>
-            <span className={styles.sectionIndex}>OPERATIONS / 02</span>
+            <span className={styles.sectionIndex}>Tools</span>
             <h2>What do you need to do?</h2>
           </div>
-          <span>{TOOLS.length} AVAILABLE</span>
+          <span>{TOOLS.length} to choose from</span>
         </div>
         {TOOLS.map(({ ref, label, description, path }) => (
           <button key={path} className={styles.tool} onClick={() => navigate(path)}>
@@ -103,7 +103,7 @@ export function HomePage({ locationSearch }: HomePageProps) {
       <section className={styles.section} aria-labelledby="news-heading">
         <div className={styles.sectionHead}>
           <div>
-            <p className={styles.sectionIndex}>LOG / UPDATES</p>
+            <p className={styles.sectionIndex}>Updates</p>
             <h2 id="news-heading" className={styles.sectionTitle}>From DepthViz</h2>
           </div>
           <button className={styles.textLink} onClick={() => navigate('/news')}>

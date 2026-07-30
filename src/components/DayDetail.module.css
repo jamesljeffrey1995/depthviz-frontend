@@ -53,54 +53,91 @@
 }
 
 /* ── The instrument face — hero reading ── */
+/* The reading sits on a soft panel, wide on desktop with the rings beside the
+   figure and stacked on a phone. No lens sheen and no lacquer: the shadow and
+   the surface lift are what say "raised". */
 .face {
   position: relative;
-  background: var(--face);
-  border-radius: var(--radius-lg);
-  padding: 28px 20px 20px;
+  background: var(--surface-raised);
+  border-radius: var(--radius-xl);
+  padding: 28px;
   margin-bottom: 20px;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 336px 1fr;
   align-items: center;
-  box-shadow: var(--shadow-face);
-  overflow: hidden;
+  gap: var(--space-lg);
+  box-shadow: var(--shadow-card);
 }
 
-.faceSheen {
-  position: absolute;
-  inset: 0;
-  background: var(--lens-sheen);
-  pointer-events: none;
+@media (max-width: 720px) {
+  .face {
+    grid-template-columns: 1fr;
+    padding: 20px;
+    justify-items: center;
+    text-align: center;
+  }
 }
 
 .reading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  gap: var(--space-xs);
+  min-width: 0;
 }
 
 .visNumber {
   font-family: var(--font-sans);
-  font-size: 44px;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1;
-  color: var(--face-ink);
+  /* Light weight at a large size: the figure carries by scale, not by heft. */
+  font-size: clamp(56px, 11vw, 84px);
+  font-weight: 300;
+  letter-spacing: -0.035em;
+  line-height: 0.92;
   font-variant-numeric: tabular-nums;
 }
 
 .visUnit {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--face-ink-faint);
-  margin-top: 2px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--ink-dim);
 }
 
+/* Confidence is a four-step signal, so it gets a proportional track and the
+   word, never an invented percentage. */
+.confidenceRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+  font-size: 13px;
+  color: var(--ink-faint);
+}
+
+.confidenceTrack {
+  width: 96px;
+  height: 6px;
+  flex: none;
+  border-radius: var(--radius-full);
+  background: var(--surface-tint);
+  overflow: hidden;
+}
+
+.confidenceTrack i {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  transition: width var(--transition-base);
+}
+
+/* Clarity band, applied to the rings and the figure. */
+.band_blocked   { color: var(--sev-blocked); }
+.band_poor      { color: var(--sev-poor); }
+.band_marginal  { color: var(--sev-marginal); }
+.band_decent    { color: var(--sev-decent); }
+.band_good      { color: var(--sev-good); }
+.band_excellent { color: var(--sev-excellent); }
+
 .faceFooter {
-  position: relative;
+  grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
   align-items: center;
