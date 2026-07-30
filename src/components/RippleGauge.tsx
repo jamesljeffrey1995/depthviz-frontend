@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { contrastAtRange } from '../lib/visibilityMath'
 import styles from './RippleGauge.module.css'
@@ -63,6 +64,13 @@ interface RippleGaugeProps {
 export function RippleGauge({ vis, format, className, compact = false, size, children, style }: RippleGaugeProps) {
   const rings = compact ? COMPACT_RINGS : RINGS
   const stroke = compact ? 7 : 2.4
+  // The day strip renders one gauge per day, so a fixed gradient id would put
+  // several of them in the document at once and leave url(#id) resolving to
+  // whichever came first.
+  const waterId = `rippleWater-${useId()}`
+  // Ring spacing differs between the two sizes, and the caller may be
+  // formatting in feet, so the described step is derived rather than asserted.
+  const step = rings.length > 1 ? (rings[1] as number) - (rings[0] as number) : MAX_RANGE
   const sightR = radiusFor(Math.min(vis, MAX_RANGE))
   // Label sits on the ring, up and to the right, clear of the range labels.
   const labelAngle = (-40 * Math.PI) / 180
@@ -78,16 +86,16 @@ export function RippleGauge({ vis, format, className, compact = false, size, chi
         viewBox={`0 0 ${SIZE} ${SIZE}`}
         className={styles.svg}
         role="img"
-        aria-label={`Rings every 2 metres, fading out at about ${format(vis)}, which is how far you are expected to see`}
+        aria-label={`Rings every ${format(step)}, fading out at about ${format(vis)}, which is how far you are expected to see`}
       >
         <defs>
-          <radialGradient id="rippleWater" cx="42%" cy="34%" r="74%">
+          <radialGradient id={waterId} cx="42%" cy="34%" r="74%">
             <stop offset="0" stopColor="currentColor" stopOpacity="0.20" />
             <stop offset="1" stopColor="currentColor" stopOpacity="0.06" />
           </radialGradient>
         </defs>
 
-        <circle cx={CENTRE} cy={CENTRE} r={OUTER_R + 8} fill="url(#rippleWater)" />
+        <circle cx={CENTRE} cy={CENTRE} r={OUTER_R + 8} fill={`url(#${waterId})`} />
 
         {/* faint pass: the scale, always legible */}
         {rings.map(m => (
@@ -169,7 +177,9 @@ export function RippleGauge({ vis, format, className, compact = false, size, chi
       </svg>
       {children && <div className={styles.overlay}>{children}</div>}
       {!compact && (
-        <p className={styles.caption}>Rings every 2 m. The solid ring is your sight line.</p>
+        <p className={styles.caption}>
+          Rings every {format(step)}. The solid ring is your sight line.
+        </p>
       )}
     </div>
   )

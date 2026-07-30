@@ -7,6 +7,19 @@ interface Props {
   days: DayForecast[]
   selectedIndex: number
   onSelect: (i: number) => void
+  /** Display unit the forecast was fetched in. The API returns unit-dependent
+   *  figures, so the gauge has to convert back to metres before drawing. */
+  units?: 'ft' | 'm'
+}
+
+const FT_PER_M = 3.28084
+
+/** Formats a metre value in the unit the strip is showing. */
+function makeRangeFormatter(units: 'ft' | 'm') {
+  return (metres: number) =>
+    units === 'ft'
+      ? `${Math.round(metres * FT_PER_M)} ft`
+      : `${Number.isInteger(metres) ? metres : metres.toFixed(1)} m`
 }
 
 function formatDate(dateStr: string): string {
@@ -42,7 +55,8 @@ function primaryDriver(factors: VisibilityFactor[]): string | null {
   return n.slice(0, 9)
 }
 
-export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, onSelect }: Props) {
+export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, onSelect, units = 'm' }: Props) {
+  const formatRange = makeRangeFormatter(units)
   return (
     <div className={styles.strip}>
       <div className={styles.row}>
@@ -63,13 +77,13 @@ export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, 
               className={cls}
               onClick={() => onSelect(i)}
               aria-pressed={i === selectedIndex}
-              aria-label={`${formatDate(day.date)}: ${vis.toFixed(1)} metres visibility, ${day.verdict}${day.algae.risk !== 'low' ? `, algae risk ${day.algae.risk}` : ''}${driver ? `, main factor: ${driver}` : ''}`}
+              aria-label={`${formatDate(day.date)}: ${vis.toFixed(1)} ${units === 'ft' ? 'feet' : 'metres'} visibility, ${day.verdict}${day.algae.risk !== 'low' ? `, algae risk ${day.algae.risk}` : ''}${driver ? `, main factor: ${driver}` : ''}`}
             >
               <div className={styles.dateLabel}>{formatDate(day.date)}</div>
               <div className={styles.dial}>
                 <RippleGauge
-                  vis={vis}
-                  format={m => `${m} m`}
+                  vis={units === 'ft' ? vis / FT_PER_M : vis}
+                  format={formatRange}
                   compact
                   size={56}
                   className={styles.dialRings}
