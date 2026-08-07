@@ -86,6 +86,11 @@ const LEGAL_LABELS: Record<LegalPageType, string> = {
   disclaimer: 'Disclaimer',
 }
 
+type AuthIntent =
+  | { type: 'route'; path: string }
+  | { type: 'save-location'; isPrivate: boolean }
+  | { type: 'reselect-spot' }
+
 /** Reads the :page URL param so direct links to /legal/terms work correctly. */
 function LegalRouteWrapper({ onBack }: { onBack: () => void }) {
   const { page } = useParams<{ page: string }>()
@@ -153,11 +158,6 @@ export default function App() {
   const lastSelectedRef = useRef<{ lat: number; lon: number; name: string; locationId?: number }>({
     lat: 0, lon: 0, name: '',
   })
-
-  type AuthIntent =
-    | { type: 'route'; path: string }
-    | { type: 'save-location'; isPrivate: boolean }
-    | { type: 'reselect-spot' }
   const [pendingAuthIntent, setPendingAuthIntent] = useState<AuthIntent | null>(null)
 
   // Admin status is decided by the server (via /profile/me's is_admin), never

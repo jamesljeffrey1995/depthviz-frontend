@@ -116,6 +116,11 @@ export function ProfilePanel({ onClose, onNavigateFriends, onAuthRequired }: Pro
     } catch (e) {
       const failure = toUserFacingError(e, 'profile')
       setDataError(failure.message)
+      trackClientEvent('profile.save_name_failed', {
+        code: failure.telemetryCode,
+        status: failure.status,
+        requiresAuth: failure.requiresAuth,
+      })
       if (failure.requiresAuth) onAuthRequired?.()
     }
   }
