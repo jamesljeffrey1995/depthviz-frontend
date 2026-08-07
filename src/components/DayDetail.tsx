@@ -225,7 +225,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
 
   // The rings are laid out on a metre scale, so the gauge always takes metres
   // and formats back into whatever unit the screen is showing.
-  const visM = units === 'ft' ? vis / 3.28084 : vis
+  const visM = units === 'ft' ? vis / FT_PER_M : vis
   const formatRange = (metres: number) => {
     if (units === 'ft') return `${Math.round(metres * FT_PER_M)} ft`
     return `${Number.isInteger(metres) ? metres : metres.toFixed(1)} m`
