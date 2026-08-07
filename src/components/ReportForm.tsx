@@ -6,6 +6,8 @@ import { feetToMetres } from '../lib/units'
 import VisibilityAnalyser from './VisibilityAnalyser'
 import { KelpVisibilityNote } from './KelpVisibilityNote'
 import { IconCheck } from './icons'
+import { toUserFacingError } from '../lib/frontendErrors'
+import { trackClientEvent } from '../lib/telemetry'
 import styles from './ReportForm.module.css'
 
 interface Props {
@@ -18,6 +20,7 @@ interface Props {
    *  this unit and must be normalised back to metres before being persisted
    *  so dive logs are comparable across users with different unit prefs. */
   units?: 'ft' | 'm'
+  onAuthRequired?: () => void
 }
 
 function buildDateOptions(): { value: string; label: string }[] {
@@ -34,7 +37,7 @@ function buildDateOptions(): { value: string; label: string }[] {
   return options
 }
 
-export function ReportForm({ day, allDays, locations, onSubmitted, initialLocationId, units = 'm' }: Props) {
+export function ReportForm({ day, allDays, locations, onSubmitted, initialLocationId, units = 'm', onAuthRequired }: Props) {
   const todayStr = new Date().toISOString().slice(0, 10)
   const [selectedDate, setSelectedDate] = useState(day?.date ?? todayStr)
   const [locationId, setLocationId] = useState<number | ''>(initialLocationId ?? '')
@@ -127,7 +130,14 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
       setDone(true)
       submittedTimer.current = setTimeout(onSubmitted, 2500)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to submit')
+      const failure = toUserFacingError(e, 'report')
+      setError(failure.message)
+      trackClientEvent('report.submit_failed', {
+        code: failure.telemetryCode,
+        status: failure.status,
+        requiresAuth: failure.requiresAuth,
+      })
+      if (failure.requiresAuth) onAuthRequired?.()
     } finally {
       setSubmitting(false)
     }

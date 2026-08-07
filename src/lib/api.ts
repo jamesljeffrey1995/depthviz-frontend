@@ -1,5 +1,14 @@
 import { supabase } from './supabase'
 import { cacheGet, cacheSet, cacheDelete, cacheDeleteByPrefix } from './cache'
+import {
+  normalizeBestVisResponse,
+  normalizeForecastResponse,
+  normalizeLocation,
+  normalizeLocations,
+  normalizeReportList,
+  normalizeUserProfile,
+} from './apiContracts'
+import { trackClientEvent } from './telemetry'
 import type {
   AdminStats,
   Announcement,
@@ -37,6 +46,8 @@ import type {
 } from '../types'
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '/api'
+const API_ACCEPT_VERSION = import.meta.env.VITE_API_ACCEPT_VERSION ?? '2026-08-frontend-v1'
+const API_CLIENT_FEATURES = 'contract-validation,auth-return-intent,abortable-forecast'
 
 // --- Error types for granular handling ---
 export class ApiError extends Error {
@@ -114,6 +125,8 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const { data: { session } } = await supabase.auth.getSession()
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    'X-DepthViz-Api-Version': API_ACCEPT_VERSION,
+    'X-DepthViz-Client-Features': API_CLIENT_FEATURES,
     ...(options?.headers as Record<string, string> ?? {}),
   }
   if (session?.access_token) {
@@ -147,6 +160,15 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
         const res = await fetch(`${API_BASE}${path}`, { ...options, headers })
+        const servedVersion = res.headers.get('X-DepthViz-Api-Version')
+        if (servedVersion && servedVersion !== API_ACCEPT_VERSION) {
+          trackClientEvent('api.version_mismatch', {
+            requestedVersion: API_ACCEPT_VERSION,
+            servedVersion,
+            path,
+            method,
+          })
+        }
 
         if (!res.ok) {
           const body = await res.text()
@@ -211,13 +233,19 @@ const TTL = {
 }
 
 // Geocoding
-export async function geocode(query: string): Promise<GeocodingResult[]> {
+export async function geocode(query: string, signal?: AbortSignal): Promise<GeocodingResult[]> {
   const key = `geocode:${query.toLowerCase().trim()}`
   const cached = cacheGet<GeocodingResult[]>(key)
   if (cached) return cached
 
   const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=en&format=json`
-  const res = await fetch(url)
+  const res = await fetch(url, {
+    signal,
+    headers: {
+      'X-DepthViz-Api-Version': API_ACCEPT_VERSION,
+      'X-DepthViz-Client-Features': API_CLIENT_FEATURES,
+    },
+  })
   if (!res.ok) {
     throw new ApiError(res.status, `Geocoding failed (${res.status})`)
   }
@@ -232,7 +260,14 @@ export async function geocode(query: string): Promise<GeocodingResult[]> {
 }
 
 // Forecast
-export async function getForecast(lat: number, lon: number, name: string, units: 'ft' | 'm' = 'ft', locationId?: number): Promise<ForecastResponse> {
+export async function getForecast(
+  lat: number,
+  lon: number,
+  name: string,
+  units: 'ft' | 'm' = 'ft',
+  locationId?: number,
+  signal?: AbortSignal,
+): Promise<ForecastResponse> {
   const key = `forecast:${lat}:${lon}:${locationId ?? ''}:${units}`
   const cached = cacheGet<ForecastResponse>(key)
   if (cached) return cached
@@ -241,7 +276,8 @@ export async function getForecast(lat: number, lon: number, name: string, units:
     lat: String(lat), lon: String(lon), name, units,
     ...(locationId ? { location_id: String(locationId) } : {}),
   })
-  const result = await apiFetch<ForecastResponse>(`/forecast?${params}`)
+  const raw = await apiFetch<unknown>(`/forecast?${params}`, { signal })
+  const result = normalizeForecastResponse(raw)
   cacheSet(key, result, TTL.FORECAST)
   return result
 }
@@ -265,7 +301,8 @@ export async function getLocations(): Promise<Location[]> {
   const cached = cacheGet<Location[]>(key)
   if (cached) return cached
 
-  const result = await apiFetch<Location[]>('/locations')
+  const raw = await apiFetch<unknown>('/locations')
+  const result = normalizeLocations(raw)
   cacheSet(key, result, TTL.LOCATIONS)
   return result
 }
@@ -275,7 +312,7 @@ export async function createLocation(
   isPublic = false,
   encryptedCoords?: { encrypted_lat: string; encrypted_lon: string },
 ): Promise<Location> {
-  const result = await apiFetch<Location>('/locations', {
+  const raw = await apiFetch<unknown>('/locations', {
     method: 'POST',
     body: JSON.stringify({
       name,
@@ -284,6 +321,7 @@ export async function createLocation(
       ...(!isPublic && encryptedCoords ? encryptedCoords : {}),
     }),
   })
+  const result = normalizeLocation(raw)
   cacheDelete('locations')
   return result
 }
@@ -302,10 +340,11 @@ export async function updateLocation(
   id: number,
   params: { depth_m?: number | null; seabed_class?: SeabedClass | null },
 ): Promise<Location> {
-  const result = await apiFetch<Location>(`/locations/${id}`, {
+  const raw = await apiFetch<unknown>(`/locations/${id}`, {
     method: 'PATCH',
     body: JSON.stringify(params),
   })
+  const result = normalizeLocation(raw)
   cacheDelete('locations')
   // Depth/seabed feed the resuspension model, so cached forecasts are now stale.
   // Match the full `forecast:` key namespace (see getForecast) so we don't wipe
@@ -315,16 +354,18 @@ export async function updateLocation(
 }
 
 export async function voteLocation(id: number, direction: 'up' | 'down'): Promise<Location> {
-  const result = await apiFetch<Location>(`/locations/${id}/vote`, {
+  const raw = await apiFetch<unknown>(`/locations/${id}/vote`, {
     method: 'PUT',
     body: JSON.stringify({ direction }),
   })
+  const result = normalizeLocation(raw)
   cacheDelete('locations')
   return result
 }
 
 export async function removeVote(id: number): Promise<Location> {
-  const result = await apiFetch<Location>(`/locations/${id}/vote`, { method: 'DELETE' })
+  const raw = await apiFetch<unknown>(`/locations/${id}/vote`, { method: 'DELETE' })
+  const result = normalizeLocation(raw)
   cacheDelete('locations')
   return result
 }
@@ -339,7 +380,8 @@ export async function submitReport(report: ReportCreate): Promise<void> {
 }
 
 export async function getMyReports(): Promise<ReportRead[]> {
-  return apiFetch<ReportRead[]>('/reports/mine')
+  const raw = await apiFetch<unknown>('/reports/mine')
+  return normalizeReportList(raw)
 }
 
 export async function getLocationStats(locationId: number) {
@@ -354,23 +396,26 @@ export async function getLocationStats(locationId: number) {
 
 // Profile
 export async function getMyProfile(): Promise<UserProfile> {
-  return apiFetch<UserProfile>('/profile/me')
+  const raw = await apiFetch<unknown>('/profile/me')
+  return normalizeUserProfile(raw)
 }
 
 export async function updateProfile(displayName: string) {
-  return apiFetch<UserProfile>('/profile/me', {
+  const raw = await apiFetch<unknown>('/profile/me', {
     method: 'PATCH',
     body: JSON.stringify({ display_name: displayName }),
   })
+  return normalizeUserProfile(raw)
 }
 
 // Save the diver-detail fields reused to pre-fill competition registration.
 // Only the fields provided are changed; a field sent as '' clears it.
 export async function updateProfileDetails(details: ProfileDiverDetails) {
-  return apiFetch<UserProfile>('/profile/me', {
+  const raw = await apiFetch<unknown>('/profile/me', {
     method: 'PATCH',
     body: JSON.stringify(details),
   })
+  return normalizeUserProfile(raw)
 }
 
 // UK GDPR right of access: download everything held for the account as JSON.
@@ -446,7 +491,8 @@ export async function getBestVisibility(): Promise<BestVisResponse> {
   const cached = cacheGet<BestVisResponse>(key)
   if (cached) return cached
 
-  const result = await apiFetch<BestVisResponse>('/forecast/best')
+  const raw = await apiFetch<unknown>('/forecast/best')
+  const result = normalizeBestVisResponse(raw)
   cacheSet(key, result, TTL.FORECAST)
   return result
 }
