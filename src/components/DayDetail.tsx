@@ -206,9 +206,9 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
     const value = units === 'ft' ? metres * FT_PER_M : metres
     return `${value.toFixed(decimals)}${withSpace ? ' ' : ''}${units}`
   }
-  const formatSignedDistance = (metres: number, decimals = 1, withSpace = false) => {
+  const formatSignedDistance = (metres: number, decimals = 1) => {
     const value = units === 'ft' ? metres * FT_PER_M : metres
-    return `${value >= 0 ? '+' : ''}${value.toFixed(decimals)}${withSpace ? ' ' : ''}${units}`
+    return `${value >= 0 ? '+' : ''}${value.toFixed(decimals)}${units}`
   }
 
   const shallowNote = shallowWarning ? (() => {
@@ -217,7 +217,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
       parts.push(`${formatDistance(shallowWarning.waveHeightM, 1)} waves`)
     }
     if (shallowWarning.windExceeded) parts.push(`${Math.round(shallowWarning.windKnots)}kn wind`)
-    return `${parts.join(' & ')} — surface mixing may reduce visibility at ${formatDistance(maxDiveDepth, 0)} more than the forecast reflects`
+    return `${parts.join(' & ')} — surface mixing may reduce visibility at ${formatDistance(maxDiveDepth!, 0)} more than the forecast reflects`
   })() : null
 
   const confidence = gaugeConfidence(day)
@@ -417,7 +417,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
         ].filter(Boolean).join(' ')}>
           <div className={styles.shallowNoteLabel}>
             <IconAlertTriangle className={styles.warningIcon} aria-hidden="true" />
-            Shallow-water advisory · max {formatDistance(maxDiveDepth, 0)}
+            Shallow-water advisory · max {formatDistance(maxDiveDepth!, 0)}
           </div>
           <div className={[
             styles.shallowNoteText,
