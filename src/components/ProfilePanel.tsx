@@ -4,6 +4,8 @@ import { getMyProfile, updateProfile, updateProfileDetails, getMyReports, getLea
 import type { UserProfile, ProfileDiverDetails, ReportRead, LeaderboardEntry, ExperienceLevel } from '../types'
 import { IconChevronLeft, IconChevronDown, IconChevronUp, IconCheck } from './icons'
 import { Tabs } from './Tabs'
+import { toUserFacingError } from '../lib/frontendErrors'
+import { trackClientEvent } from '../lib/telemetry'
 import styles from './ProfilePanel.module.css'
 
 const AdminPanel = lazy(() => import('./AdminPanel').then(m => ({ default: m.AdminPanel })))
@@ -12,6 +14,7 @@ const TrafficAnalytics = lazy(() => import('./admin/TrafficAnalytics').then(m =>
 interface ProfilePanelProps {
   onClose?: () => void
   onNavigateFriends?: () => void
+  onAuthRequired?: () => void
 }
 
 const EXPERIENCE_LABELS: Record<ExperienceLevel, string> = {
@@ -34,7 +37,7 @@ function detailsFromProfile(p: UserProfile | null): ProfileDiverDetails {
   }
 }
 
-export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) {
+export function ProfilePanel({ onClose, onNavigateFriends, onAuthRequired }: ProfilePanelProps) {
   const { user, signOut } = useAuth()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [reports, setReports] = useState<ReportRead[]>([])
@@ -54,14 +57,27 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
 
   useEffect(() => {
     if (!user) return
+    setDataError('')
     getMyProfile().then(p => {
       setProfile(p)
       setNameInput(p.display_name ?? '')
       setDetails(detailsFromProfile(p))
-    }).catch(() => {})
-    getMyReports().then(setReports).catch(() => {})
-    getLeaderboard().then(setLeaderboard).catch(() => {})
-  }, [user])
+    }).catch((e) => {
+      const failure = toUserFacingError(e, 'profile')
+      setDataError(failure.message)
+      if (failure.requiresAuth) onAuthRequired?.()
+    })
+    getMyReports().then(setReports).catch((e) => {
+      const failure = toUserFacingError(e, 'profile')
+      setDataError(failure.message)
+      if (failure.requiresAuth) onAuthRequired?.()
+    })
+    getLeaderboard().then(setLeaderboard).catch((e) => {
+      const failure = toUserFacingError(e, 'profile')
+      setDataError(failure.message)
+      if (failure.requiresAuth) onAuthRequired?.()
+    })
+  }, [user, onAuthRequired])
 
   const setDetail = (patch: Partial<ProfileDiverDetails>) => {
     setDetails(d => ({ ...d, ...patch }))
@@ -75,8 +91,15 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
       setProfile(updated)
       setDetails(detailsFromProfile(updated))
       setDetailsSaved(true)
-    } catch {
-      // Leave the form as-is so the diver can retry; a failed save is transient.
+    } catch (e) {
+      const failure = toUserFacingError(e, 'profile')
+      setDataError(failure.message)
+      trackClientEvent('profile.save_details_failed', {
+        code: failure.telemetryCode,
+        status: failure.status,
+        requiresAuth: failure.requiresAuth,
+      })
+      if (failure.requiresAuth) onAuthRequired?.()
     } finally {
       setSavingDetails(false)
     }
@@ -85,10 +108,21 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
   const saveName = async () => {
     const trimmed = nameInput.trim().slice(0, 50)
     if (!trimmed) return
-    await updateProfile(trimmed)
-    setProfile(p => p ? { ...p, display_name: trimmed } : p)
-    setNameInput(trimmed)
-    setEditName(false)
+    try {
+      await updateProfile(trimmed)
+      setProfile(p => p ? { ...p, display_name: trimmed } : p)
+      setNameInput(trimmed)
+      setEditName(false)
+    } catch (e) {
+      const failure = toUserFacingError(e, 'profile')
+      setDataError(failure.message)
+      trackClientEvent('profile.save_name_failed', {
+        code: failure.telemetryCode,
+        status: failure.status,
+        requiresAuth: failure.requiresAuth,
+      })
+      if (failure.requiresAuth) onAuthRequired?.()
+    }
   }
 
   const handleSignOut = () => {
@@ -110,8 +144,10 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
       a.click()
       a.remove()
       URL.revokeObjectURL(url)
-    } catch {
-      setDataError('Could not export your data — please try again.')
+    } catch (e) {
+      const failure = toUserFacingError(e, 'profile')
+      setDataError(failure.message)
+      if (failure.requiresAuth) onAuthRequired?.()
     } finally {
       setExporting(false)
     }
@@ -126,8 +162,10 @@ export function ProfilePanel({ onClose, onNavigateFriends }: ProfilePanelProps) 
       // Account and login are gone; sign out and close the panel.
       signOut()
       onClose?.()
-    } catch {
-      setDataError('Could not delete your account — please try again or contact us.')
+    } catch (e) {
+      const failure = toUserFacingError(e, 'profile')
+      setDataError(failure.message)
+      if (failure.requiresAuth) onAuthRequired?.()
       setDeleting(false)
     }
   }

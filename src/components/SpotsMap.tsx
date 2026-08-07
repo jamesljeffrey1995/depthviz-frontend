@@ -6,6 +6,8 @@ import type { User } from '@supabase/supabase-js'
 import styles from './SpotsMap.module.css'
 import { createLocation, voteLocation, removeVote } from '../lib/api'
 import type { Location } from '../types'
+import { toUserFacingError } from '../lib/frontendErrors'
+import { trackClientEvent } from '../lib/telemetry'
 
 /** Shape of a private user spot stored in localStorage. */
 interface PrivateSpot {
@@ -23,6 +25,7 @@ interface Props {
   user?: User | null
   onShowAuth?: () => void
   locations?: Location[]
+  onLocationCreated?: (location: Location) => void
 }
 
 const STORAGE_KEY = 'depthviz_user_spots'
@@ -135,7 +138,7 @@ function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lon: number
   return null
 }
 
-export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [] }: Props) {
+export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [], onLocationCreated }: Props) {
   const [privateSpots, setPrivateSpots] = useState<PrivateSpot[]>(loadPrivateSpots)
   const [adding, setAdding] = useState(false)
   const [pendingPos, setPendingPos] = useState<{ lat: number; lon: number } | null>(null)
@@ -240,9 +243,17 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
     if (isPublic) {
       // Public spots go straight to the DB — no localStorage
       try {
-        await createLocation(newName.trim(), pendingPos.lat, pendingPos.lon, true)
-      } catch {
-        setSyncWarning('Could not publish spot — try again later.')
+        const created = await createLocation(newName.trim(), pendingPos.lat, pendingPos.lon, true)
+        onLocationCreated?.(created)
+      } catch (e) {
+        const failure = toUserFacingError(e, 'map')
+        setSyncWarning(failure.message)
+        trackClientEvent('map.public_spot_create_failed', {
+          code: failure.telemetryCode,
+          status: failure.status,
+          requiresAuth: failure.requiresAuth,
+        })
+        if (failure.requiresAuth) onShowAuth?.()
         return
       }
     } else {
@@ -311,17 +322,24 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
       // Sync with server response
       setDbVoteCounts(prev => ({ ...prev, [locationId]: updated.vote_count }))
       setDbUserVotes(prev => ({ ...prev, [locationId]: updated.user_vote }))
-    } catch {
+    } catch (e) {
       // Rollback on failure and show brief error
       setDbVoteCounts(prev => ({ ...prev, [locationId]: prevCount }))
       setDbUserVotes(prev => ({ ...prev, [locationId]: existing }))
-      setVoteError('Vote failed — please try again')
+      const failure = toUserFacingError(e, 'map')
+      setVoteError(failure.message)
+      trackClientEvent('map.vote_failed', {
+        code: failure.telemetryCode,
+        status: failure.status,
+        requiresAuth: failure.requiresAuth,
+      })
+      if (failure.requiresAuth) onShowAuth?.()
       if (voteErrorTimer.current) clearTimeout(voteErrorTimer.current)
       voteErrorTimer.current = setTimeout(() => setVoteError(null), 3000)
     } finally {
       votingInFlight.current.delete(locationId)
     }
-  }, [dbUserVotes, dbVoteCounts])
+  }, [dbUserVotes, dbVoteCounts, onShowAuth])
 
   return (
     <div className={styles.wrapper}>

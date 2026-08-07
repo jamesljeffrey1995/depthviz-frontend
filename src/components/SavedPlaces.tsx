@@ -3,6 +3,7 @@ import type { Location } from '../types'
 import { deleteLocation } from '../lib/api'
 import { decryptCoords } from '../lib/spotCrypto'
 import { IconAnchor, IconLock } from './icons'
+import { toUserFacingError } from '../lib/frontendErrors'
 import styles from './SavedPlaces.module.css'
 
 interface Props {
@@ -10,9 +11,10 @@ interface Props {
   onSelectLocation: (lat: number, lon: number, name: string, locationId?: number) => void
   onDelete: (id: number) => void
   userUid?: string
+  onAuthRequired?: () => void
 }
 
-export function SavedPlaces({ locations, onSelectLocation, onDelete, userUid }: Props) {
+export function SavedPlaces({ locations, onSelectLocation, onDelete, userUid, onAuthRequired }: Props) {
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [confirmId, setConfirmId] = useState<number | null>(null)
   const [deleteError, setDeleteError] = useState('')
@@ -64,7 +66,9 @@ export function SavedPlaces({ locations, onSelectLocation, onDelete, userUid }: 
       await deleteLocation(id)
       onDelete(id)
     } catch (e) {
-      setDeleteError('Failed to remove place — please try again')
+      const failure = toUserFacingError(e, 'map')
+      if (failure.requiresAuth) onAuthRequired?.()
+      setDeleteError(failure.message)
       console.error(e)
     } finally {
       setDeletingId(null)

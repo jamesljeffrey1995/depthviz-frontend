@@ -22,6 +22,8 @@ import { startDayTransition } from './lib/viewTransition'
 import { formatLocationName } from './types'
 import type { GeocodingResult, Location, ForecastResponse } from './types'
 import type { LegalPageType } from './components/LegalPage'
+import { toUserFacingError } from './lib/frontendErrors'
+import { trackClientEvent } from './lib/telemetry'
 import styles from './App.module.css'
 
 /** Find a DB location matching given coordinates within ~1km tolerance. */
@@ -84,6 +86,11 @@ const LEGAL_LABELS: Record<LegalPageType, string> = {
   disclaimer: 'Disclaimer',
 }
 
+type AuthIntent =
+  | { type: 'route'; path: string }
+  | { type: 'save-location'; isPrivate: boolean }
+  | { type: 'reselect-spot' }
+
 /** Reads the :page URL param so direct links to /legal/terms work correctly. */
 function LegalRouteWrapper({ onBack }: { onBack: () => void }) {
   const { page } = useParams<{ page: string }>()
@@ -124,6 +131,7 @@ export default function App() {
   const [currentLon, setCurrentLon] = useState<number | null>(null)
   const [currentName, setCurrentName] = useState('')
   const [showAuth, setShowAuth] = useState(false)
+  const [uiError, setUiError] = useState('')
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null)
   const [units, setUnits] = useState<'ft' | 'm'>(() => {
     try {
@@ -147,6 +155,10 @@ export default function App() {
   const location = useLocation()
   const currentPath = location.pathname
   const autoLoadedRef = useRef(false)
+  const lastSelectedRef = useRef<{ lat: number; lon: number; name: string; locationId?: number }>({
+    lat: 0, lon: 0, name: '',
+  })
+  const [pendingAuthIntent, setPendingAuthIntent] = useState<AuthIntent | null>(null)
 
   // Admin status is decided by the server (via /profile/me's is_admin), never
   // by a client flag or a value baked into the bundle. The backend also
@@ -156,6 +168,23 @@ export default function App() {
   // an admin-gated route must wait for the answer rather than render its
   // "access required" state during the round-trip.
   const [adminChecked, setAdminChecked] = useState(false)
+
+  const requestAuth = useCallback((intent?: AuthIntent) => {
+    setPendingAuthIntent(intent ?? { type: 'route', path: currentPath })
+    setShowAuth(true)
+  }, [currentPath])
+
+  const handleActionError = useCallback((rawError: unknown, context: 'forecast' | 'report' | 'profile' | 'map', intent?: AuthIntent) => {
+    const failure = toUserFacingError(rawError, context)
+    setUiError(failure.message)
+    trackClientEvent('ui.action_failed', {
+      context,
+      status: failure.status,
+      code: failure.telemetryCode,
+      requiresAuth: failure.requiresAuth,
+    })
+    if (failure.requiresAuth) requestAuth(intent)
+  }, [requestAuth])
   useEffect(() => {
     if (!user) { setIsAdmin(false); setAdminChecked(false); return }
     let cancelled = false
@@ -173,7 +202,43 @@ export default function App() {
   }, [user])
 
   useEffect(() => {
-    getLocations().then(setLocations).catch(() => {})
+    if (!user || !pendingAuthIntent) return
+    const intent = pendingAuthIntent
+    setPendingAuthIntent(null)
+    if (intent.type === 'route') {
+      navigate(intent.path)
+      return
+    }
+    if (intent.type === 'save-location') {
+      void handleSaveLocation(intent.isPrivate)
+      return
+    }
+    if (intent.type === 'reselect-spot') {
+      const { lat, lon, name, locationId } = lastSelectedRef.current
+      if (!name) return
+      void handleSpotSelect(lat, lon, name, locationId)
+    }
+  // navigate/handlers are stable enough for post-auth replay.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, pendingAuthIntent])
+
+  useEffect(() => {
+    getLocations()
+      .then(setLocations)
+      .catch((e) => {
+        const failure = toUserFacingError(e, 'map')
+        setUiError(failure.message)
+        trackClientEvent('ui.action_failed', {
+          context: 'map',
+          status: failure.status,
+          code: failure.telemetryCode,
+          requiresAuth: failure.requiresAuth,
+        })
+        if (failure.requiresAuth) {
+          setPendingAuthIntent({ type: 'route', path: window.location.pathname })
+          setShowAuth(true)
+        }
+      })
   }, [user])
 
   useEffect(() => {
@@ -187,6 +252,10 @@ export default function App() {
   // Reset week view when leaving forecast
   useEffect(() => {
     if (currentPath !== '/forecast') setWeekView(false)
+  }, [currentPath])
+
+  useEffect(() => {
+    setUiError('')
   }, [currentPath])
 
   const prevUnitsRef = useRef<'ft' | 'm'>(units)
@@ -236,6 +305,12 @@ export default function App() {
       setCurrentLon(loc.lon)
       setCurrentName(typeof loc.name === 'string' ? loc.name : '')
       setSelectedLocationId(typeof loc.locationId === 'number' ? loc.locationId : null)
+      lastSelectedRef.current = {
+        lat: loc.lat,
+        lon: loc.lon,
+        name: typeof loc.name === 'string' ? loc.name : '',
+        locationId: typeof loc.locationId === 'number' ? loc.locationId : undefined,
+      }
       // Home page has no forecast — don't restore a snapshot or fetch conditions.
       if (!FORECAST_ROUTES.includes(currentPath)) return
       const forecastRaw = localStorage.getItem('dv_last_forecast')
@@ -265,6 +340,7 @@ export default function App() {
   }
 
   const handleLocate = async () => {
+    setUiError('')
     try {
       const coords = await getLocation()
       setCurrentLat(coords.latitude)
@@ -275,7 +351,9 @@ export default function App() {
       setSelectedLocationId(matched?.id ?? null)
       await searchByCoords(coords.latitude, coords.longitude, name, matched?.id, units)
       navigate('/forecast')
-    } catch (e) { console.error(e) }
+    } catch (e) {
+      handleActionError(e, 'map')
+    }
   }
 
   const handleSearch = async (query: string) => {
@@ -295,8 +373,9 @@ export default function App() {
   }
 
   const handleSaveLocation = async (isPrivate = false) => {
+    setUiError('')
     if (currentLat === null || currentLon === null || !currentName) return
-    if (!user) { setShowAuth(true); return }
+    if (!user) { requestAuth({ type: 'save-location', isPrivate }); return }
     try {
       let encrypted: { encrypted_lat: string; encrypted_lon: string } | undefined
       if (isPrivate) {
@@ -306,15 +385,20 @@ export default function App() {
       const savedLoc = isPrivate ? { ...loc, lat: currentLat, lon: currentLon } : loc
       setLocations(prev => [...prev.filter(l => l.id !== savedLoc.id), savedLoc])
       setSelectedLocationId(savedLoc.id)
-    } catch (e) { console.error(e) }
+    } catch (e) {
+      handleActionError(e, 'map', { type: 'save-location', isPrivate })
+    }
   }
 
   const handleReportClick = () => {
-    if (!user) { setShowAuth(true); return }
+    setUiError('')
+    if (!user) { requestAuth({ type: 'route', path: '/report' }); return }
     navigate('/report')
   }
 
   const handleSpotSelect = async (lat: number, lon: number, name: string, locationId?: number) => {
+    setUiError('')
+    lastSelectedRef.current = { lat, lon, name, locationId }
     setCurrentLat(lat)
     setCurrentLon(lon)
     setCurrentName(name)
@@ -351,7 +435,13 @@ export default function App() {
   )
 
   return (
-    <ErrorBoundary>
+    <ErrorBoundary
+      path={currentPath}
+      resetKey={currentPath}
+      onRecover={(target) => {
+        if (target === 'home') navigate('/')
+      }}
+    >
     <div className={styles.container}>
 
       {/* Skip to main content — keyboard navigation */}
@@ -375,7 +465,7 @@ export default function App() {
           <button
             type="button"
             className={user ? styles.authBtnAvatar : styles.authBtn}
-            onClick={() => { if (user) navigate('/profile'); else setShowAuth(true) }}
+            onClick={() => { if (user) navigate('/profile'); else requestAuth({ type: 'route', path: '/profile' }) }}
             aria-label={user ? `View profile for ${user.email?.split('@')[0] ?? 'user'}` : 'Sign in to your account'}
           >
             {user ? (user.email?.[0] ?? 'U').toUpperCase() : (<><IconUser aria-hidden="true" /><span>Sign in</span></>)}
@@ -398,7 +488,7 @@ export default function App() {
         <div className={styles.locationSearch}>{locationSearch}</div>
       )}
 
-      {error && <div className={styles.error} role="alert">{error}</div>}
+      {(uiError || error) && <div className={styles.error} role="alert">{uiError || error}</div>}
 
       {status === 'success' && forecast && FORECAST_ROUTES.includes(currentPath) && (
         <div className={styles.forecastNav}>
@@ -486,7 +576,11 @@ export default function App() {
           <Route path="/profile" element={
             user ? (
               <Suspense fallback={null}>
-                <ProfilePanel onClose={() => navigate(-1)} onNavigateFriends={() => navigate('/friends')} />
+                <ProfilePanel
+                  onClose={() => navigate(-1)}
+                  onNavigateFriends={() => navigate('/friends')}
+                  onAuthRequired={() => requestAuth({ type: 'route', path: '/profile' })}
+                />
               </Suspense>
             ) : null
           } />
@@ -500,7 +594,7 @@ export default function App() {
             ) : (
               <div className={styles.empty}>
                 <div className={styles.emptyText}>Sign in to manage friends</div>
-                <button className={styles.navBtn} onClick={() => setShowAuth(true)} style={{ marginTop: 16 }}>Sign in</button>
+                <button className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: '/friends' })} style={{ marginTop: 16 }}>Sign in</button>
               </div>
             )
           } />
@@ -525,7 +619,7 @@ export default function App() {
           {/* Catches */}
           <Route path="/catches" element={
             <Suspense fallback={null}>
-              <CatchesPage user={user} locations={locations} onShowAuth={() => setShowAuth(true)} />
+              <CatchesPage user={user} locations={locations} onShowAuth={() => requestAuth({ type: 'route', path: '/catches' })} />
             </Suspense>
           } />
 
@@ -553,12 +647,12 @@ export default function App() {
           } />
           <Route path="/forum/thread/:id" element={
             <Suspense fallback={null}>
-              <ForumThreadPage user={user} onShowAuth={() => setShowAuth(true)} />
+              <ForumThreadPage user={user} onShowAuth={() => requestAuth({ type: 'route', path: currentPath })} />
             </Suspense>
           } />
           <Route path="/forum/:slug" element={
             <Suspense fallback={null}>
-              <ForumCategoryPage user={user} onShowAuth={() => setShowAuth(true)} />
+              <ForumCategoryPage user={user} onShowAuth={() => requestAuth({ type: 'route', path: currentPath })} />
             </Suspense>
           } />
 
@@ -576,7 +670,7 @@ export default function App() {
             !user ? (
               <div className={styles.empty}>
                 <div className={styles.emptyText}>Sign in to open competition ops</div>
-                <button className={styles.navBtn} onClick={() => setShowAuth(true)} style={{ marginTop: 16 }}>Sign in</button>
+                <button className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: '/admin/competition' })} style={{ marginTop: 16 }}>Sign in</button>
               </div>
             ) : !adminChecked ? (
               <div className={styles.loadingText}>Checking access…</div>
@@ -605,7 +699,14 @@ export default function App() {
                 </Suspense>
               )}
               <Suspense fallback={null}>
-                <SpotsMap onSelectSpot={handleSpotSelect} center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined} user={user} onShowAuth={() => setShowAuth(true)} locations={locations} />
+                <SpotsMap
+                  onSelectSpot={handleSpotSelect}
+                  center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined}
+                  user={user}
+                  onShowAuth={() => requestAuth({ type: 'route', path: '/map' })}
+                  locations={locations}
+                  onLocationCreated={(created) => setLocations(prev => [...prev.filter(l => l.id !== created.id), created])}
+                />
               </Suspense>
             </>
           } />
@@ -626,12 +727,13 @@ export default function App() {
                   onSelectLocation={handleSpotSelect}
                   onDelete={id => setLocations(prev => prev.filter(l => l.id !== id))}
                   userUid={user.id}
+                  onAuthRequired={() => requestAuth({ type: 'route', path: '/places' })}
                 />
               </Suspense>
             ) : (
               <div className={styles.empty}>
                 <div className={styles.emptyText}>Sign in to save places</div>
-                <button className={styles.navBtn} onClick={() => setShowAuth(true)} style={{ marginTop: 16 }}>Sign in</button>
+                <button className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: '/places' })} style={{ marginTop: 16 }}>Sign in</button>
               </div>
             )
           } />
@@ -793,6 +895,7 @@ export default function App() {
                   onSubmitted={() => navigate('/forecast')}
                   initialLocationId={selectedLocationId}
                   units={units}
+                  onAuthRequired={() => requestAuth({ type: 'route', path: '/report' })}
                 />
               </Suspense>
             ) : (
@@ -807,7 +910,7 @@ export default function App() {
           {/* Apnea training tables */}
           <Route path="/training" element={
             <Suspense fallback={null}>
-              <ApneaTablesPage user={user} onShowAuth={() => setShowAuth(true)} />
+              <ApneaTablesPage user={user} onShowAuth={() => requestAuth({ type: 'route', path: '/training' })} />
             </Suspense>
           } />
           <Route path="/training/new" element={
@@ -818,7 +921,7 @@ export default function App() {
             ) : (
               <div className={styles.empty}>
                 <div className={styles.emptyText}>Sign in to build a training table</div>
-                <button className={styles.navBtn} onClick={() => setShowAuth(true)} style={{ marginTop: 16 }}>Sign in</button>
+                <button className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: '/training/new' })} style={{ marginTop: 16 }}>Sign in</button>
               </div>
             )
           } />
@@ -830,7 +933,7 @@ export default function App() {
             ) : (
               <div className={styles.empty}>
                 <div className={styles.emptyText}>Sign in to edit your tables</div>
-                <button className={styles.navBtn} onClick={() => setShowAuth(true)} style={{ marginTop: 16 }}>Sign in</button>
+                <button className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: currentPath })} style={{ marginTop: 16 }}>Sign in</button>
               </div>
             )
           } />
@@ -839,12 +942,12 @@ export default function App() {
               which React Router's ranking guarantees. */}
           <Route path="/training/shared" element={
             <Suspense fallback={null}>
-              <ApneaSharedTable user={user} onShowAuth={() => setShowAuth(true)} />
+              <ApneaSharedTable user={user} onShowAuth={() => requestAuth({ type: 'route', path: currentPath })} />
             </Suspense>
           } />
           <Route path="/training/:id" element={
             <Suspense fallback={null}>
-              <ApneaTableRunner user={user} onShowAuth={() => setShowAuth(true)} />
+              <ApneaTableRunner user={user} onShowAuth={() => requestAuth({ type: 'route', path: currentPath })} />
             </Suspense>
           } />
 
@@ -875,7 +978,7 @@ export default function App() {
             ) : (
               <div className={styles.empty}>
                 <div className={styles.emptyText}>Sign in to report incorrect data</div>
-                <button className={styles.navBtn} onClick={() => setShowAuth(true)} style={{ marginTop: 16 }}>Sign in</button>
+                <button className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: '/dispute' })} style={{ marginTop: 16 }}>Sign in</button>
               </div>
             )
           } />
@@ -922,7 +1025,7 @@ export default function App() {
         </button>
         <button
           className={`${styles.bottomNavBtn} ${currentPath === '/profile' ? styles.bottomNavActive : ''}`}
-          onClick={() => { if (user) navigate('/profile'); else setShowAuth(true) }}
+          onClick={() => { if (user) navigate('/profile'); else requestAuth({ type: 'route', path: '/profile' }) }}
           aria-label={user ? 'Profile' : 'Profile (sign in required)'}
           aria-current={currentPath === '/profile' ? 'page' : undefined}
         >
