@@ -225,8 +225,21 @@ export default function App() {
   useEffect(() => {
     getLocations()
       .then(setLocations)
-      .catch((e) => handleActionError(e, 'map'))
-  }, [user, handleActionError])
+      .catch((e) => {
+        const failure = toUserFacingError(e, 'map')
+        setUiError(failure.message)
+        trackClientEvent('ui.action_failed', {
+          context: 'map',
+          status: failure.status,
+          code: failure.telemetryCode,
+          requiresAuth: failure.requiresAuth,
+        })
+        if (failure.requiresAuth) {
+          setPendingAuthIntent({ type: 'route', path: window.location.pathname })
+          setShowAuth(true)
+        }
+      })
+  }, [user])
 
   useEffect(() => {
     if (forecast) {
@@ -427,12 +440,6 @@ export default function App() {
       resetKey={currentPath}
       onRecover={(target) => {
         if (target === 'home') navigate('/')
-      }}
-      onError={(renderError) => {
-        trackClientEvent('ui.error_boundary', {
-          path: currentPath,
-          message: renderError.message,
-        })
       }}
     >
     <div className={styles.container}>

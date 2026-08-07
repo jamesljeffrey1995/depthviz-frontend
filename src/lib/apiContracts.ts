@@ -52,22 +52,22 @@ function normalizeSwellComponents(value: unknown): SwellComponent[] {
 
 function normalizeFactors(value: unknown): VisibilityFactor[] {
   if (!Array.isArray(value)) return []
-  return value
-    .map(item => {
-      const rec = asRecord(item)
-      if (!rec) return null
-      const name = asString(rec.name)
-      const textValue = asString(rec.value)
-      if (!name || !textValue) return null
-      return {
-        name,
-        value: textValue,
-        note: asString(rec.note),
-        penalty: asNumber(rec.penalty) ?? 0,
-        max_penalty: asNumber(rec.max_penalty) ?? 0,
-      }
+  const out: VisibilityFactor[] = []
+  for (const item of value) {
+    const rec = asRecord(item)
+    if (!rec) continue
+    const name = asString(rec.name)
+    const textValue = asString(rec.value)
+    if (!name || !textValue) continue
+    out.push({
+      name,
+      value: textValue,
+      note: asString(rec.note) ?? undefined,
+      penalty: asNumber(rec.penalty) ?? 0,
+      max_penalty: asNumber(rec.max_penalty) ?? 0,
     })
-    .filter((v): v is VisibilityFactor => !!v)
+  }
+  return out
 }
 
 function normalizeAlgae(value: unknown): AlgaeRisk {

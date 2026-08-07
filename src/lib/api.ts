@@ -239,13 +239,7 @@ export async function geocode(query: string, signal?: AbortSignal): Promise<Geoc
   if (cached) return cached
 
   const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=en&format=json`
-  const res = await fetch(url, {
-    signal,
-    headers: {
-      'X-DepthViz-Api-Version': API_ACCEPT_VERSION,
-      'X-DepthViz-Client-Features': API_CLIENT_FEATURES,
-    },
-  })
+  const res = await fetch(url, { signal })
   if (!res.ok) {
     throw new ApiError(res.status, `Geocoding failed (${res.status})`)
   }

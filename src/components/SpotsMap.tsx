@@ -339,7 +339,7 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
     } finally {
       votingInFlight.current.delete(locationId)
     }
-  }, [dbUserVotes, dbVoteCounts])
+  }, [dbUserVotes, dbVoteCounts, onShowAuth])
 
   return (
     <div className={styles.wrapper}>

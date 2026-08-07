@@ -9,7 +9,6 @@ export function trackClientEvent(event: string, payload: TelemetryPayload = {}) 
   }
 
   if (import.meta.env.DEV) {
-    // eslint-disable-next-line no-console
     console.debug('[telemetry]', event, payload)
   }
 }
