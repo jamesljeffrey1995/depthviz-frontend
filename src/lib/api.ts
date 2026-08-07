@@ -120,6 +120,10 @@ export function parseErrorBody(body: string): string {
 // --- Request deduplication ---
 const pendingRequests = new Map<string, Promise<unknown>>()
 
+function isAbortError(error: unknown): boolean {
+  return !!error && typeof error === 'object' && (error as { name?: string }).name === 'AbortError'
+}
+
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   // Get current session token and attach it
   const { data: { session } } = await supabase.auth.getSession()
@@ -198,6 +202,7 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
         if (res.status === 204) return undefined as T
         return res.json()
       } catch (e) {
+        if (isAbortError(e)) throw e
         if (e instanceof ApiError) throw e
         // Network error — retry reads with backoff + jitter
         lastError = e instanceof Error ? e : new Error('Network error')

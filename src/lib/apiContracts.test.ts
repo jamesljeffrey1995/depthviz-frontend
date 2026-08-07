@@ -30,6 +30,32 @@ describe('api contracts', () => {
       .toThrow(/usable forecast days/i)
   })
 
+  test('nulls malformed nested forecast contracts', () => {
+    const out = normalizeForecastResponse({
+      location_name: 'Portland',
+      lat: 50.5,
+      lon: -2.5,
+      days: [{
+        date: '2026-08-07',
+        vis_estimate: 8.2,
+        verdict: 'Good',
+        color_class: 'good',
+        resuspension: { risk_level: 'high', penalty: '5', resuspension_risk: 0.7, recovery_state: 0.4 },
+        river_discharge: { risk_level: 'moderate', penalty: 1.2, distance_km: 'nearby' },
+        water_quality: { bgc_kd: '0.2', erddap_obs_date: 123 },
+        bias_attribution: { similar_reports: 'invalid', mean_error: 0.6, total_reports: 4 },
+        explanation: { visibility_m: '8', confidence: 'high', main_reason: 'Clear water', contributing_factors: ['Calm seas'] },
+      }],
+    })
+
+    expect(out.days[0]?.resuspension).toBeNull()
+    expect(out.days[0]?.river_discharge?.distance_km).toBeNull()
+    expect(out.days[0]?.water_quality?.bgc_kd).toBeNull()
+    expect(out.days[0]?.water_quality?.erddap_obs_date).toBeNull()
+    expect(out.days[0]?.bias_attribution).toBeNull()
+    expect(out.days[0]?.explanation).toBeNull()
+  })
+
   test('normalizes locations and optional encryption fields', () => {
     const out = normalizeLocations([
       {

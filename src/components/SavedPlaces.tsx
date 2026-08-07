@@ -11,9 +11,10 @@ interface Props {
   onSelectLocation: (lat: number, lon: number, name: string, locationId?: number) => void
   onDelete: (id: number) => void
   userUid?: string
+  onAuthRequired?: () => void
 }
 
-export function SavedPlaces({ locations, onSelectLocation, onDelete, userUid }: Props) {
+export function SavedPlaces({ locations, onSelectLocation, onDelete, userUid, onAuthRequired }: Props) {
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [confirmId, setConfirmId] = useState<number | null>(null)
   const [deleteError, setDeleteError] = useState('')
@@ -66,6 +67,7 @@ export function SavedPlaces({ locations, onSelectLocation, onDelete, userUid }: 
       onDelete(id)
     } catch (e) {
       const failure = toUserFacingError(e, 'map')
+      if (failure.requiresAuth) onAuthRequired?.()
       setDeleteError(failure.message)
       console.error(e)
     } finally {

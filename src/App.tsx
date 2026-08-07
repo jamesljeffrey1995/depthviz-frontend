@@ -727,6 +727,7 @@ export default function App() {
                   onSelectLocation={handleSpotSelect}
                   onDelete={id => setLocations(prev => prev.filter(l => l.id !== id))}
                   userUid={user.id}
+                  onAuthRequired={() => requestAuth({ type: 'route', path: '/places' })}
                 />
               </Suspense>
             ) : (

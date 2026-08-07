@@ -8,7 +8,29 @@
  *   extracts the `detail` field so users see a clean sentence instead.
  */
 import { describe, expect, test, vi, afterEach } from 'vitest'
-import { parseErrorBody, parseRetryAfter } from './api'
+
+const { getSessionMock, cacheGetMock, cacheSetMock } = vi.hoisted(() => ({
+  getSessionMock: vi.fn(async () => ({ data: { session: null } })),
+  cacheGetMock: vi.fn(() => null),
+  cacheSetMock: vi.fn(),
+}))
+
+vi.mock('./supabase', () => ({
+  supabase: {
+    auth: {
+      getSession: getSessionMock,
+    },
+  },
+}))
+
+vi.mock('./cache', () => ({
+  cacheGet: cacheGetMock,
+  cacheSet: cacheSetMock,
+  cacheDelete: vi.fn(),
+  cacheDeleteByPrefix: vi.fn(),
+}))
+
+import { getForecast, parseErrorBody, parseRetryAfter } from './api'
 
 describe('parseErrorBody', () => {
   test('extracts FastAPI detail string', () => {
@@ -51,7 +73,14 @@ describe('parseErrorBody', () => {
 })
 
 describe('parseRetryAfter', () => {
-  afterEach(() => vi.useRealTimers())
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+    vi.restoreAllMocks()
+    getSessionMock.mockResolvedValue({ data: { session: null } })
+    cacheGetMock.mockReturnValue(null)
+    cacheSetMock.mockReset()
+  })
 
   test('returns null for a missing header', () => {
     expect(parseRetryAfter(null)).toBeNull()
@@ -76,5 +105,15 @@ describe('parseRetryAfter', () => {
 
   test('returns null for unparseable values', () => {
     expect(parseRetryAfter('soon')).toBeNull()
+  })
+
+  test('does not retry aborted forecast requests', async () => {
+    const fetchMock = vi.fn().mockRejectedValue(new DOMException('Aborted', 'AbortError'))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(getForecast(50.5, -2.5, 'Portland', 'ft', undefined, new AbortController().signal))
+      .rejects.toMatchObject({ name: 'AbortError' })
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 })

@@ -1,9 +1,11 @@
 import type {
+  KnnBiasResult,
   BestVisResponse,
   DayForecast,
   ForecastResponse,
   Location,
   ReportRead,
+  SimilarReport,
   UserProfile,
   VisibilityFactor,
   SwellComponent,
@@ -28,6 +30,10 @@ function asBoolean(value: unknown): boolean | null {
 
 function asNullableNumber(value: unknown): number | null {
   return value == null ? null : asNumber(value)
+}
+
+function asNullableString(value: unknown): string | null {
+  return value == null ? null : asString(value)
 }
 
 function asStringArray(value: unknown): string[] {
@@ -80,6 +86,155 @@ function normalizeAlgae(value: unknown): AlgaeRisk {
   }
 }
 
+function normalizeResuspension(value: unknown): DayForecast['resuspension'] {
+  const rec = asRecord(value)
+  if (!rec) return null
+
+  const resuspension_risk = asNumber(rec.resuspension_risk)
+  const recovery_state = asNumber(rec.recovery_state)
+  const risk_level = asString(rec.risk_level)
+  const penalty = asNumber(rec.penalty)
+  if (resuspension_risk == null || recovery_state == null || !risk_level || penalty == null) return null
+
+  const seabed = rec.seabed_class
+  const seabed_class = seabed === 'rock' || seabed === 'gravel' || seabed === 'sand' || seabed === 'mixed' || seabed === 'mud'
+    ? seabed
+    : null
+
+  return {
+    depth_m: asNullableNumber(rec.depth_m),
+    bottom_orbital_velocity: asNullableNumber(rec.bottom_orbital_velocity),
+    bed_shear_stress: asNullableNumber(rec.bed_shear_stress),
+    seabed_class,
+    critical_shear: asNullableNumber(rec.critical_shear),
+    resuspension_risk,
+    recovery_state,
+    risk_level,
+    penalty,
+    note: asNullableString(rec.note),
+  }
+}
+
+function normalizeRiverDischarge(value: unknown): DayForecast['river_discharge'] {
+  const rec = asRecord(value)
+  if (!rec) return null
+
+  const risk_level = asString(rec.risk_level)
+  const penalty = asNumber(rec.penalty)
+  if (!risk_level || penalty == null) return null
+
+  return {
+    discharge_m3s: asNullableNumber(rec.discharge_m3s),
+    discharge_mean: asNullableNumber(rec.discharge_mean),
+    discharge_ratio: asNullableNumber(rec.discharge_ratio),
+    risk_level,
+    penalty,
+    note: asNullableString(rec.note),
+    distance_km: asNullableNumber(rec.distance_km),
+  }
+}
+
+function normalizeWaterQuality(value: unknown): DayForecast['water_quality'] {
+  const rec = asRecord(value)
+  if (!rec) return null
+
+  return {
+    bgc_kd: asNullableNumber(rec.bgc_kd),
+    bgc_kd_vis: asNullableNumber(rec.bgc_kd_vis),
+    bgc_source: asNullableString(rec.bgc_source),
+    erddap_chlorophyll: asNullableNumber(rec.erddap_chlorophyll),
+    erddap_kd490: asNullableNumber(rec.erddap_kd490),
+    erddap_kd490_vis: asNullableNumber(rec.erddap_kd490_vis),
+    erddap_obs_date: asNullableString(rec.erddap_obs_date),
+  }
+}
+
+function normalizeBiasAttribution(value: unknown): DayForecast['bias_attribution'] {
+  const rec = asRecord(value)
+  if (!rec || !Array.isArray(rec.similar_reports)) return null
+
+  const mean_error = asNumber(rec.mean_error)
+  const total_reports = asNumber(rec.total_reports)
+  if (mean_error == null || total_reports == null) return null
+
+  const similar_reports = rec.similar_reports
+    .map(item => {
+      const report = asRecord(item)
+      if (!report) return null
+
+      const date = asString(report.date)
+      const actual_vis = asNumber(report.actual_vis)
+      const model_predicted = asNumber(report.model_predicted)
+      const error = asNumber(report.error)
+      const conditions = asString(report.conditions)
+      const similarity = asNumber(report.similarity)
+      if (!date || actual_vis == null || model_predicted == null || error == null || !conditions || similarity == null) return null
+
+      return {
+        date,
+        actual_vis,
+        model_predicted,
+        error,
+        conditions,
+        similarity,
+      }
+    })
+    .filter((item): item is SimilarReport => !!item)
+
+  const knnRec = asRecord(rec.knn)
+  const knn = (() => {
+    if (!knnRec) return null
+
+    const bias = asNumber(knnRec.bias)
+    const logs_used = asNumber(knnRec.logs_used)
+    const logs_excluded = asNumber(knnRec.logs_excluded)
+    const outliers_softened = asNumber(knnRec.outliers_softened)
+    const confidence: KnnBiasResult['confidence'] | null = knnRec.confidence === 'insufficient_data' || knnRec.confidence === 'low' || knnRec.confidence === 'medium' || knnRec.confidence === 'high'
+      ? knnRec.confidence
+      : null
+    if (bias == null || logs_used == null || logs_excluded == null || outliers_softened == null || !confidence) return null
+
+    return {
+      bias,
+      logs_used,
+      logs_excluded,
+      outliers_softened,
+      confidence,
+      mean_distance: asNullableNumber(knnRec.mean_distance),
+    }
+  })()
+
+  return {
+    similar_reports,
+    mean_error,
+    total_reports,
+    knn,
+  }
+}
+
+function normalizeExplanation(value: unknown): DayForecast['explanation'] {
+  const rec = asRecord(value)
+  if (!rec) return null
+
+  const visibility_m = asNumber(rec.visibility_m)
+  const confidence = rec.confidence === 'low' || rec.confidence === 'medium' || rec.confidence === 'high'
+    ? rec.confidence
+    : null
+  const main_reason = asString(rec.main_reason)
+  if (visibility_m == null || !confidence || !main_reason) return null
+
+  return {
+    visibility_m,
+    confidence,
+    main_reason,
+    contributing_factors: asStringArray(rec.contributing_factors),
+    satellite_signal: asNullableString(rec.satellite_signal),
+    local_reports: asNullableString(rec.local_reports),
+    model_agreement: asNullableString(rec.model_agreement),
+    agreement_score: asNullableNumber(rec.agreement_score),
+  }
+}
+
 function normalizeDayForecast(value: unknown): DayForecast | null {
   const rec = asRecord(value)
   if (!rec) return null
@@ -117,11 +272,11 @@ function normalizeDayForecast(value: unknown): DayForecast | null {
     factors: normalizeFactors(rec.factors),
     nutrient_factor: asNullableNumber(rec.nutrient_factor),
     turbidity_penalty: asNullableNumber(rec.turbidity_penalty),
-    resuspension: asRecord(rec.resuspension) as DayForecast['resuspension'],
-    river_discharge: asRecord(rec.river_discharge) as DayForecast['river_discharge'],
-    water_quality: asRecord(rec.water_quality) as DayForecast['water_quality'],
-    bias_attribution: asRecord(rec.bias_attribution) as DayForecast['bias_attribution'],
-    explanation: asRecord(rec.explanation) as DayForecast['explanation'],
+    resuspension: normalizeResuspension(rec.resuspension),
+    river_discharge: normalizeRiverDischarge(rec.river_discharge),
+    water_quality: normalizeWaterQuality(rec.water_quality),
+    bias_attribution: normalizeBiasAttribution(rec.bias_attribution),
+    explanation: normalizeExplanation(rec.explanation),
   }
 }
 
