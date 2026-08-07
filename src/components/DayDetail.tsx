@@ -16,6 +16,8 @@ import {
 } from './icons'
 import styles from './DayDetail.module.css'
 
+const FT_PER_M = 3.28084
+
 /** Confidence signal for the gauge's uncertainty band — derived from the
  *  same local-bias attribution the AI-correction note already surfaces, so
  *  the dial's band width and the text note never disagree. */
@@ -200,15 +202,22 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
     ? getShallowWaterConfidence(dominantWaveM, windKn, maxDiveDepth)
     : null
 
+  const formatDistance = (metres: number, decimals = 1, withSpace = false) => {
+    const value = units === 'ft' ? metres * FT_PER_M : metres
+    return `${value.toFixed(decimals)}${withSpace ? ' ' : ''}${units}`
+  }
+  const formatSignedDistance = (metres: number, decimals = 1) => {
+    const value = units === 'ft' ? metres * FT_PER_M : metres
+    return `${value >= 0 ? '+' : ''}${value.toFixed(decimals)}${units}`
+  }
+
   const shallowNote = shallowWarning ? (() => {
     const parts: string[] = []
     if (shallowWarning.waveExceeded) {
-      parts.push(units === 'ft'
-        ? `${(shallowWarning.waveHeightM * 3.28084).toFixed(1)}ft waves`
-        : `${shallowWarning.waveHeightM.toFixed(1)}m waves`)
+      parts.push(`${formatDistance(shallowWarning.waveHeightM, 1)} waves`)
     }
     if (shallowWarning.windExceeded) parts.push(`${Math.round(shallowWarning.windKnots)}kn wind`)
-    return `${parts.join(' & ')} — surface mixing may reduce visibility at ${maxDiveDepth}m more than the forecast reflects`
+    return `${parts.join(' & ')} — surface mixing may reduce visibility at ${formatDistance(maxDiveDepth!, 0)} more than the forecast reflects`
   })() : null
 
   const confidence = gaugeConfidence(day)
@@ -216,9 +225,9 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
 
   // The rings are laid out on a metre scale, so the gauge always takes metres
   // and formats back into whatever unit the screen is showing.
-  const visM = units === 'ft' ? vis / 3.28084 : vis
+  const visM = units === 'ft' ? vis / FT_PER_M : vis
   const formatRange = (metres: number) => {
-    if (units === 'ft') return `${Math.round(metres * 3.28084)} ft`
+    if (units === 'ft') return `${Math.round(metres * FT_PER_M)} ft`
     return `${Number.isInteger(metres) ? metres : metres.toFixed(1)} m`
   }
 
@@ -269,7 +278,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
               AI-corrected
               {day.vis_corrected_offset != null && Math.round(day.vis_corrected_offset * 10) !== 0 && (
                 <span className={styles.correctedOffset}>
-                  {' '}{day.vis_corrected_offset >= 0 ? '+' : ''}{(Math.round(day.vis_corrected_offset * 10) / 10).toFixed(1)}m
+                  {' '}{formatSignedDistance(Math.round(day.vis_corrected_offset * 10) / 10)}
                 </span>
               )}
               {' '}&middot; {reportCount} report{reportCount !== 1 ? 's' : ''}
@@ -408,7 +417,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
         ].filter(Boolean).join(' ')}>
           <div className={styles.shallowNoteLabel}>
             <IconAlertTriangle className={styles.warningIcon} aria-hidden="true" />
-            Shallow-water advisory · max {maxDiveDepth}m
+            Shallow-water advisory · max {formatDistance(maxDiveDepth!, 0)}
           </div>
           <div className={[
             styles.shallowNoteText,
@@ -729,7 +738,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
               </div>
               <div className={styles.waterQualityMeta}>
                 <span style={{ color: turbidity.color }}>{turbidity.spm} suspended matter</span>
-                <span className={styles.waterQualityPenalty}>−{day.turbidity_penalty!.toFixed(1)}m viz</span>
+                <span className={styles.waterQualityPenalty}>−{formatDistance(day.turbidity_penalty!, 1)} viz</span>
               </div>
               <div className={styles.waterQualitySub}>
                 {turbidity.description} · Based on satellite SPM
@@ -757,7 +766,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
               </div>
               <div className={styles.riskStats}>
                 {day.resuspension.depth_m != null && (
-                  <span>Depth: {day.resuspension.depth_m.toFixed(1)}m</span>
+                  <span>Depth: {formatDistance(day.resuspension.depth_m, 1)}</span>
                 )}
                 {day.resuspension.seabed_class && (
                   <span>Seabed: {day.resuspension.seabed_class}</span>
@@ -777,7 +786,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                   {day.resuspension.risk_level} risk
                 </span>
                 {day.resuspension.penalty > 0 && (
-                  <span className={styles.waterQualityPenalty}>−{day.resuspension.penalty.toFixed(1)}m viz</span>
+                  <span className={styles.waterQualityPenalty}>−{formatDistance(day.resuspension.penalty, 1)} viz</span>
                 )}
               </div>
               {day.resuspension.note && (
@@ -823,7 +832,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                   {day.river_discharge.risk_level} risk
                 </span>
                 {day.river_discharge.penalty > 0 && (
-                  <span className={styles.waterQualityPenalty}>−{day.river_discharge.penalty.toFixed(1)}m viz</span>
+                  <span className={styles.waterQualityPenalty}>−{formatDistance(day.river_discharge.penalty, 1)} viz</span>
                 )}
               </div>
               {day.river_discharge.note && (
@@ -856,7 +865,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                 {day.water_quality.bgc_kd_vis != null && (
                   <div className={styles.clarityStat}>
                     <div className={styles.clarityLabel}>BGC Visibility</div>
-                    <div className={styles.clarityValue}>{day.water_quality.bgc_kd_vis.toFixed(1)}m</div>
+                    <div className={styles.clarityValue}>{formatDistance(day.water_quality.bgc_kd_vis, 1, true)}</div>
                   </div>
                 )}
                 {day.water_quality.erddap_chlorophyll != null && (
@@ -874,7 +883,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                 {day.water_quality.erddap_kd490_vis != null && (
                   <div className={styles.clarityStat}>
                     <div className={styles.clarityLabel}>ERDDAP Visibility</div>
-                    <div className={styles.clarityValue}>{day.water_quality.erddap_kd490_vis.toFixed(1)}m</div>
+                    <div className={styles.clarityValue}>{formatDistance(day.water_quality.erddap_kd490_vis, 1, true)}</div>
                   </div>
                 )}
               </div>

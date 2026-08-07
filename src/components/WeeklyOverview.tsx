@@ -41,6 +41,7 @@ function bestFutureDayIndex(days: DayForecast[]): number {
 
 export const WeeklyOverview = memo(function WeeklyOverview({ days, locationName, units, selectedIndex, onSelectDay }: Props) {
   const bestIdx = bestFutureDayIndex(days)
+  const visUnitWord = units === 'ft' ? 'feet' : 'metres'
 
   return (
     <div className={styles.container}>
@@ -80,7 +81,7 @@ export const WeeklyOverview = memo(function WeeklyOverview({ days, locationName,
                 !day.is_forecast ? styles.historical : '',
               ].join(' ')}
               onClick={() => onSelectDay(i)}
-              aria-label={`${dayLabel} ${dateLabel}: ${vis.toFixed(1)} metres visibility, ${verdictLabel}, wind ${windDesc}${isBest ? ', best day this week' : ''}`}
+              aria-label={`${dayLabel} ${dateLabel}: ${vis.toFixed(1)} ${visUnitWord} visibility, ${verdictLabel}, wind ${windDesc}${isBest ? ', best day this week' : ''}`}
               aria-pressed={isSelected}
             >
               {isBest && <div className={styles.bestBadge} aria-hidden="true">BEST</div>}
@@ -89,7 +90,7 @@ export const WeeklyOverview = memo(function WeeklyOverview({ days, locationName,
               <div className={styles.dayName}>{dayLabel}</div>
               <div className={styles.dayDate}>{dateLabel}</div>
 
-              <div className={styles.vis}>{vis.toFixed(1)}<span className={styles.visUnit}>m</span></div>
+              <div className={styles.vis}>{vis.toFixed(1)}<span className={styles.visUnit}>{units}</span></div>
               <div className={styles.verdict}>{verdictLabel}</div>
 
               <div className={styles.metrics}>

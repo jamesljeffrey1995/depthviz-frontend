@@ -21,7 +21,8 @@ interface Props {
   onSelectLocation: (lat: number, lon: number, name: string, locationId?: number) => void
 }
 
-function MiniStrip({ days, bestDayIdx }: { days: DayForecast[]; bestDayIdx: number }) {
+function MiniStrip({ days, bestDayIdx, units }: { days: DayForecast[]; bestDayIdx: number; units: 'ft' | 'm' }) {
+  const visUnitWord = units === 'ft' ? 'feet' : 'metres'
   return (
     <div className={styles.miniStrip} aria-label="7-day conditions strip">
       {days.map((day, i) => {
@@ -32,8 +33,8 @@ function MiniStrip({ days, bestDayIdx }: { days: DayForecast[]; bestDayIdx: numb
           <div
             key={day.date}
             className={`${styles.miniDay} ${styles[day.color_class as keyof typeof styles] ?? ''} ${i === bestDayIdx ? styles.miniDayBest : ''}`}
-            title={`${label}: ${vis.toFixed(1)}m — ${day.verdict}`}
-            aria-label={`${label}: ${vis.toFixed(1)} metres, ${day.verdict}`}
+            title={`${label}: ${vis.toFixed(1)}${units} — ${day.verdict}`}
+            aria-label={`${label}: ${vis.toFixed(1)} ${visUnitWord}, ${day.verdict}`}
           >
             <div className={styles.miniDayLabel}>{label}</div>
             <div className={styles.miniDayVis}>{vis.toFixed(1)}</div>
@@ -188,7 +189,7 @@ export function PlacesDashboard({ locations, userUid, units, onSelectLocation }:
                 className={styles.rowHead}
                 onClick={() => toggle(loc.id)}
                 aria-expanded={isOpen}
-                aria-label={`${loc.name}${vis != null ? `, ${vis.toFixed(1)} metres visibility` : ''} — tap to ${isOpen ? 'collapse' : 'expand'}`}
+                aria-label={`${loc.name}${vis != null ? `, ${vis.toFixed(1)} ${units === 'ft' ? 'feet' : 'metres'} visibility` : ''} — tap to ${isOpen ? 'collapse' : 'expand'}`}
               >
                 <span className={styles.rowMain}>
                   <span className={styles.placeName}>{loc.name}</span>
@@ -209,7 +210,7 @@ export function PlacesDashboard({ locations, userUid, units, onSelectLocation }:
                   {cond?.status === 'done' && vis != null && (
                     <span className={styles.visWrap}>
                       <span className={`${styles.visNum} ${colorCls}`}>{vis.toFixed(1)}</span>
-                      <span className={styles.visUnit}>m</span>
+                      <span className={styles.visUnit}>{units}</span>
                       {trend && <span className={`${styles.trend} ${trend.cls}`} title={`Visibility ${trend.label}`} aria-label={`Visibility ${trend.label}`}>{trend.symbol}</span>}
                     </span>
                   )}
@@ -235,7 +236,7 @@ export function PlacesDashboard({ locations, userUid, units, onSelectLocation }:
                   )}
 
                   {cond?.status === 'done' && cond.days.length > 0 && (
-                    <MiniStrip days={cond.days} bestDayIdx={cond.bestDayIdx} />
+                    <MiniStrip days={cond.days} bestDayIdx={cond.bestDayIdx} units={units} />
                   )}
 
                   {cond?.status === 'error' && (

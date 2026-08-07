@@ -3,15 +3,15 @@
   display: flex;
   align-items: stretch;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 24px;
+  gap: 10px;
+  margin-bottom: 18px;
 }
 
 .searchGroup {
   min-width: 0;
   /* Wide enough to hold the field and the submit button side by side; below
      that the locate button wraps to its own line rather than being overlapped. */
-  flex: 1 1 300px;
+  flex: 1 1 260px;
   display: flex;
   align-items: stretch;
   background: var(--surface-raised);
@@ -51,8 +51,8 @@
   border-radius: var(--radius-md) 0 0 var(--radius-md);
   color: var(--ink);
   font-family: var(--font-sans);
-  font-size: 15px;
-  padding: 14px 12px 14px 44px;
+  font-size: 14px;
+  padding: 12px 12px 12px 44px;
   outline: none;
 }
 
@@ -103,9 +103,10 @@
   justify-content: center;
   gap: 8px;
   font-family: var(--font-sans);
-  font-size: 14px;
-  font-weight: 700;
-  padding: 13px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 14px;
+  min-height: 44px;
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
@@ -122,9 +123,9 @@
   flex-shrink: 0;
   background: var(--accent);
   color: var(--accent-on);
-  border-radius: 9px;
-  margin: 4px;
-  padding-inline: 16px;
+  border-radius: var(--radius-sm);
+  margin: 3px;
+  padding-inline: 14px;
 }
 
 .btnDive:hover {
@@ -136,6 +137,7 @@
   border: 1px solid var(--surface-border);
   color: var(--ink-dim);
   white-space: nowrap;
+  padding-inline: 12px;
 }
 
 .btnLocate:hover {
@@ -154,7 +156,7 @@
   }
 
   .btnLocate {
-    min-height: 44px;
+    align-self: flex-start;
   }
 }
 
