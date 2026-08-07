@@ -277,10 +277,16 @@
   line-height: 1.7;
   display: grid;
   gap: var(--space-sm);
+  justify-items: center;
+  text-align: center;
 }
 
 .footerAttribution {
   margin-bottom: 2px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
 }
 
 .copyright {
@@ -290,6 +296,7 @@
 
 .footerLinks {
   display: flex;
+  justify-content: center;
   gap: var(--space-md);
   flex-wrap: wrap;
   margin-top: var(--space-xs);

@@ -409,6 +409,11 @@ export default function App() {
   }
 
   const todayIndex = forecast?.days.findIndex(d => d.date === new Date().toISOString().split('T')[0]) ?? -1
+  const depthOptionsM = [5, 10, 15, 20, 30]
+  const formatDepthOption = (metres: number) => {
+    if (units === 'ft') return `${Math.round(metres * 3.28084)}ft${metres === 30 ? '+' : ''}`
+    return `${metres}m${metres === 30 ? '+' : ''}`
+  }
 
   if (authLoading) return (
     <div className={styles.bootScreen}>
@@ -807,13 +812,11 @@ export default function App() {
                           setDiveDepth(v)
                           try { localStorage.setItem('diveDepth', String(v)) } catch {}
                         }}
-                        aria-label="Your maximum dive depth in metres"
+                        aria-label={`Your maximum dive depth in ${units === 'ft' ? 'feet' : 'metres'}`}
                       >
-                        <option value={5}>5m</option>
-                        <option value={10}>10m</option>
-                        <option value={15}>15m</option>
-                        <option value={20}>20m</option>
-                        <option value={30}>30m+</option>
+                        {depthOptionsM.map(depth => (
+                          <option key={depth} value={depth}>{formatDepthOption(depth)}</option>
+                        ))}
                       </select>
                     </div>
                   </div>
