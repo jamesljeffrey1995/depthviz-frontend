@@ -19,6 +19,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
   const [activeIndex, setActiveIndex] = useState(-1)
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
   const [suggestionsError, setSuggestionsError] = useState(false)
+  const [hasResolvedSuggestions, setHasResolvedSuggestions] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const abortRef = useRef<AbortController | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -36,6 +37,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
     setActiveIndex(-1)
     setLoadingSuggestions(false)
     setSuggestionsError(false)
+    setHasResolvedSuggestions(false)
   }, [])
 
   const handleInput = useCallback((value: string) => {
@@ -44,20 +46,20 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
     resetSuggestions()
     const trimmed = value.trim()
     if (trimmed.length < 3) return
+    const controller = new AbortController()
+    abortRef.current = controller
     debounceRef.current = setTimeout(async () => {
       setLoadingSuggestions(true)
-      setShowSuggestions(true)
-      const controller = new AbortController()
-      abortRef.current = controller
       try {
         const results = await getSuggestions(trimmed)
         if (controller.signal.aborted) return
         setSuggestions(results)
-        setShowSuggestions(true)
+        setShowSuggestions(results.length > 0)
+        setHasResolvedSuggestions(true)
       } catch {
         if (controller.signal.aborted) return
         setSuggestionsError(true)
-        setShowSuggestions(true)
+        setShowSuggestions(false)
       } finally {
         if (!controller.signal.aborted) setLoadingSuggestions(false)
       }
@@ -143,7 +145,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
         ? 'Looking up matching places…'
         : suggestionsError
           ? 'Suggestions are unavailable right now. You can still submit your search.'
-          : showSuggestions && suggestions.length === 0
+          : hasResolvedSuggestions && suggestions.length === 0
             ? 'No matching places found yet. You can still submit your search.'
             : showSuggestions
               ? `${suggestions.length} suggestion${suggestions.length === 1 ? '' : 's'} available. Use the arrow keys to choose one.`
@@ -185,30 +187,22 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
               role="listbox"
               aria-label="Location suggestions"
             >
-              {loadingSuggestions ? (
-                <li className={styles.suggestionMessage} role="presentation"><span role="status">Looking up matching places…</span></li>
-              ) : suggestionsError ? (
-                <li className={styles.suggestionMessage} role="presentation"><span role="status">Suggestions are unavailable right now.</span></li>
-              ) : suggestions.length === 0 ? (
-                <li className={styles.suggestionMessage} role="presentation"><span role="status">No matching places found.</span></li>
-              ) : (
-                suggestions.map((r, i) => {
-                  const name = formatLocationName(r)
-                  return (
-                    <li
-                      id={`suggestion-${i}`}
-                      key={`${r.latitude}:${r.longitude}:${name}`}
-                      className={`${styles.suggestion} ${i === activeIndex ? styles.suggestionActive : ''}`}
-                      role="option"
-                      aria-selected={i === activeIndex}
-                      onClick={() => handleSelect(r)}
-                      onMouseEnter={() => setActiveIndex(i)}
-                    >
-                      {name}
-                    </li>
-                  )
-                })
-              )}
+              {suggestions.map((r, i) => {
+                const name = formatLocationName(r)
+                return (
+                  <li
+                    id={`suggestion-${i}`}
+                    key={`${r.latitude}:${r.longitude}:${name}`}
+                    className={`${styles.suggestion} ${i === activeIndex ? styles.suggestionActive : ''}`}
+                    role="option"
+                    aria-selected={i === activeIndex}
+                    onClick={() => handleSelect(r)}
+                    onMouseEnter={() => setActiveIndex(i)}
+                  >
+                    {name}
+                  </li>
+                )
+              })}
             </ul>
           )}
         </div>
