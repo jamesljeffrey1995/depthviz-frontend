@@ -137,7 +137,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
   const canSuggest = trimmedQuery.length >= 3
   const hasSelectableSuggestions = !loadingSuggestions && !suggestionsError && suggestions.length > 0
   const statusMessage = !trimmedQuery
-    ? 'Search by town, beach, headland, or coordinates.'
+    ? ''
     : !canSuggest
       ? 'Type at least 3 characters to see suggestions.'
       : loadingSuggestions
@@ -164,7 +164,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
             aria-autocomplete="list"
             aria-controls={showSuggestions && hasSelectableSuggestions ? listId : undefined}
             aria-activedescendant={showSuggestions && activeIndex >= 0 ? `suggestion-${activeIndex}` : undefined}
-            aria-describedby={`${helpId} ${statusId}`}
+            aria-describedby={statusMessage ? `${helpId} ${statusId}` : helpId}
             aria-busy={loadingSuggestions}
             value={query}
             onChange={e => handleInput(e.target.value)}
@@ -203,7 +203,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
                 })}
               </ul>
             ) : (
-              <div className={styles.suggestions} role="status" aria-live="polite">
+              <div className={styles.suggestionStatus} role="status">
                 {loadingSuggestions ? (
                   <p className={styles.suggestionMessage}>Looking up matching places…</p>
                 ) : suggestionsError ? (
@@ -226,7 +226,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
       </button>
       <div className={styles.meta}>
         <p id={helpId} className={styles.helper}>Search by town, beach, headland, or coordinates.</p>
-        <p id={statusId} className={styles.status} aria-live="polite">{statusMessage}</p>
+        {statusMessage && <p id={statusId} className={styles.status} aria-live="polite">{statusMessage}</p>}
       </div>
     </div>
   )
