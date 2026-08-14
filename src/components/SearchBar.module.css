@@ -52,12 +52,37 @@
   color: var(--ink);
   font-family: var(--font-sans);
   font-size: 14px;
-  padding: 12px 12px 12px 44px;
+  padding: 12px 76px 12px 44px;
   outline: none;
 }
 
 .input::placeholder {
   color: var(--ink-faint);
+}
+
+.clearBtn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--accent-text);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 8px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+}
+
+.clearBtn:hover {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+.clearBtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .suggestions {
@@ -150,6 +175,29 @@
   transform: scale(0.98);
 }
 
+.meta {
+  flex: 1 0 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.helper,
+.status {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.helper {
+  color: var(--ink-faint);
+}
+
+.status {
+  color: var(--ink-dim);
+  min-height: 1.5em;
+}
+
 @media (max-width: 560px) {
   .wrapper {
     flex-direction: column;
@@ -173,6 +221,7 @@
   .input {
     font-size: 14px;
     padding-left: 40px;
+    padding-right: 68px;
   }
 
   .inputIcon {
