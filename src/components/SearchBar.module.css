@@ -115,13 +115,6 @@
   color: var(--ink);
 }
 
-.suggestionMessage {
-  padding: 10px 12px;
-  color: var(--ink-faint);
-  font-size: 13px;
-  line-height: 1.5;
-}
-
 .btnDive:focus-visible,
 .btnLocate:focus-visible {
   outline: 2px solid var(--accent);

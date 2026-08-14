@@ -48,6 +48,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
     if (trimmed.length < 3) return
     const requestId = requestIdRef.current
     debounceRef.current = setTimeout(async () => {
+      if (requestId !== requestIdRef.current) return
       setLoadingSuggestions(true)
       try {
         const results = await getSuggestions(trimmed)
