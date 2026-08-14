@@ -39,6 +39,41 @@ const TYPE_SPECS = [
   { role: 'Mono readout', cls: styles.tMono, spec: 'IBM Plex Mono · 13 / 500', sample: '55.9042° N, 2.1318° W · buoy 62145' },
 ]
 
+const PRINCIPLES = [
+  {
+    title: 'Good UI design is intuitive',
+    body: 'Users should understand and use the interface quickly, regardless of technical experience.',
+  },
+  {
+    title: 'Familiarity is key',
+    body: 'Use familiar patterns and conventions so existing mental models do most of the work.',
+  },
+  {
+    title: 'Good UI needs to be responsive',
+    body: 'Layouts should adapt cleanly across screen sizes while staying fast and performant.',
+  },
+  {
+    title: 'Consistency and clarity play a part',
+    body: 'Visual and behavioural consistency make the product easier to learn, while clarity keeps it predictable.',
+  },
+  {
+    title: 'Empathy is necessary for good UI design',
+    body: 'The interface should reflect what users are trying to do and how they feel while doing it.',
+  },
+  {
+    title: 'The best UI design calls for an invisible UI',
+    body: 'Keep only the elements that help the user move forward and remove unnecessary friction.',
+  },
+  {
+    title: 'Minimalism is key in user interface',
+    body: 'Use typography, colour, spacing, and repeated patterns to create hierarchy and guide the eye.',
+  },
+  {
+    title: 'Best UI design is about inclusivity',
+    body: 'Accessibility, legibility, contrast, hierarchy, and paired icon-plus-text feedback are part of the design, not extras.',
+  },
+]
+
 function mockDay(overrides: Partial<DayForecast>): DayForecast {
   return {
     date: new Date().toISOString().slice(0, 10),
@@ -72,8 +107,25 @@ export function DesignSystemPage() {
         </p>
       </header>
 
+      <section className={styles.section} id="principles" style={{ '--i': 1 } as CSSProperties}>
+        <SectionHeader
+          eyebrow="Principles"
+          title="Eight UI principles applied to the frontend"
+          subtitle="The live frontend should feel intuitive, familiar, responsive, consistent, empathetic, low-friction, minimal, and inclusive."
+        />
+        <div className={styles.principlesGrid}>
+          {PRINCIPLES.map((principle, index) => (
+            <Card key={principle.title} padding="lg" className={styles.principleCard}>
+              <div className={styles.principleNumber}>0{index + 1}</div>
+              <h3 className={styles.principleTitle}>{principle.title}</h3>
+              <p className={styles.principleBody}>{principle.body}</p>
+            </Card>
+          ))}
+        </div>
+      </section>
+
       {/* Colour */}
-      <section className={styles.section} id="colour" style={{ '--i': 1 } as CSSProperties}>
+      <section className={styles.section} id="colour" style={{ '--i': 2 } as CSSProperties}>
         <SectionHeader eyebrow="Tokens" title="Dive quality scale" subtitle="A water-clarity ramp, not a red–amber–green traffic light: murky water reads as darker, subdued tones and clear water as brighter aqua. Six luminance-stepped hues, each always paired with a label or glyph, never colour alone." />
         <div className={styles.swatchRow}>
           {QUALITY.map(q => (
@@ -95,7 +147,7 @@ export function DesignSystemPage() {
       </section>
 
       {/* Typography */}
-      <section className={styles.section} id="type" style={{ '--i': 2 } as CSSProperties}>
+      <section className={styles.section} id="type" style={{ '--i': 3 } as CSSProperties}>
         <SectionHeader eyebrow="Tokens" title="Typography" subtitle="Space Grotesk for the display voice, Inter for body and metrics, IBM Plex Mono for coordinates, buoy IDs and timestamps. Numbers use tabular figures for stable, scannable columns." />
         <Card padding="lg" className={styles.typeCard}>
           {TYPE_SPECS.map(t => (
@@ -111,7 +163,7 @@ export function DesignSystemPage() {
       </section>
 
       {/* Dive Score gauge */}
-      <section className={styles.section} id="score" style={{ '--i': 3 } as CSSProperties}>
+      <section className={styles.section} id="score" style={{ '--i': 4 } as CSSProperties}>
         <SectionHeader eyebrow="Signature component" title="Dive Quality Score" subtitle="The single, prominent number that leads every location page." />
         <div className={styles.gaugeRow}>
           <div className={styles.gaugeCell}><DiveScore score={91} color="#7fffd4" label="Excellent" /></div>
@@ -123,7 +175,7 @@ export function DesignSystemPage() {
       </section>
 
       {/* Decision card */}
-      <section className={styles.section} id="decision" style={{ '--i': 4 } as CSSProperties}>
+      <section className={styles.section} id="decision" style={{ '--i': 5 } as CSSProperties}>
         <SectionHeader eyebrow="Composition" title="Decision card" subtitle="Score + verdict + self-explaining factor breakdown + best-window shortcut." />
         <div className={styles.cardGrid}>
           <DiveScoreCard day={goodDay} locationName="St Abbs Head" units="m" forecast={{ report_count: 4, model_confidence: 'high' }} />
@@ -132,7 +184,7 @@ export function DesignSystemPage() {
       </section>
 
       {/* Buttons & controls */}
-      <section className={styles.section} id="controls" style={{ '--i': 5 } as CSSProperties}>
+      <section className={styles.section} id="controls" style={{ '--i': 6 } as CSSProperties}>
         <SectionHeader eyebrow="Library" title="Buttons & controls" subtitle="Pill buttons with a 44px minimum touch target at every size." />
         <div className={styles.inlineRow}>
           <Button variant="primary" iconStart={<CheckIcon />}>Save this spot</Button>
@@ -158,7 +210,7 @@ export function DesignSystemPage() {
       </section>
 
       {/* Badges */}
-      <section className={styles.section} id="badges" style={{ '--i': 6 } as CSSProperties}>
+      <section className={styles.section} id="badges" style={{ '--i': 7 } as CSSProperties}>
         <SectionHeader eyebrow="Library" title="Badges & verdicts" />
         <div className={styles.inlineRow}>
           <Badge tone="success" dot>Yes, dive</Badge>
@@ -170,7 +222,7 @@ export function DesignSystemPage() {
       </section>
 
       {/* Meters + stat tiles */}
-      <section className={styles.section} id="data" style={{ '--i': 7 } as CSSProperties}>
+      <section className={styles.section} id="data" style={{ '--i': 8 } as CSSProperties}>
         <SectionHeader eyebrow="Library" title="Factor meters & stat tiles" subtitle="Each row is scannable in under two seconds and legible without colour." />
         <div className={styles.cardGrid}>
           <Card padding="lg" className={styles.stack}>
@@ -193,7 +245,7 @@ export function DesignSystemPage() {
       </section>
 
       {/* Loading */}
-      <section className={styles.section} id="loading" style={{ '--i': 8 } as CSSProperties}>
+      <section className={styles.section} id="loading" style={{ '--i': 9 } as CSSProperties}>
         <SectionHeader
           eyebrow="Perceived performance"
           title="Skeleton states"
