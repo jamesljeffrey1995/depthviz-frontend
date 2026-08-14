@@ -44,9 +44,9 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
     resetSuggestions()
     const trimmed = value.trim()
     if (trimmed.length < 3) return
-    setLoadingSuggestions(true)
-    setShowSuggestions(true)
     debounceRef.current = setTimeout(async () => {
+      setLoadingSuggestions(true)
+      setShowSuggestions(true)
       const controller = new AbortController()
       abortRef.current = controller
       try {
@@ -143,9 +143,11 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
         ? 'Looking up matching places…'
         : suggestionsError
           ? 'Suggestions are unavailable right now. You can still submit your search.'
-          : suggestions.length === 0
+          : showSuggestions && suggestions.length === 0
             ? 'No matching places found yet. You can still submit your search.'
-            : `${suggestions.length} suggestion${suggestions.length === 1 ? '' : 's'} available. Use the arrow keys to choose one.`
+            : showSuggestions
+              ? `${suggestions.length} suggestion${suggestions.length === 1 ? '' : 's'} available. Use the arrow keys to choose one.`
+              : 'Pause briefly for suggestions, or press Show forecast to search now.'
 
   return (
     <div className={styles.wrapper} ref={containerRef}>
@@ -184,11 +186,11 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
               aria-label="Location suggestions"
             >
               {loadingSuggestions ? (
-                <li className={styles.suggestionMessage} role="option" aria-disabled="true">Looking up matching places…</li>
+                <li className={styles.suggestionMessage} role="presentation"><span role="status">Looking up matching places…</span></li>
               ) : suggestionsError ? (
-                <li className={styles.suggestionMessage} role="option" aria-disabled="true">Suggestions are unavailable right now.</li>
+                <li className={styles.suggestionMessage} role="presentation"><span role="status">Suggestions are unavailable right now.</span></li>
               ) : suggestions.length === 0 ? (
-                <li className={styles.suggestionMessage} role="option" aria-disabled="true">No matching places found.</li>
+                <li className={styles.suggestionMessage} role="presentation"><span role="status">No matching places found.</span></li>
               ) : (
                 suggestions.map((r, i) => {
                   const name = formatLocationName(r)
