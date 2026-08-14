@@ -135,7 +135,6 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
 
   const trimmedQuery = query.trim()
   const canSuggest = trimmedQuery.length >= 3
-  const hasSelectableSuggestions = !loadingSuggestions && !suggestionsError && suggestions.length > 0
   const statusMessage = !trimmedQuery
     ? ''
     : !canSuggest
@@ -160,9 +159,9 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
             type="text"
             role="combobox"
             aria-label="Search for a coastal location"
-            aria-expanded={hasSelectableSuggestions}
+            aria-expanded={showSuggestions}
             aria-autocomplete="list"
-            aria-controls={showSuggestions && hasSelectableSuggestions ? listId : undefined}
+            aria-controls={showSuggestions ? listId : undefined}
             aria-activedescendant={showSuggestions && activeIndex >= 0 ? `suggestion-${activeIndex}` : undefined}
             aria-describedby={statusMessage ? `${helpId} ${statusId}` : helpId}
             aria-busy={loadingSuggestions}
@@ -178,14 +177,20 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
             </button>
           )}
           {showSuggestions && (
-            hasSelectableSuggestions ? (
-              <ul
-                id={listId}
-                className={styles.suggestions}
-                role="listbox"
-                aria-label="Location suggestions"
-              >
-                {suggestions.map((r, i) => {
+            <ul
+              id={listId}
+              className={styles.suggestions}
+              role="listbox"
+              aria-label="Location suggestions"
+            >
+              {loadingSuggestions ? (
+                <li className={styles.suggestionMessage} role="option" aria-disabled="true">Looking up matching places…</li>
+              ) : suggestionsError ? (
+                <li className={styles.suggestionMessage} role="option" aria-disabled="true">Suggestions are unavailable right now.</li>
+              ) : suggestions.length === 0 ? (
+                <li className={styles.suggestionMessage} role="option" aria-disabled="true">No matching places found.</li>
+              ) : (
+                suggestions.map((r, i) => {
                   const name = formatLocationName(r)
                   return (
                     <li
@@ -200,19 +205,9 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
                       {name}
                     </li>
                   )
-                })}
-              </ul>
-            ) : (
-              <div className={styles.suggestionStatus} role="status">
-                {loadingSuggestions ? (
-                  <p className={styles.suggestionMessage}>Looking up matching places…</p>
-                ) : suggestionsError ? (
-                  <p className={styles.suggestionMessage}>Suggestions are unavailable right now.</p>
-                ) : (
-                  <p className={styles.suggestionMessage}>No matching places found.</p>
-                )}
-              </div>
-            )
+                })
+              )}
+            </ul>
           )}
         </div>
         <button type="button" className={styles.btnDive} onClick={handleSubmit} aria-label="Show forecast">
