@@ -21,7 +21,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
   const [suggestionsError, setSuggestionsError] = useState(false)
   const [hasResolvedSuggestions, setHasResolvedSuggestions] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-  const abortRef = useRef<AbortController | null>(null)
+  const requestIdRef = useRef(0)
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const inputId = useId()
@@ -31,7 +31,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
 
   const resetSuggestions = useCallback(() => {
     clearTimeout(debounceRef.current)
-    abortRef.current?.abort()
+    requestIdRef.current += 1
     setSuggestions([])
     setShowSuggestions(false)
     setActiveIndex(-1)
@@ -46,22 +46,21 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
     resetSuggestions()
     const trimmed = value.trim()
     if (trimmed.length < 3) return
-    const controller = new AbortController()
-    abortRef.current = controller
+    const requestId = requestIdRef.current
     debounceRef.current = setTimeout(async () => {
       setLoadingSuggestions(true)
       try {
         const results = await getSuggestions(trimmed)
-        if (controller.signal.aborted) return
+        if (requestId !== requestIdRef.current) return
         setSuggestions(results)
         setShowSuggestions(results.length > 0)
         setHasResolvedSuggestions(true)
       } catch {
-        if (controller.signal.aborted) return
+        if (requestId !== requestIdRef.current) return
         setSuggestionsError(true)
         setShowSuggestions(false)
       } finally {
-        if (!controller.signal.aborted) setLoadingSuggestions(false)
+        if (requestId === requestIdRef.current) setLoadingSuggestions(false)
       }
     }, 300)
   }, [getSuggestions, resetSuggestions])
@@ -119,10 +118,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
   }, [showSuggestions, activeIndex, suggestions, handleSelect, handleSubmit])
 
   useEffect(() => {
-    return () => {
-      clearTimeout(debounceRef.current)
-      abortRef.current?.abort()
-    }
+    return () => { clearTimeout(debounceRef.current) }
   }, [])
 
   useEffect(() => {
