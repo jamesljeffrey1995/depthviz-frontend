@@ -37,6 +37,43 @@
 }
 .section:first-of-type { border-top: none; }
 
+.principlesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--ds-space-4);
+}
+
+.principleCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-3);
+  min-height: 100%;
+}
+
+.principleNumber {
+  font-family: var(--ds-font-num);
+  font-size: var(--ds-text-label);
+  font-weight: var(--ds-fw-semi);
+  color: var(--ds-accent);
+  letter-spacing: 0.08em;
+}
+
+.principleTitle {
+  margin: 0;
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-text-h3);
+  font-weight: 600;
+  line-height: var(--ds-lh-tight);
+  color: var(--ds-text-strong);
+}
+
+.principleBody {
+  margin: 0;
+  font-size: var(--ds-text-body);
+  line-height: var(--ds-lh-body);
+  color: var(--ds-text-muted);
+}
+
 /* colour */
 .swatchRow {
   display: grid;
