@@ -119,7 +119,10 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
   }, [showSuggestions, activeIndex, suggestions, handleSelect, handleSubmit])
 
   useEffect(() => {
-    return () => { clearTimeout(debounceRef.current) }
+    return () => {
+      clearTimeout(debounceRef.current)
+      requestIdRef.current += 1
+    }
   }, [])
 
   useEffect(() => {
@@ -143,10 +146,12 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
         : suggestionsError
           ? 'Suggestions are unavailable right now. You can still submit your search.'
           : hasResolvedSuggestions && suggestions.length === 0
-            ? 'No matching places found yet. You can still submit your search.'
+            ? 'No matching places found. You can still submit your search.'
             : showSuggestions
               ? `${suggestions.length} suggestion${suggestions.length === 1 ? '' : 's'} available. Use the arrow keys to choose one.`
-              : 'Pause briefly for suggestions, or press Show forecast to search now.'
+              : hasResolvedSuggestions && suggestions.length > 0
+                ? 'Suggestions hidden. Continue typing to refresh them, or press Show forecast to search now.'
+                : 'Continue typing to refine your search, or press Show forecast to search now.'
 
   return (
     <div className={styles.wrapper} ref={containerRef}>
