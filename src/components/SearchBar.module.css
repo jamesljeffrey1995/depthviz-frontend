@@ -16,7 +16,7 @@
   align-items: stretch;
   background: var(--surface-raised);
   border: 1px solid var(--surface-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xs);
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
@@ -48,10 +48,10 @@
   min-width: 0;
   background: transparent;
   border: none;
-  border-radius: var(--radius-md) 0 0 var(--radius-md);
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
   color: var(--ink);
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: 15px;
   padding: 12px 76px 12px 44px;
   outline: none;
 }
@@ -146,15 +146,17 @@
 
 .btnDive {
   flex-shrink: 0;
-  background: var(--accent);
-  color: var(--accent-on);
-  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 1px solid rgba(var(--accent-rgb), 0.35);
+  border-radius: var(--radius-md);
   margin: 3px;
-  padding-inline: 14px;
+  padding-inline: 12px;
 }
 
 .btnDive:hover {
-  background: var(--accent-strong);
+  background: rgba(var(--accent-rgb), 0.18);
+  border-color: var(--accent);
 }
 
 .btnLocate {

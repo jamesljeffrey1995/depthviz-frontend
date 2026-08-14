@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { getFeed } from '../lib/api'
 import type { FeedItem } from '../types'
+import { Badge, Button, Card, FilterChip, PageLayout, SegmentedControl } from './ui'
 import styles from './FeedPage.module.css'
 
 interface FeedResponse {
@@ -28,6 +29,15 @@ function timeAgo(iso: string): string {
 }
 
 const LIMIT = 30
+const SCOPE_OPTIONS = [
+  { value: 'all' as const, label: 'All activity' },
+  { value: 'friends' as const, label: 'Friends only' },
+]
+const FILTER_OPTIONS: Array<{ value: FilterType; label: string }> = [
+  { value: 'all', label: 'All' },
+  { value: 'reports', label: 'Reports' },
+  { value: 'catches', label: 'Catches' },
+]
 
 export function FeedPage({ user }: Props) {
   const [scope, setScope] = useState<Scope>('all')
@@ -37,14 +47,7 @@ export function FeedPage({ user }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // The current pagination offset lives in a ref, not state, so the fetch
-  // closure always reads the latest value rather than a stale snapshot captured
-  // when the effect last ran.
   const offsetRef = useRef(0)
-  // Monotonic request id. Only the most-recent request may commit its results,
-  // so a slow "Load More" can't append items from a previous scope/filter after
-  // the user switches, and out-of-order responses can't double-count the offset
-  // or cross-contaminate the list.
   const requestSeq = useRef(0)
 
   const fetchFeed = useCallback(async (reset: boolean) => {
@@ -59,7 +62,7 @@ export function FeedPage({ user }: Props) {
         limit: LIMIT,
         offset: startOffset,
       })
-      if (requestId !== requestSeq.current) return  // superseded — discard
+      if (requestId !== requestSeq.current) return
       setItems(prev => (reset ? data.items : [...prev, ...data.items]))
       setTotal(data.total)
       offsetRef.current = startOffset + data.items.length
@@ -75,10 +78,6 @@ export function FeedPage({ user }: Props) {
     fetchFeed(true)
   }, [fetchFeed])
 
-  // Switching scope/filter resets pagination and supersedes any in-flight
-  // request synchronously (not just in the post-paint reload effect), so a
-  // "Load More" click in the window before the reload runs can't read the old
-  // offset and append the new scope's page onto the previous list.
   function resetForReload() {
     requestSeq.current++
     offsetRef.current = 0
@@ -99,121 +98,102 @@ export function FeedPage({ user }: Props) {
     setFilterType(newFilter)
   }
 
-  function handleLoadMore() {
-    fetchFeed(false)
-  }
-
   const hasMore = items.length < total
 
   return (
-    <div className={styles.container}>
-      <div className={styles.controls}>
-        <div className={styles.scopeGroup}>
-          <button
-            className={`${styles.scopeBtn} ${scope === 'all' ? styles.scopeActive : ''}`}
-            onClick={() => handleScopeChange('all')}
-          >
-            All Activity
-          </button>
-          <button
-            className={`${styles.scopeBtn} ${scope === 'friends' ? styles.scopeActive : ''}`}
-            onClick={() => handleScopeChange('friends')}
-            disabled={!user}
-            title={!user ? 'Sign in to see friends' : undefined}
-          >
-            Friends Only
-          </button>
-        </div>
-
-        <div className={styles.filterGroup}>
-          {(['all', 'reports', 'catches'] as FilterType[]).map(f => (
-            <button
-              key={f}
-              className={`${styles.filterChip} ${filterType === f ? styles.filterActive : ''}`}
-              onClick={() => handleFilterChange(f)}
-            >
-              {f === 'all' ? 'All' : f === 'reports' ? 'Reports' : 'Catches'}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {error && <p className={styles.error}>{error}</p>}
-
-      <div className={styles.feedList}>
-        {items.map(item => (
-          <div key={`${item.type}-${item.id}`} className={styles.feedCard}>
-            <div className={styles.cardHeader}>
-              <span className={styles.userName}>{item.user_name}</span>
-              <span className={styles.timeAgo}>{timeAgo(item.created_at)}</span>
-            </div>
-
-            {item.type === 'report' && (
-              <div className={styles.cardBody}>
-                <p className={styles.cardSummary}>
-                  Logged visibility at <strong>{item.location_name}</strong>
-                </p>
-                <div className={styles.visRow}>
-                  <span className={styles.visBadge}>
-                    {item.actual_vis}m actual
-                  </span>
-                  {item.predicted_vis != null && (
-                    <span className={styles.visBadgePredicted}>
-                      {item.predicted_vis}m predicted
-                    </span>
-                  )}
-                  {item.has_video && (
-                    <span className={styles.videoBadge}>VIDEO</span>
-                  )}
-                </div>
-                {item.notes && <p className={styles.notes}>{item.notes}</p>}
-              </div>
-            )}
-
-            {item.type === 'catch' && (
-              <div className={styles.cardBody}>
-                <p className={styles.cardSummary}>
-                  Caught <span className={styles.catchSpecies}>{item.species}</span>{' '}
-                  at <strong>{item.location_name}</strong>
-                </p>
-                <div className={styles.catchDetails}>
-                  {item.weight_kg != null && (
-                    <span className={styles.catchDetail}>{item.weight_kg} kg</span>
-                  )}
-                  {item.quantity != null && (
-                    <span className={styles.catchDetail}>x{item.quantity}</span>
-                  )}
-                  {item.method && (
-                    <span className={styles.catchDetail}>{item.method}</span>
-                  )}
-                </div>
-                {item.notes && <p className={styles.notes}>{item.notes}</p>}
-              </div>
-            )}
+    <PageLayout
+      title="Community"
+      subtitle="Recent diver reports and catches from the DepthViz community, with filters that stay thumb-friendly on mobile."
+    >
+      <Card className={styles.controlsCard} padding="md">
+        <div className={styles.controls}>
+          <div className={styles.controlGroup}>
+            <span className={styles.groupLabel}>View</span>
+            <SegmentedControl
+              ariaLabel="Community feed scope"
+              size="sm"
+              value={scope}
+              onChange={handleScopeChange}
+              options={SCOPE_OPTIONS}
+            />
+            {!user && <p className={styles.groupHint}>Sign in to unlock the friends-only feed.</p>}
           </div>
-        ))}
-      </div>
+          <div className={styles.controlGroup}>
+            <span className={styles.groupLabel}>Type</span>
+            <div className={styles.filterRow} role="group" aria-label="Community item type">
+              {FILTER_OPTIONS.map(option => (
+                <FilterChip
+                  key={option.value}
+                  active={filterType === option.value}
+                  onClick={() => handleFilterChange(option.value)}
+                >
+                  {option.label}
+                </FilterChip>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Card>
 
-      {!loading && items.length === 0 && !error && (
-        <div className={styles.empty}>
-          <p>No activity yet.</p>
-          <p>Be the first to submit a report or log a catch!</p>
+      {error && <Card className={styles.errorCard} padding="md">{error}</Card>}
+
+      {loading && items.length === 0 ? (
+        <Card className={styles.stateCard} padding="lg">Loading community activity…</Card>
+      ) : items.length === 0 && !error ? (
+        <Card className={styles.stateCard} padding="lg">
+          <p className={styles.emptyTitle}>No activity yet.</p>
+          <p className={styles.emptyText}>Be the first to submit a report or log a catch.</p>
+        </Card>
+      ) : (
+        <div className={styles.feedList}>
+          {items.map(item => (
+            <Card key={`${item.type}-${item.id}`} className={styles.feedCard} padding="lg">
+              <div className={styles.cardHeader}>
+                <div className={styles.cardIdentity}>
+                  <div className={styles.identityRow}>
+                    <span className={styles.userName}>{item.user_name}</span>
+                    <Badge tone={item.type === 'report' ? 'accent' : 'success'}>
+                      {item.type === 'report' ? 'Dive report' : 'Catch'}
+                    </Badge>
+                  </div>
+                  <div className={styles.locationRow}>{item.location_name}</div>
+                </div>
+                <span className={styles.timeAgo}>{timeAgo(item.created_at)}</span>
+              </div>
+
+              {item.type === 'report' && (
+                <div className={styles.cardBody}>
+                  <p className={styles.cardSummary}>Visibility logged at <strong>{item.location_name}</strong></p>
+                  <div className={styles.badgeRow}>
+                    <Badge tone="success">{item.actual_vis}m actual</Badge>
+                    {item.predicted_vis != null && <Badge tone="accent">{item.predicted_vis}m predicted</Badge>}
+                    {item.has_video && <Badge tone="warn">Video</Badge>}
+                  </div>
+                  {item.notes && <p className={styles.notes}>{item.notes}</p>}
+                </div>
+              )}
+
+              {item.type === 'catch' && (
+                <div className={styles.cardBody}>
+                  <p className={styles.cardSummary}>Caught <strong>{item.species}</strong> at <strong>{item.location_name}</strong></p>
+                  <div className={styles.badgeRow}>
+                    {item.weight_kg != null && <Badge tone="neutral">{item.weight_kg} kg</Badge>}
+                    {item.quantity != null && <Badge tone="neutral">x{item.quantity}</Badge>}
+                    {item.method && <Badge tone="accent">{item.method}</Badge>}
+                  </div>
+                  {item.notes && <p className={styles.notes}>{item.notes}</p>}
+                </div>
+              )}
+            </Card>
+          ))}
         </div>
       )}
 
       {hasMore && (
-        <button
-          className={styles.loadMore}
-          onClick={handleLoadMore}
-          disabled={loading}
-        >
-          {loading ? 'Loading...' : 'Load More'}
-        </button>
+        <Button variant="secondary" block onClick={() => fetchFeed(false)} disabled={loading}>
+          {loading ? 'Loading…' : 'Load more'}
+        </Button>
       )}
-
-      {loading && items.length === 0 && (
-        <p className={styles.loadingText}>Loading feed...</p>
-      )}
-    </div>
+    </PageLayout>
   )
 }

@@ -5,6 +5,7 @@ import { getApneaTables } from '../lib/api'
 import type { ApneaDifficulty, ApneaTable, ApneaTableType } from '../types'
 import { Tabs } from './Tabs'
 import { IconPlus } from './icons'
+import { Badge, Button, Card, FilterChip, PageLayout } from './ui'
 import styles from './ApneaTablesPage.module.css'
 
 type Tab = 'library' | 'mine'
@@ -25,9 +26,6 @@ function totalSeconds(table: ApneaTable): number {
 }
 
 function longestHoldLabel(table: ApneaTable): string {
-  // Math.max() of an empty array returns -Infinity, which formatHold would
-  // render as nonsense. Schema validation prohibits empty cycles, but the UI
-  // shouldn't blow up if a stale or malformed row sneaks through.
   if (table.cycles.length === 0) return '—'
   return formatHold(Math.max(...table.cycles.map(c => c.hold_seconds)))
 }
@@ -37,17 +35,16 @@ function formatDuration(seconds: number): string {
   return `${m} min`
 }
 
-function difficultyBadge(d: ApneaDifficulty) {
-  if (d === 'beginner') return styles.badgeBeginner
-  if (d === 'intermediate') return styles.badgeIntermediate
-  return styles.badgeExpert
+function difficultyTone(difficulty: ApneaDifficulty) {
+  if (difficulty === 'beginner') return 'success' as const
+  if (difficulty === 'intermediate') return 'warn' as const
+  return 'danger' as const
 }
 
 export function ApneaTablesPage({ user, onShowAuth }: Props) {
   const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('library')
   const [difficulty, setDifficulty] = useState<ApneaDifficulty | null>(null)
-  // CO₂/O₂ filter — applied client-side over the already-loaded rows.
   const [tableType, setTableType] = useState<ApneaTableType | null>(null)
   const [tables, setTables] = useState<ApneaTable[]>([])
   const [loading, setLoading] = useState(false)
@@ -79,7 +76,6 @@ export function ApneaTablesPage({ user, onShowAuth }: Props) {
 
   const grouped = useMemo(() => {
     const visible = tableType ? tables.filter(t => t.table_type === tableType) : tables
-    // Library tab: group system first then user-public; Mine tab: flat.
     if (tab === 'mine') return [{ heading: '', items: visible }]
     const system = visible.filter(t => t.is_system)
     const community = visible.filter(t => !t.is_system && t.is_public)
@@ -91,18 +87,28 @@ export function ApneaTablesPage({ user, onShowAuth }: Props) {
   }, [tab, tables, tableType])
 
   return (
-    <div className={styles.wrap}>
-      <h1 className={styles.title}>Apnea Training Tables</h1>
-      <div className={styles.subtitle}>Build · save · share breath-hold sessions</div>
-
-      <div className={styles.warning} role="note">
-        <strong>Safety first</strong>
+    <PageLayout
+      title="Apnea Training Tables"
+      subtitle="Safety-first breath-hold tables with a cleaner mobile library, clearer difficulty signals, and shared controls."
+      actions={
+        <Button
+          variant="primary"
+          size="sm"
+          iconStart={<IconPlus width={14} height={14} />}
+          onClick={() => user ? navigate('/training/new') : onShowAuth()}
+        >
+          New table
+        </Button>
+      }
+    >
+      <Card className={styles.warningCard} padding="lg" accent="var(--ds-warn)">
+        <h2 className={styles.warningTitle}>Safety first</h2>
         <ul className={styles.warningList}>
           <li>Never train breath-hold in or near water alone — dry static training only without direct, qualified supervision.</li>
           <li>Stop immediately if you feel light-headed, confused, or unwell, see spots, or contractions become intense.</li>
           <li>You are responsible for your own safety.</li>
         </ul>
-      </div>
+      </Card>
 
       <Tabs
         tabs={[
@@ -113,124 +119,110 @@ export function ApneaTablesPage({ user, onShowAuth }: Props) {
         onChange={next => handleTabChange(next as Tab)}
       />
 
-      <div className={styles.filters} role="group" aria-label="Filter by level">
-        <button
-          className={`${styles.chip} ${difficulty === null ? styles.chipActive : ''}`}
-          aria-pressed={difficulty === null}
-          onClick={() => setDifficulty(null)}
-        >All levels</button>
-        {(['beginner', 'intermediate', 'expert'] as const).map(d => (
-          <button
-            key={d}
-            className={`${styles.chip} ${difficulty === d ? styles.chipActive : ''}`}
-            aria-pressed={difficulty === d}
-            onClick={() => setDifficulty(d)}
-          >{d}</button>
-        ))}
+      <div className={styles.filterSection}>
+        <div className={styles.filterGroup} role="group" aria-label="Filter by level">
+          <span className={styles.filterLabel}>Level</span>
+          <div className={styles.filterRow}>
+            <FilterChip active={difficulty === null} onClick={() => setDifficulty(null)}>All levels</FilterChip>
+            {(['beginner', 'intermediate', 'expert'] as const).map(level => (
+              <FilterChip
+                key={level}
+                active={difficulty === level}
+                tone={difficultyTone(level)}
+                onClick={() => setDifficulty(level)}
+              >
+                {level}
+              </FilterChip>
+            ))}
+          </div>
+        </div>
+
+        <div className={styles.filterGroup} role="group" aria-label="Filter by table type">
+          <span className={styles.filterLabel}>Type</span>
+          <div className={styles.filterRow}>
+            <FilterChip active={tableType === null} onClick={() => setTableType(null)}>All types</FilterChip>
+            <FilterChip active={tableType === 'co2'} onClick={() => setTableType('co2')}>CO₂</FilterChip>
+            <FilterChip active={tableType === 'o2'} onClick={() => setTableType('o2')}>O₂</FilterChip>
+          </div>
+        </div>
       </div>
 
-      <div className={styles.filters} role="group" aria-label="Filter by table type">
-        <button
-          className={`${styles.chip} ${tableType === null ? styles.chipActive : ''}`}
-          aria-pressed={tableType === null}
-          onClick={() => setTableType(null)}
-        >All types</button>
-        {([['co2', 'CO₂ tolerance'], ['o2', 'O₂ tables']] as const).map(([value, label]) => (
-          <button
-            key={value}
-            className={`${styles.chip} ${tableType === value ? styles.chipActive : ''}`}
-            aria-pressed={tableType === value}
-            onClick={() => setTableType(value)}
-          >{label}</button>
-        ))}
-      </div>
-
-      <div className={styles.toolbar}>
-        <button
-          className={styles.newBtn}
-          onClick={() => user ? navigate('/training/new') : onShowAuth()}
-        >
-          <IconPlus width={14} height={14} /> New table
-        </button>
-      </div>
-
-      {error && <div className={styles.error}>{error}</div>}
-      {loading && <div className={styles.loading}>Loading…</div>}
+      {error && <Card className={styles.errorCard} padding="md">{error}</Card>}
+      {loading && <Card className={styles.stateCard} padding="lg">Loading tables…</Card>}
 
       {!loading && !error && grouped.every(g => g.items.length === 0) && (
         tab === 'mine' ? (
-          <div className={styles.emptyBox}>
+          <Card className={styles.stateCard} padding="lg">
             <p className={styles.emptyTitle}>No tables of your own yet</p>
-            <p className={styles.emptyText}>
-              Build a table from scratch, or open one from the library and copy it
-              as a starting point.
-            </p>
+            <p className={styles.emptyText}>Build a table from scratch, or copy one from the library as a starting point.</p>
             <div className={styles.emptyActions}>
-              <button className={styles.newBtn} onClick={() => navigate('/training/new')}>
-                + New table
-              </button>
-              <button className={styles.ghostBtn} onClick={() => setTab('library')}>
-                Browse library
-              </button>
+              <Button variant="primary" onClick={() => navigate('/training/new')}>New table</Button>
+              <Button variant="ghost" onClick={() => setTab('library')}>Browse library</Button>
             </div>
-          </div>
+          </Card>
         ) : (
-          <div className={styles.empty}>No tables match these filters.</div>
+          <Card className={styles.stateCard} padding="lg">No tables match these filters.</Card>
         )
       )}
 
       {!loading && grouped.map(group => (
         group.items.length > 0 && (
-          <div key={group.heading || 'all'}>
-            {group.heading && (
-              <div className={styles.groupHeading}>{group.heading}</div>
-            )}
+          <section key={group.heading || 'all'} className={styles.groupSection}>
+            {group.heading && <h2 className={styles.groupHeading}>{group.heading}</h2>}
             <div className={styles.list}>
-              {group.items.map(t => (
-                <div
-                  key={t.id}
-                  className={styles.card}
+              {group.items.map(table => (
+                <Card
+                  key={table.id}
+                  className={styles.tableCard}
+                  padding="lg"
+                  interactive
                   role="button"
                   tabIndex={0}
-                  onClick={() => navigate(`/training/${t.id}`)}
+                  onClick={() => navigate(`/training/${table.id}`)}
                   onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault()
-                      navigate(`/training/${t.id}`)
+                      navigate(`/training/${table.id}`)
                     }
                   }}
                 >
                   <div className={styles.cardHeader}>
-                    <div className={styles.cardName}>{t.name}</div>
+                    <div>
+                      <div className={styles.cardName}>{table.name}</div>
+                      {table.description && <p className={styles.cardDesc}>{table.description}</p>}
+                    </div>
                     <div className={styles.badges}>
-                      <span className={`${styles.badge} ${difficultyBadge(t.difficulty)}`}>
-                        {t.difficulty}
-                      </span>
-                      <span className={`${styles.badge} ${styles.badgeType}`}>
-                        {t.table_type.toUpperCase()}
-                      </span>
-                      {t.is_system ? (
-                        <span className={`${styles.badge} ${styles.badgeSystem}`}>System</span>
-                      ) : t.is_public ? (
-                        <span className={`${styles.badge} ${styles.badgePublic}`}>Public</span>
+                      <Badge tone={difficultyTone(table.difficulty)}>{table.difficulty}</Badge>
+                      <Badge tone="accent">{table.table_type === 'co2' ? 'CO₂' : 'O₂'}</Badge>
+                      {table.is_system ? (
+                        <Badge tone="neutral">System</Badge>
+                      ) : table.is_public ? (
+                        <Badge tone="success">Public</Badge>
                       ) : (
-                        <span className={`${styles.badge} ${styles.badgePrivate}`}>Private</span>
+                        <Badge tone="neutral">Private</Badge>
                       )}
                     </div>
                   </div>
-                  {t.description && <div className={styles.cardDesc}>{t.description}</div>}
-                  <div className={styles.cardMeta}>
-                    <span><strong>{t.cycles.length}</strong> rounds</span>
-                    <span>longest hold <strong>{longestHoldLabel(t)}</strong></span>
-                    <span>total <strong>{formatDuration(totalSeconds(t))}</strong></span>
-                    <span className={styles.cardGo} aria-hidden="true">View →</span>
+                  <div className={styles.metaGrid}>
+                    <div className={styles.metaItem}>
+                      <span className={styles.metaLabel}>Rounds</span>
+                      <strong>{table.cycles.length}</strong>
+                    </div>
+                    <div className={styles.metaItem}>
+                      <span className={styles.metaLabel}>Longest hold</span>
+                      <strong>{longestHoldLabel(table)}</strong>
+                    </div>
+                    <div className={styles.metaItem}>
+                      <span className={styles.metaLabel}>Total time</span>
+                      <strong>{formatDuration(totalSeconds(table))}</strong>
+                    </div>
                   </div>
-                </div>
+                </Card>
               ))}
             </div>
-          </div>
+          </section>
         )
       ))}
-    </div>
+    </PageLayout>
   )
 }

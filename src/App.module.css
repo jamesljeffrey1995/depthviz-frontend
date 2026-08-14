@@ -4,7 +4,7 @@
   width: 100%;
   max-width: 1080px;
   margin: 0 auto;
-  padding: var(--space-lg) var(--space-md) 100px;
+  padding: 20px clamp(12px, 3vw, 20px) 108px;
 }
 
 .main,
@@ -28,7 +28,7 @@
 }
 
 .locationSearch {
-  margin-bottom: 4px;
+  margin-bottom: var(--space-sm);
 }
 
 /* ── Boot screen ── */
@@ -104,55 +104,10 @@
 .forecastControls {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 16px;
+  justify-content: space-between;
+  gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 12px;
-}
-
-/* ── Unit toggle (ft / m) — segmented pill ── */
-.unitToggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 0;
-  background: var(--surface-sunken);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-sm);
-  padding: 3px;
-}
-
-.unitLabel {
-  background: none;
-  border: none;
-  padding: 5px 10px;
-  border-radius: var(--radius-full);
-  font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--ink-faint);
-  cursor: pointer;
-  user-select: none;
-  transition: color var(--transition-fast);
-}
-
-.unitLabel:hover {
-  color: var(--ink-dim);
-}
-
-.unitLabel:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: var(--radius-full);
-}
-
-.unitLabelActive {
-  color: var(--accent-on);
-  background: var(--accent);
-}
-
-.toggleSwitch {
-  display: none;
+  margin-bottom: var(--space-sm);
 }
 
 /* ── Depth select ── */
@@ -273,10 +228,10 @@
   font-size: 13px;
   color: var(--ink-faint);
   margin-top: var(--space-2xl);
-  padding: var(--space-lg) 0 var(--space-xl);
+  padding: var(--space-md) 0 var(--space-lg);
   line-height: 1.7;
   display: grid;
-  gap: var(--space-sm);
+  gap: 6px;
   justify-items: center;
   text-align: center;
 }
@@ -297,9 +252,9 @@
 .footerLinks {
   display: flex;
   justify-content: center;
-  gap: var(--space-md);
+  gap: 6px 12px;
   flex-wrap: wrap;
-  margin-top: var(--space-xs);
+  margin-top: 2px;
 }
 
 .footerLink {
@@ -330,12 +285,12 @@
 
 .bmcLink {
   display: inline-block;
-  margin-top: 12px;
+  margin-top: 6px;
   font-size: 12px;
   font-weight: 600;
   color: var(--accent-text);
   text-decoration: none;
-  padding: 7px 14px;
+  padding: 6px 12px;
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-full);
   transition: all var(--transition-base);
@@ -370,7 +325,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .forecastTabs,
@@ -553,6 +508,12 @@
   box-shadow: var(--shadow-lg);
   padding: 6px;
   z-index: 1100;
+}
+
+.mapPlacesActions {
+  display: flex;
+  justify-content: flex-end;
+  margin: -4px 0 12px;
 }
 
 .bottomNavBtn {
