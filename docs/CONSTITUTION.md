@@ -6,8 +6,8 @@
 **Status:** Canonical · **Applies to:** `depthviz-frontend` and `depthviz-api` ·
 **Companion:** the backend-specific chapter lives at
 [`depthviz-api/docs/CONSTITUTION.md`](https://github.com/jamesljeffrey1995/depthviz-api/blob/main/docs/CONSTITUTION.md) ·
-**See also:** [`docs/design-system.md`](./design-system.md) — the living design-system
-spec, rendered from real components at [`/design`](../src/components/DesignSystemPage.tsx).
+**See also:** the living component guide at [`/design`](../src/components/DesignSystemPage.tsx),
+rendered from the real primitives shipped by the app.
 
 ---
 
@@ -152,68 +152,56 @@ is either mis-scoped or unnecessary — see [§24](#24-feature-acceptance-criter
 
 ## 3. UX principles
 
-These four principles are the operating rules that turn the philosophy into layout
-decisions. They are the same principles already encoded in
-[`docs/design-system.md`](./design-system.md); this chapter is their authoritative,
-elaborated form.
+These eight principles are the operating rules that turn the philosophy into interface
+decisions.
 
-### 3.1 Decision first
+### 3.1 Good UI design is intuitive
 
-The answer always comes before the explanation, and the explanation comes before the raw
-data. This ordering is inviolable.
+Users should be able to understand and use the interface quickly, regardless of technical
+experience. The product must explain itself through structure, labels, and obvious actions
+rather than relying on prior training.
 
-**Wrong** (data-first, the default failure mode of every conditions app):
+### 3.2 Familiarity is key
 
-```
-Forecast  →  ten graphs  →  seven metrics  →  (somewhere) the visibility
-```
+Use familiar patterns and conventions so users can rely on existing mental models rather
+than learning a new system from scratch. Navigation, controls, disclosure, and feedback
+should behave the way experienced web and mobile users already expect.
 
-**Correct** (decision-first):
+### 3.3 Good UI needs to be responsive
 
-```
-Visibility  →  recommendation  →  why?  →  advanced data
-```
+Interfaces must adapt cleanly across phone, tablet, and desktop layouts while staying
+fast. Responsiveness is about both screen fit and perceived performance: layouts reflow,
+targets remain usable, and feedback arrives without delay.
 
-Concretely, on the forecast this is realised as the **Dive Quality Score** and a
-plain-English verdict at the top of the page, factor meters below the fold, and model
-diagnostics behind an "Advanced" toggle. The score logic lives in
-[`src/lib/diveScore.ts`](../src/lib/diveScore.ts) and is unit-tested; the presentation
-lives in `DiveScoreCard`. **Never reverse this order** on any screen for any reason.
+### 3.4 Consistency and clarity play a part
 
-### 3.2 Progressive disclosure
+Visual and behavioural consistency make the interface easier to learn, while clarity keeps
+interactions simple, predictable, and understandable. Learning one screen should teach the
+user how the rest of the product behaves.
 
-Beginners must understand every page without training. Experts must never feel limited.
-These are reconciled by layering, not by shipping two products:
+### 3.5 Empathy is necessary for good UI design
 
-- The **first screen answers the question.** Everything else can expand.
-- Disclosure controls are honest buttons with `aria-expanded`, not mystery-meat chevrons.
-- Depth is _opt-in_: model traces, swell components and satellite imagery exist, but a
-  first-time user never has to see them to get a usable answer.
+Design must account for users' intentions, confidence, and emotional state throughout the
+experience. The product exists for people making real decisions before entering the water,
+so the interface must reduce anxiety, not add to it.
 
-Exception, restated from [§1](#1-philosophy): safety-relevant caveats are **never**
-disclosed away. Detail hides; danger does not.
+### 3.6 The best UI design calls for an invisible UI
 
-### 3.3 Every pixel has a job
+The interface should minimise disruption to the user's goal by keeping only essential
+elements and removing unnecessary friction. When the design is working, the user focuses on
+the decision, not on operating the interface.
 
-Nothing on a DepthViz screen is decorative. Every element must do one of six jobs:
-**teach, guide, inform, confirm, delight, or protect (safety).** An element that does none
-of these is deleted, not shrunk. "It balances the layout" is a job for whitespace, not for
-another card.
+### 3.7 Minimalism is key in user interface
 
-### 3.4 Reduce thinking
+Use typography, colour, spacing, proportions, and repeated visual patterns to create clear
+hierarchy. Minimalism is not emptiness for its own sake; it is disciplined emphasis on what
+the user needs to notice and do next.
 
-The product does the cognitive work so the user doesn't have to. Specifically:
+### 3.8 Best UI design is about inclusivity
 
-- **Never make the user calculate.** If two numbers need comparing, we compare them and
-  show the difference. Unit conversion (`src/lib/units.ts`) happens for the user, never in
-  the user's head.
-- **Never make the user hold state in memory.** If a value matters relative to yesterday,
-  show yesterday next to it, or show the delta.
-- **Never make the user hunt for meaning.** Visualise differences, highlight the trend,
-  mark "now," and say in words what changed.
-
-A screen that forces mental arithmetic has failed principle 3.4 even if every number on it
-is correct.
+Design for users with different needs by considering accessibility from the start:
+contrast, legible typography, strong hierarchy, multiple forms of feedback, and icons
+paired with text. If an interface works only for ideal conditions, it is incomplete.
 
 ---
 
@@ -260,9 +248,8 @@ which layer it serves and place it there.
 ## 6. The design system
 
 The design system is not a suggestion box of components — it is the **only** vocabulary
-the product is allowed to speak in. Its canonical, code-backed spec is
-[`docs/design-system.md`](./design-system.md), rendered live at `/design`. This chapter
-states the constitutional rules that govern it.
+the product is allowed to speak in. Its code-backed implementation is rendered live at
+`/design`. This chapter states the constitutional rules that govern it.
 
 ### 6.1 Component reuse is mandatory
 
@@ -366,7 +353,7 @@ shadow, duration and type step MUST reference a token.
 }
 ```
 
-Token families, summarised (see `tokens.css` and `design-system.md` for the full table):
+Token families, summarised (see `tokens.css` and `/design` for the live reference):
 
 - **Colour** — semantic roles (`--ds-accent`, `--ds-surface`, `--ds-text-strong`, …) plus
   the six-step `--ds-q-*` dive-quality scale. Roles are theme-aware with a default (dark),
@@ -380,9 +367,9 @@ Token families, summarised (see `tokens.css` and `design-system.md` for the full
   series colour.
 
 **Adding a token** is an amendment, not a routine act (see [§27](#27-amending-this-constitution)):
-if a genuinely new need exists, add the token to `tokens.css`, document it in
-`design-system.md`, surface it at `/design`, and only then use it. Never reach for a raw
-value because adding a token feels heavy — that is exactly the moment the token matters.
+if a genuinely new need exists, add the token to `tokens.css`, surface it at `/design`, and
+only then use it. Never reach for a raw value because adding a token feels heavy — that is
+exactly the moment the token matters.
 
 ---
 
@@ -1076,9 +1063,8 @@ changes: **deliberately, in the open, with a reason.**
 
 - **This file is the master.** The backend companion
   (`depthviz-api/docs/CONSTITUTION.md`) refines it for the API and never contradicts it;
-  the living design-system spec (`docs/design-system.md`) and `/design` are its
-  code-backed implementation. Where they disagree, this file wins and the others are
-  corrected.
+  `/design` is its code-backed component reference. Where they disagree, this file wins and
+  the others are corrected.
 - **An amendment is a PR** against this file, following [§25](#25-git-workflow), that says
   what rule changes, why, and which product value ([§2](#2-product-values)) the change
   serves. Adding a design token, a new global dependency, a state-management library, or a
@@ -1235,7 +1221,7 @@ same idea should have the same name in code, in copy, and in conversation.
   primary acceptance criterion ([§1](#1-philosophy), [§22](#22-performance-budgets)).
 - **Dive Quality Score** — the signature 0–100 number that folds visibility, sea state,
   wind, rain and algae into one confident, explainable answer
-  ([`diveScore.ts`](../src/lib/diveScore.ts); `design-system.md` §6).
+  ([`diveScore.ts`](../src/lib/diveScore.ts)).
 - **Verdict** — the plain-English `Yes — dive / Maybe / Not today` answer paired with the
   score. Always leads; never follows the data.
 - **Confidence** — how much to trust the score, computed from report count, forecast age

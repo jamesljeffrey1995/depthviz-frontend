@@ -56,9 +56,9 @@ leaderboard, safety check-ins); manage a profile and friends list.
 
 ## Brand Commitments
 
-Existing "DepthViz" name and an established design-token system (`src/styles/tokens.css`,
-documented in `docs/design-system.md`): Abyssal Navy / Prussian / Classic Ocean / Shallow
-Blue / Teal Seawater / Aquamarine palette. The 6-step dive-quality scale deliberately does
+Existing "DepthViz" name and an established design-token system (`src/styles/tokens.css`):
+Abyssal Navy / Prussian / Classic Ocean / Shallow Blue / Teal Seawater / Aquamarine
+palette. The 6-step dive-quality scale deliberately does
 not use a red-amber-green traffic light — poor conditions read as darker/murkier, good as
 brighter/clearer aqua, monotonic in luminance so it stays colourblind-safe; colour is
 always paired with a label, bar count, and numeric score. A project constitution
