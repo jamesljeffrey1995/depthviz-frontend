@@ -1,7 +1,7 @@
 import type { HTMLAttributes, ReactNode } from 'react'
 import styles from './PageLayout.module.css'
 
-interface PageLayoutProps extends HTMLAttributes<HTMLDivElement> {
+interface PageLayoutProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
   eyebrow?: ReactNode
   title?: ReactNode
   subtitle?: ReactNode
