@@ -160,7 +160,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
             type="text"
             role="combobox"
             aria-label="Search for a coastal location"
-            aria-expanded={showSuggestions}
+            aria-expanded={hasSelectableSuggestions}
             aria-autocomplete="list"
             aria-controls={showSuggestions && hasSelectableSuggestions ? listId : undefined}
             aria-activedescendant={showSuggestions && activeIndex >= 0 ? `suggestion-${activeIndex}` : undefined}
@@ -190,7 +190,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
                   return (
                     <li
                       id={`suggestion-${i}`}
-                      key={i}
+                      key={`${r.latitude}:${r.longitude}:${name}`}
                       className={`${styles.suggestion} ${i === activeIndex ? styles.suggestionActive : ''}`}
                       role="option"
                       aria-selected={i === activeIndex}
@@ -226,7 +226,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
       </button>
       <div className={styles.meta}>
         <p id={helpId} className={styles.helper}>Search by town, beach, headland, or coordinates.</p>
-        {statusMessage && <p id={statusId} className={styles.status} aria-live="polite">{statusMessage}</p>}
+        <p id={statusId} className={styles.status} aria-live="polite">{statusMessage}</p>
       </div>
     </div>
   )

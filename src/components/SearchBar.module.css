@@ -208,6 +208,7 @@
 
 .status {
   color: var(--ink-dim);
+  min-height: 1.5em;
 }
 
 @media (max-width: 560px) {
