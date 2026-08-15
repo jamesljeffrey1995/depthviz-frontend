@@ -500,31 +500,39 @@ export default function App() {
       {status === 'success' && forecast && FORECAST_ROUTES.includes(currentPath) && (
         <div className={styles.forecastNav}>
           <div className={styles.forecastTabs} role="navigation" aria-label="Forecast views">
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               className={`${styles.navBtn} ${currentPath === '/forecast' && !weekView ? styles.navActive : ''}`}
               onClick={() => { navigate('/forecast'); setWeekView(false) }}
               aria-current={currentPath === '/forecast' && !weekView ? 'page' : undefined}
             >
               Forecast
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               className={`${styles.navBtn} ${currentPath === '/forecast' && weekView ? styles.navActive : ''}`}
               onClick={() => { navigate('/forecast'); setWeekView(true) }}
               aria-label="Weekly conditions overview"
               aria-current={currentPath === '/forecast' && weekView ? 'page' : undefined}
             >
               Week
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               className={`${styles.navBtn} ${currentPath === '/tides' ? styles.navActive : ''}`}
               onClick={() => navigate('/tides')}
               aria-current={currentPath === '/tides' ? 'page' : undefined}
             >
               Tides
-            </button>
+            </Button>
           </div>
           <div className={styles.forecastActions} aria-label="Forecast actions">
-          <button
+          <Button
+            variant="primary"
+            size="sm"
             className={`${styles.navBtn} ${styles.navBtnPrimary} ${currentPath === '/report' ? styles.navActive : ''}`}
             onClick={() => handleReportClick()}
             aria-label={!user ? 'Log Dive (sign in required)' : 'Log Dive'}
@@ -532,42 +540,50 @@ export default function App() {
           >
             Log Dive
             {!user && <IconLock className={styles.lockIcon} aria-hidden="true" />}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
             className={`${styles.navBtn} ${selectedLocationId ? styles.navActive : ''}`}
             onClick={() => handleSaveLocation(false)}
             disabled={!!selectedLocationId}
             aria-label={selectedLocationId ? 'Location already saved' : !user ? 'Save this location (sign in required)' : 'Save this location'}
           >
             {selectedLocationId ? <><IconCheck className={styles.lockIcon} aria-hidden="true" /><span>Saved</span></> : <><IconPlus className={styles.lockIcon} aria-hidden="true" /><span>Save</span>{!user && <IconLock className={styles.lockIcon} aria-hidden="true" />}</>}
-          </button>
+          </Button>
           {!selectedLocationId && (
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
               className={styles.navBtn}
               onClick={() => handleSaveLocation(true)}
               aria-label={!user ? 'Save as private spot (sign in required)' : 'Save as private spot — coordinates encrypted'}
             >
               <IconLock className={styles.lockIcon} aria-hidden="true" /><span>Private</span>
-            </button>
+            </Button>
           )}
           {selectedLocationId && (
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
               className={`${styles.navBtn} ${currentPath === '/history' ? styles.navActive : ''}`}
               onClick={() => navigate('/history')}
               aria-current={currentPath === '/history' ? 'page' : undefined}
             >
               Dive Logs
-            </button>
+            </Button>
           )}
           {user && (
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
               className={`${styles.navBtn} ${currentPath === '/dispute' ? styles.navActive : ''}`}
               onClick={() => navigate('/dispute')}
               aria-label="Report incorrect forecast data"
               aria-current={currentPath === '/dispute' ? 'page' : undefined}
             >
               Report Issue
-            </button>
+            </Button>
           )}
           </div>
         </div>
@@ -601,7 +617,7 @@ export default function App() {
             ) : (
               <div className={styles.empty}>
                 <div className={styles.emptyText}>Sign in to manage friends</div>
-                <button className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: '/friends' })} style={{ marginTop: 16 }}>Sign in</button>
+                <Button variant="secondary" size="sm" className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: '/friends' })} style={{ marginTop: 16 }}>Sign in</Button>
               </div>
             )
           } />
@@ -677,7 +693,7 @@ export default function App() {
             !user ? (
               <div className={styles.empty}>
                 <div className={styles.emptyText}>Sign in to open competition ops</div>
-                <button className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: '/admin/competition' })} style={{ marginTop: 16 }}>Sign in</button>
+                <Button variant="secondary" size="sm" className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: '/admin/competition' })} style={{ marginTop: 16 }}>Sign in</Button>
               </div>
             ) : !adminChecked ? (
               <div className={styles.loadingText}>Checking access…</div>
@@ -749,7 +765,7 @@ export default function App() {
             ) : (
               <div className={styles.empty}>
                 <div className={styles.emptyText}>Sign in to save places</div>
-                <button className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: '/places' })} style={{ marginTop: 16 }}>Sign in</button>
+                <Button variant="secondary" size="sm" className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: '/places' })} style={{ marginTop: 16 }}>Sign in</Button>
               </div>
             )
           } />
@@ -934,7 +950,7 @@ export default function App() {
             ) : (
               <div className={styles.empty}>
                 <div className={styles.emptyText}>Sign in to build a training table</div>
-                <button className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: '/training/new' })} style={{ marginTop: 16 }}>Sign in</button>
+                <Button variant="secondary" size="sm" className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: '/training/new' })} style={{ marginTop: 16 }}>Sign in</Button>
               </div>
             )
           } />
@@ -946,7 +962,7 @@ export default function App() {
             ) : (
               <div className={styles.empty}>
                 <div className={styles.emptyText}>Sign in to edit your tables</div>
-                <button className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: currentPath })} style={{ marginTop: 16 }}>Sign in</button>
+                <Button variant="secondary" size="sm" className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: currentPath })} style={{ marginTop: 16 }}>Sign in</Button>
               </div>
             )
           } />
@@ -991,7 +1007,7 @@ export default function App() {
             ) : (
               <div className={styles.empty}>
                 <div className={styles.emptyText}>Sign in to report incorrect data</div>
-                <button className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: '/dispute' })} style={{ marginTop: 16 }}>Sign in</button>
+                <Button variant="secondary" size="sm" className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: '/dispute' })} style={{ marginTop: 16 }}>Sign in</Button>
               </div>
             )
           } />

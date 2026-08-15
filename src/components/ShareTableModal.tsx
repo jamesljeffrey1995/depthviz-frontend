@@ -3,7 +3,8 @@ import QRCode from 'qrcode'
 import type { ApneaTable } from '../types'
 import { buildShareUrl } from '../lib/shareTable'
 import { useDialog } from '../hooks/useDialog'
-import { IconClose, IconCheck } from './icons'
+import { Button, Modal } from './ui'
+import { IconCheck } from './icons'
 import styles from './ShareTableModal.module.css'
 
 interface Props {
@@ -66,22 +67,13 @@ export function ShareTableModal({ table, onClose }: Props) {
   }
 
   return (
-    <div
-      className={styles.overlay}
-      onClick={e => e.target === e.currentTarget && onClose()}
+    <Modal
+      onClose={onClose}
+      labelledBy="share-modal-title"
+      ref={modalRef}
+      className={styles.modal}
+      closeLabel="Close share dialog"
     >
-      <div
-        className={styles.modal}
-        ref={modalRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="share-modal-title"
-        tabIndex={-1}
-      >
-        <button className={styles.close} onClick={onClose} aria-label="Close share dialog">
-          <IconClose width={16} height={16} />
-        </button>
-
         <div className={styles.title} id="share-modal-title">SHARE TABLE</div>
         <div className={styles.sub}>{table.name}</div>
 
@@ -114,11 +106,10 @@ export function ShareTableModal({ table, onClose }: Props) {
         </div>
 
         {canNativeShare && (
-          <button className={styles.shareBtn} onClick={handleNativeShare}>
+          <Button className={styles.shareBtn} variant="secondary" onClick={handleNativeShare}>
             Share via…
-          </button>
+          </Button>
         )}
-      </div>
-    </div>
+    </Modal>
   )
 }

@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import type { DataDispute, DataDisputeCreate, Location } from '../types'
 import { submitDispute } from '../lib/api'
 import { uploadDisputeImage } from '../lib/disputeUpload'
+import { Button, FormField, SelectInput, TextInput } from './ui'
 import { IconCheck } from './icons'
 import styles from './DisputeForm.module.css'
 
@@ -175,7 +176,7 @@ export function DisputeForm({
             </div>
           </div>
 
-          <button className={styles.closeBtn} onClick={onClose}>Done</button>
+          <Button className={styles.closeBtn} onClick={onClose}>Done</Button>
         </div>
       </div>
     )
@@ -197,9 +198,8 @@ export function DisputeForm({
           <div className={styles.section}>
             <div className={styles.sectionLabel}>What to dispute</div>
 
-            <div className={styles.field}>
-              <label className={styles.label} htmlFor="dispute-location">Location (optional)</label>
-              <select
+            <FormField label="Location (optional)" htmlFor="dispute-location" className={styles.field}>
+              <SelectInput
                 id="dispute-location"
                 className={styles.select}
                 value={locationId}
@@ -209,13 +209,12 @@ export function DisputeForm({
                 {locations.map(loc => (
                   <option key={loc.id} value={loc.id}>{loc.name}</option>
                 ))}
-              </select>
-            </div>
+              </SelectInput>
+            </FormField>
 
             <div className={styles.fieldRow}>
-              <div className={styles.field}>
-                <label className={styles.label} htmlFor="dispute-date">Dive date</label>
-                <input
+              <FormField label="Dive date" htmlFor="dispute-date" className={styles.field}>
+                <TextInput
                   id="dispute-date"
                   type="date"
                   className={styles.input}
@@ -224,10 +223,9 @@ export function DisputeForm({
                   max={new Date().toISOString().split('T')[0]}
                   required
                 />
-              </div>
-              <div className={styles.field}>
-                <label className={styles.label} htmlFor="dispute-field">What data is incorrect?</label>
-                <select
+              </FormField>
+              <FormField label="What data is incorrect?" htmlFor="dispute-field" className={styles.field}>
+                <SelectInput
                   id="dispute-field"
                   className={styles.select}
                   value={field}
@@ -237,8 +235,8 @@ export function DisputeForm({
                   {Object.entries(FIELD_LABELS).map(([key, label]) => (
                     <option key={key} value={key}>{label}</option>
                   ))}
-                </select>
-              </div>
+                </SelectInput>
+              </FormField>
             </div>
           </div>
 
@@ -246,9 +244,13 @@ export function DisputeForm({
           <div className={styles.section}>
             <div className={styles.sectionLabel}>Why</div>
             <div className={styles.fieldRow}>
-              <div className={styles.field}>
-                <label className={styles.label} htmlFor="dispute-reading">Your reading</label>
-                <input
+              <FormField
+                label="Your reading"
+                htmlFor="dispute-reading"
+                className={styles.field}
+                hint={<span id="dispute-reading-hint">{FIELD_LABELS[field]}</span>}
+              >
+                <TextInput
                   id="dispute-reading"
                   type="number"
                   step="0.1"
@@ -259,11 +261,14 @@ export function DisputeForm({
                   required
                   aria-describedby="dispute-reading-hint"
                 />
-                <span id="dispute-reading-hint" className={styles.hint}>{FIELD_LABELS[field]}</span>
-              </div>
-              <div className={styles.field}>
-                <label className={styles.label} htmlFor="dispute-forecast">Forecast value</label>
-                <input
+              </FormField>
+              <FormField
+                label="Forecast value"
+                htmlFor="dispute-forecast"
+                className={styles.field}
+                hint={<span id="dispute-forecast-hint">What DepthViz showed</span>}
+              >
+                <TextInput
                   id="dispute-forecast"
                   type="number"
                   step="0.1"
@@ -273,8 +278,7 @@ export function DisputeForm({
                   onChange={e => setForecastValue(e.target.value)}
                   aria-describedby="dispute-forecast-hint"
                 />
-                <span id="dispute-forecast-hint" className={styles.hint}>What DepthViz showed</span>
-              </div>
+              </FormField>
             </div>
           </div>
 
@@ -327,17 +331,18 @@ export function DisputeForm({
           {error && <div className={styles.error} role="alert">{error}</div>}
 
           <div className={styles.actions}>
-            <button type="button" className={styles.cancelBtn} onClick={onClose}>
+          <Button type="button" variant="secondary" className={styles.cancelBtn} onClick={onClose}>
               Cancel
-            </button>
-            <button
+          </Button>
+          <Button
               type="submit"
-              className={styles.submitBtn}
-              disabled={submitting}
-              aria-busy={submitting}
-            >
-              {uploading ? 'Uploading photo…' : submitting ? 'Submitting…' : 'Submit dispute'}
-            </button>
+            variant="primary"
+            className={styles.submitBtn}
+            disabled={submitting}
+            aria-busy={submitting}
+          >
+            {uploading ? 'Uploading photo…' : submitting ? 'Submitting…' : 'Submit dispute'}
+          </Button>
           </div>
         </form>
       </div>
