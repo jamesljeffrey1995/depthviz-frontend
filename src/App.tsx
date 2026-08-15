@@ -886,7 +886,7 @@ export default function App() {
               </div>
               {status === 'success' && forecast && currentLat !== null && currentLon !== null && (
                 <aside className={styles.forecastSupporting} aria-label="Supporting tide view">
-                  <div className={styles.supportingPaneLabel}>Supporting pane</div>
+                  <div className={styles.supportingPaneLabel}>Tides</div>
                   <Suspense fallback={<div className={styles.loadingText}>Loading tides…</div>}>
                     <TidesPage
                       lat={currentLat}

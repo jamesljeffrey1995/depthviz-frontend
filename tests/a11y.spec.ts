@@ -158,8 +158,8 @@ async function stubBackend(page: Page, route: string) {
   // blocked too, which is fine: .leaflet-container is excluded from axe anyway.
   await page.route(url => url.origin !== PREVIEW_ORIGIN, route => route.abort())
 
-  await page.route(API_GLOB, route =>
-    route.fulfill({
+  await page.route(API_GLOB, intercepted =>
+    intercepted.fulfill({
       status: 503,
       contentType: 'application/json',
       body: JSON.stringify({ detail: 'Backend stubbed for accessibility audit' }),
@@ -171,18 +171,18 @@ async function stubBackend(page: Page, route: string) {
       window.localStorage.setItem('dv_units', 'm')
       window.localStorage.setItem('diveDepth', '20')
     }, FORECAST_CONTEXT)
-    await page.route(LOCATIONS_GLOB, route =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }),
+    await page.route(LOCATIONS_GLOB, intercepted =>
+      intercepted.fulfill({ status: 200, contentType: 'application/json', body: '[]' }),
     )
-    await page.route(FORECAST_GLOB, route =>
-      route.fulfill({
+    await page.route(FORECAST_GLOB, intercepted =>
+      intercepted.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify(FORECAST_RESPONSE),
       }),
     )
-    await page.route(TIDES_GLOB, route =>
-      route.fulfill({
+    await page.route(TIDES_GLOB, intercepted =>
+      intercepted.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify(TIDES_RESPONSE),
@@ -191,8 +191,8 @@ async function stubBackend(page: Page, route: string) {
   }
   // Auth is the one thing that talks to Supabase directly. Nobody is signed in
   // during the audit, so this only catches a stray token-refresh attempt.
-  await page.route('**/*.supabase.co/**', route =>
-    route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }),
+  await page.route('**/*.supabase.co/**', intercepted =>
+    intercepted.fulfill({ status: 503, contentType: 'application/json', body: '{}' }),
   )
 }
 
