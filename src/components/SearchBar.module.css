@@ -5,6 +5,7 @@
   flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 18px;
+  container-type: inline-size;
 }
 
 .searchGroup {
@@ -200,7 +201,7 @@
   min-height: 1.5em;
 }
 
-@media (max-width: 560px) {
+@container (max-width: 560px) {
   .wrapper {
     flex-direction: column;
   }
@@ -210,7 +211,7 @@
   }
 }
 
-@media (max-width: 390px) {
+@container (max-width: 390px) {
   .btnDive {
     padding-inline: 12px;
   }

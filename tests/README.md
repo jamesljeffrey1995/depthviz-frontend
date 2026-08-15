@@ -39,9 +39,12 @@ where labelling, focus order and colour contrast tend to regress. To promote a
 route into `staticRoutes`, stand up a mock API for the audit job and point
 `VITE_API_URL` at it.
 
-The forecast routes (`/forecast`, `/tides`, `/report`, `/history`, `/dispute`)
-are absent from both lists. They need a loaded forecast, not just a reachable
-API, so they can't be audited until that mock exists.
+The loaded forecast routes (`/forecast`, `/tides`) now live in
+`forecastRoutes`: the Playwright suite seeds the last-selected location and
+stubs both `/forecast` and `/tides`, so axe audits the real loaded state rather
+than an error shell. The remaining forecast-dependent routes (`/report`,
+`/history`, `/dispute`) still need extra state and are left out until that mock
+is worth carrying.
 
 ## Stub environment
 

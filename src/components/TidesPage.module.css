@@ -2,6 +2,11 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
+  container-type: inline-size;
+}
+
+.pageEmbedded {
+  gap: var(--space-md);
 }
 
 /* ── Hero — today's reading: current tide state + the range chart. This is
@@ -14,6 +19,10 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
   padding: var(--space-lg);
+}
+
+.heroEmbedded {
+  padding: var(--space-md);
 }
 
 .header {
@@ -254,7 +263,33 @@
   color: var(--sev-poor);
 }
 
-@media (max-width: 480px) {
+@container (max-width: 640px) {
+  .header,
+  .rangeRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .headerRight {
+    text-align: left;
+  }
+
+  .dateNav {
+    gap: var(--space-sm);
+  }
+
+  .dateLabel {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .rangeScale {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+}
+
+@container (max-width: 480px) {
   .hero {
     padding: var(--space-md);
   }

@@ -12,5 +12,9 @@
     "/news",
     "/feed",
     "/places"
+  ],
+  "forecastRoutes": [
+    "/forecast",
+    "/tides"
   ]
 }

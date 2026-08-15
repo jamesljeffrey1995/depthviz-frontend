@@ -322,8 +322,8 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
             <IconThermometer className={styles.metricChipIcon} style={{ color: airSev.color }} aria-hidden="true" />
             <div className={styles.metricChipBody}>
               <div className={styles.metricChipLabel}>Air Temp</div>
-              <div className={styles.metricChipValue} style={{ color: airSev.color }}>{day.air_temp.toFixed(1)}°C</div>
-              {airSev.note && <div className={styles.metricChipNote} style={{ color: airSev.color }}>{airSev.note}</div>}
+              <div className={styles.metricChipValue}>{day.air_temp.toFixed(1)}°C</div>
+              {airSev.note && <div className={styles.metricChipNote}>{airSev.note}</div>}
             </div>
           </div>
           {seaSev && day.sea_temp != null && (
@@ -331,8 +331,8 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
               <IconThermometer className={styles.metricChipIcon} style={{ color: seaSev.color }} aria-hidden="true" />
               <div className={styles.metricChipBody}>
                 <div className={styles.metricChipLabel}>Sea Temp</div>
-                <div className={styles.metricChipValue} style={{ color: seaSev.color }}>{day.sea_temp.toFixed(1)}°C</div>
-                {seaSev.note && <div className={styles.metricChipNote} style={{ color: seaSev.color }}>{seaSev.note}</div>}
+                <div className={styles.metricChipValue}>{day.sea_temp.toFixed(1)}°C</div>
+                {seaSev.note && <div className={styles.metricChipNote}>{seaSev.note}</div>}
               </div>
             </div>
           )}
@@ -378,8 +378,8 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
             <IconDroplet className={styles.metricChipIcon} style={{ color: humSev.color }} aria-hidden="true" />
             <div className={styles.metricChipBody}>
               <div className={styles.metricChipLabel}>Humidity</div>
-              <div className={styles.metricChipValue} style={{ color: humSev.color }}>{Math.round(day.humidity)}%</div>
-              {humSev.note && <div className={styles.metricChipNote} style={{ color: humSev.color }}>{humSev.note}</div>}
+              <div className={styles.metricChipValue}>{Math.round(day.humidity)}%</div>
+              {humSev.note && <div className={styles.metricChipNote}>{humSev.note}</div>}
             </div>
           </div>
         </div>
@@ -446,7 +446,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
             <div className={styles.algaeDrivers}>{day.algae.drivers.join(' · ')}</div>
           )}
           {waterQuality && (
-            <div className={styles.waterQualityNote} style={{ color: waterQuality.color }}>
+            <div className={styles.waterQualityNote}>
               {waterQuality.description}
             </div>
           )}
