@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useDialog } from '../hooks/useDialog'
-import { Button, FormField, Modal, TextInput } from './ui'
-import { IconMail } from './icons'
+import { IconClose, IconMail } from './icons'
 import styles from './AuthModal.module.css'
 
 interface Props {
@@ -33,14 +32,23 @@ export function AuthModal({ onClose }: Props) {
   }
 
   return (
-    <Modal
-      onClose={onClose}
-      labelledBy="auth-modal-title"
-      ref={modalRef}
-      className={styles.modal}
-      overlayClassName={styles.overlay}
-      closeLabel="Close sign in dialog"
+    <div
+      className={styles.overlay}
+      onClick={e => e.target === e.currentTarget && onClose()}
+      aria-hidden="false"
     >
+      <div
+        className={styles.modal}
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="auth-modal-title"
+        tabIndex={-1}
+      >
+        <button className={styles.close} onClick={onClose} aria-label="Close sign in dialog">
+          <IconClose />
+        </button>
+
         <div className={styles.title} id="auth-modal-title">Sign in</div>
         <div className={styles.sub}>No password needed — we&rsquo;ll email you a magic link</div>
 
@@ -52,9 +60,11 @@ export function AuthModal({ onClose }: Props) {
           </div>
         ) : (
           <>
-            <FormField label="Email address" htmlFor="auth-email" className={styles.field}>
-              <TextInput
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="auth-email">Email address</label>
+              <input
                 id="auth-email"
+                className={styles.input}
                 type="email"
                 placeholder="you@example.com"
                 value={email}
@@ -63,23 +73,22 @@ export function AuthModal({ onClose }: Props) {
                 autoFocus
                 autoComplete="email"
               />
-            </FormField>
+            </div>
             {error && <div className={styles.error} role="alert">{error}</div>}
-            <Button
-              variant="primary"
-              block
+            <button
               className={styles.btn}
               onClick={handleSubmit}
               disabled={!email || loading}
               aria-busy={loading}
             >
               {loading ? 'Sending…' : 'Send magic link'}
-            </Button>
+            </button>
             <div className={styles.why}>
               Signing in lets you submit dive reports, save private spots, and helps the model learn from your data.
             </div>
           </>
         )}
-    </Modal>
+      </div>
+    </div>
   )
 }

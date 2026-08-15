@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useId } from 'react'
 import { formatLocationName } from '../types'
 import type { GeocodingResult } from '../types'
-import { Button } from './ui'
 import { IconSearch, IconLocate, IconArrowRight } from './icons'
 import styles from './SearchBar.module.css'
 
@@ -209,15 +208,15 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
             </ul>
           )}
         </div>
-        <Button type="button" variant="secondary" className={styles.btnDive} onClick={handleSubmit} aria-label="Show forecast">
+        <button type="button" className={styles.btnDive} onClick={handleSubmit} aria-label="Show forecast">
           <span>Show forecast</span>
           <IconArrowRight aria-hidden="true" />
-        </Button>
+        </button>
       </div>
-      <Button type="button" variant="secondary" className={styles.btnLocate} onClick={onLocate} aria-label="Use my current GPS location">
+      <button type="button" className={styles.btnLocate} onClick={onLocate} aria-label="Use my current GPS location">
         <IconLocate aria-hidden="true" />
         <span>Use my current location</span>
-      </Button>
+      </button>
       <div className={styles.meta}>
         <p id={helpId} className={styles.helper}>Search by town, beach, headland, or coordinates.</p>
         <p id={statusId} className={styles.status} aria-live="polite">{statusMessage}</p>

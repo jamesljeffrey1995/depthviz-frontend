@@ -123,9 +123,19 @@
 
 .btnDive,
 .btnLocate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: 8px;
+  font-family: var(--font-sans);
   font-size: 13px;
+  font-weight: 600;
+  padding: 10px 14px;
+  min-height: 44px;
+  border: none;
   border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-base);
 }
 
 .btnDive svg,
@@ -135,6 +145,7 @@
 }
 
 .btnDive {
+  flex-shrink: 0;
   background: var(--accent-soft);
   color: var(--accent-text);
   border: 1px solid rgba(var(--accent-rgb), 0.35);

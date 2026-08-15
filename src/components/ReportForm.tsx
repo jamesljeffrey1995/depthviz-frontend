@@ -6,7 +6,6 @@ import { feetToMetres } from '../lib/units'
 import VisibilityAnalyser from './VisibilityAnalyser'
 import { KelpVisibilityNote } from './KelpVisibilityNote'
 import { IconCheck } from './icons'
-import { Button, FormField, SelectInput, TextInput, TextareaInput } from './ui'
 import { toUserFacingError } from '../lib/frontendErrors'
 import { trackClientEvent } from '../lib/telemetry'
 import styles from './ReportForm.module.css'
@@ -168,8 +167,9 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
       <div className={styles.section}>
         <div className={styles.sectionLabel}>Spot &amp; date</div>
         <div className={styles.fieldRow}>
-          <FormField label="Location" htmlFor="report-location" className={styles.field}>
-            <SelectInput
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="report-location">Location</label>
+            <select
               id="report-location"
               className={styles.select}
               value={locationId}
@@ -179,10 +179,11 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
               {locations.map(l => (
                 <option key={l.id} value={l.id}>{l.name}</option>
               ))}
-            </SelectInput>
-          </FormField>
-          <FormField label="Dive date" htmlFor="report-date" className={styles.field}>
-            <SelectInput
+            </select>
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="report-date">Dive date</label>
+            <select
               id="report-date"
               className={styles.select}
               value={selectedDate}
@@ -191,23 +192,17 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
               {dateOptions.map(o => (
                 <option key={o.value} value={o.value}>{o.label}</option>
               ))}
-            </SelectInput>
-          </FormField>
+            </select>
+          </div>
         </div>
       </div>
 
       {/* Section 2 — what the diver actually saw in the water */}
       <div className={styles.section}>
         <div className={styles.sectionLabel}>What you saw</div>
-        <FormField
-          label="Actual visibility (metres)"
-          htmlFor="report-vis"
-          className={styles.field}
-          hint={activeDay
-            ? `Model predicted ${(activeDay.vis_corrected ?? activeDay.vis_estimate).toFixed(1)}m for ${new Date(selectedDate).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}`
-            : 'No forecast data available for this date'}
-        >
-          <TextInput
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="report-vis">Actual visibility (metres)</label>
+          <input
             id="report-vis"
             className={styles.input}
             type="number"
@@ -218,10 +213,19 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
             value={actualVis}
             onChange={e => setActualVis(e.target.value)}
           />
-        </FormField>
+          {activeDay ? (
+            <div className={styles.hint}>
+              Model predicted {(activeDay.vis_corrected ?? activeDay.vis_estimate).toFixed(1)}m for{' '}
+              {new Date(selectedDate).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}
+            </div>
+          ) : (
+            <div className={styles.hint}>No forecast data available for this date</div>
+          )}
+        </div>
 
-        <FormField label="Notes (optional)" htmlFor="report-notes" className={styles.field}>
-          <TextareaInput
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="report-notes">Notes (optional)</label>
+          <textarea
             id="report-notes"
             className={styles.textarea}
             placeholder="Anything unusual — kelp, jellyfish, runoff..."
@@ -230,7 +234,7 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
             rows={3}
             maxLength={500}
           />
-        </FormField>
+        </div>
 
         {showKelpNote && <KelpVisibilityNote defaultOpen />}
       </div>
@@ -260,15 +264,13 @@ export function ReportForm({ day, allDays, locations, onSubmitted, initialLocati
 
       {error && <div className={styles.error} role="alert">{error}</div>}
 
-      <Button
-        variant="primary"
-        block
+      <button
         className={styles.btn}
         onClick={handleSubmit}
         disabled={!locationId || !actualVis || submitting || !activeDay}
       >
         {submitting ? 'Submitting…' : 'Submit report'}
-      </Button>
+      </button>
     </div>
   )
 }
