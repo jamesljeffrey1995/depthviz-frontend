@@ -8,10 +8,10 @@ import {
   type WaterType,
 } from '../lib/weightCalc'
 import { BodySuitSelector } from './BodySuitSelector'
+import { Badge, Card, PageLayout, SegmentedControl } from './ui'
 import styles from './WeightCalculator.module.css'
 
 interface Props {
-  /** Navigate to a legal page (e.g. the full liability disclaimer). */
   onNavigateLegal?: (page: string) => void
 }
 
@@ -33,48 +33,33 @@ const REGION_SHORT: Record<'hood' | 'body' | 'legs', string> = {
   legs: 'Legs',
 }
 
-/**
- * Compact human-readable summary of a per-region suit, e.g.
- * "Body 5 · Legs 3 mm" — or "no wetsuit" when every part is bare.
- */
 function describeSuit(regions: SuitRegions): string {
   const covered = SUIT_REGIONS.filter(r => (regions[r] ?? 0) > 0)
-  if (covered.length === 0) return 'no wetsuit'
-  return `${covered.map(r => `${REGION_SHORT[r]} ${regions[r]}`).join(' · ')} mm`
+  if (covered.length === 0) return 'No wetsuit'
+  return `${covered.map(r => `${REGION_SHORT[r]} ${regions[r]} mm`).join(' · ')}`
 }
 
-/** Plausible input ranges — outside these the estimate isn't meaningful. */
 const HEIGHT_RANGE_CM = { min: 120, max: 220 }
 const WEIGHT_RANGE_KG = { min: 35, max: 180 }
-
-const WATER_LABEL: Record<WaterType, string> = { salt: 'salt water', fresh: 'fresh water' }
+const WATER_LABEL: Record<WaterType, string> = { salt: 'Salt water', fresh: 'Fresh water' }
 
 export function WeightCalculator({ onNavigateLegal }: Props) {
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric')
-  // Stored internally in metric; the form converts for display.
   const [heightCm, setHeightCm] = useState(178)
   const [weightKg, setWeightKg] = useState(80)
   const [build, setBuild] = useState<Build>('average')
-  // Per-region neoprene thickness (mm). Default: a 5 mm full suit, bare head.
-  const [regions, setRegions] = useState<SuitRegions>({
-    hood: 0,
-    body: 5,
-    legs: 5,
-  })
+  const [regions, setRegions] = useState<SuitRegions>({ hood: 0, body: 5, legs: 5 })
   const [neutralDepthM, setNeutralDepthM] = useState(10)
   const [water, setWater] = useState<WaterType>('salt')
 
   const result = useMemo(
-    () =>
-      calculateWeight({ heightCm, weightKg, build, regions, neutralDepthM, water }),
+    () => calculateWeight({ heightCm, weightKg, build, regions, neutralDepthM, water }),
     [heightCm, weightKg, build, regions, neutralDepthM, water],
   )
 
   const imperial = unitSystem === 'imperial'
   const fmt = (kg: number) => (imperial ? `${kgToLb(kg).toFixed(1)} lb` : `${kg.toFixed(1)} kg`)
 
-  // Friendly range validation: outside plausible bounds the physics model
-  // still produces a number, but not one anyone should put on a belt.
   const heightInvalid = heightCm < HEIGHT_RANGE_CM.min || heightCm > HEIGHT_RANGE_CM.max
   const weightInvalid = weightKg < WEIGHT_RANGE_KG.min || weightKg > WEIGHT_RANGE_KG.max
   const rangeHint = (r: { min: number; max: number }, unit: 'cm' | 'kg') =>
@@ -89,51 +74,57 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
   const buildLabel = BUILD_OPTIONS.find(o => o.value === build)?.label ?? build
 
   return (
-    <div className={styles.wrap}>
-      <h1 className={styles.title}>Weight Belt Calculator</h1>
-      <div className={styles.subtitle}>Freediving &amp; spearfishing · neutral-buoyancy estimate</div>
-
-      {/* Safety notice sits ABOVE the result so it is never missed. */}
-      <div className={styles.safety} role="note">
-        <strong>Estimate only — not a safety device.</strong> This is a starting point to
-        save you trial-and-error. You <em>must</em> confirm your weighting with an in-water
-        buoyancy check in shallow water, and never freedive alone.{' '}
+    <PageLayout
+      title="Weight Belt Calculator"
+      subtitle="Freediving and spearfishing neutral-buoyancy estimate with safety guidance kept front and centre."
+    >
+      <Card className={styles.safety} padding="md" accent="var(--ds-warn)" role="note">
+        <strong>Estimate only — not a safety device.</strong> This is a starting point to save you trial-and-error.
+        You <em>must</em> confirm your weighting with an in-water buoyancy check in shallow water, and never freedive alone.{' '}
         {onNavigateLegal && (
           <button type="button" className={styles.inlineLink} onClick={() => onNavigateLegal('disclaimer')}>
             Read the full disclaimer
           </button>
         )}
-      </div>
+      </Card>
 
-      <div className={styles.card}>
-        {/* Unit system toggle */}
-        <div className={styles.unitToggle} role="group" aria-label="Unit system">
-          <button
-            type="button"
-            className={`${styles.unitBtn} ${!imperial ? styles.unitActive : ''}`}
-            onClick={() => setUnitSystem('metric')}
-            aria-pressed={!imperial}
-          >
-            Metric (kg / cm)
-          </button>
-          <button
-            type="button"
-            className={`${styles.unitBtn} ${imperial ? styles.unitActive : ''}`}
-            onClick={() => setUnitSystem('imperial')}
-            aria-pressed={imperial}
-          >
-            Imperial (lb / in)
-          </button>
+      <Card className={styles.formCard} padding="lg">
+        <div className={styles.fieldGroup}>
+          <div className={styles.controlRow}>
+            <div className={styles.controlBlock}>
+              <span className={styles.groupLabel}>Units</span>
+              <SegmentedControl
+                ariaLabel="Unit system"
+                size="sm"
+                value={unitSystem}
+                onChange={setUnitSystem}
+                options={[
+                  { value: 'metric', label: 'Metric' },
+                  { value: 'imperial', label: 'Imperial' },
+                ]}
+              />
+            </div>
+            <div className={styles.controlBlock}>
+              <span className={styles.groupLabel}>Water type</span>
+              <SegmentedControl<WaterType>
+                ariaLabel="Water type"
+                size="sm"
+                value={water}
+                onChange={setWater}
+                options={[
+                  { value: 'salt', label: 'Salt water' },
+                  { value: 'fresh', label: 'Fresh water' },
+                ]}
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Diver info — the physical inputs the estimate is built from */}
         <div className={styles.fieldGroup}>
           <div className={styles.groupLabel}>Diver</div>
           <div className={styles.row}>
             <div className={styles.field}>
-              <label className={styles.label} htmlFor="wc-height">
-                Height {imperial ? '(in)' : '(cm)'}
-              </label>
+              <label className={styles.label} htmlFor="wc-height">Height {imperial ? '(in)' : '(cm)'}</label>
               <input
                 id="wc-height"
                 className={styles.input}
@@ -143,22 +134,15 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
                 aria-describedby={heightInvalid ? 'wc-height-err' : undefined}
                 value={imperial ? +(heightCm / IN_TO_CM).toFixed(1) : Math.round(heightCm)}
                 onChange={e => {
-                  // Ignore empty/partial input (NaN) so clearing the field doesn't snap to 0.
                   const v = e.target.valueAsNumber
                   if (Number.isNaN(v)) return
                   setHeightCm(imperial ? v * IN_TO_CM : v)
                 }}
               />
-              {heightInvalid && (
-                <p id="wc-height-err" className={styles.fieldError}>
-                  Enter a height between {rangeHint(HEIGHT_RANGE_CM, 'cm')}.
-                </p>
-              )}
+              {heightInvalid && <p id="wc-height-err" className={styles.fieldError}>Enter a height between {rangeHint(HEIGHT_RANGE_CM, 'cm')}.</p>}
             </div>
             <div className={styles.field}>
-              <label className={styles.label} htmlFor="wc-weight">
-                Body weight {imperial ? '(lb)' : '(kg)'}
-              </label>
+              <label className={styles.label} htmlFor="wc-weight">Body weight {imperial ? '(lb)' : '(kg)'}</label>
               <input
                 id="wc-weight"
                 className={styles.input}
@@ -168,41 +152,30 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
                 aria-describedby={weightInvalid ? 'wc-weight-err' : undefined}
                 value={imperial ? +(weightKg / LB_TO_KG).toFixed(1) : Math.round(weightKg)}
                 onChange={e => {
-                  // Ignore empty/partial input (NaN) so clearing the field doesn't snap to 0.
                   const v = e.target.valueAsNumber
                   if (Number.isNaN(v)) return
                   setWeightKg(imperial ? v * LB_TO_KG : v)
                 }}
               />
-              {weightInvalid && (
-                <p id="wc-weight-err" className={styles.fieldError}>
-                  Enter a body weight between {rangeHint(WEIGHT_RANGE_KG, 'kg')}.
-                </p>
-              )}
+              {weightInvalid && <p id="wc-weight-err" className={styles.fieldError}>Enter a body weight between {rangeHint(WEIGHT_RANGE_KG, 'kg')}.</p>}
             </div>
           </div>
 
           <div className={styles.field}>
             <label className={styles.label} htmlFor="wc-build">Build / body composition</label>
-            <select
-              id="wc-build"
-              className={styles.select}
-              value={build}
-              onChange={e => setBuild(e.target.value as Build)}
-            >
-              {BUILD_OPTIONS.map(o => (
-                <option key={o.value} value={o.value}>{o.label} — {o.hint}</option>
+            <select id="wc-build" className={styles.select} value={build} onChange={e => setBuild(e.target.value as Build)}>
+              {BUILD_OPTIONS.map(option => (
+                <option key={option.value} value={option.value}>{option.label} — {option.hint}</option>
               ))}
             </select>
           </div>
         </div>
 
-        {/* Equipment & target — what you'll wear and where you want to hang neutral */}
         <div className={styles.fieldGroup}>
-          <div className={styles.groupLabel}>Equipment &amp; target</div>
+          <div className={styles.groupLabel}>Equipment and target</div>
 
           <div className={styles.field}>
-            <span className={styles.label}>Wetsuit — set thickness per body part</span>
+            <span className={styles.label}>Wetsuit thickness by body part</span>
             <BodySuitSelector value={regions} onChange={setRegions} />
           </div>
 
@@ -222,108 +195,54 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
               onChange={e => setNeutralDepthM(Number(e.target.value))}
             />
             <div className={styles.sliderHint}>
-              The depth where you want to stop sinking/floating and hover. Most freedivers weight
-              to be neutral at 8–12&nbsp;m so they float positively at the surface.
-            </div>
-          </div>
-
-          <div className={styles.field}>
-            <label className={styles.label} id="wc-water-label">Water type</label>
-            <div className={styles.segmented} role="group" aria-labelledby="wc-water-label">
-              <button
-                type="button"
-                className={`${styles.segBtn} ${water === 'salt' ? styles.segActive : ''}`}
-                onClick={() => setWater('salt')}
-                aria-pressed={water === 'salt'}
-              >
-                Salt water
-              </button>
-              <button
-                type="button"
-                className={`${styles.segBtn} ${water === 'fresh' ? styles.segActive : ''}`}
-                onClick={() => setWater('fresh')}
-                aria-pressed={water === 'fresh'}
-              >
-                Fresh water
-              </button>
+              Most freedivers weight to be neutral at 8–12 m so they remain positively buoyant at the surface.
             </div>
           </div>
         </div>
-      </div>
+      </Card>
 
-      {/* Result */}
-      <div className={styles.resultCard} aria-live="polite">
+      <Card className={styles.resultCard} padding="lg" accent="var(--ds-accent)" aria-live="polite">
+        <div className={styles.resultLabel}>Suggested starting weight</div>
         {inputsValid ? (
           <>
-            <div className={styles.resultLabel}>Suggested starting weight</div>
             <div className={styles.resultValue}>{fmt(result.recommendedKg)}</div>
-            <div className={styles.resultRange}>
-              Try {fmt(result.minKg)}–{fmt(result.maxKg)} and fine-tune in shallow water
-            </div>
-
+            <div className={styles.resultRange}>Try {fmt(result.minKg)}–{fmt(result.maxKg)} and fine-tune in shallow water.</div>
             <p className={styles.resultExplain}>
-              With this weight you should float at the surface after a relaxed breath.
-              As you descend, your wetsuit compresses and loses lift, so you become
-              neutral — neither sinking nor floating — around {neutralDepthM}&nbsp;m,
-              then gently negative below it.
+              With this weight you should float at the surface after a relaxed breath and become neutral around {neutralDepthM} m.
             </p>
-
             <div className={styles.breakdown}>
-              <div className={styles.breakdownRow}>
-                <span>Wetsuit buoyancy (surface)</span>
-                <span>{fmt(result.suitBuoyancySurface)}</span>
-              </div>
-              <div className={styles.breakdownRow}>
-                <span>Wetsuit buoyancy at {neutralDepthM} m</span>
-                <span>{fmt(result.suitBuoyancyAtDepth)}</span>
-              </div>
-              <div className={styles.breakdownRow}>
-                <span>Body buoyancy at {neutralDepthM} m</span>
-                <span>{fmt(result.bodyBuoyancyAtDepth)}</span>
-              </div>
+              <div className={styles.breakdownRow}><span>Wetsuit buoyancy (surface)</span><span>{fmt(result.suitBuoyancySurface)}</span></div>
+              <div className={styles.breakdownRow}><span>Wetsuit buoyancy at {neutralDepthM} m</span><span>{fmt(result.suitBuoyancyAtDepth)}</span></div>
+              <div className={styles.breakdownRow}><span>Body buoyancy at {neutralDepthM} m</span><span>{fmt(result.bodyBuoyancyAtDepth)}</span></div>
             </div>
-
             <div className={styles.resultAssumptions} aria-label="Based on your inputs">
-              <span className={styles.assumptionChip}>{suitLabel}</span>
-              <span className={styles.assumptionChip}>{buildLabel}</span>
-              <span className={styles.assumptionChip}>{WATER_LABEL[water]}</span>
-              <span className={styles.assumptionChip}>neutral at {neutralDepthM} m</span>
+              <Badge tone="neutral">{suitLabel}</Badge>
+              <Badge tone="neutral">{buildLabel}</Badge>
+              <Badge tone="neutral">{WATER_LABEL[water]}</Badge>
+              <Badge tone="accent">Neutral at {neutralDepthM} m</Badge>
             </div>
           </>
         ) : (
-          <>
-            <div className={styles.resultLabel}>Suggested starting weight</div>
-            <p className={styles.resultInvalid}>
-              Check the highlighted fields above — the estimate only makes sense
-              for realistic height and body-weight values.
-            </p>
-          </>
+          <p className={styles.resultInvalid}>Check the highlighted fields above — the estimate only makes sense for realistic height and body-weight values.</p>
         )}
-      </div>
+      </Card>
 
-      {/* How to verify */}
-      <div className={styles.howto}>
-        <h3>How to check it in the water</h3>
+      <Card className={styles.howto} padding="lg">
+        <h2>How to check it in the water</h2>
         <ol>
-          <li>Enter shallow water (chest-deep or a pool) with a buddy and your belt.</li>
-          <li>Take a normal breath (not a full max inhale) and stay still.</li>
-          <li>You should float at the surface and only start to sink once you exhale or
-            duck-dive past a few metres.</li>
-          <li>Add or remove weight 0.5&nbsp;kg at a time until you are comfortably positive
-            at the surface and neutral around your target depth.</li>
+          <li>Enter shallow water with a buddy and your belt.</li>
+          <li>Take a normal breath, stay still, and confirm you still float comfortably at the surface.</li>
+          <li>You should only start to sink once you exhale or duck-dive past a few metres.</li>
+          <li>Add or remove weight 0.5 kg at a time until you are positive at the surface and neutral near your target depth.</li>
         </ol>
         <p className={styles.howtoNote}>
-          Always err on the side of <strong>less</strong> weight — being too heavy is the
-          leading contributor to shallow-water blackout fatalities. Use a quick-release
-          weight belt and dive with a trained buddy using one-up-one-down.
+          Always err on the side of <strong>less</strong> weight — being too heavy is a major contributor to shallow-water blackout fatalities.
         </p>
-      </div>
+      </Card>
 
-      <div className={styles.assumptions}>
-        Assumes a relaxed breath and an even neoprene fit. Real buoyancy varies with suit age
-        and compression, lung volume, equipment (fins, mask, float), and individual physiology.
-        Treat the number as a ballpark, not a prescription.
-      </div>
-    </div>
+      <p className={styles.assumptions}>
+        Assumes a relaxed breath and an even neoprene fit. Real buoyancy varies with suit age and compression, lung volume, equipment, and individual physiology.
+      </p>
+    </PageLayout>
   )
 }

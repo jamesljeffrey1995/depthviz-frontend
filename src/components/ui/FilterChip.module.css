@@ -1,0 +1,53 @@
+.chip {
+  --chip-color: var(--ds-accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 var(--ds-space-4);
+  border: 1px solid color-mix(in srgb, var(--chip-color) 26%, var(--ds-hairline));
+  border-radius: var(--ds-radius-pill);
+  background: color-mix(in srgb, var(--chip-color) 10%, transparent);
+  color: var(--chip-color);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-meta);
+  font-weight: var(--ds-fw-semi);
+  line-height: 1;
+  white-space: nowrap;
+  transition: background var(--ds-dur-base) var(--ds-ease),
+    border-color var(--ds-dur-base) var(--ds-ease),
+    color var(--ds-dur-base) var(--ds-ease),
+    box-shadow var(--ds-dur-base) var(--ds-ease);
+}
+
+.chip:hover {
+  border-color: color-mix(in srgb, var(--chip-color) 42%, var(--ds-hairline));
+  color: var(--ds-text-strong);
+}
+
+.chip:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-shadow-focus);
+}
+
+.active {
+  background: color-mix(in srgb, var(--chip-color) 18%, transparent);
+  border-color: var(--chip-color);
+  color: var(--chip-color);
+}
+
+.neutral { --chip-color: var(--ds-text-body); }
+.accent  { --chip-color: var(--ds-accent); }
+.success { --chip-color: var(--ds-success); }
+.warn    { --chip-color: var(--ds-warn); }
+.danger  { --chip-color: var(--ds-danger); }
+
+.icon {
+  display: inline-flex;
+}
+
+.icon svg {
+  width: 14px;
+  height: 14px;
+}

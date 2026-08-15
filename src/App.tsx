@@ -8,9 +8,11 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { SearchBar } from './components/SearchBar'
 import { ForecastStrip } from './components/ForecastStrip'
 import { DayDetail } from './components/DayDetail'
+import { DiveScoreCard } from './components/DiveScoreCard'
 import { SeabedEditor } from './components/SeabedEditor'
 import { CookieBanner } from './components/CookieBanner'
 import { TopNav } from './components/TopNav'
+import { Button, SegmentedControl } from './components/ui'
 import PwaStatus from './components/PwaStatus'
 import {
   IconHome, IconCompass, IconActivity, IconTimer, IconUser,
@@ -695,12 +697,21 @@ export default function App() {
               {/* Logged-in users see their saved places dashboard; the map is below */}
               {user && status === 'idle' && locations.filter(l => !l.is_predefined).length > 0 && (
                 <Suspense fallback={null}>
-                  <PlacesDashboard
-                    locations={locations.filter(l => !l.is_predefined).slice(0, 8)}
-                    userUid={user.id}
-                    units={units}
-                    onSelectLocation={handleSpotSelect}
-                  />
+                  <>
+                    <PlacesDashboard
+                      locations={locations.filter(l => !l.is_predefined).slice(0, 4)}
+                      userUid={user.id}
+                      units={units}
+                      onSelectLocation={handleSpotSelect}
+                    />
+                    {locations.filter(l => !l.is_predefined).length > 4 && (
+                      <div className={styles.mapPlacesActions}>
+                        <Button variant="ghost" size="sm" onClick={() => navigate('/places')}>
+                          View all places
+                        </Button>
+                      </div>
+                    )}
+                  </>
                 </Suspense>
               )}
               <Suspense fallback={null}>
@@ -779,28 +790,16 @@ export default function App() {
                     </div>
                   )}
                   <div className={styles.forecastControls}>
-                    <div className={styles.unitToggle} role="group" aria-label="Wave height units">
-                      <button
-                        type="button"
-                        className={`${styles.unitLabel} ${units === 'ft' ? styles.unitLabelActive : ''}`}
-                        onClick={() => setUnits('ft')}
-                        aria-pressed={units === 'ft'}
-                      >FT</button>
-                      <label className={styles.toggleSwitch}>
-                        <input
-                          type="checkbox"
-                          checked={units === 'm'}
-                          onChange={(e) => setUnits(e.target.checked ? 'm' : 'ft')}
-                        />
-                        <span className={styles.toggleSlider} />
-                      </label>
-                      <button
-                        type="button"
-                        className={`${styles.unitLabel} ${units === 'm' ? styles.unitLabelActive : ''}`}
-                        onClick={() => setUnits('m')}
-                        aria-pressed={units === 'm'}
-                      >M</button>
-                    </div>
+                    <SegmentedControl
+                      ariaLabel="Forecast units"
+                      size="sm"
+                      value={units}
+                      onChange={setUnits}
+                      options={[
+                        { value: 'ft', label: 'FT' },
+                        { value: 'm', label: 'M' },
+                      ]}
+                    />
                     <div className={styles.depthSelect}>
                       <label className={styles.depthSelectLabel} htmlFor="dive-depth">Max depth</label>
                       <select
@@ -834,21 +833,32 @@ export default function App() {
                     <>
                       <ForecastStrip days={forecast.days} selectedIndex={selectedDay} onSelect={selectDay} units={units} />
                       {forecast.days[selectedDay] && (
-                        <DayDetail
-                          day={forecast.days[selectedDay]}
-                          locationName={forecast.location_name}
-                          lat={forecast.lat}
-                          lon={forecast.lon}
-                          reportCount={forecast.report_count}
-                          units={units}
-                          isAdmin={isAdmin}
-                          biasOffset={forecast.bias_offset}
-                          globalBiasOffset={forecast.global_bias_offset}
-                          maxDiveDepth={diveDepth}
-                          days={forecast.days}
-                          selectedIndex={selectedDay}
-                          onSelectDay={selectDay}
-                        />
+                        <>
+                          <DiveScoreCard
+                            day={forecast.days[selectedDay]}
+                            locationName={forecast.location_name}
+                            forecast={{ report_count: forecast.report_count, model_confidence: forecast.model_confidence }}
+                            units={units}
+                            days={forecast.days}
+                            todayIndex={todayIndex >= 0 ? todayIndex : selectedDay}
+                            onJumpToBestWindow={selectDay}
+                          />
+                          <DayDetail
+                            day={forecast.days[selectedDay]}
+                            locationName={forecast.location_name}
+                            lat={forecast.lat}
+                            lon={forecast.lon}
+                            reportCount={forecast.report_count}
+                            units={units}
+                            isAdmin={isAdmin}
+                            biasOffset={forecast.bias_offset}
+                            globalBiasOffset={forecast.global_bias_offset}
+                            maxDiveDepth={diveDepth}
+                            days={forecast.days}
+                            selectedIndex={selectedDay}
+                            onSelectDay={selectDay}
+                          />
+                        </>
                       )}
                       {/* Per-site bathymetry/substrate editor for saved spots (#155) —
                           lets the owner sharpen the seabed-resuspension forecast. */}
