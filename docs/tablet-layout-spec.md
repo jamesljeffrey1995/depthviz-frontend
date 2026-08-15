@@ -3,6 +3,14 @@
 How DepthViz adapts across window classes, and how the expanded list-detail
 layout is wired. Follow-up to `docs/mobile-tablet-audit.md`.
 
+## Phases & status
+
+| Phase | Status | Scope | Evidence |
+|---|---|---|---|
+| Phase 1 | Done | Mobile/tablet audit and high-confidence WCAG fixes | `docs/mobile-tablet-audit.md` ("Targeted fixes applied on this branch") |
+| Phase 2 | Done | Adaptive layout implementation, including expanded split list-detail map/detail flow | This document: window classes, expanded list-detail, accessibility, implementation map |
+| Phase 3 | Not yet done (backlog) | Follow-on enhancements for container-driven adaptation and validation hardening | This document: "Not yet done (Phase 3 / backlog)" |
+
 ## Window classes (width-driven, not device/orientation-driven)
 
 | Class | Width | Layout | Nav |
