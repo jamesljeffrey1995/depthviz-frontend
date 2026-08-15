@@ -193,7 +193,7 @@ export default function App() {
     const el = forecastLayoutRef.current
     if (!el) return
     const observer = new ResizeObserver(([entry]) => {
-      setForecastPaneWide(entry.contentRect.width >= 1040)
+      if (entry) setForecastPaneWide(entry.contentRect.width >= 1040)
     })
     observer.observe(el)
     setForecastPaneWide(el.getBoundingClientRect().width >= 1040)
