@@ -193,10 +193,9 @@
   --ds-reveal-shift: 16px;
 
   /* ── 4a. Dark theme surfaces (default) ────────────────────────────────
-     Deep-ocean base. Canvas = Abyssal Navy, cards = Prussian, and one
-     elevation step (#0A3D63) for hover / expand / modal. Primary text is a
-     near-white that clears WCAG AA on every surface (15.9:1 on canvas,
-     12.9:1 on base, 10.9:1 on the raised step). */
+     Neutral near-black surfaces with a restrained elevation step between
+     canvas, base surface, and raised states. Text tokens are calibrated to
+     preserve clear contrast across all dark surfaces. */
   --ds-bg:            #0d0f10;                  /* color-surface-canvas */
   --ds-surface:       #151819f2;                /* card over the ground */
   --ds-surface-solid: #151819;                  /* color-surface-base */

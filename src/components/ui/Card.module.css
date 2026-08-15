@@ -25,7 +25,7 @@
 .interactive {
   cursor: pointer;
   transition: transform var(--ds-dur-fast) var(--ds-ease),
-    border-color var(--ds-dur-base) var(--ds-ease),
+    color var(--ds-dur-base) var(--ds-ease),
     box-shadow var(--ds-dur-base) var(--ds-ease);
 }
 .interactive:hover {

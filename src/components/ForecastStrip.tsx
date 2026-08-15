@@ -6,8 +6,7 @@ interface Props {
   days: DayForecast[]
   selectedIndex: number
   onSelect: (i: number) => void
-  /** Display unit the forecast was fetched in. The API returns unit-dependent
-   *  figures, so the gauge has to convert back to metres before drawing. */
+  /** Display unit the forecast was fetched in; values are already unit-dependent. */
   units?: 'ft' | 'm'
 }
 
