@@ -1,3 +1,10 @@
+## [1.24.8](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.24.7...v1.24.8) (2026-08-15)
+
+
+### Bug Fixes
+
+* address weight calculator review feedback ([1e21d3d](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/1e21d3d2ad589073e07f325ea93ef421750821ff))
+
 ## [1.24.7](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.24.6...v1.24.7) (2026-07-30)
 
 
