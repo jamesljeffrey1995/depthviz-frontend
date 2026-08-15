@@ -1,3 +1,10 @@
+## [1.24.10](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.24.9...v1.24.10) (2026-08-15)
+
+
+### Bug Fixes
+
+* relative fixture dates and gate TidesPage to wide pane only ([be36d6e](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/be36d6e538d5ce3d177f41602ac96e593091bebb))
+
 ## [1.24.9](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.24.8...v1.24.9) (2026-08-15)
 
 
