@@ -1,18 +1,19 @@
+/* Flat tag — no pill, no border, colour-fill only */
 .badge {
   --badge-color: var(--ds-text-muted);
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
+  gap: 5px;
+  padding: 2px 7px;
   font-family: var(--ds-font-sans);
   font-size: var(--ds-text-label);
   font-weight: var(--ds-fw-semi);
   line-height: 1;
-  letter-spacing: var(--ds-tracking-label);
-  border-radius: var(--ds-radius-pill);
+  letter-spacing: 0.01em;
+  border-radius: 3px;
   color: var(--badge-color);
   background: color-mix(in srgb, var(--badge-color) 14%, transparent);
-  border: 1px solid color-mix(in srgb, var(--badge-color) 26%, transparent);
+  border: none;
   white-space: nowrap;
 }
 

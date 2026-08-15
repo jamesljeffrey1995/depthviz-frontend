@@ -9,6 +9,7 @@
   overflow: clip;
 }
 
+.elev_none  { box-shadow: none; border-color: transparent; background: transparent; }
 .elev_flat    { box-shadow: none; }
 .elev_raised  { box-shadow: var(--ds-shadow-1); }
 .elev_floating{

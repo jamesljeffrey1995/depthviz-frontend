@@ -122,13 +122,13 @@
   --ds-space-8:  64px;
 
   /* ── Radii ──────────────────────────────────────────────────────────── */
-  /* Ripple's four steps and a pill. Controls take the pill, cards the middle
-     steps, hero panels and sheets the largest. Mixed radii were one of the
-     four things the redesign set out to remove. */
-  --ds-radius-sm:  10px;   /* chips, inputs, small tiles */
-  --ds-radius-md:  18px;   /* cards */
-  --ds-radius-lg:  26px;   /* large cards */
-  --ds-radius-xl:  34px;   /* hero panels, modals, sheets */
+  /* Tightened radii: cards and panels read as precision surfaces, not
+     rounded-corner bubbles. Pill remains for controls only. */
+  --ds-radius-xs:  6px;    /* inputs, chips, small tags */
+  --ds-radius-sm:  8px;    /* small tiles, secondary elements */
+  --ds-radius-md:  10px;   /* cards */
+  --ds-radius-lg:  14px;   /* large cards */
+  --ds-radius-xl:  20px;   /* hero panels, modals, sheets */
   --ds-radius-pill: 999px;
 
   /* ── Typography ─────────────────────────────────────────────────────── */
@@ -175,7 +175,7 @@
   --ds-fw-bold:    700;
 
   --ds-tracking-tight: -0.02em;
-  --ds-tracking-label:  0.04em;
+  --ds-tracking-label:  0.02em;
 
   /* ── Motion ─────────────────────────────────────────────────────────── */
   --ds-dur-fast:  150ms;
@@ -205,8 +205,10 @@
   /* Hairlines are no longer the separator of record: shadow and surface lift
      do that work. These stay for the few places a real boundary is needed
      (table rows, input outlines) and are quieter than before. */
-  --ds-hairline:      rgba(234, 245, 242, 0.10);
-  --ds-hairline-strong: rgba(234, 245, 242, 0.20);
+  --ds-hairline:      rgba(234, 245, 242, 0.07);
+  --ds-hairline-strong: rgba(234, 245, 242, 0.15);
+  /* Named separator — a ready-made 1px divider token for open-row layouts */
+  --ds-divider: 1px solid rgba(234, 245, 242, 0.07);
 
   --ds-text-strong:  #eaf5f2;                   /* color-text-primary, 13.2:1 */
   --ds-text-body:    #a7c4bf;                   /* secondary text, 7.9:1 */
