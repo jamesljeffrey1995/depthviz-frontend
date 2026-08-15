@@ -1,12 +1,14 @@
+/* Stat tile — open metric row, no card surface */
 .tile {
   --tile-color: var(--ds-text-strong);
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: var(--ds-space-3);
-  background: var(--ds-surface-sunken);
-  border: 1px solid var(--ds-hairline);
-  border-radius: var(--ds-radius-sm);
+  gap: 4px;
+  padding: var(--ds-space-3) 0;
+  background: transparent;
+  border: none;
+  border-bottom: var(--ds-divider);
+  border-radius: 0;
   min-width: 0;
 }
 .top {
@@ -19,8 +21,7 @@
   font-family: var(--ds-font-sans);
   font-size: var(--ds-text-label);
   font-weight: var(--ds-fw-semi);
-  letter-spacing: var(--ds-tracking-label);
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
   color: var(--ds-text-muted);
 }
 .icon { display: inline-flex; color: var(--tile-color); }

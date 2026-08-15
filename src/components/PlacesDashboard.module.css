@@ -18,19 +18,21 @@
   padding: 0;
 }
 
+/* Spot rows — open rows with separators, no card surface */
 .row {
   overflow: hidden;
-  background: var(--surface-raised);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-xs);
-  transition: border-color var(--transition-fast), background var(--transition-fast);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--surface-border);
+  border-radius: 0;
+  box-shadow: none;
+  transition: background var(--transition-fast);
 }
 
 .row:hover,
 .rowOpen {
-  border-color: var(--surface-border-strong);
-  background: #0d2b3d;
+  border-bottom-color: var(--surface-border-strong);
+  background: rgba(18, 54, 64, 0.3);
 }
 
 .rowHead {
@@ -70,26 +72,26 @@
   flex-wrap: wrap;
 }
 
+/* Flat badges — colour-only, no border pill */
 .privateBadge,
 .publicBadge {
-  padding: 3px 7px;
-  border-radius: var(--radius-full);
-  font-size: 9px;
-  font-weight: 750;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .privateBadge {
   color: var(--sev-marginal);
   background: rgba(244, 179, 93, 0.1);
-  border: 1px solid rgba(244, 179, 93, 0.3);
+  border: none;
 }
 
 .publicBadge {
   color: var(--accent-text);
   background: var(--accent-soft);
-  border: 1px solid rgba(var(--accent-rgb), 0.3);
+  border: none;
 }
 
 .verdict {
@@ -262,12 +264,13 @@
   color: var(--sev-blocked);
 }
 
+/* Empty state — no card */
 .empty {
-  padding: var(--space-xl);
+  padding: var(--space-xl) 0;
   text-align: center;
-  background: var(--surface-raised);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-md);
+  background: transparent;
+  border: none;
+  border-radius: 0;
 }
 
 .emptyIcon {

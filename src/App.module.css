@@ -97,12 +97,10 @@
   border: none;
   padding: 0;
   cursor: pointer;
-  /* The wordmark was letterspaced monospace caps, which is the single most
-     terminal-looking thing on every screen. Same face as the product now. */
   font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   color: var(--ink);
 }
 
@@ -120,7 +118,7 @@
 
 .tagline {
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: 12px;
   color: var(--ink-faint);
   margin-top: 4px;
 }
@@ -149,18 +147,19 @@
 }
 
 .depthSelectInput {
-  background: var(--surface-raised);
-  border: 1px solid var(--surface-border);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--surface-border-strong);
+  border-radius: 0;
   color: var(--ink);
   font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 600;
-  padding: 6px 10px;
-  border-radius: var(--radius-sm);
+  padding: 4px 6px;
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
-  min-height: 36px;
+  min-height: 32px;
   min-width: 60px;
   text-align: center;
   transition: border-color var(--transition-fast);
@@ -511,27 +510,25 @@
 }
 
 /* ── Bottom Navigation Bar ── */
-/* A floating dock centred on the thumb rather than a bar welded to the screen
-   edge. It sits on the panel colour with the large shadow, so it reads as
-   hovering above the page. */
+/* Flat bar anchored to the screen edge — no floating pill dock. A thin
+   top border separates it from the page without shadow layering. */
 .bottomNav {
   position: fixed;
-  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-  left: 50%;
-  transform: translateX(-50%);
-  max-width: calc(100% - 24px);
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-width: 100%;
   display: flex;
   justify-content: center;
-  align-items: center;
-  gap: 2px;
-  /* Opaque on purpose. A translucent dock over blurred page content leaves the
-     label contrast dependent on whatever is scrolled underneath, which axe
-     reports as a violation and a diver in daylight experiences as one. */
-  background: var(--surface-raised);
-  border: none;
-  border-radius: var(--radius-full);
-  box-shadow: var(--shadow-lg);
-  padding: 6px;
+  align-items: stretch;
+  gap: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--surface-border);
+  box-shadow: none;
+  padding: 0 0 env(safe-area-inset-bottom, 0px);
+  border-radius: 0;
+  transform: none;
   z-index: 1100;
 }
 
@@ -549,15 +546,15 @@
   gap: 3px;
   background: none;
   border: none;
-  color: var(--ink-dim);
+  color: var(--ink-faint);
   font-family: var(--font-sans);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
   min-height: 52px;
-  padding: 6px 12px;
-  border-radius: var(--radius-full);
+  padding: 8px 12px;
+  border-radius: 0;
   cursor: pointer;
-  transition: color var(--transition-fast), background var(--transition-fast);
+  transition: color var(--transition-fast);
   flex: 1;
 }
 
@@ -576,7 +573,8 @@
 }
 
 .bottomNavBtn:hover:not(.bottomNavActive) {
-  background: var(--accent-soft);
+  color: var(--ink-dim);
+  background: none;
 }
 
 .bottomNavBtn:focus-visible {
@@ -584,11 +582,10 @@
   outline-offset: 2px;
 }
 
-/* Active state is a filled pill rather than an underline: the shape carries
-   it, so nothing depends on the accent colour alone. */
+/* Active state: accent colour on icon and label only — no fill. */
 .bottomNavActive {
-  color: var(--ink);
-  background: var(--accent-soft);
+  color: var(--accent-text);
+  background: none;
   font-weight: 600;
 }
 
@@ -614,7 +611,6 @@
     padding-bottom: var(--space-xl);
   }
 }
-
 @container app-main (min-width: 1040px) {
   .forecastRouteLayout {
     grid-template-columns: minmax(0, 1.7fr) minmax(300px, 0.95fr);
@@ -631,7 +627,7 @@
 /* ── Responsive ── */
 @media (max-width: 480px) {
   .container {
-    padding: 14px 12px 96px;
+    padding: 14px 12px 80px;
   }
 
   .header {

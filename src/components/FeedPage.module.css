@@ -1,8 +1,14 @@
+/* Feed cards are open rows with a bottom separator — no card surface */
 .controlsCard,
 .feedCard,
 .errorCard,
 .stateCard {
-  background: var(--ds-surface);
+  background: transparent;
+}
+
+.feedCard {
+  border-bottom: var(--ds-divider);
+  padding-bottom: var(--ds-space-4);
 }
 
 .controls {
@@ -19,8 +25,7 @@
   font-family: var(--ds-font-sans);
   font-size: var(--ds-text-label);
   font-weight: var(--ds-fw-semi);
-  letter-spacing: var(--ds-tracking-label);
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
   color: var(--ds-text-muted);
 }
 
@@ -37,7 +42,7 @@
 
 .feedList {
   display: grid;
-  gap: var(--ds-space-4);
+  gap: 0;
 }
 
 .cardHeader {
