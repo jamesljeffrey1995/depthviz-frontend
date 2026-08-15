@@ -28,7 +28,6 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal(
     <div
       className={[styles.overlay, overlayClassName].filter(Boolean).join(' ')}
       onClick={e => e.target === e.currentTarget && onClose()}
-      aria-hidden="false"
     >
       <div
         className={[styles.modal, className].filter(Boolean).join(' ')}
