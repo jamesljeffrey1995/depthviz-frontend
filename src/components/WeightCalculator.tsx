@@ -78,10 +78,9 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
       title="Weight Belt Calculator"
       subtitle="Freediving and spearfishing neutral-buoyancy estimate with safety guidance kept front and centre."
     >
-      <Card className={styles.safety} padding="md" accent="var(--ds-warn)">
+      <Card className={styles.safety} padding="md" accent="var(--ds-warn)" role="note">
         <strong>Estimate only — not a safety device.</strong> This is a starting point to save you trial-and-error.
-        You <em> must</em> confirm your weighting with an in-water buoyancy check in shallow water, and never freedive alone.
-        {' '}
+        You <em>must</em> confirm your weighting with an in-water buoyancy check in shallow water, and never freedive alone.{' '}
         {onNavigateLegal && (
           <button type="button" className={styles.inlineLink} onClick={() => onNavigateLegal('disclaimer')}>
             Read the full disclaimer
@@ -107,11 +106,11 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
             </div>
             <div className={styles.controlBlock}>
               <span className={styles.groupLabel}>Water type</span>
-              <SegmentedControl
+              <SegmentedControl<WaterType>
                 ariaLabel="Water type"
                 size="sm"
                 value={water}
-                onChange={value => setWater(value as WaterType)}
+                onChange={setWater}
                 options={[
                   { value: 'salt', label: 'Salt water' },
                   { value: 'fresh', label: 'Fresh water' },
@@ -202,7 +201,7 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
         </div>
       </Card>
 
-      <Card className={styles.resultCard} padding="lg" accent="var(--ds-accent)">
+      <Card className={styles.resultCard} padding="lg" accent="var(--ds-accent)" aria-live="polite">
         <div className={styles.resultLabel}>Suggested starting weight</div>
         {inputsValid ? (
           <>
