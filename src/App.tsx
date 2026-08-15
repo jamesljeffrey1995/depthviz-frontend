@@ -160,6 +160,8 @@ export default function App() {
   const lastSelectedRef = useRef<{ lat: number; lon: number; name: string; locationId?: number }>({
     lat: 0, lon: 0, name: '',
   })
+  const forecastLayoutRef = useRef<HTMLDivElement>(null)
+  const [forecastPaneWide, setForecastPaneWide] = useState(false)
   const [pendingAuthIntent, setPendingAuthIntent] = useState<AuthIntent | null>(null)
 
   // Admin status is decided by the server (via /profile/me's is_admin), never
@@ -187,6 +189,17 @@ export default function App() {
     })
     if (failure.requiresAuth) requestAuth(intent)
   }, [requestAuth])
+  useEffect(() => {
+    const el = forecastLayoutRef.current
+    if (!el) return
+    const observer = new ResizeObserver(([entry]) => {
+      setForecastPaneWide(entry.contentRect.width >= 1040)
+    })
+    observer.observe(el)
+    setForecastPaneWide(el.getBoundingClientRect().width >= 1040)
+    return () => observer.disconnect()
+  }, [])
+
   useEffect(() => {
     if (!user) { setIsAdmin(false); setAdminChecked(false); return }
     let cancelled = false
@@ -757,7 +770,7 @@ export default function App() {
 
           {/* Forecast view */}
           <Route path="/forecast" element={
-            <div className={styles.forecastRouteLayout}>
+            <div className={styles.forecastRouteLayout} ref={forecastLayoutRef}>
               <div className={styles.forecastPrimary}>
                 {status === 'loading' && (
                   <div className={styles.loading} role="status" aria-live="polite" aria-label="Loading conditions">
@@ -884,7 +897,7 @@ export default function App() {
                   </>
                 )}
               </div>
-              {status === 'success' && forecast && currentLat !== null && currentLon !== null && (
+              {status === 'success' && forecast && currentLat !== null && currentLon !== null && forecastPaneWide && (
                 <aside className={styles.forecastSupporting} aria-label="Supporting tide view">
                   <div className={styles.supportingPaneLabel}>Tides</div>
                   <Suspense fallback={<div className={styles.loadingText}>Loading tides…</div>}>

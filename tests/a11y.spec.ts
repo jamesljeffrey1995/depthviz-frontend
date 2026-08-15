@@ -51,6 +51,9 @@ const FORECAST_CONTEXT = {
   locationId: 42,
 }
 
+const TODAY_UTC = new Date(Date.now())
+TODAY_UTC.setUTCHours(0, 0, 0, 0)
+
 const FORECAST_RESPONSE = {
   location_name: FORECAST_CONTEXT.name,
   lat: FORECAST_CONTEXT.lat,
@@ -62,7 +65,9 @@ const FORECAST_RESPONSE = {
   calibration_active: true,
   units: 'm',
   days: Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(Date.UTC(2026, 7, 16 + index)).toISOString().slice(0, 10)
+    const d = new Date(TODAY_UTC)
+    d.setUTCDate(TODAY_UTC.getUTCDate() + index)
+    const date = d.toISOString().slice(0, 10)
     const vis = 6.5 + index * 0.35
     return {
       date,
@@ -116,20 +121,22 @@ const FORECAST_RESPONSE = {
   }),
 } as const
 
+const TODAY_DATE = TODAY_UTC.toISOString().slice(0, 10)
+
 const TIDES_RESPONSE = {
   location_name: FORECAST_CONTEXT.name,
   lat: FORECAST_CONTEXT.lat,
   lon: FORECAST_CONTEXT.lon,
-  date: '2026-08-16',
+  date: TODAY_DATE,
   datum: 'LAT',
   events: [
-    { type: 'high', time: '2026-08-16T02:20:00Z', height: 4.1 },
-    { type: 'low', time: '2026-08-16T08:46:00Z', height: 1.2 },
-    { type: 'high', time: '2026-08-16T14:53:00Z', height: 4.4 },
-    { type: 'low', time: '2026-08-16T21:15:00Z', height: 1.0 },
+    { type: 'high', time: `${TODAY_DATE}T02:20:00Z`, height: 4.1 },
+    { type: 'low', time: `${TODAY_DATE}T08:46:00Z`, height: 1.2 },
+    { type: 'high', time: `${TODAY_DATE}T14:53:00Z`, height: 4.4 },
+    { type: 'low', time: `${TODAY_DATE}T21:15:00Z`, height: 1.0 },
   ],
   hourly: Array.from({ length: 25 }, (_, index) => ({
-    time: new Date(Date.UTC(2026, 7, 16, index)).toISOString(),
+    time: new Date(TODAY_UTC.getTime() + index * 3_600_000).toISOString(),
     height: Number((2.7 + Math.sin((index / 24) * Math.PI * 2) * 1.6).toFixed(2)),
   })),
   current: { state: 'moderate', direction: 'flooding', speed_knots: 1.8 },
