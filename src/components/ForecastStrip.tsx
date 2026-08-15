@@ -11,16 +11,6 @@ interface Props {
   units?: 'ft' | 'm'
 }
 
-const FT_PER_M = 3.28084
-
-/** Formats a metre value in the unit the strip is showing. */
-function makeRangeFormatter(units: 'ft' | 'm') {
-  return (metres: number) =>
-    units === 'ft'
-      ? `${Math.round(metres * FT_PER_M)} ft`
-      : `${Number.isInteger(metres) ? metres : metres.toFixed(1)} m`
-}
-
 function formatDate(dateStr: string): string {
   const todayStr = new Date().toISOString().split('T')[0]
   const todayDate = new Date(todayStr + 'T00:00:00')
@@ -55,7 +45,6 @@ function primaryDriver(factors: VisibilityFactor[]): string | null {
 }
 
 export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, onSelect, units = 'm' }: Props) {
-  const formatRange = makeRangeFormatter(units)
   return (
     <div className={styles.strip}>
       <div className={styles.row}>
