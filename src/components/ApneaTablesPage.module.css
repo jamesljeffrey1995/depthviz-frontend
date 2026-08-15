@@ -63,11 +63,13 @@
 
 .list {
   display: grid;
-  gap: var(--ds-space-3);
+  gap: 0;
 }
 
 .tableCard {
   cursor: pointer;
+  padding-inline: 0;
+  border-bottom: var(--ds-divider);
 }
 
 .cardHeader {
@@ -75,6 +77,22 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--ds-space-3);
+}
+
+.tableTags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px 12px;
+  color: var(--ds-text-muted);
+  font-size: var(--ds-text-meta);
+  text-transform: capitalize;
+}
+
+.tableType {
+  color: var(--ds-accent);
+  font-weight: var(--ds-fw-semi);
+  text-transform: uppercase;
 }
 
 .cardName {
@@ -110,7 +128,7 @@
 
 .metaItem strong {
   color: var(--ds-text-strong);
-  font-size: var(--ds-text-card);
+  font-size: var(--ds-text-h2);
   font-weight: var(--ds-fw-semi);
 }
 

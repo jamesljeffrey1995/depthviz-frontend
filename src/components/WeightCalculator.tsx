@@ -92,7 +92,7 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
         <div className={styles.fieldGroup}>
           <div className={styles.controlRow}>
             <div className={styles.controlBlock}>
-              <span className={styles.groupLabel}>Units</span>
+              <span className={styles.groupLabel}>Display units</span>
               <SegmentedControl
                 ariaLabel="Unit system"
                 size="sm"
@@ -104,24 +104,11 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
                 ]}
               />
             </div>
-            <div className={styles.controlBlock}>
-              <span className={styles.groupLabel}>Water type</span>
-              <SegmentedControl<WaterType>
-                ariaLabel="Water type"
-                size="sm"
-                value={water}
-                onChange={setWater}
-                options={[
-                  { value: 'salt', label: 'Salt water' },
-                  { value: 'fresh', label: 'Fresh water' },
-                ]}
-              />
-            </div>
           </div>
         </div>
 
         <div className={styles.fieldGroup}>
-          <div className={styles.groupLabel}>Diver</div>
+          <div className={styles.groupLabel}>1 · Diver</div>
           <div className={styles.row}>
             <div className={styles.field}>
               <label className={styles.label} htmlFor="wc-height">Height {imperial ? '(in)' : '(cm)'}</label>
@@ -172,13 +159,32 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
         </div>
 
         <div className={styles.fieldGroup}>
-          <div className={styles.groupLabel}>Equipment and target</div>
+          <div className={styles.groupLabel}>2 · Suit</div>
 
           <div className={styles.field}>
             <span className={styles.label}>Wetsuit thickness by body part</span>
             <BodySuitSelector value={regions} onChange={setRegions} />
           </div>
+        </div>
 
+        <div className={styles.fieldGroup}>
+          <div className={styles.groupLabel}>3 · Water</div>
+          <div className={styles.controlBlock}>
+            <SegmentedControl<WaterType>
+              ariaLabel="Water type"
+              size="sm"
+              value={water}
+              onChange={setWater}
+              options={[
+                { value: 'salt', label: 'Salt water' },
+                { value: 'fresh', label: 'Fresh water' },
+              ]}
+            />
+          </div>
+        </div>
+
+        <div className={styles.fieldGroup}>
+          <div className={styles.groupLabel}>4 · Target depth</div>
           <div className={styles.field}>
             <div className={styles.sliderHeader}>
               <label className={styles.label} htmlFor="wc-depth">Target neutral depth</label>
@@ -202,7 +208,7 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
       </Card>
 
       <Card className={styles.resultCard} padding="lg" accent="var(--ds-accent)" aria-live="polite">
-        <div className={styles.resultLabel}>Suggested starting weight</div>
+        <div className={styles.resultLabel}>5 · Suggested starting weight</div>
         {inputsValid ? (
           <>
             <div className={styles.resultValue}>{fmt(result.recommendedKg)}</div>

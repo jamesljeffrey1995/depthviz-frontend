@@ -48,13 +48,19 @@
   gap: var(--ds-space-2);
 }
 
-.groupLabel,
 .label,
 .resultLabel {
   font-size: var(--ds-text-label);
   font-weight: var(--ds-fw-semi);
   letter-spacing: 0.01em;
   color: var(--ds-text-muted);
+}
+
+.groupLabel {
+  color: var(--ds-text-strong);
+  font-size: var(--ds-text-card);
+  font-weight: var(--ds-fw-semi);
+  letter-spacing: 0.01em;
 }
 
 .row {
@@ -125,12 +131,15 @@
 
 .resultCard {
   text-align: center;
+  margin-block: var(--ds-space-5);
+  padding-block: var(--ds-space-7);
+  border-block: 1px solid var(--ds-hairline);
 }
 
 .resultValue {
   margin-top: var(--ds-space-2);
   color: var(--ds-text-strong);
-  font-size: clamp(44px, 11vw, 64px);
+  font-size: clamp(64px, 14vw, 96px);
   font-weight: var(--ds-fw-bold);
   line-height: 1;
   letter-spacing: var(--ds-tracking-tight);

@@ -538,6 +538,10 @@
   margin: -4px 0 12px;
 }
 
+.mapRoute {
+  width: 100%;
+}
+
 .bottomNavBtn {
   display: flex;
   flex-direction: column;

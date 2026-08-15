@@ -1,25 +1,13 @@
 import { memo } from 'react'
 import type { DayForecast, VisibilityFactor } from '../types'
-import { RippleGauge } from './RippleGauge'
 import styles from './ForecastStrip.module.css'
 
 interface Props {
   days: DayForecast[]
   selectedIndex: number
   onSelect: (i: number) => void
-  /** Display unit the forecast was fetched in. The API returns unit-dependent
-   *  figures, so the gauge has to convert back to metres before drawing. */
+  /** Display unit the forecast was fetched in; values are already unit-dependent. */
   units?: 'ft' | 'm'
-}
-
-const FT_PER_M = 3.28084
-
-/** Formats a metre value in the unit the strip is showing. */
-function makeRangeFormatter(units: 'ft' | 'm') {
-  return (metres: number) =>
-    units === 'ft'
-      ? `${Math.round(metres * FT_PER_M)} ft`
-      : `${Number.isInteger(metres) ? metres : metres.toFixed(1)} m`
 }
 
 function formatDate(dateStr: string): string {
@@ -56,14 +44,12 @@ function primaryDriver(factors: VisibilityFactor[]): string | null {
 }
 
 export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, onSelect, units = 'm' }: Props) {
-  const formatRange = makeRangeFormatter(units)
   return (
     <div className={styles.strip}>
       <div className={styles.row}>
         {days.map((day, i) => {
           const vis = day.vis_corrected ?? day.vis_estimate
           const colorVar = `var(--sev-${day.color_class})`
-          const faceColorVar = `var(--sev-${day.color_class}-face)`
           const cls = [
             styles.day,
             i === selectedIndex ? styles.active : '',
@@ -80,17 +66,9 @@ export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, 
               aria-label={`${formatDate(day.date)}: ${vis.toFixed(1)} ${units === 'ft' ? 'feet' : 'metres'} visibility, ${day.verdict}${day.algae.risk !== 'low' ? `, algae risk ${day.algae.risk}` : ''}${driver ? `, main factor: ${driver}` : ''}`}
             >
               <div className={styles.dateLabel}>{formatDate(day.date)}</div>
-              <div className={styles.dial}>
-                <RippleGauge
-                  vis={units === 'ft' ? vis / FT_PER_M : vis}
-                  format={formatRange}
-                  compact
-                  size={56}
-                  className={styles.dialRings}
-                  style={{ color: faceColorVar }}
-                >
-                  <span className={styles.dialValue}>{vis.toFixed(1)}</span>
-                </RippleGauge>
+              <div className={styles.visibility}>
+                <span className={styles.visibilityValue}>{vis.toFixed(1)}</span>
+                <span className={styles.visibilityUnit}>{units}</span>
                 {day.algae.risk !== 'low' && (
                   <span className={`${styles.algaePip} ${styles[`algae${day.algae.risk.charAt(0).toUpperCase() + day.algae.risk.slice(1)}`]}`} />
                 )}

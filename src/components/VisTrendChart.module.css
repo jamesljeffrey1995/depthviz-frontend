@@ -1,8 +1,8 @@
 .wrap {
-  margin: 0 0 16px;
-  background: var(--paper-dim);
-  border: 1px solid var(--rule);
-  padding: 6px 10px;
+  margin: 24px 0 28px;
+  background: transparent;
+  border: 0;
+  padding: 0;
 }
 
 .svg {

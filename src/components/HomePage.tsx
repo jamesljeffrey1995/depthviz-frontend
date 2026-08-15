@@ -48,30 +48,16 @@ export function HomePage({ locationSearch }: HomePageProps) {
     <div className={styles.home}>
       <section className={styles.hero}>
         <div>
-          <div className={styles.systemLine}>
-            <span>Visibility forecast</span>
-            <span>Northwest Europe, 50 to 62°N</span>
-            <span>Seven days ahead</span>
-          </div>
-          <h1 className={styles.heroTitle}>Can I see enough to dive here today?</h1>
+          <h1 className={styles.heroTitle}>Where are you diving?</h1>
           <p className={styles.heroLead}>
-            DepthViz estimates underwater visibility for spearfishers and freedivers.
-            It combines marine conditions with reports from people who have recently dived the site.
-          </p>
-          <p className={styles.caution}>
-            Forecasts support a decision; they do not make one. Check access, swell,
-            wind and local advice before entering the water.
+            Check underwater visibility, sea state and recent diver reports before you load the car.
           </p>
         </div>
 
         <div className={styles.searchPanel}>
-          <div className={styles.panelCode}>
-            <span>LOCATION INPUT</span>
-            <span>01</span>
-          </div>
           <div className={styles.searchHead}>
             <div>
-              <span className={styles.searchLabel}>Start with a place</span>
+              <span className={styles.searchLabel}>Find a dive spot</span>
               <p>Town, beach, headland or coordinates</p>
             </div>
             <button className={styles.textLink} onClick={() => navigate('/map')}>
@@ -80,13 +66,17 @@ export function HomePage({ locationSearch }: HomePageProps) {
           </div>
           {locationSearch}
         </div>
+        <p className={styles.caution}>
+          Forecasts support a decision; they do not make one. Check access, swell,
+          wind and local advice before entering the water.
+        </p>
       </section>
 
       <nav className={styles.directory} aria-label="DepthViz tools">
         <div className={styles.directoryHead}>
           <div>
             <span className={styles.sectionIndex}>Tools</span>
-            <h2>What do you need to do?</h2>
+            <h2>More dive tools</h2>
           </div>
           <span>{TOOLS.length} to choose from</span>
         </div>
