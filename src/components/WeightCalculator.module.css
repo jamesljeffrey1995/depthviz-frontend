@@ -70,7 +70,7 @@
   min-height: 44px;
   padding: 0 var(--ds-space-4);
   border: 1px solid var(--ds-hairline);
-  border-radius: 6px;
+  border-radius: var(--ds-radius-xs);
   background: var(--ds-surface-sunken);
   color: var(--ds-text-strong);
   font-size: var(--ds-text-body);

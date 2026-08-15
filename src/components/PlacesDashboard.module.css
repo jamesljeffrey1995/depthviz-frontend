@@ -31,7 +31,7 @@
 
 .row:hover,
 .rowOpen {
-  border-color: var(--surface-border-strong);
+  border-bottom-color: var(--surface-border-strong);
   background: rgba(18, 54, 64, 0.3);
 }
 
