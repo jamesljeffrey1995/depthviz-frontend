@@ -1,3 +1,10 @@
+## [1.24.9](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.24.8...v1.24.9) (2026-08-15)
+
+
+### Bug Fixes
+
+* address modal accessibility and select affordance review feedback ([664dc29](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/664dc29a26dcaf7f8aa4a2e830373fe5a2d9601e))
+
 ## [1.24.8](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.24.7...v1.24.8) (2026-08-15)
 
 
