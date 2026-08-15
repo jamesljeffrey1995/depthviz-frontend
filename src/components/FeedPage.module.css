@@ -99,10 +99,22 @@
   color: var(--ds-text-strong);
 }
 
-.badgeRow {
+.badgeRow,
+.observations {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--ds-space-2);
+  gap: var(--ds-space-3) var(--ds-space-5);
+}
+
+.observations {
+  color: var(--ds-text-muted);
+  font-size: var(--ds-text-meta);
+}
+
+.observations strong {
+  color: var(--ds-text-strong);
+  font-size: var(--ds-text-h3);
+  font-weight: var(--ds-fw-semi);
 }
 
 .notes {

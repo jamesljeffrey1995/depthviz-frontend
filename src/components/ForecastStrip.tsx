@@ -1,6 +1,5 @@
 import { memo } from 'react'
 import type { DayForecast, VisibilityFactor } from '../types'
-import { RippleGauge } from './RippleGauge'
 import styles from './ForecastStrip.module.css'
 
 interface Props {
@@ -63,7 +62,6 @@ export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, 
         {days.map((day, i) => {
           const vis = day.vis_corrected ?? day.vis_estimate
           const colorVar = `var(--sev-${day.color_class})`
-          const faceColorVar = `var(--sev-${day.color_class}-face)`
           const cls = [
             styles.day,
             i === selectedIndex ? styles.active : '',
@@ -80,17 +78,9 @@ export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, 
               aria-label={`${formatDate(day.date)}: ${vis.toFixed(1)} ${units === 'ft' ? 'feet' : 'metres'} visibility, ${day.verdict}${day.algae.risk !== 'low' ? `, algae risk ${day.algae.risk}` : ''}${driver ? `, main factor: ${driver}` : ''}`}
             >
               <div className={styles.dateLabel}>{formatDate(day.date)}</div>
-              <div className={styles.dial}>
-                <RippleGauge
-                  vis={units === 'ft' ? vis / FT_PER_M : vis}
-                  format={formatRange}
-                  compact
-                  size={56}
-                  className={styles.dialRings}
-                  style={{ color: faceColorVar }}
-                >
-                  <span className={styles.dialValue}>{vis.toFixed(1)}</span>
-                </RippleGauge>
+              <div className={styles.visibility}>
+                <span className={styles.visibilityValue}>{vis.toFixed(1)}</span>
+                <span className={styles.visibilityUnit}>{units}</span>
                 {day.algae.risk !== 'low' && (
                   <span className={`${styles.algaePip} ${styles[`algae${day.algae.risk.charAt(0).toUpperCase() + day.algae.risk.slice(1)}`]}`} />
                 )}

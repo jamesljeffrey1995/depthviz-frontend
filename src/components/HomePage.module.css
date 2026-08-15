@@ -6,11 +6,12 @@
    labels now read as words. Numbering is kept only where the content is
    genuinely a sequence, which none of these lists are. */
 
-.home { display: flex; flex-direction: column; gap: 48px; }
+.home { display: flex; flex-direction: column; gap: 56px; max-width: 920px; margin-inline: auto; }
 
 .hero {
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, .72fr);
-  gap: clamp(40px, 7vw, 84px); align-items: stretch; padding: 40px 0 8px;
+  display: grid;
+  gap: 24px;
+  padding: 48px 0 8px;
 }
 
 /* The old system line was a row of monospace codes: model area, window,
@@ -27,15 +28,15 @@
 }
 
 .heroTitle {
-  max-width: 690px; margin: 0; color: var(--ink); font-family: var(--font-display);
-  font-size: clamp(38px, 5.5vw, 66px); font-weight: 600; letter-spacing: -.035em;
+  max-width: 760px; margin: 0; color: var(--ink); font-family: var(--font-display);
+  font-size: clamp(42px, 7vw, 74px); font-weight: 600; letter-spacing: -.045em;
   line-height: 1.08; text-wrap: balance;
 }
-.heroLead { max-width: 650px; margin: 26px 0 0; color: var(--ink-dim); font-size: 17px; line-height: 1.65; }
+.heroLead { max-width: 650px; margin: 16px 0 0; color: var(--ink-dim); font-size: 17px; line-height: 1.6; }
 
 /* Safety copy stays prominent, but as a soft wash without radius or border. */
 .caution {
-  max-width: 620px; margin: 30px 0 0; padding: 14px 18px;
+  max-width: 680px; margin: 8px 0 0; padding: 10px 0 10px 16px;
   border: 0; border-radius: 0;
   border-left: 3px solid rgba(198, 177, 86, 0.35);
   background: color-mix(in srgb, var(--sev-marginal) 8%, transparent);
@@ -45,7 +46,7 @@
 /* Search panel — no card surface; the search bar itself provides focus.
    A bottom separator quietly closes off the hero section. */
 .searchPanel {
-  position: relative; align-self: end; padding: 20px 0;
+  position: relative; padding: 20px 0 24px;
   border: 0; border-radius: 0;
   background: transparent; box-shadow: none;
   border-bottom: 1px solid var(--surface-border);
@@ -73,7 +74,7 @@
 .textLink:hover { background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--ink); }
 .textLink svg { width: 15px; height: 15px; }
 
-.directory { display: grid; gap: 12px; }
+.directory { display: grid; gap: 0; }
 .directoryHead { display: flex; justify-content: space-between; align-items: end; gap: 16px; padding: 0; }
 .directoryHead .sectionIndex { display: block; margin-bottom: 6px; }
 .directoryHead h2 { margin: 0; color: var(--ink); font-family: var(--font-display); font-size: 26px; font-weight: 600; letter-spacing: -.02em; }
@@ -132,32 +133,6 @@
   .tool { grid-template-columns: minmax(0, 1fr) 20px; }
   .description { grid-column: 1 / 2; }
   .arrow { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
-}
-@media (min-width: 560px) {
-  .directory {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .directoryHead {
-    grid-column: 1 / -1;
-  }
-
-  .tool {
-    grid-template-columns: 1fr 20px;
-    align-content: start;
-    min-height: 132px;
-  }
-
-  .tool strong,
-  .description {
-    grid-column: 1;
-  }
-
-  .arrow {
-    grid-column: 2;
-    grid-row: 1 / span 2;
-    align-self: center;
-  }
 }
 @media (max-width: 480px) {
   .home { gap: 44px; }

@@ -1,8 +1,8 @@
 .wrap {
-  margin: 0 0 16px;
-  background: var(--paper-dim);
-  border: 1px solid var(--rule);
-  padding: 6px 10px 4px;
+  margin: 0 0 28px;
+  background: transparent;
+  border: 0;
+  padding: 0;
 }
 
 .caption {
@@ -13,9 +13,9 @@
 }
 
 .title {
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-size: 14px;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ink-faint);
   font-family: var(--font-display);
 }

@@ -31,16 +31,16 @@
 :root {
   /* ── Surfaces — deep water, not black. Each step is a lift in lightness,
      and the separation between them is what replaces borders. ── */
-  --surface: #081c22;          /* page ground */
-  --surface-raised: #0f2c34;   /* panel */
-  --surface-sunken: #05161b;   /* inset: wells, tracks, code */
-  --surface-tint: #123640;     /* soft fill: bar tracks, pressed, selected */
-  --surface-border: rgba(234, 245, 242, 0.07);
-  --surface-border-strong: rgba(234, 245, 242, 0.15);
+  --surface: #0d0f10;          /* page ground */
+  --surface-raised: #151819;   /* panel */
+  --surface-sunken: #080a0b;   /* inset: wells, tracks, code */
+  --surface-tint: #1c2021;     /* soft fill: bar tracks, pressed, selected */
+  --surface-border: rgba(242, 241, 236, 0.09);
+  --surface-border-strong: rgba(242, 241, 236, 0.17);
 
-  --ink: #eaf5f2;              /* 13.2:1 on the darkest surface */
-  --ink-dim: #a7c4bf;          /* 7.9:1  */
-  --ink-faint: #7d9d99;        /* 5.0:1, so captions still clear AA */
+  --ink: #f2f1ec;
+  --ink-dim: #b6b8b5;
+  --ink-faint: #858986;
 
   /* Instrument-face register. Ripple has no separate instrument panel, so the
      face tokens now resolve onto the ordinary panel language; they stay
@@ -215,7 +215,7 @@ body {
   /* The background graduates from abyssal navy at the top to the deepest
      ocean floor at the bottom — depth rather than a dome. */
   background-color: var(--surface);
-  background-image: linear-gradient(180deg, #081c22 0%, #05161b 100%);
+  background-image: linear-gradient(180deg, #0d0f10 0%, #080a0b 100%);
   background-repeat: no-repeat;
   color: var(--ink-dim);
   font-family: var(--font-sans);

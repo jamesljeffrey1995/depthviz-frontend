@@ -5,7 +5,7 @@ import { getApneaTables } from '../lib/api'
 import type { ApneaDifficulty, ApneaTable, ApneaTableType } from '../types'
 import { Tabs } from './Tabs'
 import { IconPlus } from './icons'
-import { Badge, Button, Card, FilterChip, PageLayout } from './ui'
+import { Button, Card, FilterChip, PageLayout } from './ui'
 import styles from './ApneaTablesPage.module.css'
 
 type Tab = 'library' | 'mine'
@@ -191,16 +191,10 @@ export function ApneaTablesPage({ user, onShowAuth }: Props) {
                       <div className={styles.cardName}>{table.name}</div>
                       {table.description && <p className={styles.cardDesc}>{table.description}</p>}
                     </div>
-                    <div className={styles.badges}>
-                      <Badge tone={difficultyTone(table.difficulty)}>{table.difficulty}</Badge>
-                      <Badge tone="accent">{table.table_type === 'co2' ? 'CO₂' : 'O₂'}</Badge>
-                      {table.is_system ? (
-                        <Badge tone="neutral">System</Badge>
-                      ) : table.is_public ? (
-                        <Badge tone="success">Public</Badge>
-                      ) : (
-                        <Badge tone="neutral">Private</Badge>
-                      )}
+                    <div className={styles.tableTags}>
+                      <span className={styles.tableType}>{table.table_type === 'co2' ? 'CO₂ table' : 'O₂ table'}</span>
+                      <span>{table.difficulty}</span>
+                      <span>{table.is_system ? 'DepthViz' : table.is_public ? 'Community' : 'Private'}</span>
                     </div>
                   </div>
                   <div className={styles.metaGrid}>

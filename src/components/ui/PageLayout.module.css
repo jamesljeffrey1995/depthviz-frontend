@@ -29,13 +29,13 @@
   font-size: var(--ds-text-label);
   font-weight: var(--ds-fw-semi);
   letter-spacing: var(--ds-tracking-label);
-  text-transform: uppercase;
+  text-transform: none;
   color: var(--ds-accent);
 }
 
 .title {
   font-family: var(--ds-font-display);
-  font-size: var(--ds-text-h1);
+  font-size: clamp(30px, 5vw, 42px);
   font-weight: var(--ds-fw-bold);
   line-height: var(--ds-lh-tight);
   letter-spacing: var(--ds-tracking-tight);

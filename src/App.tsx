@@ -8,7 +8,6 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { SearchBar } from './components/SearchBar'
 import { ForecastStrip } from './components/ForecastStrip'
 import { DayDetail } from './components/DayDetail'
-import { DiveScoreCard } from './components/DiveScoreCard'
 import { SeabedEditor } from './components/SeabedEditor'
 import { CookieBanner } from './components/CookieBanner'
 import { TopNav } from './components/TopNav'
@@ -706,11 +705,20 @@ export default function App() {
 
           {/* Map / Dashboard */}
           <Route path="/map" element={
-            <>
+            <div className={styles.mapRoute}>
               {(status === 'loading' || isRevalidating) && (
                 <div className={styles.loadingBar} role="status" aria-live="polite">{isRevalidating ? 'Fetching conditions...' : 'Reading conditions...'}</div>
               )}
-              {/* Logged-in users see their saved places dashboard; the map is below */}
+              <Suspense fallback={null}>
+                <SpotsMap
+                  onSelectSpot={handleSpotSelect}
+                  center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined}
+                  user={user}
+                  onShowAuth={() => requestAuth({ type: 'route', path: '/map' })}
+                  locations={locations}
+                  onLocationCreated={(created) => setLocations(prev => [...prev.filter(l => l.id !== created.id), created])}
+                />
+              </Suspense>
               {user && status === 'idle' && locations.filter(l => !l.is_predefined).length > 0 && (
                 <Suspense fallback={null}>
                   <>
@@ -730,17 +738,7 @@ export default function App() {
                   </>
                 </Suspense>
               )}
-              <Suspense fallback={null}>
-                <SpotsMap
-                  onSelectSpot={handleSpotSelect}
-                  center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined}
-                  user={user}
-                  onShowAuth={() => requestAuth({ type: 'route', path: '/map' })}
-                  locations={locations}
-                  onLocationCreated={(created) => setLocations(prev => [...prev.filter(l => l.id !== created.id), created])}
-                />
-              </Suspense>
-            </>
+            </div>
           } />
 
           {/* Best Visibility */}
@@ -851,15 +849,6 @@ export default function App() {
                         <ForecastStrip days={forecast.days} selectedIndex={selectedDay} onSelect={selectDay} units={units} />
                         {forecast.days[selectedDay] && (
                           <>
-                            <DiveScoreCard
-                              day={forecast.days[selectedDay]}
-                              locationName={forecast.location_name}
-                              forecast={{ report_count: forecast.report_count, model_confidence: forecast.model_confidence }}
-                              units={units}
-                              days={forecast.days}
-                              todayIndex={todayIndex >= 0 ? todayIndex : selectedDay}
-                              onJumpToBestWindow={selectDay}
-                            />
                             <DayDetail
                               day={forecast.days[selectedDay]}
                               locationName={forecast.location_name}

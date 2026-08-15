@@ -28,11 +28,11 @@
   /* Neutral ramp. Biased green rather than blue so it belongs to the accent
      instead of reading as an unconsidered grey, and deep water rather than
      black at the dark end. */
-  --ds-ink-950: #05161b;   /* deepest inset (dark) */
-  --ds-ink-900: #081c22;   /* app ground (dark) */
-  --ds-ink-850: #0f2c34;   /* default panel (dark) */
-  --ds-ink-800: #123640;   /* one lift above the panel (dark) */
-  --ds-ink-700: #1b4652;
+  --ds-ink-950: #080a0b;   /* deepest inset (dark) */
+  --ds-ink-900: #0d0f10;   /* app ground (dark) */
+  --ds-ink-850: #151819;   /* default panel (dark) */
+  --ds-ink-800: #1c2021;   /* one lift above the panel (dark) */
+  --ds-ink-700: #2b3132;
   --ds-ink-600: #43635f;   /* light-mode secondary text */
   --ds-ink-500: #5c7a76;   /* light-mode captions */
   --ds-ink-400: #7d9d99;   /* dark-mode captions */
@@ -197,11 +197,11 @@
      elevation step (#0A3D63) for hover / expand / modal. Primary text is a
      near-white that clears WCAG AA on every surface (15.9:1 on canvas,
      12.9:1 on base, 10.9:1 on the raised step). */
-  --ds-bg:            #081c22;                  /* color-surface-canvas */
-  --ds-surface:       #0f2c34f2;                /* card over the ground */
-  --ds-surface-solid: #0f2c34;                  /* color-surface-base */
-  --ds-surface-raised:#123640;                  /* color-surface-raised */
-  --ds-surface-sunken:#05161b;
+  --ds-bg:            #0d0f10;                  /* color-surface-canvas */
+  --ds-surface:       #151819f2;                /* card over the ground */
+  --ds-surface-solid: #151819;                  /* color-surface-base */
+  --ds-surface-raised:#1c2021;                  /* color-surface-raised */
+  --ds-surface-sunken:#080a0b;
   /* Hairlines are no longer the separator of record: shadow and surface lift
      do that work. These stay for the few places a real boundary is needed
      (table rows, input outlines) and are quieter than before. */
@@ -210,10 +210,10 @@
   /* Named separator — a ready-made 1px divider token for open-row layouts */
   --ds-divider: 1px solid rgba(234, 245, 242, 0.07);
 
-  --ds-text-strong:  #eaf5f2;                   /* color-text-primary, 13.2:1 */
-  --ds-text-body:    #a7c4bf;                   /* secondary text, 7.9:1 */
-  --ds-text-muted:   #7d9d99;                   /* captions, 5.0:1 */
-  --ds-text-faint:   #6b8b87;
+  --ds-text-strong:  #f2f1ec;
+  --ds-text-body:    #b6b8b5;
+  --ds-text-muted:   #858986;
+  --ds-text-faint:   #737774;
 
   --ds-accent:       #5fd6c8;                   /* Ripple aquamarine, 8.4:1 */
   --ds-accent-strong:#8ceadd;
@@ -229,11 +229,11 @@
   /* ── Atmosphere — the page background is a field of depth, not a flat fill.
      These layers compose in index.css into a dived-into gradient with a
      light shaft from the surface and a deep vignette at the seabed. */
-  --ds-atmos-surface: rgba(95, 214, 200, 0.07);   /* light entering from above */
-  --ds-atmos-mid:     rgba(15, 44, 52, 0.55);
-  --ds-atmos-body:    #0b2229;
-  --ds-atmos-deep:    #05161b;
-  --ds-atmos-vignette:rgba(0, 0, 0, 0.28);
+  --ds-atmos-surface: rgba(95, 214, 200, 0.025);
+  --ds-atmos-mid:     rgba(21, 24, 25, 0.55);
+  --ds-atmos-body:    #0d0f10;
+  --ds-atmos-deep:    #080a0b;
+  --ds-atmos-vignette:rgba(0, 0, 0, 0.34);
   --ds-atmos-shaft:   transparent;                 /* the god-ray was decoration */
 
   /* Shadows — used only to establish hierarchy, never for decoration */

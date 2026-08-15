@@ -23,22 +23,22 @@
 .stationMeta {}
 
 .stationLabel {
-  font-size: 10px;
+  display: none;
   font-weight: 600;
   color: var(--ink-faint);
   margin-bottom: 2px;
 }
 
 .stationName {
-  font-size: 17px;
-  font-weight: 700;
+  font-size: clamp(24px, 4vw, 34px);
+  font-weight: 650;
   letter-spacing: -0.01em;
   color: var(--ink);
   margin-bottom: 2px;
 }
 
 .stationDate {
-  font-size: 13px;
+  font-size: 15px;
   color: var(--ink-dim);
 }
 
@@ -51,27 +51,24 @@
   flex-shrink: 0;
 }
 
-/* ── The instrument face — hero reading ── */
-/* The reading sits on a soft panel, wide on desktop with the rings beside the
-   figure and stacked on a phone. No lens sheen and no lacquer: the shadow and
-   the surface lift are what say "raised". */
 .face {
   position: relative;
-  background: var(--surface-raised);
-  border-radius: var(--radius-xl);
-  padding: 28px;
-  margin-bottom: 20px;
+  background: transparent;
+  border-radius: 0;
+  padding: 28px 0 30px;
+  margin-bottom: 16px;
   display: grid;
-  grid-template-columns: 336px 1fr;
+  grid-template-columns: minmax(180px, 280px) 1fr;
   align-items: center;
   gap: var(--space-lg);
-  box-shadow: var(--shadow-card);
+  box-shadow: none;
+  border-bottom: 1px solid var(--surface-border);
 }
 
 @container (max-width: 720px) {
   .face {
     grid-template-columns: 1fr;
-    padding: 20px;
+    padding: 20px 0 24px;
     justify-items: center;
     text-align: center;
   }
@@ -85,15 +82,15 @@
 
 .visNumber {
   font-family: var(--font-sans);
-  font-size: clamp(72px, 11vw, 96px);
-  font-weight: 300;
+  font-size: clamp(84px, 15vw, 126px);
+  font-weight: 350;
   letter-spacing: -0.035em;
   line-height: 0.92;
   font-variant-numeric: tabular-nums;
 }
 
 .visUnit {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 500;
   color: var(--ink-dim);
 }
@@ -138,13 +135,13 @@
   grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
   margin-top: 12px;
 }
 
 .verdictTag {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 700;
   letter-spacing: -0.005em;
 }
@@ -163,7 +160,7 @@
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .correctedOffset {
@@ -186,14 +183,14 @@
 
 /* Plain-language visibility-trend summary — open text with a quiet left accent */
 .summaryLine {
-  font-size: 15px;
+  font-size: 17px;
   line-height: 1.55;
   color: var(--ink);
   margin-bottom: 14px;
-  padding: 8px 12px;
+  padding: 0;
   background: transparent;
   border-radius: 0;
-  border-left: 3px solid var(--surface-border-strong);
+  border-left: 0;
 }
 
 /* Conditions toggle — spacing instead of a border-top rule */
@@ -808,10 +805,10 @@
 
 @container (max-width: 480px) {
   .card {
-    padding: 16px;
+    padding: 0;
   }
 
   .visNumber {
-    font-size: 38px;
+    font-size: 76px;
   }
 }

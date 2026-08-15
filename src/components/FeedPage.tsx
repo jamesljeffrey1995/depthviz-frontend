@@ -164,10 +164,10 @@ export function FeedPage({ user }: Props) {
               {item.type === 'report' && (
                 <div className={styles.cardBody}>
                   <p className={styles.cardSummary}>Visibility logged at <strong>{item.location_name}</strong></p>
-                  <div className={styles.badgeRow}>
-                    <Badge tone="success">{item.actual_vis}m actual</Badge>
-                    {item.predicted_vis != null && <Badge tone="accent">{item.predicted_vis}m predicted</Badge>}
-                    {item.has_video && <Badge tone="warn">Video</Badge>}
+                  <div className={styles.observations}>
+                    <span><strong>{item.actual_vis}m</strong> observed</span>
+                    {item.predicted_vis != null && <span>{item.predicted_vis}m forecast</span>}
+                    {item.has_video && <span>Video attached</span>}
                   </div>
                   {item.notes && <p className={styles.notes}>{item.notes}</p>}
                 </div>
@@ -176,10 +176,10 @@ export function FeedPage({ user }: Props) {
               {item.type === 'catch' && (
                 <div className={styles.cardBody}>
                   <p className={styles.cardSummary}>Caught <strong>{item.species}</strong> at <strong>{item.location_name}</strong></p>
-                  <div className={styles.badgeRow}>
-                    {item.weight_kg != null && <Badge tone="neutral">{item.weight_kg} kg</Badge>}
-                    {item.quantity != null && <Badge tone="neutral">x{item.quantity}</Badge>}
-                    {item.method && <Badge tone="accent">{item.method}</Badge>}
+                  <div className={styles.observations}>
+                    {item.weight_kg != null && <span><strong>{item.weight_kg} kg</strong></span>}
+                    {item.quantity != null && <span>Quantity {item.quantity}</span>}
+                    {item.method && <span>{item.method}</span>}
                   </div>
                   {item.notes && <p className={styles.notes}>{item.notes}</p>}
                 </div>
