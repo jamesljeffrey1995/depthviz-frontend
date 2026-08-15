@@ -9,7 +9,7 @@ layout is wired. Follow-up to `docs/mobile-tablet-audit.md`.
 |---|---|---|---|
 | Phase 1 | Done | Mobile/tablet audit and high-confidence WCAG fixes | `docs/mobile-tablet-audit.md` ("Targeted fixes applied on this branch") |
 | Phase 2 | Done | Adaptive layout implementation, including expanded split list-detail map/detail flow | This document: window classes, expanded list-detail, accessibility, implementation map |
-| Phase 3 | Not yet done (backlog) | Follow-on enhancements for container-driven adaptation and validation hardening | This document: "Not yet done (Phase 3 / backlog)" |
+| Phase 3 | Done | Container-driven adaptation, supporting-pane follow-up, and validation hardening | This document: "Phase 3 applied" |
 
 ## Window classes (width-driven, not device/orientation-driven)
 
@@ -72,8 +72,26 @@ mount — no manual `invalidateSize()` needed for the breakpoint transition. If 
 future change makes the pane resize *without* remounting (e.g. a draggable
 splitter), add an `invalidateSize()` call on that resize.
 
-## Not yet done (Phase 3 / backlog)
-- `@container` queries so cards adapt to pane width independent of viewport.
-- Optional supporting pane (e.g. tides alongside forecast) where it shortens a
-  task.
-- axe/Lighthouse in CI + manual AT pass on the split layout.
+## Phase 3 applied
+- `@container` queries now drive the forecast/tides/search adaptations, so the
+  search bar, weekly overview, dive cards, day detail, and tides layout all
+  respond to the width they are actually given rather than assuming a viewport.
+- The forecast route now gets an optional supporting tides pane in wide shells,
+  so a diver can keep the forecast in view while checking the current tidal
+  picture.
+- Validation is hardened with the existing UX-audit CI job plus loaded-state axe
+  coverage for `/forecast` and `/tides`.
+
+### Implementation map
+- `src/App.tsx` / `src/App.module.css` — wide-shell planning routes, forecast +
+  supporting-tides layout.
+- `src/components/SearchBar.module.css` — container query swap for the search
+  action stack.
+- `src/components/DiveScoreCard.module.css` — container-aware hero collapse.
+- `src/components/DayDetail.module.css` — container-aware detail-card collapse
+  and secondary grid wrapping.
+- `src/components/WeeklyOverview.module.css` — pane-width-aware weekly grid.
+- `src/components/TidesPage.tsx` / `src/components/TidesPage.module.css` —
+  embeddable tides pane and container-aware tides layout.
+- `tests/audit-routes.json` / `tests/a11y.spec.ts` — loaded-state accessibility
+  audits for forecast-driven routes.

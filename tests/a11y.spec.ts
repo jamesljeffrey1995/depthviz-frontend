@@ -33,6 +33,110 @@ const API_GLOB = /^https?:\/\//.test(API_BASE)
   ? `${API_BASE.replace(/\/$/, '')}/**`
   : `**${API_BASE.startsWith('/') ? '' : '/'}${API_BASE.replace(/\/$/, '')}/**`
 
+function apiEndpointGlob(endpoint: string): string {
+  const base = API_BASE.replace(/\/$/, '')
+  return /^https?:\/\//.test(base)
+    ? `${base}/${endpoint}**`
+    : `**${base.startsWith('/') ? '' : '/'}${base}/${endpoint}**`
+}
+
+const LOCATIONS_GLOB = apiEndpointGlob('locations')
+const FORECAST_GLOB = apiEndpointGlob('forecast')
+const TIDES_GLOB = apiEndpointGlob('tides')
+
+const FORECAST_CONTEXT = {
+  lat: 55.03,
+  lon: -1.43,
+  name: 'Tynemouth',
+  locationId: 42,
+}
+
+const FORECAST_RESPONSE = {
+  location_name: FORECAST_CONTEXT.name,
+  lat: FORECAST_CONTEXT.lat,
+  lon: FORECAST_CONTEXT.lon,
+  bias_offset: 0.4,
+  global_bias_offset: 0.1,
+  report_count: 3,
+  model_confidence: 'medium',
+  calibration_active: true,
+  units: 'm',
+  days: Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(Date.UTC(2026, 7, 16 + index)).toISOString().slice(0, 10)
+    const vis = 6.5 + index * 0.35
+    return {
+      date,
+      is_forecast: index > 0,
+      vis_estimate: vis,
+      vis_corrected: vis + 0.2,
+      vis_corrected_offset: 0.2,
+      verdict: index > 3 ? 'Good' : 'Decent',
+      color_class: index > 3 ? 'good' : 'decent',
+      wave_height: 0.7 + index * 0.08,
+      swell_height: 0.9 + index * 0.05,
+      swell_period: 10,
+      swell_direction: 75,
+      swell_dir_label: 'ENE',
+      swell_components: [],
+      wind_speed: 9 + index,
+      wind_dir: 80,
+      wind_dir_label: 'ENE',
+      wind_gust: 12 + index,
+      precipitation: index === 2 ? 0.6 : 0,
+      air_temp: 17,
+      sea_temp: 14,
+      humidity: 81,
+      cloud_cover: 48,
+      algae: {
+        risk: index === 4 ? 'moderate' : 'low',
+        score: index === 4 ? 0.55 : 0.18,
+        drivers: index === 4 ? ['warmer water', 'light wind'] : ['clear water'],
+      },
+      factors: [
+        { name: 'Swell', value: `${(0.9 + index * 0.05).toFixed(1)}m`, penalty: -0.6, max_penalty: 4, note: 'steady pulse' },
+        { name: 'Wind', value: `${9 + index}kn`, penalty: -0.4, max_penalty: 4, note: 'offshore' },
+      ],
+      nutrient_factor: 0.15,
+      turbidity_penalty: 0.2,
+      resuspension: null,
+      river_discharge: null,
+      water_quality: null,
+      bias_attribution: null,
+      explanation: {
+        visibility_m: vis + 0.2,
+        confidence: 'medium',
+        main_reason: 'Moderate swell with light offshore wind',
+        contributing_factors: ['Small swell', 'Low rain'],
+        satellite_signal: 'Clear coastal water',
+        local_reports: 'Three recent diver reports',
+        model_agreement: 'Model and reports broadly agree',
+        agreement_score: 0.72,
+      },
+    }
+  }),
+} as const
+
+const TIDES_RESPONSE = {
+  location_name: FORECAST_CONTEXT.name,
+  lat: FORECAST_CONTEXT.lat,
+  lon: FORECAST_CONTEXT.lon,
+  date: '2026-08-16',
+  datum: 'LAT',
+  events: [
+    { type: 'high', time: '2026-08-16T02:20:00Z', height: 4.1 },
+    { type: 'low', time: '2026-08-16T08:46:00Z', height: 1.2 },
+    { type: 'high', time: '2026-08-16T14:53:00Z', height: 4.4 },
+    { type: 'low', time: '2026-08-16T21:15:00Z', height: 1.0 },
+  ],
+  hourly: Array.from({ length: 25 }, (_, index) => ({
+    time: new Date(Date.UTC(2026, 7, 16, index)).toISOString(),
+    height: Number((2.7 + Math.sin((index / 24) * Math.PI * 2) * 1.6).toFixed(2)),
+  })),
+  current: { state: 'moderate', direction: 'flooding', speed_knots: 1.8 },
+  tidal_range_m: 3.4,
+  range_category: 'meso',
+} as const
+
 /**
  * CI has no backend (the API lives in a separate repo), so an un-stubbed page
  * would race between a 404 from the preview server's SPA fallback and a real
@@ -44,7 +148,7 @@ const API_GLOB = /^https?:\/\//.test(API_BASE)
  * reverse registration order, so the specific stubs below win over the
  * catch-all.
  */
-async function stubBackend(page: Page) {
+async function stubBackend(page: Page, route: string) {
   // Deny-all for anything off the preview origin. Belt-and-braces against the
   // case that actually bites: VITE_API_URL is baked in at build time, so a
   // developer with a real API host in their .env would otherwise point this
@@ -61,6 +165,30 @@ async function stubBackend(page: Page) {
       body: JSON.stringify({ detail: 'Backend stubbed for accessibility audit' }),
     }),
   )
+  if (auditRoutes.forecastRoutes.includes(route)) {
+    await page.addInitScript((context) => {
+      window.localStorage.setItem('dv_last_location', JSON.stringify(context))
+      window.localStorage.setItem('dv_units', 'm')
+      window.localStorage.setItem('diveDepth', '20')
+    }, FORECAST_CONTEXT)
+    await page.route(LOCATIONS_GLOB, route =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }),
+    )
+    await page.route(FORECAST_GLOB, route =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(FORECAST_RESPONSE),
+      }),
+    )
+    await page.route(TIDES_GLOB, route =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(TIDES_RESPONSE),
+      }),
+    )
+  }
   // Auth is the one thing that talks to Supabase directly. Nobody is signed in
   // during the audit, so this only catches a stray token-refresh attempt.
   await page.route('**/*.supabase.co/**', route =>
@@ -126,7 +254,7 @@ async function waitForDomSettled(page: Page, timeout = 10_000) {
 }
 
 async function scan(page: Page, route: string, project: string) {
-  await stubBackend(page)
+  await stubBackend(page, route)
   await page.goto(route, { waitUntil: 'domcontentloaded' })
 
   await expect(page.locator('#root > *')).not.toHaveCount(0)
@@ -209,11 +337,17 @@ test.describe('accessibility — WCAG 2.1 AA', () => {
       await scan(page, route, testInfo.project.name)
     })
   }
+
+  for (const route of auditRoutes.forecastRoutes) {
+    test(`${route} has no violations (loaded state)`, async ({ page }, testInfo) => {
+      await scan(page, route, testInfo.project.name)
+    })
+  }
 })
 
 test.describe('accessibility — key interactions', () => {
   test('cookie banner is reachable and dismissible by keyboard', async ({ page }) => {
-    await stubBackend(page)
+    await stubBackend(page, '/')
     await page.goto('/', { waitUntil: 'domcontentloaded' })
 
     const acknowledge = page.getByRole('button', { name: /got it/i })
