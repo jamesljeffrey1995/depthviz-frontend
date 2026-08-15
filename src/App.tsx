@@ -192,7 +192,9 @@ export default function App() {
   useEffect(() => {
     const el = forecastLayoutRef.current
     if (!el) return
-    const observer = new ResizeObserver(([entry]) => {
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0]
+      if (!entry) return
       setForecastPaneWide(entry.contentRect.width >= 1040)
     })
     observer.observe(el)
