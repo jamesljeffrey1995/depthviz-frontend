@@ -416,6 +416,7 @@ export default function App() {
     if (units === 'ft') return `${Math.round(metres * 3.28084)}ft${metres === 30 ? '+' : ''}`
     return `${metres}m${metres === 30 ? '+' : ''}`
   }
+  const useWideShell = currentPath === '/' || MAP_GROUP_ROUTES.includes(currentPath)
 
   if (authLoading) return (
     <div className={styles.bootScreen}>
@@ -576,7 +577,7 @@ export default function App() {
       <main
         id="main-content"
         tabIndex={-1}
-        className={currentPath === '/' ? styles.mainWide : styles.main}
+        className={useWideShell ? styles.mainWide : styles.main}
       >
         <Routes>
           {/* Profile */}
@@ -756,132 +757,147 @@ export default function App() {
 
           {/* Forecast view */}
           <Route path="/forecast" element={
-            <>
-              {status === 'loading' && (
-                <div className={styles.loading} role="status" aria-live="polite" aria-label="Loading conditions">
-                  <div className={styles.sonar} aria-hidden="true" />
-                  <div className={styles.loadingText}>Reading conditions...</div>
-                </div>
-              )}
-              {status === 'idle' && (
-                <div className={styles.empty}>
-                  <IconGauge className={styles.emptyIcon} aria-hidden="true" />
-                  <div className={styles.emptyText}>Enter a location to check<br />underwater visibility conditions</div>
-                </div>
-              )}
-              {isRevalidating && (
-                <div className={styles.loadingBar} role="status" aria-live="polite">Fetching conditions...</div>
-              )}
-              {status === 'success' && forecast && (
-                <>
-                  {(forecast.bias_offset !== null || forecast.global_bias_offset !== null || forecast.calibration_active) && (
-                    <div className={styles.biasNote} role="status">
-                      AI correction active
-                      {forecast.model_confidence !== 'none' && (
-                        <> &middot; confidence: {forecast.model_confidence}</>
-                      )}
-                      {' '}&middot; {forecast.report_count} community report{forecast.report_count !== 1 ? 's' : ''}
-                      {forecast.global_bias_offset !== null && (
-                        <> &middot; global {forecast.global_bias_offset > 0 ? '+' : ''}{forecast.global_bias_offset.toFixed(1)}m</>
-                      )}
-                      {forecast.bias_offset !== null && (
-                        <> &middot; local {forecast.bias_offset > 0 ? '+' : ''}{forecast.bias_offset?.toFixed(1)}m</>
-                      )}
-                    </div>
-                  )}
-                  <div className={styles.forecastControls}>
-                    <SegmentedControl
-                      ariaLabel="Forecast units"
-                      size="sm"
-                      value={units}
-                      onChange={setUnits}
-                      options={[
-                        { value: 'ft', label: 'FT' },
-                        { value: 'm', label: 'M' },
-                      ]}
-                    />
-                    <div className={styles.depthSelect}>
-                      <label className={styles.depthSelectLabel} htmlFor="dive-depth">Max depth</label>
-                      <select
-                        id="dive-depth"
-                        className={styles.depthSelectInput}
-                        value={diveDepth}
-                        onChange={e => {
-                          const v = Number(e.target.value)
-                          setDiveDepth(v)
-                          try { localStorage.setItem('diveDepth', String(v)) } catch {}
-                        }}
-                        aria-label={`Your maximum dive depth in ${units === 'ft' ? 'feet' : 'metres'}`}
-                      >
-                        {depthOptionsM.map(depth => (
-                          <option key={depth} value={depth}>{formatDepthOption(depth)}</option>
-                        ))}
-                      </select>
-                    </div>
+            <div className={styles.forecastRouteLayout}>
+              <div className={styles.forecastPrimary}>
+                {status === 'loading' && (
+                  <div className={styles.loading} role="status" aria-live="polite" aria-label="Loading conditions">
+                    <div className={styles.sonar} aria-hidden="true" />
+                    <div className={styles.loadingText}>Reading conditions...</div>
                   </div>
-                  {weekView ? (
-                    <Suspense fallback={null}>
-                      <WeeklyOverview
-                        days={forecast.days}
-                        locationName={forecast.location_name}
-                        units={units}
-                        selectedIndex={selectedDay}
-                        onSelectDay={selectDayFromWeek}
+                )}
+                {status === 'idle' && (
+                  <div className={styles.empty}>
+                    <IconGauge className={styles.emptyIcon} aria-hidden="true" />
+                    <div className={styles.emptyText}>Enter a location to check<br />underwater visibility conditions</div>
+                  </div>
+                )}
+                {isRevalidating && (
+                  <div className={styles.loadingBar} role="status" aria-live="polite">Fetching conditions...</div>
+                )}
+                {status === 'success' && forecast && (
+                  <>
+                    {(forecast.bias_offset !== null || forecast.global_bias_offset !== null || forecast.calibration_active) && (
+                      <div className={styles.biasNote} role="status">
+                        AI correction active
+                        {forecast.model_confidence !== 'none' && (
+                          <> &middot; confidence: {forecast.model_confidence}</>
+                        )}
+                        {' '}&middot; {forecast.report_count} community report{forecast.report_count !== 1 ? 's' : ''}
+                        {forecast.global_bias_offset !== null && (
+                          <> &middot; global {forecast.global_bias_offset > 0 ? '+' : ''}{forecast.global_bias_offset.toFixed(1)}m</>
+                        )}
+                        {forecast.bias_offset !== null && (
+                          <> &middot; local {forecast.bias_offset > 0 ? '+' : ''}{forecast.bias_offset?.toFixed(1)}m</>
+                        )}
+                      </div>
+                    )}
+                    <div className={styles.forecastControls}>
+                      <SegmentedControl
+                        ariaLabel="Forecast units"
+                        size="sm"
+                        value={units}
+                        onChange={setUnits}
+                        options={[
+                          { value: 'ft', label: 'FT' },
+                          { value: 'm', label: 'M' },
+                        ]}
                       />
-                    </Suspense>
-                  ) : (
-                    <>
-                      <ForecastStrip days={forecast.days} selectedIndex={selectedDay} onSelect={selectDay} units={units} />
-                      {forecast.days[selectedDay] && (
-                        <>
-                          <DiveScoreCard
-                            day={forecast.days[selectedDay]}
-                            locationName={forecast.location_name}
-                            forecast={{ report_count: forecast.report_count, model_confidence: forecast.model_confidence }}
-                            units={units}
-                            days={forecast.days}
-                            todayIndex={todayIndex >= 0 ? todayIndex : selectedDay}
-                            onJumpToBestWindow={selectDay}
-                          />
-                          <DayDetail
-                            day={forecast.days[selectedDay]}
-                            locationName={forecast.location_name}
-                            lat={forecast.lat}
-                            lon={forecast.lon}
-                            reportCount={forecast.report_count}
-                            units={units}
-                            isAdmin={isAdmin}
-                            biasOffset={forecast.bias_offset}
-                            globalBiasOffset={forecast.global_bias_offset}
-                            maxDiveDepth={diveDepth}
-                            days={forecast.days}
-                            selectedIndex={selectedDay}
-                            onSelectDay={selectDay}
-                          />
-                        </>
-                      )}
-                      {/* Per-site bathymetry/substrate editor for saved spots (#155) —
-                          lets the owner sharpen the seabed-resuspension forecast. */}
-                      {(() => {
-                        const savedLoc = locations.find(l => l.id === selectedLocationId)
-                        if (!user || !savedLoc || savedLoc.is_predefined) return null
-                        return (
-                          <SeabedEditor
-                            location={savedLoc}
-                            onUpdated={(updated) => {
-                              setLocations(prev => prev.map(l => l.id === updated.id ? updated : l))
-                              if (currentLat !== null && currentLon !== null) {
-                                searchByCoords(currentLat, currentLon, currentName || undefined, updated.id, units)
-                              }
-                            }}
-                          />
-                        )
-                      })()}
-                    </>
-                  )}
-                </>
+                      <div className={styles.depthSelect}>
+                        <label className={styles.depthSelectLabel} htmlFor="dive-depth">Max depth</label>
+                        <select
+                          id="dive-depth"
+                          className={styles.depthSelectInput}
+                          value={diveDepth}
+                          onChange={e => {
+                            const v = Number(e.target.value)
+                            setDiveDepth(v)
+                            try { localStorage.setItem('diveDepth', String(v)) } catch {}
+                          }}
+                          aria-label={`Your maximum dive depth in ${units === 'ft' ? 'feet' : 'metres'}`}
+                        >
+                          {depthOptionsM.map(depth => (
+                            <option key={depth} value={depth}>{formatDepthOption(depth)}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    {weekView ? (
+                      <Suspense fallback={null}>
+                        <WeeklyOverview
+                          days={forecast.days}
+                          locationName={forecast.location_name}
+                          units={units}
+                          selectedIndex={selectedDay}
+                          onSelectDay={selectDayFromWeek}
+                        />
+                      </Suspense>
+                    ) : (
+                      <>
+                        <ForecastStrip days={forecast.days} selectedIndex={selectedDay} onSelect={selectDay} units={units} />
+                        {forecast.days[selectedDay] && (
+                          <>
+                            <DiveScoreCard
+                              day={forecast.days[selectedDay]}
+                              locationName={forecast.location_name}
+                              forecast={{ report_count: forecast.report_count, model_confidence: forecast.model_confidence }}
+                              units={units}
+                              days={forecast.days}
+                              todayIndex={todayIndex >= 0 ? todayIndex : selectedDay}
+                              onJumpToBestWindow={selectDay}
+                            />
+                            <DayDetail
+                              day={forecast.days[selectedDay]}
+                              locationName={forecast.location_name}
+                              lat={forecast.lat}
+                              lon={forecast.lon}
+                              reportCount={forecast.report_count}
+                              units={units}
+                              isAdmin={isAdmin}
+                              biasOffset={forecast.bias_offset}
+                              globalBiasOffset={forecast.global_bias_offset}
+                              maxDiveDepth={diveDepth}
+                              days={forecast.days}
+                              selectedIndex={selectedDay}
+                              onSelectDay={selectDay}
+                            />
+                          </>
+                        )}
+                        {/* Per-site bathymetry/substrate editor for saved spots (#155) —
+                            lets the owner sharpen the seabed-resuspension forecast. */}
+                        {(() => {
+                          const savedLoc = locations.find(l => l.id === selectedLocationId)
+                          if (!user || !savedLoc || savedLoc.is_predefined) return null
+                          return (
+                            <SeabedEditor
+                              location={savedLoc}
+                              onUpdated={(updated) => {
+                                setLocations(prev => prev.map(l => l.id === updated.id ? updated : l))
+                                if (currentLat !== null && currentLon !== null) {
+                                  searchByCoords(currentLat, currentLon, currentName || undefined, updated.id, units)
+                                }
+                              }}
+                            />
+                          )
+                        })()}
+                      </>
+                    )}
+                  </>
+                )}
+              </div>
+              {status === 'success' && forecast && currentLat !== null && currentLon !== null && (
+                <aside className={styles.forecastSupporting} aria-label="Supporting tide view">
+                  <div className={styles.supportingPaneLabel}>Supporting pane</div>
+                  <Suspense fallback={<div className={styles.loadingText}>Loading tides…</div>}>
+                    <TidesPage
+                      lat={currentLat}
+                      lon={currentLon}
+                      locationName={forecast.location_name}
+                      embedded
+                    />
+                  </Suspense>
+                </aside>
               )}
-            </>
+            </div>
           } />
 
           {/* Tides */}

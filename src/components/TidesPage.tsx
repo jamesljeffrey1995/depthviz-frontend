@@ -7,6 +7,7 @@ interface Props {
   lat: number
   lon: number
   locationName: string
+  embedded?: boolean
 }
 
 function formatTime(iso: string): string {
@@ -102,7 +103,7 @@ function findEventPositions(events: TideEvent[], chartPoints: { x: number; y: nu
   })
 }
 
-export function TidesPage({ lat, lon, locationName }: Props) {
+export function TidesPage({ lat, lon, locationName, embedded = false }: Props) {
   const [tides, setTides] = useState<TidesResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -127,7 +128,7 @@ export function TidesPage({ lat, lon, locationName }: Props) {
 
   if (loading) {
     return (
-      <div className={styles.hero}>
+      <div className={`${styles.hero} ${embedded ? styles.heroEmbedded : ''}`}>
         <div className={styles.loadingState}>
           <div className={styles.loadingPulse} />
           <div className={styles.loadingText}>Loading tide data...</div>
@@ -138,7 +139,7 @@ export function TidesPage({ lat, lon, locationName }: Props) {
 
   if (error) {
     return (
-      <div className={styles.hero}>
+      <div className={`${styles.hero} ${embedded ? styles.heroEmbedded : ''}`}>
         <div className={styles.errorState}>{error}</div>
       </div>
     )
@@ -180,10 +181,10 @@ export function TidesPage({ lat, lon, locationName }: Props) {
   }))
 
   return (
-    <div className={styles.page}>
+    <div className={`${styles.page} ${embedded ? styles.pageEmbedded : ''}`}>
       {/* Hero — current tide state + the range chart, the one reading on
           this screen that gets full priority treatment. */}
-      <div className={styles.hero}>
+      <div className={`${styles.hero} ${embedded ? styles.heroEmbedded : ''}`}>
         <div className={styles.header}>
           <div className={styles.headerLeft}>
             <div className={styles.locationLabel}>{locationName}</div>

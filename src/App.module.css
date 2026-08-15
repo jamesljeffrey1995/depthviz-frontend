@@ -21,10 +21,35 @@
 .main,
 .mainWide {
   min-height: 70vh;
+  container-type: inline-size;
+  container-name: app-main;
 }
 
 .mainWide {
   width: 100%;
+}
+
+.forecastRouteLayout {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.forecastPrimary {
+  min-width: 0;
+}
+
+.forecastSupporting {
+  display: none;
+  min-width: 0;
+}
+
+.supportingPaneLabel {
+  margin-bottom: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
 }
 
 .locationSearch {
@@ -587,6 +612,19 @@
 
   .container {
     padding-bottom: var(--space-xl);
+  }
+}
+
+@container app-main (min-width: 1040px) {
+  .forecastRouteLayout {
+    grid-template-columns: minmax(0, 1.7fr) minmax(300px, 0.95fr);
+    align-items: start;
+  }
+
+  .forecastSupporting {
+    display: block;
+    position: sticky;
+    top: var(--space-lg);
   }
 }
 

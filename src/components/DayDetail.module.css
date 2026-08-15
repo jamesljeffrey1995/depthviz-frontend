@@ -7,6 +7,7 @@
   position: relative;
   overflow: hidden;
   box-shadow: var(--shadow-card);
+  container-type: inline-size;
 }
 
 /* ── Station header ── */
@@ -69,7 +70,7 @@
   box-shadow: var(--shadow-card);
 }
 
-@media (max-width: 720px) {
+@container (max-width: 720px) {
   .face {
     grid-template-columns: 1fr;
     padding: 20px;
@@ -782,7 +783,26 @@
 .shallowNoteTextMod { color: var(--moderate); }
 .shallowNoteTextHigh { color: var(--sev-poor); }
 
-@media (max-width: 480px) {
+@container (max-width: 560px) {
+  .stationHeader,
+  .algaeHeader,
+  .waterQualityHeader,
+  .waterQualityMeta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .grid,
+  .clarityGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .metricChip {
+    min-width: 0;
+  }
+}
+
+@container (max-width: 480px) {
   .card {
     padding: 16px;
   }
