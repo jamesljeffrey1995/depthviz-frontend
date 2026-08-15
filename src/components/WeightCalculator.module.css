@@ -48,7 +48,6 @@
   gap: var(--ds-space-2);
 }
 
-.groupLabel,
 .label,
 .resultLabel {
   font-size: var(--ds-text-label);
@@ -60,6 +59,8 @@
 .groupLabel {
   color: var(--ds-text-strong);
   font-size: var(--ds-text-card);
+  font-weight: var(--ds-fw-semi);
+  letter-spacing: 0.01em;
 }
 
 .row {

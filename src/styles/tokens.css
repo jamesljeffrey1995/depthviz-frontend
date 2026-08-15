@@ -210,10 +210,10 @@
   /* Named separator — a ready-made 1px divider token for open-row layouts */
   --ds-divider: 1px solid rgba(234, 245, 242, 0.07);
 
-  --ds-text-strong:  #f2f1ec;
-  --ds-text-body:    #b6b8b5;
-  --ds-text-muted:   #858986;
-  --ds-text-faint:   #737774;
+  --ds-text-strong:  #f2f1ec; /* 14.5:1 minimum on dark application surfaces */
+  --ds-text-body:    #b6b8b5; /* 8.2:1 minimum */
+  --ds-text-muted:   #858986; /* 4.6:1 minimum, clears AA for body text */
+  --ds-text-faint:   #737774; /* non-essential/decorative text only */
 
   --ds-accent:       #5fd6c8;                   /* Ripple aquamarine, 8.4:1 */
   --ds-accent-strong:#8ceadd;
