@@ -374,6 +374,8 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
                 key={`db-${loc.id}`}
                 position={[loc.lat, loc.lon]}
                 icon={icon}
+                title={loc.name}
+                alt={`${loc.name} dive spot`}
                 eventHandlers={{
                   click: () => setSelectedSpot({
                     name: loc.name,
@@ -424,6 +426,8 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
               key={spot.id ?? `priv-${spot.name}-${spot.lat}-${spot.lon}`}
               position={[spot.lat, spot.lon]}
               icon={privateSpotIcon}
+              title={spot.name}
+              alt={`${spot.name} private dive spot`}
               eventHandlers={{
                 click: () => setSelectedSpot({
                   name: spot.name,
@@ -455,7 +459,7 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
             </Marker>
           ))}
           {pendingPos && (
-            <Marker position={[pendingPos.lat, pendingPos.lon]} icon={pendingIcon}>
+            <Marker position={[pendingPos.lat, pendingPos.lon]} icon={pendingIcon} title="New dive spot position" alt="New dive spot position">
               <Popup>
                 <div className={styles.popup}>
                   <div className={styles.popupDesc}>
@@ -605,7 +609,7 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
         </div>
       )}
 
-      <div className={styles.hint}>Tap a marker to view forecasts for that spot</div>
+      <div className={styles.hint}>Select a marker to view forecasts for that spot</div>
     </div>
   )
 }

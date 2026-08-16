@@ -14,6 +14,7 @@ import {
   FT_TO_M,
   metresToFeet,
   feetToMetres,
+  visibilityInUnits,
   getWaterQuality,
 } from './units'
 
@@ -41,6 +42,12 @@ describe('metres ↔ feet conversion', () => {
   test('zero stays zero in both directions', () => {
     expect(metresToFeet(0)).toBe(0)
     expect(feetToMetres(0)).toBe(0)
+  })
+
+  test('visibility is converted for display instead of only being relabelled', () => {
+    expect(visibilityInUnits(4.2, 'm')).toBe(4.2)
+    expect(visibilityInUnits(4.2, 'ft')).toBeCloseTo(13.78, 2)
+    expect(visibilityInUnits(4.2, 'ft')).not.toBe(4.2)
   })
 })
 

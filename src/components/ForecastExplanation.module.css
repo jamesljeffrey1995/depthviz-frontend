@@ -11,13 +11,13 @@
   font-size: var(--ds-text-label);
   letter-spacing: 0.25em;
   text-transform: uppercase;
-  color: var(--text-dim);
+  color: var(--ink-dim);
   margin-bottom: 12px;
 }
 
 /* ── "At a glance" explainable-visibility summary ─────────────────────────── */
 .summary {
-  background: var(--surface-2);
+  background: var(--surface-raised);
   border: 1px solid var(--ds-hairline);
   border-radius: var(--radius-md);
   padding: 12px 14px;
@@ -48,7 +48,7 @@
 
 .visUnit {
   font-size: 14px;
-  color: var(--text-dim);
+  color: var(--ink-dim);
 }
 
 .confChip {
@@ -87,7 +87,7 @@
   font-size: var(--ds-text-label);
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--text-dim);
+  color: var(--ink-dim);
   align-self: center;
 }
 
@@ -113,7 +113,7 @@
   font-size: var(--ds-text-label);
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--text-dim);
+  color: var(--ink-dim);
   margin: 0 0 6px;
 }
 
@@ -159,7 +159,7 @@
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   font-size: 12px;
   line-height: 1.55;
-  color: var(--text-dim);
+  color: var(--ink-dim);
 }
 
 .confidenceLevel {
@@ -172,6 +172,6 @@
 
 .empty {
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--ink-dim);
   opacity: 0.7;
 }

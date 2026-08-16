@@ -55,6 +55,8 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
   const ref15 = units === 'ft' ? 1.5 * FT_PER_M : 1.5
   const y1    = yVal(ref1)
   const y15   = yVal(ref15)
+  const ref15LabelY = y15 + 3.5
+  const ref1LabelY = y1 + 3.5
   const ref1Label  = units === 'ft' ? '3ft'  : '1m'
   const ref15Label = units === 'ft' ? '5ft'  : '1.5m'
 
@@ -149,8 +151,8 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
           x1={PAD.left} x2={W - PAD.right} y1={y1} y2={y1}
           stroke="rgba(143,95,8,0.45)" strokeWidth={1} strokeDasharray="3 3"
         />
-        <text x={W - PAD.right + 3} y={y15 + 3.5} className={styles.refLabel}>{ref15Label}</text>
-        <text x={W - PAD.right + 3} y={y1  + 3.5} className={styles.refLabel}>{ref1Label}</text>
+        <text x={W - PAD.right + 3} y={ref15LabelY} className={styles.refLabel}>{ref15Label}</text>
+        <text x={W - PAD.right - 3} y={ref1LabelY} textAnchor="end" className={styles.refLabel}>{ref1Label}</text>
 
         {days.map((d, i) => {
           const bx    = cx(i)

@@ -22,6 +22,15 @@ export function feetToMetres(ft: number): number {
   return ft * FT_TO_M
 }
 
+/**
+ * Visibility values are always delivered by the forecast model in metres.
+ * Wave and swell heights may already be converted by the API, so visibility
+ * conversion deliberately lives in this small, explicitly named helper.
+ */
+export function visibilityInUnits(metres: number, units: Units): number {
+  return units === 'ft' ? metresToFeet(metres) : metres
+}
+
 export interface WaterQuality {
   label: string
   color: string

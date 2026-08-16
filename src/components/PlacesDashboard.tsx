@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import type { DayForecast, Location } from '../types'
 import { getForecast } from '../lib/api'
 import { decryptCoords } from '../lib/spotCrypto'
+import { visibilityInUnits } from '../lib/units'
 import styles from './PlacesDashboard.module.css'
 
 interface PlaceConditions {
@@ -28,7 +29,7 @@ function MiniStrip({ days, bestDayIdx, units }: { days: DayForecast[]; bestDayId
       {days.map((day, i) => {
         const d = new Date(day.date + 'T00:00:00')
         const label = d.toLocaleDateString('en-GB', { weekday: 'narrow' })
-        const vis = day.vis_corrected ?? day.vis_estimate
+        const vis = visibilityInUnits(day.vis_corrected ?? day.vis_estimate, units)
         return (
           <div
             key={day.date}
@@ -180,7 +181,7 @@ export function PlacesDashboard({ locations, userUid, units, onSelectLocation }:
           const isOpen = expanded.has(loc.id)
           const colorCls = today ? (styles[today.color_class as keyof typeof styles] ?? '') : ''
           const trend = cond?.status === 'done' ? trendFor(cond.days) : null
-          const vis = today ? (today.vis_corrected ?? today.vis_estimate) : null
+          const vis = today ? visibilityInUnits(today.vis_corrected ?? today.vis_estimate, units) : null
 
           return (
             <li key={loc.id} className={`${styles.row} ${isOpen ? styles.rowOpen : ''}`}>

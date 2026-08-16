@@ -29,6 +29,7 @@ import type { LegalPageType } from './components/LegalPage'
 import { toUserFacingError } from './lib/frontendErrors'
 import { trackClientEvent } from './lib/telemetry'
 import { buildForecastPath, parseForecastLocation } from './lib/forecastUrl'
+import { getPageMeta } from './lib/pageMeta'
 import styles from './App.module.css'
 
 /** Find a DB location matching given coordinates within ~1km tolerance. */
@@ -102,9 +103,19 @@ function LegalRouteWrapper({ onBack }: { onBack: () => void }) {
   const validPages: LegalPageType[] = ['privacy', 'terms', 'cookies', 'security', 'contact', 'accessibility', 'disclaimer']
   const resolved: LegalPageType = validPages.includes(page as LegalPageType) ? (page as LegalPageType) : 'privacy'
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<RouteLoading />}>
       <LegalPage page={resolved} onBack={onBack} />
     </Suspense>
+  )
+}
+
+function RouteLoading() {
+  return (
+    <div className={styles.routeLoading} role="status" aria-live="polite">
+      <span className={styles.routeLoadingLine} />
+      <span className={styles.routeLoadingBlock} />
+      <span className={styles.srOnly}>Loading page…</span>
+    </div>
   )
 }
 
@@ -206,6 +217,14 @@ export default function App() {
     themeMeta?.setAttribute('content', routeTheme === 'light' ? '#F7F4EE' : '#061C32')
   }, [routeTheme])
 
+  useEffect(() => {
+    const meta = getPageMeta(currentPath)
+    document.title = meta.title
+    document.querySelector<HTMLMetaElement>('meta[name="description"]')?.setAttribute('content', meta.description)
+    document.querySelector<HTMLMetaElement>('meta[property="og:title"]')?.setAttribute('content', meta.title)
+    document.querySelector<HTMLMetaElement>('meta[property="og:description"]')?.setAttribute('content', meta.description)
+  }, [currentPath])
+
   // Admin status is decided by the server (via /profile/me's is_admin), never
   // by a client flag or a value baked into the bundle. The backend also
   // re-checks admin identity on every /admin/* route, so this only gates UI.
@@ -242,7 +261,7 @@ export default function App() {
     observer.observe(el)
     setForecastPaneWide(el.getBoundingClientRect().width >= 1040)
     return () => observer.disconnect()
-  }, [])
+  }, [currentPath])
 
   useEffect(() => {
     if (!user) { setIsAdmin(false); setAdminChecked(false); return }
@@ -496,6 +515,7 @@ export default function App() {
 
   const todayIndex = forecast?.days.findIndex(d => d.date === new Date().toISOString().split('T')[0]) ?? -1
   const displayUnits = forecastUnits ?? units
+  const forecastPathSource = forecast ?? homePreview
   const currentForecastPath = currentLat !== null && currentLon !== null && currentName
     ? buildForecastPath({
         lat: currentLat,
@@ -503,7 +523,18 @@ export default function App() {
         name: currentName,
         locationId: selectedLocationId,
       })
-    : '/forecast'
+    : forecastPathSource
+      ? buildForecastPath({
+          lat: forecastPathSource.lat,
+          lon: forecastPathSource.lon,
+          name: forecastPathSource.location_name,
+        })
+      : '/forecast'
+  const showForecastSupporting = status === 'success'
+    && forecast !== null
+    && currentLat !== null
+    && currentLon !== null
+    && forecastPaneWide
   const depthOptionsM = [5, 10, 15, 20, 30]
   const formatDepthOption = (metres: number) => {
     if (units === 'ft') return `${Math.round(metres * 3.28084)}ft${metres === 30 ? '+' : ''}`
@@ -600,20 +631,27 @@ export default function App() {
           {/* Profile */}
           <Route path="/profile" element={
             user ? (
-              <Suspense fallback={null}>
+              <Suspense fallback={<RouteLoading />}>
                 <ProfilePanel
                   onClose={() => navigate(-1)}
                   onNavigateFriends={() => navigate('/friends')}
                   onAuthRequired={() => requestAuth({ type: 'route', path: '/profile' })}
                 />
               </Suspense>
-            ) : null
+            ) : (
+              <div className={styles.empty}>
+                <IconUser className={styles.emptyIcon} aria-hidden="true" />
+                <h1 className={styles.emptyHeading}>Your DepthViz profile</h1>
+                <div className={styles.emptyText}>Sign in to manage your account, diving details and connections.</div>
+                <button className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: '/profile' })} style={{ marginTop: 16 }}>Sign in</button>
+              </div>
+            )
           } />
 
           {/* Friends */}
           <Route path="/friends" element={
             user ? (
-              <Suspense fallback={null}>
+              <Suspense fallback={<RouteLoading />}>
                 <FriendsPanel onClose={() => navigate(-1)} />
               </Suspense>
             ) : (
@@ -629,35 +667,35 @@ export default function App() {
 
           {/* Weight belt calculator — freediving neutral-buoyancy estimate */}
           <Route path="/weight" element={
-            <Suspense fallback={null}>
+            <Suspense fallback={<RouteLoading />}>
               <WeightCalculator onNavigateLegal={(p) => navigate(`/legal/${p}`)} />
             </Suspense>
           } />
 
           {/* Feed */}
           <Route path="/feed" element={
-            <Suspense fallback={null}>
+            <Suspense fallback={<RouteLoading />}>
               <FeedPage user={user} />
             </Suspense>
           } />
 
           {/* Catches */}
           <Route path="/catches" element={
-            <Suspense fallback={null}>
+            <Suspense fallback={<RouteLoading />}>
               <CatchesPage user={user} locations={locations} onShowAuth={() => requestAuth({ type: 'route', path: '/catches' })} />
             </Suspense>
           } />
 
           {/* Home — website landing page (news + quick links) */}
           <Route path="/" element={
-            <Suspense fallback={null}>
-              <HomePage locationSearch={locationSearch} forecast={homePreview ?? forecast} units={displayUnits} />
+            <Suspense fallback={<RouteLoading />}>
+              <HomePage locationSearch={locationSearch} forecast={homePreview ?? forecast} units={displayUnits} forecastPath={currentForecastPath} />
             </Suspense>
           } />
 
           {/* News / announcements */}
           <Route path="/news" element={
-            <Suspense fallback={null}>
+            <Suspense fallback={<RouteLoading />}>
               <NewsPage isAdmin={isAdmin} />
             </Suspense>
           } />
@@ -666,17 +704,17 @@ export default function App() {
               before /forum/:slug so React Router ranks it ahead of the category
               route and a thread link never resolves as a category slug. */}
           <Route path="/forum" element={
-            <Suspense fallback={null}>
+            <Suspense fallback={<RouteLoading />}>
               <ForumIndex />
             </Suspense>
           } />
           <Route path="/forum/thread/:id" element={
-            <Suspense fallback={null}>
+            <Suspense fallback={<RouteLoading />}>
               <ForumThreadPage user={user} onShowAuth={() => requestAuth({ type: 'route', path: currentPath })} />
             </Suspense>
           } />
           <Route path="/forum/:slug" element={
-            <Suspense fallback={null}>
+            <Suspense fallback={<RouteLoading />}>
               <ForumCategoryPage user={user} onShowAuth={() => requestAuth({ type: 'route', path: currentPath })} />
             </Suspense>
           } />
@@ -712,10 +750,14 @@ export default function App() {
           {/* Map / Dashboard */}
           <Route path="/map" element={
             <div className={styles.mapRoute}>
+              <header className={styles.routeHeading}>
+                <p>Explore the coast</p>
+                <h1>UK dive spot map</h1>
+              </header>
               {(status === 'loading' || isRevalidating) && (
                 <div className={styles.loadingBar} role="status" aria-live="polite">{isRevalidating ? 'Fetching conditions...' : 'Reading conditions...'}</div>
               )}
-              <Suspense fallback={null}>
+              <Suspense fallback={<RouteLoading />}>
                 <SpotsMap
                   onSelectSpot={handleSpotSelect}
                   center={currentLat !== null && currentLon !== null ? [currentLat, currentLon] : undefined}
@@ -726,7 +768,7 @@ export default function App() {
                 />
               </Suspense>
               {user && status === 'idle' && locations.filter(l => !l.is_predefined).length > 0 && (
-                <Suspense fallback={null}>
+                <Suspense fallback={<div className={styles.loadingText}>Loading saved places…</div>}>
                   <>
                     <PlacesDashboard
                       locations={locations.filter(l => !l.is_predefined).slice(0, 4)}
@@ -749,7 +791,7 @@ export default function App() {
 
           {/* Best Visibility */}
           <Route path="/best" element={
-            <Suspense fallback={null}>
+            <Suspense fallback={<RouteLoading />}>
               <BestVisibility onSelectSpot={handleSpotSelect} units={units} />
             </Suspense>
           } />
@@ -757,7 +799,7 @@ export default function App() {
           {/* My Places */}
           <Route path="/places" element={
             user ? (
-              <Suspense fallback={null}>
+              <Suspense fallback={<RouteLoading />}>
                 <SavedPlaces
                   locations={locations}
                   onSelectLocation={handleSpotSelect}
@@ -776,7 +818,7 @@ export default function App() {
 
           {/* Forecast view */}
           <Route path="/forecast" element={
-            <div className={styles.forecastRouteLayout} ref={forecastLayoutRef}>
+            <div className={`${styles.forecastRouteLayout} ${showForecastSupporting ? styles.forecastRouteLayoutWithSupport : ''}`} ref={forecastLayoutRef}>
               <div className={styles.forecastPrimary}>
                 {status === 'loading' && (
                   <div className={styles.loading} role="status" aria-live="polite" aria-label="Loading conditions">
@@ -850,7 +892,7 @@ export default function App() {
                       </div>
                     </div>
                     {weekView ? (
-                      <Suspense fallback={null}>
+                      <Suspense fallback={<div className={styles.loadingText}>Loading weekly outlook…</div>}>
                         <WeeklyOverview
                           days={forecast.days}
                           locationName={forecast.location_name}
@@ -903,7 +945,7 @@ export default function App() {
                   </>
                 )}
               </div>
-              {status === 'success' && forecast && currentLat !== null && currentLon !== null && forecastPaneWide && (
+              {showForecastSupporting && forecast && currentLat !== null && currentLon !== null && (
                 <aside className={styles.forecastSupporting} aria-label="Supporting tide view">
                   <div className={styles.supportingPaneLabel}>Tides</div>
                   <Suspense fallback={<div className={styles.loadingText}>Loading tides…</div>}>
@@ -922,7 +964,7 @@ export default function App() {
           {/* Tides */}
           <Route path="/tides" element={
             currentLat !== null && currentLon !== null ? (
-              <Suspense fallback={null}>
+              <Suspense fallback={<RouteLoading />}>
                 <TidesPage lat={currentLat} lon={currentLon} locationName={currentName} />
               </Suspense>
             ) : (
@@ -935,7 +977,7 @@ export default function App() {
           {/* Report */}
           <Route path="/report" element={
             user && forecast ? (
-              <Suspense fallback={null}>
+              <Suspense fallback={<RouteLoading />}>
                 <ReportForm
                   day={forecast.days[todayIndex] ?? forecast.days[selectedDay] ?? null}
                   allDays={forecast.days}
@@ -957,13 +999,13 @@ export default function App() {
 
           {/* Apnea training tables */}
           <Route path="/training" element={
-            <Suspense fallback={null}>
+            <Suspense fallback={<RouteLoading />}>
               <ApneaTablesPage user={user} onShowAuth={() => requestAuth({ type: 'route', path: '/training' })} />
             </Suspense>
           } />
           <Route path="/training/new" element={
             user ? (
-              <Suspense fallback={null}>
+              <Suspense fallback={<RouteLoading />}>
                 <ApneaTableEditor mode="create" />
               </Suspense>
             ) : (
@@ -975,7 +1017,7 @@ export default function App() {
           } />
           <Route path="/training/:id/edit" element={
             user ? (
-              <Suspense fallback={null}>
+              <Suspense fallback={<RouteLoading />}>
                 <ApneaTableEditor mode="edit" />
               </Suspense>
             ) : (
@@ -989,12 +1031,12 @@ export default function App() {
               fragment, so this static segment must win over /training/:id,
               which React Router's ranking guarantees. */}
           <Route path="/training/shared" element={
-            <Suspense fallback={null}>
+            <Suspense fallback={<RouteLoading />}>
               <ApneaSharedTable user={user} onShowAuth={() => requestAuth({ type: 'route', path: currentPath })} />
             </Suspense>
           } />
           <Route path="/training/:id" element={
-            <Suspense fallback={null}>
+            <Suspense fallback={<RouteLoading />}>
               <ApneaTableRunner user={user} onShowAuth={() => requestAuth({ type: 'route', path: currentPath })} />
             </Suspense>
           } />
@@ -1002,7 +1044,7 @@ export default function App() {
           {/* Location History */}
           <Route path="/history" element={
             selectedLocationId ? (
-              <Suspense fallback={null}>
+              <Suspense fallback={<RouteLoading />}>
                 <LocationHistory locationId={selectedLocationId} locationName={currentName} />
               </Suspense>
             ) : (
@@ -1015,7 +1057,7 @@ export default function App() {
           {/* Data Dispute */}
           <Route path="/dispute" element={
             user ? (
-              <Suspense fallback={null}>
+              <Suspense fallback={<RouteLoading />}>
                 <DisputeForm
                   locations={locations}
                   defaultLocationId={selectedLocationId}
@@ -1029,6 +1071,14 @@ export default function App() {
                 <button className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: '/dispute' })} style={{ marginTop: 16 }}>Sign in</button>
               </div>
             )
+          } />
+          <Route path="*" element={
+            <div className={styles.empty}>
+              <IconCompass className={styles.emptyIcon} aria-hidden="true" />
+              <h1 className={styles.emptyHeading}>That page is off the chart</h1>
+              <div className={styles.emptyText}>The address may be out of date, or the page may have moved.</div>
+              <button className={styles.navBtn} onClick={() => navigate('/')} style={{ marginTop: 16 }}>Back to home</button>
+            </div>
           } />
         </Routes>
       </main>

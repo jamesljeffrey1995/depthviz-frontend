@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { DayForecast } from '../types'
 import { getImpact, getShallowWaterConfidence } from '../lib/visibility'
 import { buildVisSummary } from '../lib/visTrend'
-import { getWaterQuality } from '../lib/units'
+import { getWaterQuality, visibilityInUnits } from '../lib/units'
 import { SwellCompass } from './SwellCompass'
 import { VisTrendChart } from './VisTrendChart'
 import { SwellChart } from './SwellChart'
@@ -175,7 +175,8 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
   const [showConditions, setShowConditions] = useState(defaultConditionsOpen)
   const trendDays = days && days.length > 1 ? days : null
   const summary = trendDays ? buildVisSummary(trendDays) : ''
-  const vis = day.vis_corrected ?? day.vis_estimate
+  const visMetres = day.vis_corrected ?? day.vis_estimate
+  const vis = visibilityInUnits(visMetres, units)
   const dateLabel = new Date(day.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
 
   const waterQuality = day.nutrient_factor != null ? getWaterQuality(day.nutrient_factor) : null
@@ -223,9 +224,8 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
   const confidence = gaugeConfidence(day)
   const confidenceFill = { high: 1, medium: 0.66, low: 0.33, none: 0 }[confidence]
 
-  // The rings are laid out on a metre scale, so the gauge always takes metres
-  // and formats back into whatever unit the screen is showing.
-  const visM = units === 'ft' ? vis / FT_PER_M : vis
+  // The model and gauge both use metres; only the visible readout is converted.
+  const visM = visMetres
   const formatRange = (metres: number) => {
     if (units === 'ft') return `${Math.round(metres * FT_PER_M)} ft`
     return `${Number.isInteger(metres) ? metres : metres.toFixed(1)} m`
@@ -297,7 +297,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
 
       {/* Visibility trend sparkline */}
       {trendDays && (
-        <VisTrendChart days={trendDays} selectedIndex={selectedIndex} onSelect={onSelectDay} />
+        <VisTrendChart days={trendDays} selectedIndex={selectedIndex} onSelect={onSelectDay} units={units} />
       )}
 
       {/* Swell & wave bar chart */}
@@ -502,7 +502,7 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
                 )}
                 <div className={`${styles.debugRow} ${styles.debugRowTotal}`}>
                   <span className={styles.debugLabel}>Final displayed</span>
-                  <span className={styles.debugValue}>{vis.toFixed(1)}m</span>
+                  <span className={styles.debugValue}>{visMetres.toFixed(1)}m</span>
                 </div>
               </div>
 

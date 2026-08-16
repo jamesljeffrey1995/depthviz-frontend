@@ -51,8 +51,8 @@
 
 /* ── Day card ── */
 .dayCard {
-  flex: 0 0 calc(14.28% - 6px);
-  min-width: 90px;
+  flex: 0 0 128px;
+  min-width: 128px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: var(--radius-lg);
@@ -93,7 +93,7 @@
   top: -10px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.15em;
   font-weight: 700;
   background: currentColor;
@@ -107,7 +107,7 @@
   position: absolute;
   top: 6px;
   right: 6px;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.1em;
   opacity: 0.5;
   border: 1px solid currentColor;
@@ -117,7 +117,7 @@
 
 /* ── Date labels ── */
 .dayName {
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.1em;
   color: var(--text);
   text-transform: uppercase;
@@ -125,7 +125,7 @@
 }
 
 .dayDate {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text);
   opacity: 0.5;
 }
@@ -147,7 +147,7 @@
 
 /* ── Verdict ── */
 .verdict {
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   font-weight: 600;
@@ -172,7 +172,7 @@
 }
 
 .metricLabel {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text);
   opacity: 0.5;
   text-transform: uppercase;
@@ -187,12 +187,54 @@
 }
 
 .metricVal {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text-bright);
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.windRow {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.windVal {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  width: 100%;
+  min-width: 0;
+  color: var(--text-bright);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.windSpeed {
+  display: inline-flex;
+  align-items: baseline;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.gust {
+  color: var(--sev-marginal);
+}
+
+.windUnit {
+  margin-left: 1px;
+  color: var(--text);
+  opacity: 0.65;
+}
+
+.windDirLabel {
+  margin-left: auto;
+  color: var(--text);
+  opacity: 0.7;
 }
 
 /* ── Algae severity colors ── */
@@ -224,7 +266,7 @@
 
 /* ── Hint ── */
 .hint {
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.08em;
   color: var(--text);
   opacity: 0.4;
@@ -233,10 +275,10 @@
   text-transform: uppercase;
 }
 
-@container (min-width: 760px) {
+@container (min-width: 960px) {
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(108px, 1fr));
+    grid-template-columns: repeat(7, minmax(128px, 1fr));
     overflow: visible;
     align-items: stretch;
   }

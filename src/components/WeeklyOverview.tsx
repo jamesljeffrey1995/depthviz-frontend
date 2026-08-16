@@ -2,6 +2,7 @@ import { memo } from 'react'
 import type { DayForecast } from '../types'
 import { getDiveRating } from '../lib/diveRating'
 import { WindArrow } from './WindArrow'
+import { visibilityInUnits } from '../lib/units'
 import styles from './WeeklyOverview.module.css'
 
 interface Props {
@@ -51,14 +52,15 @@ export const WeeklyOverview = memo(function WeeklyOverview({ days, locationName,
       </div>
       <div className={styles.grid} role="list" aria-label="Weekly conditions">
         {days.map((day, i) => {
-          const vis = day.vis_corrected ?? day.vis_estimate
+          const visMetres = day.vis_corrected ?? day.vis_estimate
+          const vis = visibilityInUnits(visMetres, units)
           const { day: dayLabel, date: dateLabel } = formatDate(day.date)
           const isBest = i === bestIdx
           const isSelected = i === selectedIndex
           // Use the same NE-UK-calibrated rating as the day overview so the
           // colour and verdict here agree with the detail view a user taps into
           // (the API's color_class/verdict is the older, more pessimistic scale).
-          const rating = getDiveRating(vis)
+          const rating = getDiveRating(visMetres)
           const verdictLabel = rating.label
           const colorCls = styles[rating.colorClass as keyof typeof styles] ?? ''
 
