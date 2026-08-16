@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import { getNews, createNews, updateNews, deleteNews } from '../lib/api'
 import type { Announcement } from '../types'
 import { IconChevronDown, IconChevronUp } from './icons'
@@ -118,7 +119,13 @@ export function NewsPage({ isAdmin }: Props) {
   return (
     <div className={styles.container}>
       <header className={styles.head}>
-        <h1 className={styles.title}>News</h1>
+        <div>
+          <p className={styles.eyebrow}>DepthViz knowledge</p>
+          <h1 className={styles.title}>News &amp; Guides</h1>
+          <p className={styles.intro}>
+            Practical visibility explainers, model updates and community knowledge for planning a better dive.
+          </p>
+        </div>
         {isAdmin && (
           <button className={styles.newBtn} onClick={startCreate}>+ New post</button>
         )}
@@ -252,6 +259,12 @@ export function NewsPage({ isAdmin }: Props) {
                 >
                   {expanded ? <><IconChevronUp width={14} height={14} /> Show less</> : <><IconChevronDown width={14} height={14} /> Read article</>}
                 </button>
+                {expanded && (
+                  <div className={styles.articleActions} role="group" aria-label="Use this guide">
+                    <Link className={styles.primaryAction} to="/forecast">Check your forecast</Link>
+                    <Link className={styles.secondaryAction} to="/report">Log what you found</Link>
+                  </div>
+                )}
                 {isAdmin && (
                   <div className={styles.adminRow}>
                     <button className={styles.linkBtn} onClick={() => startEdit(a)}>Edit</button>

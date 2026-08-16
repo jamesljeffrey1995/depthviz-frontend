@@ -6,6 +6,7 @@ describe('getPageMeta', () => {
     expect(getPageMeta('/').title).toMatch(/Underwater Visibility/)
     expect(getPageMeta('/forecast').title).toBe('Dive Forecast — DepthViz')
     expect(getPageMeta('/tides').title).toBe('Tides and Currents — DepthViz')
+    expect(getPageMeta('/news').title).toBe('News & Guides — DepthViz')
   })
 
   test('handles dynamic, legal and unknown routes', () => {

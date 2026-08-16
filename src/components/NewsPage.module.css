@@ -20,6 +20,23 @@
   margin: 0;
 }
 
+.eyebrow {
+  margin: 0 0 6px;
+  color: var(--accent-text);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.intro {
+  max-width: 660px;
+  margin: 10px 0 0;
+  color: var(--ink-dim);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
 .newBtn {
   background: var(--accent);
   color: var(--accent-on);
@@ -276,6 +293,49 @@
 }
 
 .readBtn:hover { text-decoration: underline; }
+
+.articleActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--surface-border);
+}
+
+.primaryAction,
+.secondaryAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.primaryAction {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--accent-on);
+}
+
+.secondaryAction {
+  border: 1px solid var(--surface-border-strong);
+  background: var(--surface-raised);
+  color: var(--ink);
+}
+
+.primaryAction:hover { background: var(--accent-strong); }
+.secondaryAction:hover { border-color: var(--accent); color: var(--accent-text); }
+
+.primaryAction:focus-visible,
+.secondaryAction:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 
 .adminRow {
   display: flex;
