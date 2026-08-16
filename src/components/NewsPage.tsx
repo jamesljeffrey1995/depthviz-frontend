@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { getNews, createNews, updateNews, deleteNews } from '../lib/api'
 import { newsPath } from '../lib/newsPath'
 import type { Announcement } from '../types'
+import { PageLayout } from './ui'
 import styles from './NewsPage.module.css'
 
 function formatDate(iso: string): string {
@@ -104,19 +105,15 @@ export function NewsPage({ isAdmin }: Props) {
   }
 
   return (
-    <div className={styles.container}>
-      <header className={styles.head}>
-        <div>
-          <p className={styles.eyebrow}>DepthViz knowledge</p>
-          <h1 className={styles.title}>News &amp; Guides</h1>
-          <p className={styles.intro}>
-            Practical visibility explainers, model updates and community knowledge for planning a better dive.
-          </p>
-        </div>
-        {isAdmin && (
+    <PageLayout
+      eyebrow="DepthViz knowledge"
+      title="News & Guides"
+      subtitle="Practical visibility explainers, model updates and community knowledge for planning a better dive."
+      actions={isAdmin ? (
           <button className={styles.newBtn} onClick={startCreate}>+ New post</button>
-        )}
-      </header>
+      ) : undefined}
+    >
+      <div className={styles.container}>
 
       {error && <p className={styles.error} role="alert">{error}</p>}
 
@@ -242,6 +239,7 @@ export function NewsPage({ isAdmin }: Props) {
           })}
         </ul>
       )}
-    </div>
+      </div>
+    </PageLayout>
   )
 }

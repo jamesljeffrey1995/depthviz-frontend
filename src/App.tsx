@@ -664,7 +664,7 @@ export default function App() {
                 <IconUser className={styles.emptyIcon} aria-hidden="true" />
                 <h1 className={styles.emptyHeading}>Your DepthViz profile</h1>
                 <div className={styles.emptyText}>Sign in to manage your account, diving details and connections.</div>
-                <button className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: '/profile' })} style={{ marginTop: 16 }}>Sign in</button>
+                <button className={`${styles.navBtn} ${styles.navBtnPrimary}`} onClick={() => requestAuth({ type: 'route', path: '/profile' })} style={{ marginTop: 16 }}>Sign in</button>
               </div>
             )
           } />
@@ -677,8 +677,10 @@ export default function App() {
               </Suspense>
             ) : (
               <div className={styles.empty}>
-                <div className={styles.emptyText}>Sign in to manage friends</div>
-                <button className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: '/friends' })} style={{ marginTop: 16 }}>Sign in</button>
+                <IconUser className={styles.emptyIcon} aria-hidden="true" />
+                <h1 className={styles.emptyHeading}>Your dive circle</h1>
+                <div className={styles.emptyText}>Sign in to find and manage your DepthViz friends.</div>
+                <button className={`${styles.navBtn} ${styles.navBtnPrimary}`} onClick={() => requestAuth({ type: 'route', path: '/friends' })} style={{ marginTop: 16 }}>Sign in</button>
               </div>
             )
           } />
@@ -840,8 +842,10 @@ export default function App() {
               </Suspense>
             ) : (
               <div className={styles.empty}>
-                <div className={styles.emptyText}>Sign in to save places</div>
-                <button className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: '/places' })} style={{ marginTop: 16 }}>Sign in</button>
+                <IconCompass className={styles.emptyIcon} aria-hidden="true" />
+                <h1 className={styles.emptyHeading}>Your saved coasts</h1>
+                <div className={styles.emptyText}>Sign in to save dive sites and return to them quickly.</div>
+                <button className={`${styles.navBtn} ${styles.navBtnPrimary}`} onClick={() => requestAuth({ type: 'route', path: '/places' })} style={{ marginTop: 16 }}>Sign in</button>
               </div>
             )
           } />
@@ -999,7 +1003,9 @@ export default function App() {
               </Suspense>
             ) : (
               <div className={styles.empty}>
-                <div className={styles.emptyText}>Search for a location first to view tides</div>
+                <IconCompass className={styles.emptyIcon} aria-hidden="true" />
+                <h1 className={styles.emptyHeading}>Choose a coast</h1>
+                <div className={styles.emptyText}>Search above for a location to view its tide window.</div>
               </div>
             )
           } />
@@ -1020,9 +1026,14 @@ export default function App() {
               </Suspense>
             ) : (
               <div className={styles.empty}>
+                <IconActivity className={styles.emptyIcon} aria-hidden="true" />
+                <h1 className={styles.emptyHeading}>{!user ? 'Log a dive report' : 'Choose a coast'}</h1>
                 <div className={styles.emptyText}>
-                  {!user ? 'Sign in to log a dive report' : 'Search for a location first'}
+                  {!user ? 'Sign in to share what you actually found in the water.' : 'Search for a location before logging a report.'}
                 </div>
+                {!user && (
+                  <button className={`${styles.navBtn} ${styles.navBtnPrimary}`} onClick={() => requestAuth({ type: 'route', path: '/report' })} style={{ marginTop: 16 }}>Sign in</button>
+                )}
               </div>
             )
           } />
@@ -1040,8 +1051,10 @@ export default function App() {
               </Suspense>
             ) : (
               <div className={styles.empty}>
-                <div className={styles.emptyText}>Sign in to build a training table</div>
-                <button className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: '/training/new' })} style={{ marginTop: 16 }}>Sign in</button>
+                <IconTimer className={styles.emptyIcon} aria-hidden="true" />
+                <h1 className={styles.emptyHeading}>Build a training table</h1>
+                <div className={styles.emptyText}>Sign in to create and save a custom dry apnea session.</div>
+                <button className={`${styles.navBtn} ${styles.navBtnPrimary}`} onClick={() => requestAuth({ type: 'route', path: '/training/new' })} style={{ marginTop: 16 }}>Sign in</button>
               </div>
             )
           } />
@@ -1052,8 +1065,10 @@ export default function App() {
               </Suspense>
             ) : (
               <div className={styles.empty}>
-                <div className={styles.emptyText}>Sign in to edit your tables</div>
-                <button className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: currentPath })} style={{ marginTop: 16 }}>Sign in</button>
+                <IconTimer className={styles.emptyIcon} aria-hidden="true" />
+                <h1 className={styles.emptyHeading}>Edit your training table</h1>
+                <div className={styles.emptyText}>Sign in to change and save this session.</div>
+                <button className={`${styles.navBtn} ${styles.navBtnPrimary}`} onClick={() => requestAuth({ type: 'route', path: currentPath })} style={{ marginTop: 16 }}>Sign in</button>
               </div>
             )
           } />
@@ -1079,7 +1094,9 @@ export default function App() {
               </Suspense>
             ) : (
               <div className={styles.empty}>
-                <div className={styles.emptyText}>Select a saved location to view dive logs</div>
+                <IconActivity className={styles.emptyIcon} aria-hidden="true" />
+                <h1 className={styles.emptyHeading}>Dive logs</h1>
+                <div className={styles.emptyText}>Select a saved location to see its observations and model accuracy.</div>
               </div>
             )
           } />
@@ -1097,8 +1114,10 @@ export default function App() {
               </Suspense>
             ) : (
               <div className={styles.empty}>
-                <div className={styles.emptyText}>Sign in to report incorrect data</div>
-                <button className={styles.navBtn} onClick={() => requestAuth({ type: 'route', path: '/dispute' })} style={{ marginTop: 16 }}>Sign in</button>
+                <IconGauge className={styles.emptyIcon} aria-hidden="true" />
+                <h1 className={styles.emptyHeading}>Challenge a forecast</h1>
+                <div className={styles.emptyText}>Sign in to report conditions that did not match the model.</div>
+                <button className={`${styles.navBtn} ${styles.navBtnPrimary}`} onClick={() => requestAuth({ type: 'route', path: '/dispute' })} style={{ marginTop: 16 }}>Sign in</button>
               </div>
             )
           } />
@@ -1107,7 +1126,7 @@ export default function App() {
               <IconCompass className={styles.emptyIcon} aria-hidden="true" />
               <h1 className={styles.emptyHeading}>That page is off the chart</h1>
               <div className={styles.emptyText}>The address may be out of date, or the page may have moved.</div>
-              <button className={styles.navBtn} onClick={() => navigate('/')} style={{ marginTop: 16 }}>Back to home</button>
+              <button className={`${styles.navBtn} ${styles.navBtnPrimary}`} onClick={() => navigate('/')} style={{ marginTop: 16 }}>Back to home</button>
             </div>
           } />
         </Routes>

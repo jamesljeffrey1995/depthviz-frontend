@@ -49,11 +49,6 @@
 .newsItem p { margin: 7px 0 0; max-width: 680px; color: var(--ink-dim); line-height: 1.55; }
 .newsItem time { color: var(--ink-faint); font-size: 13px; white-space: nowrap; }
 
-@media (min-width: 880px) {
-  .hero { grid-template-columns: minmax(0, 1.2fr) minmax(330px, .8fr); align-items: end; }
-  .searchArea { padding-bottom: 6px; }
-}
-
 @media (max-width: 640px) {
   .home { gap: 54px; }
   .hero { gap: 28px; padding-top: 8px; }

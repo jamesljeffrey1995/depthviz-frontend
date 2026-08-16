@@ -3,6 +3,7 @@ import type { User } from '@supabase/supabase-js'
 import { getCatches, getMyCatches, logCatch, deleteCatch, getCatchSpecies } from '../lib/api'
 import type { CatchRead, Location } from '../types'
 import { Tabs } from './Tabs'
+import { PageLayout } from './ui'
 import styles from './CatchesPage.module.css'
 
 interface CatchesPageProps {
@@ -203,10 +204,10 @@ export function CatchesPage({ user, locations, onShowAuth }: CatchesPageProps) {
   )
 
   return (
-    <div className={styles.container}>
-      <div className={styles.title}>Catches</div>
-      <div className={styles.subtitle}>Log and browse fishing catches</div>
-
+    <PageLayout
+      title="Catches"
+      subtitle="Log catches, compare recent activity and share useful context from the coast."
+    >
       <Tabs
         tabs={[
           { id: 'mine', label: 'My Catches' },
@@ -396,6 +397,6 @@ export function CatchesPage({ user, locations, onShowAuth }: CatchesPageProps) {
           )
         )
       )}
-    </div>
+    </PageLayout>
   )
 }

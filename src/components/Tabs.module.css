@@ -9,12 +9,13 @@
   padding: 4px;
   background: var(--surface-sunken);
   border: 1px solid var(--surface-border);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-md);
   margin-bottom: var(--space-md);
 }
 
 .tab {
   flex: 1;
+  min-height: 44px;
   background: transparent;
   border: none;
   color: var(--ink-dim);
@@ -25,7 +26,7 @@
   padding: 8px 14px;
   white-space: nowrap;
   cursor: pointer;
-  border-radius: var(--radius-full);
+  border-radius: calc(var(--radius-md) - 4px);
   transition: color var(--transition-fast), background var(--transition-fast);
 }
 
