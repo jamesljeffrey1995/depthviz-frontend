@@ -29,7 +29,7 @@ import type { LegalPageType } from './components/LegalPage'
 import { toUserFacingError } from './lib/frontendErrors'
 import { trackClientEvent } from './lib/telemetry'
 import { buildForecastPath, parseForecastLocation } from './lib/forecastUrl'
-import { getPageMeta } from './lib/pageMeta'
+import { canonicalUrlForPath, getPageMeta } from './lib/pageMeta'
 import styles from './App.module.css'
 
 /** Find a DB location matching given coordinates within ~1km tolerance. */
@@ -59,6 +59,7 @@ const DisputeForm = lazy(() => import('./components/DisputeForm').then(m => ({ d
 const WeightCalculator = lazy(() => import('./components/WeightCalculator').then(m => ({ default: m.WeightCalculator })))
 const HomePage = lazy(() => import('./components/HomePage').then(m => ({ default: m.HomePage })))
 const NewsPage = lazy(() => import('./components/NewsPage').then(m => ({ default: m.NewsPage })))
+const NewsArticlePage = lazy(() => import('./components/NewsArticlePage').then(m => ({ default: m.NewsArticlePage })))
 const ForumIndex = lazy(() => import('./components/ForumPage').then(m => ({ default: m.ForumIndex })))
 const ForumCategoryPage = lazy(() => import('./components/ForumPage').then(m => ({ default: m.ForumCategoryPage })))
 const ForumThreadPage = lazy(() => import('./components/ForumPage').then(m => ({ default: m.ForumThreadPage })))
@@ -219,10 +220,17 @@ export default function App() {
 
   useEffect(() => {
     const meta = getPageMeta(currentPath)
+    const canonicalUrl = canonicalUrlForPath(currentPath)
     document.title = meta.title
     document.querySelector<HTMLMetaElement>('meta[name="description"]')?.setAttribute('content', meta.description)
     document.querySelector<HTMLMetaElement>('meta[property="og:title"]')?.setAttribute('content', meta.title)
     document.querySelector<HTMLMetaElement>('meta[property="og:description"]')?.setAttribute('content', meta.description)
+    document.querySelector<HTMLMetaElement>('meta[property="og:type"]')?.setAttribute('content', meta.ogType ?? 'website')
+    document.querySelector<HTMLMetaElement>('meta[property="og:url"]')?.setAttribute('content', canonicalUrl)
+    document.querySelector<HTMLMetaElement>('meta[name="twitter:title"]')?.setAttribute('content', meta.title)
+    document.querySelector<HTMLMetaElement>('meta[name="twitter:description"]')?.setAttribute('content', meta.description)
+    document.querySelector<HTMLMetaElement>('meta[name="robots"]')?.setAttribute('content', meta.robots ?? 'index, follow')
+    document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute('href', canonicalUrl)
   }, [currentPath])
 
   // Admin status is decided by the server (via /profile/me's is_admin), never
@@ -697,6 +705,11 @@ export default function App() {
           <Route path="/news" element={
             <Suspense fallback={<RouteLoading />}>
               <NewsPage isAdmin={isAdmin} />
+            </Suspense>
+          } />
+          <Route path="/news/:id/:slug?" element={
+            <Suspense fallback={<RouteLoading />}>
+              <NewsArticlePage />
             </Suspense>
           } />
 

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { getPageMeta } from './pageMeta'
+import { canonicalUrlForPath, getPageMeta } from './pageMeta'
 
 describe('getPageMeta', () => {
   test('returns route-specific titles for core pages', () => {
@@ -11,7 +11,15 @@ describe('getPageMeta', () => {
 
   test('handles dynamic, legal and unknown routes', () => {
     expect(getPageMeta('/forum/general').title).toBe('Discussion — DepthViz')
+    expect(getPageMeta('/news/42/example-guide').ogType).toBe('article')
     expect(getPageMeta('/legal/privacy').title).toBe('Privacy — DepthViz')
     expect(getPageMeta('/does-not-exist').title).toBe('Page Not Found — DepthViz')
+    expect(getPageMeta('/does-not-exist').robots).toBe('noindex, follow')
+  })
+
+  test('builds route-specific canonical URLs', () => {
+    expect(canonicalUrlForPath('/news/42/example-guide'))
+      .toBe('https://depthviz.uk/news/42/example-guide')
+    expect(canonicalUrlForPath('//untrusted.example/guide')).toBe('https://depthviz.uk/')
   })
 })

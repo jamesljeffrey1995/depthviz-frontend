@@ -1,6 +1,15 @@
 export interface PageMeta {
   title: string
   description: string
+  robots?: 'index, follow' | 'noindex, follow'
+  ogType?: 'website' | 'article'
+}
+
+export const SITE_ORIGIN = 'https://depthviz.uk'
+
+export function canonicalUrlForPath(pathname: string): string {
+  const safePath = pathname.startsWith('/') && !pathname.startsWith('//') ? pathname : '/'
+  return `${SITE_ORIGIN}${safePath}`
 }
 
 const DEFAULT_DESCRIPTION = 'Underwater visibility forecasts, sea conditions and community reports for spearfishers and freedivers.'
@@ -44,6 +53,9 @@ export function getPageMeta(pathname: string): PageMeta {
   if (pathname.startsWith('/forum/')) {
     return { title: 'Discussion — DepthViz', description: EXACT['/forum']?.description ?? DEFAULT_DESCRIPTION }
   }
+  if (pathname.startsWith('/news/')) {
+    return { title: 'Guide — DepthViz', description: EXACT['/news']?.description ?? DEFAULT_DESCRIPTION, ogType: 'article' }
+  }
   if (pathname.startsWith('/training/')) {
     return { title: 'Apnea Training Table — DepthViz', description: EXACT['/training']?.description ?? DEFAULT_DESCRIPTION }
   }
@@ -53,5 +65,5 @@ export function getPageMeta(pathname: string): PageMeta {
     return { title: `${label} — DepthViz`, description: `${label} information for DepthViz.` }
   }
 
-  return { title: 'Page Not Found — DepthViz', description: DEFAULT_DESCRIPTION }
+  return { title: 'Page Not Found — DepthViz', description: DEFAULT_DESCRIPTION, robots: 'noindex, follow' }
 }

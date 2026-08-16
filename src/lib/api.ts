@@ -885,6 +885,10 @@ export async function getNews(opts?: { includeUnpublished?: boolean; limit?: num
   return data.items
 }
 
+export async function getNewsArticle(id: number): Promise<Announcement> {
+  return apiFetch<Announcement>(`/news/${id}`)
+}
+
 export async function createNews(input: AnnouncementInput): Promise<Announcement> {
   return apiFetch<Announcement>('/news', { method: 'POST', body: JSON.stringify(input) })
 }
