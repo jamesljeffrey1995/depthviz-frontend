@@ -1,11 +1,13 @@
 import type { DayForecast } from '../types'
 import { visForDay, categoriseVis, categoryColor, weekdayShort, weekdayLong } from '../lib/visTrend'
+import { visibilityInUnits } from '../lib/units'
 import styles from './VisTrendChart.module.css'
 
 interface Props {
   days: DayForecast[]
   selectedIndex: number
   onSelect?: (index: number) => void
+  units?: 'ft' | 'm'
 }
 
 // viewBox geometry — the SVG scales to the container width while keeping this
@@ -16,7 +18,7 @@ const PAD = { top: 16, right: 14, bottom: 24, left: 14 }
 const MAX_VIS = 15
 
 /** Compact sparkline of predicted visibility across the forecast days. */
-export function VisTrendChart({ days, selectedIndex, onSelect }: Props) {
+export function VisTrendChart({ days, selectedIndex, onSelect, units = 'm' }: Props) {
   const n = days.length
   if (n === 0) return null
 
@@ -73,7 +75,7 @@ export function VisTrendChart({ days, selectedIndex, onSelect }: Props) {
             <g key={p.i}>
               {selected && (
                 <text x={p.cx} y={p.cy - 8} textAnchor="middle" className={styles.valueLabel}>
-                  {p.vis.toFixed(1)}m
+                  {visibilityInUnits(p.vis, units).toFixed(1)}{units}
                 </text>
               )}
               <circle
@@ -102,7 +104,7 @@ export function VisTrendChart({ days, selectedIndex, onSelect }: Props) {
                   role="button"
                   tabIndex={0}
                   aria-pressed={selected}
-                  aria-label={`${weekdayLong(p.date)}: ${p.vis.toFixed(1)} metres`}
+                  aria-label={`${weekdayLong(p.date)}: ${visibilityInUnits(p.vis, units).toFixed(1)} ${units === 'ft' ? 'feet' : 'metres'}`}
                   onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect!(p.i) }
                   }}

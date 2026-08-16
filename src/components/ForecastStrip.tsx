@@ -1,12 +1,13 @@
 import { memo, useEffect, useRef } from 'react'
 import type { DayForecast, VisibilityFactor } from '../types'
+import { visibilityInUnits } from '../lib/units'
 import styles from './ForecastStrip.module.css'
 
 interface Props {
   days: DayForecast[]
   selectedIndex: number
   onSelect: (i: number) => void
-  /** Display unit the forecast was fetched in; values are already unit-dependent. */
+  /** Display unit. Visibility values remain canonical metres and are converted here. */
   units?: 'ft' | 'm'
 }
 
@@ -62,7 +63,7 @@ export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, 
     <div className={styles.strip} ref={stripRef}>
       <div className={styles.row}>
         {days.map((day, i) => {
-          const vis = day.vis_corrected ?? day.vis_estimate
+          const vis = visibilityInUnits(day.vis_corrected ?? day.vis_estimate, units)
           const colorVar = `var(--sev-${day.color_class})`
           const cls = [
             styles.day,

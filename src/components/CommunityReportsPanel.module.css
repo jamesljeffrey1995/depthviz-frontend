@@ -18,12 +18,12 @@
   font-size: var(--ds-text-label);
   letter-spacing: 0.25em;
   text-transform: uppercase;
-  color: var(--text-dim);
+  color: var(--ink-dim);
 }
 
 .meta {
   font-size: var(--ds-text-label);
-  color: var(--text-dim);
+  color: var(--ink-dim);
   opacity: 0.75;
 }
 
@@ -62,7 +62,7 @@
   font-family: var(--ds-font-sans);
   font-size: var(--ds-text-label);
   letter-spacing: 0.14em;
-  color: var(--text-dim);
+  color: var(--ink-dim);
   text-transform: uppercase;
 }
 
@@ -80,7 +80,7 @@
 }
 
 .note {
-  color: var(--text-dim);
+  color: var(--ink-dim);
   font-style: italic;
   display: block;
   margin-top: 4px;
@@ -100,7 +100,7 @@
   font-size: var(--ds-text-label);
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--text-dim);
+  color: var(--ink-dim);
   margin-top: 2px;
 }
 
@@ -118,7 +118,7 @@
 .empty {
   padding: 18px 8px;
   text-align: center;
-  color: var(--text-dim);
+  color: var(--ink-dim);
   font-size: 13px;
   line-height: 1.6;
 }

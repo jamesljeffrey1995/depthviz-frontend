@@ -30,7 +30,7 @@
 .legend {
   display: flex;
   gap: 8px;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .legendSwell {
@@ -75,7 +75,7 @@
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text);
   line-height: 1.4;
 }
@@ -122,13 +122,13 @@
 }
 
 .colorLabel {
-  font-size: 9.5px;
+  font-size: 12px;
   color: var(--text);
   line-height: 1.3;
 }
 
 .colorThresh {
-  font-size: 8.5px;
+  font-size: 12px;
   color: var(--ink-faint);
 }
 
@@ -144,7 +144,7 @@
 }
 
 .annotDay {
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0;
   color: var(--accent);
   margin-right: 8px;
@@ -162,7 +162,7 @@
 }
 
 .annotKey {
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0;
   color: var(--ink-faint);
   text-transform: uppercase;
@@ -175,7 +175,7 @@
 }
 
 .annotPeriod {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text);
 }
 
@@ -188,18 +188,18 @@
 
 .refLabel {
   fill: var(--ink-faint);
-  font-size: 7.5px;
+  font-size: 12px;
 }
 
 .dayLabel {
   fill: var(--ink-faint);
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0;
 }
 
 .dayLabelSelected {
   fill: var(--accent);
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0;
   font-weight: 700;
 }

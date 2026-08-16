@@ -16,18 +16,18 @@
   fill: var(--ink);
   font-family: var(--font-sans);
   font-variant-numeric: tabular-nums;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .dayLabel {
   fill: var(--ink-faint);
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0;
 }
 
 .dayLabelSelected {
   fill: var(--accent);
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0;
   font-weight: 700;
 }

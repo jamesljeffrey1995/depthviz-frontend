@@ -368,3 +368,75 @@ test.describe('accessibility — key interactions', () => {
     await expect(acknowledge).toBeHidden()
   })
 })
+
+test.describe('layout regression geometry', () => {
+  test('weekly forecast cards and swell reference labels do not collide', async ({ page }) => {
+    await stubBackend(page, '/forecast')
+    await page.goto('/forecast', { waitUntil: 'domcontentloaded' })
+    await expect(page.getByRole('heading', { name: FORECAST_CONTEXT.name })).toBeVisible()
+
+    const swellChart = page.locator('svg[aria-label^="Swell and wave height forecast"]')
+    await expect(swellChart).toBeVisible()
+    const refBoxes = await swellChart.locator('text').evaluateAll(nodes => nodes
+      .filter(node => ['1m', '1.5m'].includes(node.textContent?.trim() ?? ''))
+      .map(node => {
+        const rect = node.getBoundingClientRect()
+        return { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom }
+      }))
+    expect(refBoxes).toHaveLength(2)
+    const [firstRef, secondRef] = refBoxes
+    const labelsIntersect = firstRef && secondRef
+      ? firstRef.left < secondRef.right
+        && firstRef.right > secondRef.left
+        && firstRef.top < secondRef.bottom
+        && firstRef.bottom > secondRef.top
+      : true
+    expect(labelsIntersect).toBe(false)
+
+    await page.getByRole('button', { name: 'Weekly conditions overview' }).click()
+    const week = page.getByRole('list', { name: 'Weekly conditions' })
+    await expect(week).toBeVisible()
+    const overflowingCards = await week.getByRole('listitem').evaluateAll(cards => cards.filter(card =>
+      card.scrollWidth > card.clientWidth + 1,
+    ).length)
+    expect(overflowingCards).toBe(0)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true)
+  })
+
+  test('tide chart labels stay inside the chart and timestamps produce a valid date', async ({ page }) => {
+    await stubBackend(page, '/tides')
+    await page.route(TIDES_GLOB, intercepted => intercepted.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ ...TIDES_RESPONSE, date: `${TODAY_DATE}T00:00:00+00:00` }),
+    }))
+    await page.goto('/tides', { waitUntil: 'domcontentloaded' })
+    await expect(page.getByRole('heading', { name: `Tides for ${FORECAST_CONTEXT.name}` })).toBeVisible()
+    await expect(page.getByText('Invalid Date')).toHaveCount(0)
+
+    const chart = page.locator('svg').filter({ hasText: /\d{2}:\d{2}/ }).first()
+    await expect(chart).toBeVisible()
+    const outsideLabels = await chart.evaluate(svg => {
+      const chartRect = svg.getBoundingClientRect()
+      return Array.from(svg.querySelectorAll('text')).filter(label => {
+        const rect = label.getBoundingClientRect()
+        return rect.left < chartRect.left - 1
+          || rect.right > chartRect.right + 1
+          || rect.top < chartRect.top - 1
+          || rect.bottom > chartRect.bottom + 1
+      }).map(label => label.textContent)
+    })
+    expect(outsideLabels).toEqual([])
+  })
+
+  test('signed-out profile and unknown routes provide recovery states', async ({ page }) => {
+    await stubBackend(page, '/profile')
+    await page.goto('/profile', { waitUntil: 'domcontentloaded' })
+    await expect(page.getByRole('heading', { name: 'Your DepthViz profile' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toBeVisible()
+
+    await page.goto('/does-not-exist', { waitUntil: 'domcontentloaded' })
+    await expect(page.getByRole('heading', { name: 'That page is off the chart' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Back to home' })).toBeVisible()
+  })
+})

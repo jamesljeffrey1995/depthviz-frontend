@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getTides } from '../lib/api'
-import { shiftIsoDate } from '../lib/dateOnly'
+import { normalizeIsoDate, shiftIsoDate } from '../lib/dateOnly'
 import type { TidesResponse, TideEvent } from '../types'
 import styles from './TidesPage.module.css'
 
@@ -19,8 +19,12 @@ function formatDate(iso: string): string {
   // Parse at local noon so a date-only value always displays on its intended
   // calendar day. YYYY-MM-DD alone is interpreted as midnight UTC and can
   // display as the previous day west of Greenwich.
-  return new Date(`${iso}T12:00:00`).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
+  const normalized = normalizeIsoDate(iso)
+  if (!normalized) return 'Date unavailable'
+  return new Date(`${normalized}T12:00:00`).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
 }
+
+const CHART = { width: 600, height: 210, left: 30, right: 30, top: 24, bottom: 34 } as const
 
 function getCurrentStateColor(state: string): string {
   switch (state) {
@@ -50,15 +54,12 @@ function buildChartPath(hourly: { time: string; height: number | null }[]): { pa
   const maxH = Math.max(...heights) + 0.3
   const range = maxH - minH || 1
 
-  const W = 600
-  const H = 200
-  const padTop = 20
-  const padBot = 30
-  const chartH = H - padTop - padBot
+  const plotWidth = CHART.width - CHART.left - CHART.right
+  const chartH = CHART.height - CHART.top - CHART.bottom
 
   const points = valid.map((h, i) => ({
-    x: (i / (valid.length - 1)) * W,
-    y: padTop + chartH - ((h.height - minH) / range) * chartH,
+    x: valid.length === 1 ? CHART.left + plotWidth / 2 : CHART.left + (i / (valid.length - 1)) * plotWidth,
+    y: CHART.top + chartH - ((h.height - minH) / range) * chartH,
     height: h.height,
     time: h.time,
   }))
@@ -79,7 +80,10 @@ function buildChartPath(hourly: { time: string; height: number | null }[]): { pa
     path += ` C${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`
   }
 
-  const fillPath = path + ` L${W},${H} L0,${H} Z`
+  const first = points[0]
+  const last = points[points.length - 1]
+  const baseline = CHART.height - CHART.bottom
+  const fillPath = first && last ? `${path} L${last.x},${baseline} L${first.x},${baseline} Z` : ''
 
   return { path, fillPath, minH, maxH, points }
 }
@@ -132,7 +136,7 @@ export function TidesPage({ lat, lon, locationName, embedded = false }: Props) {
   }, [lat, lon, locationName, selectedDate])
 
   const handleDateChange = (offset: number) => {
-    const activeDate = selectedDate ?? tides?.date
+    const activeDate = selectedDate ?? normalizeIsoDate(tides?.date ?? '')
     if (activeDate) setDateSelection({ locationKey, date: shiftIsoDate(activeDate, offset) })
   }
 
@@ -157,7 +161,10 @@ export function TidesPage({ lat, lon, locationName, embedded = false }: Props) {
 
   if (!tides) return null
 
-  const activeDate = selectedDate ?? tides.date
+  const activeDate = selectedDate
+    ?? normalizeIsoDate(tides.date)
+    ?? normalizeIsoDate(tides.events[0]?.time ?? '')
+    ?? new Date().toISOString().slice(0, 10)
 
   const { path, fillPath, minH, maxH, points } = buildChartPath(tides.hourly)
   const eventPositions = findEventPositions(tides.events, points)
@@ -172,7 +179,7 @@ export function TidesPage({ lat, lon, locationName, embedded = false }: Props) {
     const endTime = new Date(lastPt.time).getTime()
     const nowTime = now.getTime()
     if (nowTime >= startTime && nowTime <= endTime) {
-      nowX = ((nowTime - startTime) / (endTime - startTime)) * 600
+      nowX = CHART.left + ((nowTime - startTime) / (endTime - startTime)) * (CHART.width - CHART.left - CHART.right)
     }
   }
 
@@ -184,14 +191,24 @@ export function TidesPage({ lat, lon, locationName, embedded = false }: Props) {
   }
 
   // Generate time labels for X axis (evenly spaced from chart points)
-  const labelInterval = Math.max(1, Math.floor(points.length / 8))
-  const timeLabels = points.filter((_, i) => i % labelInterval === 0).map(p => ({
+  const labelInterval = Math.max(1, Math.ceil(points.length / 7))
+  const timeLabelIndexes = Array.from(new Set([
+    ...points.map((_, i) => i).filter(i => i % labelInterval === 0),
+    points.length - 1,
+  ])).filter(i => i >= 0)
+  const timeLabels = timeLabelIndexes.map(i => points[i]).filter((p): p is NonNullable<typeof p> => !!p).map(p => ({
     label: formatTime(p.time),
     x: p.x,
   }))
 
   return (
     <div className={`${styles.page} ${embedded ? styles.pageEmbedded : ''}`}>
+      {!embedded && (
+        <header className={styles.pageHeading}>
+          <p className={styles.pageEyebrow}>Marine planning</p>
+          <h1>Tides for {locationName}</h1>
+        </header>
+      )}
       {/* Hero — current tide state + the range chart, the one reading on
           this screen that gets full priority treatment. */}
       <div className={`${styles.hero} ${embedded ? styles.heroEmbedded : ''}`}>
@@ -214,7 +231,7 @@ export function TidesPage({ lat, lon, locationName, embedded = false }: Props) {
 
         <div className={styles.sectionLabel}>Tide Chart</div>
         <div className={styles.chartWrapper}>
-          <svg viewBox="-12 0 624 200" className={styles.chart} preserveAspectRatio="none">
+          <svg viewBox={`0 0 ${CHART.width} ${CHART.height}`} className={styles.chart} preserveAspectRatio="xMidYMid meet">
             <defs>
               <linearGradient id="tideFill" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="rgba(var(--accent-rgb), 0.25)" />
@@ -224,12 +241,12 @@ export function TidesPage({ lat, lon, locationName, embedded = false }: Props) {
 
             {/* Y grid lines */}
             {yTicks.map(v => {
-              const chartH = 200 - 20 - 30
-              const y = 20 + chartH - ((v - minH) / (maxH - minH || 1)) * chartH
+              const chartH = CHART.height - CHART.top - CHART.bottom
+              const y = CHART.top + chartH - ((v - minH) / (maxH - minH || 1)) * chartH
               return (
                 <g key={v}>
-                  <line x1="0" y1={y} x2="600" y2={y} stroke="var(--surface-border)" strokeWidth="1" />
-                  <text x="4" y={y - 4} fill="var(--ink-faint)" fontSize="9" fontFamily="var(--font-sans)">{v.toFixed(1)}m</text>
+                  <line x1={CHART.left} y1={y} x2={CHART.width - CHART.right} y2={y} stroke="var(--surface-border)" strokeWidth="1" />
+                  <text x={CHART.left + 4} y={y - 5} fill="var(--ink-faint)" fontSize="12" fontFamily="var(--font-sans)">{v.toFixed(1)}m</text>
                 </g>
               )
             })}
@@ -242,7 +259,7 @@ export function TidesPage({ lat, lon, locationName, embedded = false }: Props) {
 
             {/* Now marker */}
             {nowX !== null && (
-              <line x1={nowX} y1="20" x2={nowX} y2="170" stroke="var(--surface-border-strong)" strokeWidth="1" strokeDasharray="4,4" />
+              <line x1={nowX} y1={CHART.top} x2={nowX} y2={CHART.height - CHART.bottom} stroke="var(--surface-border-strong)" strokeWidth="1" strokeDasharray="4,4" />
             )}
 
             {/* High/low markers */}
@@ -254,7 +271,7 @@ export function TidesPage({ lat, lon, locationName, embedded = false }: Props) {
                   y={ev.type === 'high' ? ev.y - 10 : ev.y + 16}
                   textAnchor="middle"
                   fill="var(--ink)"
-                  fontSize="9"
+                  fontSize="12"
                   fontFamily="var(--font-sans)"
                 >
                   {ev.height != null ? `${ev.height.toFixed(1)}m` : ''}
@@ -264,7 +281,7 @@ export function TidesPage({ lat, lon, locationName, embedded = false }: Props) {
 
             {/* X-axis time labels */}
             {timeLabels.map((t, i) => (
-              <text key={i} x={t.x} y="195" textAnchor="middle" fill="var(--ink-faint)" fontSize="9" fontFamily="var(--font-sans)">
+              <text key={i} x={t.x} y={CHART.height - 8} textAnchor="middle" fill="var(--ink-faint)" fontSize="12" fontFamily="var(--font-sans)">
                 {t.label}
               </text>
             ))}

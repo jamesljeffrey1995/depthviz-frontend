@@ -70,7 +70,7 @@ export function BestVisibility({ onSelectSpot, units }: Props) {
   return (
     <div className={styles.wrapper}>
       <div className={styles.header}>
-        <div className={styles.title}>Best visibility</div>
+        <h1 className={styles.title}>Best visibility</h1>
         <div className={styles.subtitle}>UK dive spots ranked for today</div>
       </div>
 

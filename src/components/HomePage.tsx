@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getNews } from '../lib/api'
 import { startRouteTransition } from '../lib/viewTransition'
+import { visibilityInUnits } from '../lib/units'
 import type { Announcement, DayForecast, ForecastResponse } from '../types'
 import { IconArrowRight } from './icons'
 import styles from './HomePage.module.css'
@@ -31,6 +32,7 @@ interface HomePageProps {
   locationSearch: ReactNode
   forecast?: ForecastResponse | null
   units: 'ft' | 'm'
+  forecastPath: string
 }
 
 function visibility(day: DayForecast): number {
@@ -52,7 +54,7 @@ function chartPoints(days: DayForecast[]): string {
   }).join(' ')
 }
 
-export function HomePage({ locationSearch, forecast, units }: HomePageProps) {
+export function HomePage({ locationSearch, forecast, units, forecastPath }: HomePageProps) {
   const rawNavigate = useNavigate()
   const navigate = (path: string) => startRouteTransition(
     () => rawNavigate(path),
@@ -107,14 +109,14 @@ export function HomePage({ locationSearch, forecast, units }: HomePageProps) {
                 <h2 id="near-you-heading">{forecast.location_name}</h2>
                 <p className={styles.meta}>{new Date(`${previewDay.date}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })}</p>
               </div>
-              <button className={styles.openForecast} onClick={() => navigate('/forecast')}>
+              <button className={styles.openForecast} onClick={() => navigate(forecastPath)}>
                 Open forecast <IconArrowRight aria-hidden="true" />
               </button>
             </div>
 
             <div className={styles.verdictRow}>
               <div>
-                <strong className={styles.visibility}>{formatVisibility(visibility(previewDay), forecast.units ?? units)}</strong>
+                <strong className={styles.visibility}>{formatVisibility(visibilityInUnits(visibility(previewDay), forecast.units ?? units), forecast.units ?? units)}</strong>
                 <span className={styles.visibilityLabel}>predicted visibility</span>
               </div>
               <div className={styles.assessment}>

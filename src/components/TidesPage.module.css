@@ -9,6 +9,28 @@
   gap: var(--space-md);
 }
 
+.pageHeading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pageHeading h1 {
+  margin: 0;
+  color: var(--ink);
+  font: 800 clamp(28px, 5vw, 40px)/1.1 var(--font-display);
+  letter-spacing: -0.03em;
+}
+
+.pageEyebrow {
+  margin: 0;
+  color: var(--accent-text);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 /* ── Hero — today's reading: current tide state + the range chart. This is
    the one element on the screen that gets full card treatment (raised,
    bordered, shadowed) so it reads as the priority moment, the way the
@@ -36,7 +58,7 @@
 .headerLeft {}
 
 .locationLabel {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
@@ -45,7 +67,7 @@
 }
 
 .datumLabel {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--ink-faint);
 }
 
@@ -105,7 +127,7 @@
 
 /* Section label used inside the hero card (chart) */
 .sectionLabel {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -115,7 +137,7 @@
 
 .chartWrapper {
   width: 100%;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .chart {
@@ -147,7 +169,7 @@
 }
 
 .eventType {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -165,7 +187,7 @@
 }
 
 .eventTime {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--ink-faint);
 }
 
@@ -196,7 +218,7 @@
 }
 
 .rangeBadge {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -222,7 +244,7 @@
 .rangeScale {
   display: flex;
   justify-content: space-between;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--ink-faint);
 }
 

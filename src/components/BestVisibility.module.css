@@ -12,6 +12,7 @@
   letter-spacing: -0.01em;
   color: var(--ink);
   margin-bottom: 2px;
+  margin-top: 0;
 }
 
 .subtitle {
