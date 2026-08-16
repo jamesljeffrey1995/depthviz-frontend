@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { DayForecast } from '../types'
 import { weekdayShort, weekdayLong } from '../lib/visTrend'
+import { useElementWidth } from '../hooks/useElementWidth'
 import styles from './SwellChart.module.css'
 
 interface Props {
@@ -10,16 +11,16 @@ interface Props {
   units?: 'ft' | 'm'
 }
 
-const W = 320
-const H = 100
-const PAD = { top: 16, right: 30, bottom: 24, left: 14 }
+const H = 132
+const PAD = { top: 18, right: 10, bottom: 28, left: 44 }
+const MIN_LABEL_SPACING = 54
 const FT_PER_M = 3.28084
 
 const COLORS = {
-  calm:     '#237744',
-  light:    '#985c16',
-  moderate: '#a2571b',
-  rough:    '#bd3a3a',
+  calm:     'var(--ds-success)',
+  light:    'var(--ds-warn)',
+  moderate: 'var(--ds-caution)',
+  rough:    'var(--ds-danger)',
 }
 
 function maxScale(units: 'ft' | 'm') {
@@ -36,17 +37,19 @@ function swellColor(heightInDisplayUnits: number, units: 'ft' | 'm'): string {
 
 export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props) {
   const [showInfo, setShowInfo] = useState(false)
+  const { ref: chartRef, width: measuredWidth } = useElementWidth<HTMLDivElement>()
   const n = days.length
   if (n === 0) return null
 
+  const W = Math.max(280, measuredWidth)
   const plotW = W - PAD.left - PAD.right
   const plotH = H - PAD.top - PAD.bottom
   const scale = maxScale(units)
-  const barW = Math.min(20, (plotW / n) * 0.58)
+  const slotW = plotW / n
+  const barW = Math.min(24, slotW * 0.52)
   const baseline = PAD.top + plotH
 
-  const cx = (i: number) =>
-    n === 1 ? PAD.left + plotW / 2 : PAD.left + (i / (n - 1)) * plotW
+  const cx = (i: number) => PAD.left + (i + 0.5) * slotW
 
   const yVal = (v: number) =>
     baseline - (Math.min(scale, Math.max(0, v)) / scale) * plotH
@@ -55,12 +58,14 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
   const ref15 = units === 'ft' ? 1.5 * FT_PER_M : 1.5
   const y1    = yVal(ref1)
   const y15   = yVal(ref15)
-  const ref15LabelY = y15 + 3.5
-  const ref1LabelY = y1 + 3.5
+  const ref15LabelY = y15 + 4
+  const ref1LabelY = y1 + 4
   const ref1Label  = units === 'ft' ? '3ft'  : '1m'
   const ref15Label = units === 'ft' ? '5ft'  : '1.5m'
 
-  const labelEvery = n > 8 ? 2 : 1
+  const maxLabels = Math.max(2, Math.floor(plotW / MIN_LABEL_SPACING))
+  const labelEvery = Math.max(1, Math.ceil(n / maxLabels))
+  const selectedX = cx(Math.min(Math.max(selectedIndex, 0), n - 1))
   const interactive = typeof onSelect === 'function'
 
   const t1 = units === 'ft' ? '1.6ft' : '0.5m'
@@ -136,23 +141,24 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
         </div>
       )}
 
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        className={styles.svg}
-        preserveAspectRatio="xMidYMid meet"
-        role={interactive ? 'group' : 'img'}
-        aria-label={`Swell and wave height forecast over ${n} days`}
-      >
+      <div className={styles.chart} ref={chartRef}>
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          className={styles.svg}
+          preserveAspectRatio="none"
+          role={interactive ? 'group' : 'img'}
+          aria-label={`Swell and wave height forecast over ${n} days`}
+        >
         <line
           x1={PAD.left} x2={W - PAD.right} y1={y15} y2={y15}
-          stroke="rgba(164,50,31,0.45)" strokeWidth={1} strokeDasharray="3 3"
+          stroke="var(--ds-danger)" strokeOpacity={0.45} strokeWidth={1} strokeDasharray="3 3"
         />
         <line
           x1={PAD.left} x2={W - PAD.right} y1={y1} y2={y1}
-          stroke="rgba(143,95,8,0.45)" strokeWidth={1} strokeDasharray="3 3"
+          stroke="var(--ds-warn)" strokeOpacity={0.45} strokeWidth={1} strokeDasharray="3 3"
         />
-        <text x={W - PAD.right + 3} y={ref15LabelY} className={styles.refLabel}>{ref15Label}</text>
-        <text x={W - PAD.right - 3} y={ref1LabelY} textAnchor="end" className={styles.refLabel}>{ref1Label}</text>
+        <text x={PAD.left - 8} y={ref15LabelY} textAnchor="end" className={styles.refLabel}>{ref15Label}</text>
+        <text x={PAD.left - 8} y={ref1LabelY} textAnchor="end" className={styles.refLabel}>{ref1Label}</text>
 
         {days.map((d, i) => {
           const bx    = cx(i)
@@ -160,7 +166,8 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
           const wave  = d.wave_height
           const color = swellColor(swell, units)
           const sel   = i === selectedIndex
-          const showLabel = i % labelEvery === 0
+          const showLabel = i === selectedIndex
+            || (i % labelEvery === 0 && Math.abs(cx(i) - selectedX) >= MIN_LABEL_SPACING)
 
           const swellTop = yVal(swell)
           const waveTop  = yVal(wave)
@@ -172,13 +179,13 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
               <rect
                 x={bx - barW / 2 - 2} y={waveTop}
                 width={barW + 4} height={waveH}
-                fill={`${color}28`} rx={2}
+                fill={color} opacity={0.16} rx={2}
               />
               <rect
                 x={bx - barW / 2} y={swellTop}
                 width={barW} height={swellH}
                 fill={color} opacity={sel ? 1 : 0.78} rx={2}
-                stroke={sel ? 'rgba(42,37,30,0.6)' : 'transparent'}
+                stroke={sel ? 'var(--surface-border-strong)' : 'transparent'}
                 strokeWidth={sel ? 1 : 0}
               />
               {showLabel && (
@@ -191,9 +198,9 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
               )}
               {interactive && (
                 <rect
-                  x={bx - plotW / (2 * Math.max(n - 1, 1))}
+                  x={PAD.left + i * slotW}
                   y={0}
-                  width={plotW / Math.max(n - 1, 1)}
+                  width={slotW}
                   height={H}
                   fill="transparent"
                   style={{ cursor: 'pointer' }}
@@ -210,7 +217,8 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
             </g>
           )
         })}
-      </svg>
+        </svg>
+      </div>
     </figure>
   )
 }

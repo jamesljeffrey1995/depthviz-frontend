@@ -58,20 +58,25 @@ numbered.
 
 Two, both defined in `src/index.css`:
 
-- **Deep water** is the default, because that is what the app's screens are
-  written against.
-- **Porcelain** (`:root[data-theme='light']`) is what Ripple leads with, and is
-  not switched on yet. Two things have to land first: the hardcoded dark colours
-  still sitting in component stylesheets, and a text register for the clarity
-  ramp. On a light ground the ramp cannot be both monotonic in luminance and
-  AA-legible as small text (the arithmetic is in the note below), so clarity
-  colour becomes a fill and small text takes ink.
+- **Deep water** is the planning register. It is used for live forecast data,
+  maps, tides, comparisons, history and in-session safety tools such as apnea
+  training and weighting.
+- **Porcelain** (`:root[data-theme='light']`) is the reading and community
+  register. It is used for the home page, reports, catches, news, profiles,
+  competitions and legal content.
+
+`src/lib/routeTheme.ts` owns that split. A route should not choose a register
+because a single component looks better in it; move the component onto tokens
+and keep the route aligned with the user's task. On a light ground, clarity
+colour is a fill and small text takes ink so the luminance ramp and AA contrast
+do not compete.
 
 ### State of the rollout
 
 Converted: the token layer, the app shell, top and bottom navigation, the
-footer, the cookie banner, the home page, the search controls, and the forecast
-reading in `DayDetail`, whose arc gauge is now `RippleGauge`.
+footer, the cookie banner, the home page, the search controls, the forecast
+reading in `DayDetail` (whose arc gauge is `RippleGauge`), the community feed,
+competition registration and the weight calculator.
 
 Not yet converted: roughly 300 hardcoded colours remain in component
 stylesheets, concentrated in `CompetitionAdmin`, the apnea training screens and

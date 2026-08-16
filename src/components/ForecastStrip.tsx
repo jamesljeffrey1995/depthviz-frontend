@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import type { DayForecast, VisibilityFactor } from '../types'
 import { visibilityInUnits } from '../lib/units'
 import styles from './ForecastStrip.module.css'
@@ -46,6 +46,32 @@ function primaryDriver(factors: VisibilityFactor[]): string | null {
 
 export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, onSelect, units = 'm' }: Props) {
   const stripRef = useRef<HTMLDivElement>(null)
+  const [canScrollBack, setCanScrollBack] = useState(false)
+  const [canScrollForward, setCanScrollForward] = useState(false)
+
+  const updateScrollState = useCallback(() => {
+    const strip = stripRef.current
+    if (!strip) return
+    setCanScrollBack(strip.scrollLeft > 2)
+    setCanScrollForward(strip.scrollLeft + strip.clientWidth < strip.scrollWidth - 2)
+  }, [])
+
+  useEffect(() => {
+    const strip = stripRef.current
+    if (!strip) return
+    updateScrollState()
+    strip.addEventListener('scroll', updateScrollState, { passive: true })
+    const observer = typeof ResizeObserver === 'undefined'
+      ? null
+      : new ResizeObserver(updateScrollState)
+    observer?.observe(strip)
+    window.addEventListener('resize', updateScrollState)
+    return () => {
+      strip.removeEventListener('scroll', updateScrollState)
+      observer?.disconnect()
+      window.removeEventListener('resize', updateScrollState)
+    }
+  }, [days.length, updateScrollState])
 
   useEffect(() => {
     const strip = stripRef.current
@@ -57,11 +83,28 @@ export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, 
       left: strip.scrollLeft + (activeDayRect.left - stripRect.left) - (strip.clientWidth - activeDay.clientWidth) / 2,
       behavior: 'auto',
     })
-  }, [selectedIndex])
+    requestAnimationFrame(updateScrollState)
+  }, [selectedIndex, updateScrollState])
+
+  const scrollByPage = (direction: -1 | 1) => {
+    const strip = stripRef.current
+    if (!strip) return
+    strip.scrollBy({ left: direction * Math.max(180, strip.clientWidth * 0.72), behavior: 'smooth' })
+  }
 
   return (
-    <div className={styles.strip} ref={stripRef}>
-      <div className={styles.row}>
+    <div className={styles.stripShell}>
+      <button
+        type="button"
+        className={styles.scrollButton}
+        disabled={!canScrollBack}
+        onClick={() => scrollByPage(-1)}
+        aria-label="Earlier forecast days"
+      >
+        <span aria-hidden="true">‹</span>
+      </button>
+      <div className={styles.strip} ref={stripRef} role="region" aria-label="Daily forecast">
+        <div className={styles.row}>
         {days.map((day, i) => {
           const vis = visibilityInUnits(day.vis_corrected ?? day.vis_estimate, units)
           const colorVar = `var(--sev-${day.color_class})`
@@ -81,13 +124,21 @@ export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, 
               aria-pressed={i === selectedIndex}
               aria-label={`${formatDate(day.date)}: ${vis.toFixed(1)} ${units === 'ft' ? 'feet' : 'metres'} visibility, ${day.verdict}${day.algae.risk !== 'low' ? `, algae risk ${day.algae.risk}` : ''}${driver ? `, main factor: ${driver}` : ''}`}
             >
-              <div className={styles.dateLabel}>{formatDate(day.date)}</div>
+              <div className={styles.dateRow}>
+                <span className={styles.dateLabel}>{formatDate(day.date)}</span>
+                {day.algae.risk !== 'low' && (
+                  <span
+                    className={`${styles.algaeBadge} ${styles[`algae${day.algae.risk.charAt(0).toUpperCase() + day.algae.risk.slice(1)}`]}`}
+                    title={`${day.algae.risk} algae risk`}
+                    aria-hidden="true"
+                  >
+                    algae
+                  </span>
+                )}
+              </div>
               <div className={styles.visibility}>
                 <span className={styles.visibilityValue}>{vis.toFixed(1)}</span>
                 <span className={styles.visibilityUnit}>{units}</span>
-                {day.algae.risk !== 'low' && (
-                  <span className={`${styles.algaePip} ${styles[`algae${day.algae.risk.charAt(0).toUpperCase() + day.algae.risk.slice(1)}`]}`} />
-                )}
               </div>
               <div className={styles.verdict} style={{ color: colorVar }} title={day.verdict}>
                 {day.verdict}
@@ -98,7 +149,17 @@ export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, 
             </button>
           )
         })}
+        </div>
       </div>
+      <button
+        type="button"
+        className={styles.scrollButton}
+        disabled={!canScrollForward}
+        onClick={() => scrollByPage(1)}
+        aria-label="Later forecast days"
+      >
+        <span aria-hidden="true">›</span>
+      </button>
     </div>
   )
 })

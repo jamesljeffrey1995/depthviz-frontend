@@ -28,6 +28,12 @@ function timeAgo(iso: string): string {
   return `${days}d ago`
 }
 
+function comparisonCopy(actual: number, predicted: number): string {
+  const delta = actual - predicted
+  if (Math.abs(delta) < 0.05) return 'Forecast matched the report'
+  return `Water was ${Math.abs(delta).toFixed(1)}m ${delta > 0 ? 'clearer' : 'murkier'} than forecast`
+}
+
 const LIMIT = 30
 const SCOPE_OPTIONS = [
   { value: 'all' as const, label: 'All activity' },
@@ -99,11 +105,17 @@ export function FeedPage({ user }: Props) {
   }
 
   const hasMore = items.length < total
+  const newestItem = items.reduce<FeedItem | null>((latest, item) => (
+    !latest || new Date(item.created_at).getTime() > new Date(latest.created_at).getTime() ? item : latest
+  ), null)
+  const subtitle = newestItem
+    ? `Latest diver observations · newest report ${timeAgo(newestItem.created_at)}. Check age before planning.`
+    : 'Diver observations and catches from the coast, with report age shown clearly.'
 
   return (
     <PageLayout
       title="Community"
-      subtitle="Fresh observations from divers on the coast."
+      subtitle={subtitle}
     >
       <section className={styles.controlsCard} aria-label="Community filters">
         <div className={styles.controls}>
@@ -163,7 +175,12 @@ export function FeedPage({ user }: Props) {
                 <div className={styles.cardBody}>
                   <div className={styles.observations}>
                     <span className={styles.primaryObservation}><strong>{item.actual_vis}m</strong> visibility</span>
-                    {item.predicted_vis != null && <span>Forecast was {item.predicted_vis}m</span>}
+                    {item.predicted_vis != null && item.actual_vis != null && (
+                      <span className={styles.forecastComparison}>
+                        <span>Forecast {item.predicted_vis.toFixed(1)}m</span>
+                        <strong>{comparisonCopy(item.actual_vis, item.predicted_vis)}</strong>
+                      </span>
+                    )}
                     {item.has_video && <span>Video attached</span>}
                   </div>
                   {item.notes && <p className={styles.notes}>{item.notes}</p>}

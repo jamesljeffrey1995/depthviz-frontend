@@ -64,7 +64,7 @@ const FORECAST_RESPONSE = {
   model_confidence: 'medium',
   calibration_active: true,
   units: 'm',
-  days: Array.from({ length: 7 }, (_, index) => {
+  days: Array.from({ length: 14 }, (_, index) => {
     const d = new Date(TODAY_UTC)
     d.setUTCDate(TODAY_UTC.getUTCDate() + index)
     const date = d.toISOString().slice(0, 10)
@@ -370,7 +370,7 @@ test.describe('accessibility — key interactions', () => {
 })
 
 test.describe('layout regression geometry', () => {
-  test('weekly forecast cards and swell reference labels do not collide', async ({ page }) => {
+  test('forecast strip and chart labels remain readable without collisions', async ({ page }) => {
     await stubBackend(page, '/forecast')
     await page.goto('/forecast', { waitUntil: 'domcontentloaded' })
     await expect(page.getByRole('heading', { name: FORECAST_CONTEXT.name })).toBeVisible()
@@ -392,6 +392,37 @@ test.describe('layout regression geometry', () => {
         && firstRef.bottom > secondRef.top
       : true
     expect(labelsIntersect).toBe(false)
+
+    const chartGeometry = await swellChart.evaluate(svg => {
+      const chartRect = svg.getBoundingClientRect()
+      const boxes = (nodes: Element[]) => nodes.map(node => {
+        const rect = node.getBoundingClientRect()
+        return { text: node.textContent?.trim() ?? '', left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom }
+      })
+      const intersects = (a: ReturnType<typeof boxes>[number], b: ReturnType<typeof boxes>[number]) => (
+        a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top
+      )
+      const weekdayLabels = boxes(Array.from(svg.querySelectorAll('text')).filter(node => /^[A-Z][a-z]{2}$/.test(node.textContent?.trim() ?? '')))
+      const referenceLabels = boxes(Array.from(svg.querySelectorAll('text')).filter(node => ['1m', '1.5m'].includes(node.textContent?.trim() ?? '')))
+      const dataBars = boxes(Array.from(svg.querySelectorAll('rect')).filter(node => node.getAttribute('fill') !== 'transparent'))
+      return {
+        outside: boxes(Array.from(svg.querySelectorAll('text'))).filter(label => (
+          label.left < chartRect.left - 1 || label.right > chartRect.right + 1
+          || label.top < chartRect.top - 1 || label.bottom > chartRect.bottom + 1
+        )).map(label => label.text),
+        weekdayCollisions: weekdayLabels.flatMap((label, index) => weekdayLabels.slice(index + 1)
+          .filter(other => intersects(label, other)).map(other => `${label.text}/${other.text}`)),
+        referencesOverBars: referenceLabels.flatMap(label => dataBars
+          .filter(bar => intersects(label, bar)).map(() => label.text)),
+      }
+    })
+    expect(chartGeometry.outside).toEqual([])
+    expect(chartGeometry.weekdayCollisions).toEqual([])
+    expect(chartGeometry.referencesOverBars).toEqual([])
+
+    const forecastDays = page.getByRole('region', { name: 'Daily forecast' }).getByRole('button')
+    const overflowingDays = await forecastDays.evaluateAll(days => days.filter(day => day.scrollWidth > day.clientWidth + 1).length)
+    expect(overflowingDays).toBe(0)
 
     await page.getByRole('button', { name: 'Weekly conditions overview' }).click()
     const week = page.getByRole('list', { name: 'Weekly conditions' })

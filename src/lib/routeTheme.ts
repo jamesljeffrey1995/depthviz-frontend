@@ -20,6 +20,7 @@ const DARK_PREFIXES = [
   '/tides',
   '/best',
   '/training',
+  '/weight',
   '/history',
   '/admin',
 ]
