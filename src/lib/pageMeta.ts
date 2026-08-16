@@ -15,7 +15,7 @@ const EXACT: Record<string, PageMeta> = {
   '/report': { title: 'Log a Dive Report — DepthViz', description: 'Share observed underwater visibility and local sea conditions with the DepthViz community.' },
   '/feed': { title: 'Community Reports — DepthViz', description: 'Read recent visibility reports and catches shared by divers.' },
   '/catches': { title: 'Catches — DepthViz', description: 'Log and review catches shared by the diving community.' },
-  '/news': { title: 'News — DepthViz', description: 'Read the latest DepthViz product, diving and coastal-condition updates.' },
+  '/news': { title: 'News & Guides — DepthViz', description: 'Read practical underwater visibility guides, DepthViz model updates and community diving knowledge.' },
   '/forum': { title: 'Discussions — DepthViz', description: 'Discuss local dive spots, conditions, safety and equipment with other divers.' },
   '/competition': { title: 'Competitions — DepthViz', description: 'View available spearfishing competitions and registration information.' },
   '/training': { title: 'Apnea Training — DepthViz', description: 'Build and run dry apnea training tables.' },
