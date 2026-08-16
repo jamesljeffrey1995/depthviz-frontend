@@ -1,8 +1,4 @@
 {
-  "desktop": {
-    "/legal/accessibility": { "link-in-text-block": 1 }
-  },
-  "mobile": {
-    "/legal/accessibility": { "link-in-text-block": 1 }
-  }
+  "desktop": {},
+  "mobile": {}
 }
