@@ -1,3 +1,17 @@
+# [1.25.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.24.10...v1.25.0) (2026-08-16)
+
+
+### Bug Fixes
+
+* address PR review comments in routeTheme and HomePage ([c8ce0e1](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/c8ce0e1768fd1a389aa7b18a7cca4119c29fd2e0))
+* cover sunken surfaces and badge washes ([e69e025](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/e69e025173f056a82b33694f63f5b4d6d0e80cac))
+* restore light theme WCAG contrast ([36ba863](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/36ba863979f8246ef1bb7aa302a7371af99e38e4))
+
+
+### Features
+
+* overhaul marine visual system ([2f22612](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/2f22612660f9fd686359b5afa6830da4f79fa7bf))
+
 ## [1.24.10](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.24.9...v1.24.10) (2026-08-15)
 
 
