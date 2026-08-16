@@ -485,8 +485,9 @@ export async function getLocationHistory(locationId: number): Promise<LocationHi
 }
 
 // Best Visibility
-export async function getBestVisibility(): Promise<BestVisResponse> {
+export async function getBestVisibility(options?: { refresh?: boolean }): Promise<BestVisResponse> {
   const key = 'best-vis'
+  if (options?.refresh) cacheDelete(key)
   const cached = cacheGet<BestVisResponse>(key)
   if (cached) return cached
 

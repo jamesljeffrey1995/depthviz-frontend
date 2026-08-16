@@ -109,6 +109,8 @@ describe('api contracts', () => {
 
   test('normalizes best-vis responses and drops malformed spots', () => {
     const out = normalizeBestVisResponse({
+      date: '2026-08-07',
+      partial: true,
       spots: [
         {
           name: 'A',
@@ -122,6 +124,8 @@ describe('api contracts', () => {
 
     expect(out.spots).toHaveLength(1)
     expect(out.spots[0]?.name).toBe('A')
+    expect(out.date).toBe('2026-08-07')
+    expect(out.partial).toBe(true)
   })
 
   test('normalizes one location payload', () => {

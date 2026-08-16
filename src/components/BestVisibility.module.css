@@ -187,6 +187,10 @@
   padding: var(--space-lg);
   margin-bottom: var(--space-lg);
   cursor: pointer;
+  width: 100%;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   transition: border-color var(--transition-fast), transform var(--transition-fast);
 }
 
@@ -287,6 +291,10 @@
   border-radius: var(--radius-sm);
   padding: 12px 14px;
   cursor: pointer;
+  width: 100%;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   transition: border-color var(--transition-fast), background var(--transition-fast);
 }
 
@@ -362,12 +370,36 @@
   padding: var(--space-xl) 0;
 }
 
+.error p { margin: 0 0 var(--space-sm); }
+
 /* ── Failed spots note ── */
 .failedNote {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
   font-size: 12px;
   color: var(--ink-faint);
   text-align: center;
   margin-top: var(--space-sm);
+}
+
+.retryBtn {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--surface-border-strong);
+  border-radius: var(--radius-full);
+  background: var(--surface-raised);
+  color: var(--accent-text);
+  font: 700 12px/1 var(--font-sans);
+  cursor: pointer;
+}
+
+.retryBtn:hover { border-color: var(--accent); }
+
+.retryBtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* Mobile adjustments */
