@@ -44,11 +44,12 @@ export function NewsArticlePage() {
       .catch(() => { if (!cancelled) setError('This guide could not be found.') })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [id, navigate, slug])
+  }, [id, navigate])
 
   useEffect(() => {
     if (!article) return
-    const description = article.summary || article.body.slice(0, 155)
+    const bodyExcerpt = article.body.replace(/\s+/g, ' ').trim().slice(0, 155)
+    const description = article.summary || bodyExcerpt
     const title = `${article.title} — DepthViz`
     const canonicalUrl = `${SITE_ORIGIN}${newsPath(article)}`
     document.title = title

@@ -9,7 +9,8 @@ export const SITE_ORIGIN = 'https://depthviz.uk'
 
 export function canonicalUrlForPath(pathname: string): string {
   const safePath = pathname.startsWith('/') && !pathname.startsWith('//') ? pathname : '/'
-  return `${SITE_ORIGIN}${safePath}`
+  const normalised = safePath.length > 1 ? safePath.replace(/\/+$/, '') : safePath
+  return `${SITE_ORIGIN}${normalised}`
 }
 
 const DEFAULT_DESCRIPTION = 'Underwater visibility forecasts, sea conditions and community reports for spearfishers and freedivers.'
@@ -47,20 +48,21 @@ const LEGAL_TITLES: Record<string, string> = {
 }
 
 export function getPageMeta(pathname: string): PageMeta {
-  const exact = EXACT[pathname]
+  const normPath = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname
+  const exact = EXACT[normPath]
   if (exact) return exact
 
-  if (pathname.startsWith('/forum/')) {
+  if (normPath.startsWith('/forum/')) {
     return { title: 'Discussion — DepthViz', description: EXACT['/forum']?.description ?? DEFAULT_DESCRIPTION }
   }
-  if (pathname.startsWith('/news/')) {
+  if (normPath.startsWith('/news/')) {
     return { title: 'Guide — DepthViz', description: EXACT['/news']?.description ?? DEFAULT_DESCRIPTION, ogType: 'article' }
   }
-  if (pathname.startsWith('/training/')) {
+  if (normPath.startsWith('/training/')) {
     return { title: 'Apnea Training Table — DepthViz', description: EXACT['/training']?.description ?? DEFAULT_DESCRIPTION }
   }
-  if (pathname.startsWith('/legal/')) {
-    const page = pathname.split('/')[2] ?? ''
+  if (normPath.startsWith('/legal/')) {
+    const page = normPath.split('/')[2] ?? ''
     const label = LEGAL_TITLES[page] ?? 'Legal'
     return { title: `${label} — DepthViz`, description: `${label} information for DepthViz.` }
   }
