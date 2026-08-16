@@ -99,20 +99,6 @@
   gap: var(--space-lg);
 }
 
-.routeHeading {
-  margin-bottom: var(--space-lg);
-}
-
-.routeHeading p {
-  margin: 0 0 5px;
-  color: var(--accent-text);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.routeHeading h1,
 .emptyHeading {
   margin: 0;
   color: var(--ink);
@@ -171,14 +157,14 @@
 .header {
   position: relative;
   z-index: 2;
-  margin-bottom: 18px;
+  margin-bottom: clamp(24px, 4vw, 42px);
 }
 
 .headerRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-md);
+  gap: clamp(18px, 3vw, 34px);
 }
 
 .logo {
@@ -193,12 +179,11 @@
   border-radius: var(--radius-sm);
 }
 
-/* The supplied mark contains dark linework intended for pale backgrounds.
-   Render it as a calm monochrome signature on instrument-dark routes instead
-   of letting half the logo disappear into the shell. */
+/* Keep one stable brand lock-up across route themes so navigation never jumps
+   horizontally. On instrument-dark routes it becomes a quiet white signature. */
 .darkShell .logo img {
   filter: brightness(0) invert(1);
-  opacity: 0.88;
+  opacity: 0.92;
 }
 
 .logoMark {
@@ -374,22 +359,24 @@
 /* Quiet and left-aligned, in the same language as the rest of the page: no
    centred block of micro-type, no boxed slab. */
 .footer {
+  width: 100%;
+  max-width: 980px;
   font-size: 13px;
   color: var(--ink-faint);
-  margin-top: var(--space-2xl);
+  margin: var(--space-2xl) auto 0;
   padding: var(--space-md) 0 var(--space-lg);
   line-height: 1.7;
   display: grid;
   gap: 6px;
-  justify-items: center;
-  text-align: center;
+  justify-items: start;
+  text-align: left;
 }
 
 .footerAttribution {
   margin-bottom: 2px;
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 4px;
 }
 
@@ -400,7 +387,7 @@
 
 .footerLinks {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 6px 12px;
   flex-wrap: wrap;
   margin-top: 2px;
@@ -433,21 +420,24 @@
 
 
 .bmcLink {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   margin-top: 6px;
   font-size: 12px;
   font-weight: 600;
   color: var(--accent-text);
   text-decoration: none;
-  padding: 6px 12px;
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-full);
-  transition: all var(--transition-base);
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--surface-border-strong);
+  border-radius: 0;
+  transition: color var(--transition-base), border-color var(--transition-base);
 }
 
 .bmcLink:hover {
-  border-color: var(--accent-text);
-  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--ink);
 }
 
 .bmcLink:focus-visible {
@@ -652,8 +642,8 @@
   align-items: stretch;
   gap: 0;
   background: color-mix(in srgb, var(--surface) 94%, transparent);
-  border-top: 0;
-  box-shadow: 0 -10px 32px color-mix(in srgb, var(--surface) 70%, transparent);
+  border-top: 1px solid var(--surface-border);
+  box-shadow: 0 -8px 24px color-mix(in srgb, var(--surface) 48%, transparent);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   padding: 0 0 env(safe-area-inset-bottom, 0px);
@@ -749,6 +739,17 @@
     padding-bottom: var(--space-xl);
   }
 }
+
+@media (min-width: 481px) and (max-width: 920px) {
+  .headerRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .headerRow > nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
 @container app-main (min-width: 1040px) {
   .forecastRouteLayoutWithSupport {
     grid-template-columns: minmax(0, 1.7fr) minmax(300px, 0.95fr);
@@ -770,6 +771,10 @@
 
   .header {
     margin-bottom: 24px;
+  }
+
+  .headerRow {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .tagline {

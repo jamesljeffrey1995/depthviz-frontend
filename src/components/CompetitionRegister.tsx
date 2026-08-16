@@ -14,6 +14,7 @@ import type {
   ExperienceLevel, BuddyStatus, UserProfile,
 } from '../types'
 import { ApiError } from '../lib/api'
+import { PageLayout } from './ui'
 import styles from './CompetitionRegister.module.css'
 
 // How an in-progress competition's status reads to a registered diver.
@@ -87,7 +88,7 @@ function CompDayInfo({ comp }: { comp: OpenCompetition }) {
     <div className={styles.dayInfo}>
       {hasMeet && (
         <section className={styles.meetCard}>
-          <h2 className={styles.infoHeading}>📍 Where to meet</h2>
+          <h2 className={styles.infoHeading}>Meeting point</h2>
           {comp.meeting_point_name && <div className={styles.meetName}>{comp.meeting_point_name}</div>}
           {comp.meeting_point_notes && <p className={styles.notes}>{comp.meeting_point_notes}</p>}
           {comp.meeting_point_lat != null && comp.meeting_point_lon != null && (
@@ -133,7 +134,7 @@ function CompDayInfo({ comp }: { comp: OpenCompetition }) {
 
       {hasSafety && (
         <section className={styles.safetyCard}>
-          <h2 className={styles.infoHeading}>⚠ Health &amp; safety</h2>
+          <h2 className={styles.infoHeading}>Health &amp; safety</h2>
           <ul className={styles.safetyList}>
             {safety.map((line, i) => (
               <li key={i}>{line}</li>
@@ -394,8 +395,12 @@ export function CompetitionRegister({ signedIn, onShowAuth }: CompetitionRegiste
     // Don't duplicate a competition that's already in "Your competitions".
     const openComps = (comps ?? []).filter(c => !mineIds.has(c.id))
     return (
-      <div className={styles.container}>
-        <h1 className={styles.title}>Competitions</h1>
+      <PageLayout
+        eyebrow="Dive events"
+        title="Competitions"
+        subtitle="Register, manage your buddy pairing and check live water status on event day."
+        contentClassName={styles.container}
+      >
         {!signedIn && (
           <div className={styles.empty}>
             <h2 className={styles.emptyTitle}>Sign in to view competitions</h2>
@@ -459,17 +464,23 @@ export function CompetitionRegister({ signedIn, onShowAuth }: CompetitionRegiste
           </ul>
         )}
         </>}
-      </div>
+      </PageLayout>
     )
   }
 
   // ── Detail view ──────────────────────────────────────────────────────────────
+  const detailSubtitle = [fmtDate(selected.competition_date), selected.location_site]
+    .filter(Boolean)
+    .join(' · ')
+
   return (
-    <div className={styles.container}>
+    <PageLayout
+      eyebrow="Competition"
+      title={selected.name}
+      subtitle={detailSubtitle}
+      contentClassName={styles.container}
+    >
       <button className={styles.back} onClick={back}>← All competitions</button>
-      <h1 className={styles.title}>{selected.name}</h1>
-      <div className={styles.muted}>{fmtDate(selected.competition_date)}</div>
-      {selected.location_site && <div className={styles.muted}>{selected.location_site}</div>}
       {selected.boundaries_notes && <p className={styles.notes}>{selected.boundaries_notes}</p>}
 
       <CompDayInfo comp={selected} />
@@ -561,7 +572,7 @@ export function CompetitionRegister({ signedIn, onShowAuth }: CompetitionRegiste
           </div>
         </form>
       )}
-    </div>
+    </PageLayout>
   )
 }
 

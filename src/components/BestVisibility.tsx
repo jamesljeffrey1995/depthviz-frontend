@@ -4,6 +4,7 @@ import { metresToFeet } from '../lib/units'
 import { safeColorClass } from '../lib/visibilityPalette'
 import { normalizeIsoDate } from '../lib/dateOnly'
 import type { BestVisSpot } from '../types'
+import { PageLayout } from './ui'
 import styles from './BestVisibility.module.css'
 
 interface Props {
@@ -80,12 +81,12 @@ export function BestVisibility({ onSelectSpot, units, totalSpotCount = 0 }: Prop
   const incomplete = partial || failedCount > 0 || missingCount > 0
 
   return (
-    <div className={styles.wrapper}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Best visibility</h1>
-        <div className={styles.subtitle}>UK dive spots ranked for today</div>
-      </div>
-
+    <PageLayout
+      eyebrow="Today’s coast"
+      title="Best visibility"
+      subtitle="Compare forecast clarity across UK dive spots, ranked with model confidence."
+      contentClassName={styles.content}
+    >
       {loading && (
         <div aria-busy="true">
           <div className={styles.progressBar} aria-hidden="true">
@@ -93,7 +94,7 @@ export function BestVisibility({ onSelectSpot, units, totalSpotCount = 0 }: Prop
           </div>
           <div className={styles.dateLabel}>{todayDisplay}</div>
 
-          {/* Winner-sized skeleton first, so the leader card doesn't cause
+          {/* Winner-sized skeleton first, so the leader result doesn't cause
               layout shift once real data resolves. */}
           <div className={styles.winnerSkeleton} aria-hidden="true">
             <div className={styles.skelWinnerBadge} />
@@ -136,9 +137,8 @@ export function BestVisibility({ onSelectSpot, units, totalSpotCount = 0 }: Prop
         <>
           <div className={styles.dateLabel}>{todayDisplay}</div>
 
-          {/* The winner — clear visual priority: larger card, bigger type,
-              stronger elevation. Size/weight/elevation carry the "this one's
-              the best" signal, not the instrument gauge. */}
+          {/* The winner — clear visual priority through type and spacing rather
+              than another elevated dashboard card. */}
           {(() => {
             const vis = displayVisibility(winner.day.vis_corrected ?? winner.day.vis_estimate)
             const cc = safeColorClass(winner.day.color_class)
@@ -215,6 +215,6 @@ export function BestVisibility({ onSelectSpot, units, totalSpotCount = 0 }: Prop
           <button type="button" className={styles.retryBtn} onClick={() => setReloadKey(key => key + 1)}>Retry incomplete rankings</button>
         </div>
       )}
-    </div>
+    </PageLayout>
   )
 }
