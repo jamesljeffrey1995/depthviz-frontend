@@ -6,16 +6,18 @@ import styles from './AuthModal.module.css'
 
 interface Props {
   onClose: () => void
+  onNavigateLegal?: (page: 'privacy' | 'terms') => void
+  returnFocusTo?: HTMLElement | null
 }
 
-export function AuthModal({ onClose }: Props) {
+export function AuthModal({ onClose, onNavigateLegal, returnFocusTo }: Props) {
   const { signInWithEmail } = useAuth()
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   // ESC-to-close, focus trap, scroll lock and focus restoration.
-  const modalRef = useDialog<HTMLDivElement>(onClose)
+  const modalRef = useDialog<HTMLDivElement>(onClose, returnFocusTo)
 
   const handleSubmit = async () => {
     if (!email.trim()) return
@@ -86,6 +88,14 @@ export function AuthModal({ onClose }: Props) {
             <div className={styles.why}>
               Signing in lets you submit dive reports, save private spots, and helps the model learn from your data.
             </div>
+            {onNavigateLegal && (
+              <div className={styles.legal}>
+                See how we use your email in our{' '}
+                <button type="button" onClick={() => onNavigateLegal('privacy')}>privacy notice</button>
+                {' '}and read the{' '}
+                <button type="button" onClick={() => onNavigateLegal('terms')}>terms</button>.
+              </div>
+            )}
           </>
         )}
       </div>

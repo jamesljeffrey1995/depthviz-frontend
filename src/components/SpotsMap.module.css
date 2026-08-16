@@ -174,6 +174,7 @@
   letter-spacing: 0;
   text-transform: none;
   padding: 8px 16px;
+  min-height: 44px;
   border-radius: var(--radius-full);
   cursor: pointer;
   transition: border-color var(--transition-fast);
@@ -282,6 +283,7 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   padding: 10px;
+  min-height: 44px;
   border-radius: var(--radius-full);
   cursor: pointer;
   transition: background var(--transition-fast);
@@ -306,6 +308,7 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   padding: 10px 18px;
+  min-height: 44px;
   border-radius: var(--radius-full);
   cursor: pointer;
   transition: border-color var(--transition-fast);
@@ -374,6 +377,7 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   padding: 8px 12px;
+  min-height: 44px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: border-color var(--transition-fast);
@@ -397,6 +401,7 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   padding: 6px 12px;
+  min-height: 44px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: border-color var(--transition-fast);
@@ -437,6 +442,8 @@
   cursor: pointer;
   font-size: 14px;
   padding: 4px 8px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: var(--radius-sm);
   line-height: 1;
   transition: border-color var(--transition-fast);
@@ -478,6 +485,7 @@
   font-size: 11px;
   letter-spacing: 0.04em;
   padding: 8px 10px;
+  min-height: 44px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: border-color var(--transition-fast), color var(--transition-fast);
@@ -517,7 +525,14 @@
 
 /* Dark-chart treatment for raster map tiles and Leaflet chrome. */
 .mapContainer :global(.leaflet-container)::after { content: ''; position: absolute; inset: 0; z-index: 250; pointer-events: none; background: rgba(4, 20, 31, 0.38); }
-.mapContainer :global(.leaflet-control-zoom a) { background: #0b2535; color: var(--ink); border-color: var(--surface-border); }
+.mapContainer :global(.leaflet-control-zoom a) {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+  background: #0b2535;
+  color: var(--ink);
+  border-color: var(--surface-border);
+}
 .mapContainer :global(.leaflet-control-zoom a:hover) { background: #12384d; }
 .mapContainer :global(.leaflet-control-attribution) { background: rgba(3,18,29,.82); color: var(--ink-faint); }
 .mapContainer :global(.leaflet-control-attribution a) { color: var(--accent-text); }
@@ -548,6 +563,9 @@
 /* Leaflet scopes the close button as `.leaflet-container a.leaflet-popup-close-button`,
    so the `a` has to be carried here too or the default grey wins on specificity. */
 .mapContainer :global(.leaflet-container a.leaflet-popup-close-button) {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
   color: var(--ink-faint);
   transition: color var(--transition-fast);
 }

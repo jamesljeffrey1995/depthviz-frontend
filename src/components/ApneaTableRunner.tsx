@@ -367,7 +367,7 @@ export function ApneaTableRunner({ user, onShowAuth, sharedTable }: Props) {
     <div className={styles.wrap}>
       <div className={styles.header}>
         <div className={styles.titleBlock}>
-          <div className={styles.title}>{table.name}</div>
+          <h1 className={styles.title}>{table.name}</h1>
           {table.description && <div className={styles.subtitle}>{table.description}</div>}
         </div>
       </div>

@@ -37,18 +37,22 @@ function getFocusable(container: HTMLElement): HTMLElement[] {
  */
 export function useDialog<T extends HTMLElement = HTMLDivElement>(
   onClose: () => void,
+  returnFocusTo?: HTMLElement | null,
 ): React.RefObject<T | null> {
   const ref = useRef<T>(null)
   // Keep the latest onClose without re-running the effect (which would reset
   // focus and tear down the scroll lock on every parent re-render).
   const onCloseRef = useRef(onClose)
   onCloseRef.current = onClose
+  const returnFocusRef = useRef(returnFocusTo)
+  returnFocusRef.current = returnFocusTo
 
   useEffect(() => {
     const dialog = ref.current
     if (!dialog) return
 
-    const previouslyFocused = document.activeElement as HTMLElement | null
+    const activeElement = document.activeElement as HTMLElement | null
+    const previouslyFocused = returnFocusRef.current ?? activeElement
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -90,7 +94,7 @@ export function useDialog<T extends HTMLElement = HTMLDivElement>(
     return () => {
       document.removeEventListener('keydown', handleKeyDown, true)
       document.body.style.overflow = prevOverflow
-      previouslyFocused?.focus?.()
+      if (previouslyFocused?.isConnected) previouslyFocused.focus()
     }
   }, [])
 

@@ -14,6 +14,7 @@ import {
   FT_TO_M,
   metresToFeet,
   feetToMetres,
+  formatDepth,
   visibilityInUnits,
   getWaterQuality,
 } from './units'
@@ -48,6 +49,11 @@ describe('metres ↔ feet conversion', () => {
     expect(visibilityInUnits(4.2, 'm')).toBe(4.2)
     expect(visibilityInUnits(4.2, 'ft')).toBeCloseTo(13.78, 2)
     expect(visibilityInUnits(4.2, 'ft')).not.toBe(4.2)
+  })
+
+  test('depth guidance converts the number and label together', () => {
+    expect(formatDepth(10, 'm')).toBe('10 m')
+    expect(formatDepth(10, 'ft')).toBe('33 ft')
   })
 })
 
