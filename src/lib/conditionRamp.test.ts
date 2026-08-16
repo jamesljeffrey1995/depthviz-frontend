@@ -165,13 +165,13 @@ describe('light theme text colours', () => {
 
   function finalToken(css: string, name: string): string {
     const matches = [...css.matchAll(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})\\s*;`, 'g'))]
-    const value = matches.at(-1)?.[1]
+    const value = matches[matches.length - 1]?.[1]
     if (!value) throw new Error(`--${name} is not declared as a literal hex`)
     return value
   }
 
   it('keeps accent controls and secondary text at WCAG AA contrast', () => {
-    const surfaces = ['#f7f4ee', '#f8faf9', '#edf2f3']
+    const surfaces = ['#f7f4ee', '#f8faf9', '#edf2f3', '#e4eaec']
     const textTokens = [
       finalToken(indexCss, 'ink-faint'),
       finalToken(tokensCss, 'ds-text-muted'),
