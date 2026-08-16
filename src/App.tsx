@@ -13,7 +13,7 @@ import { CookieBanner } from './components/CookieBanner'
 import { TopNav } from './components/TopNav'
 import { BrandLogo } from './components/BrandLogo'
 import { Bathymetry } from './components/Bathymetry'
-import { Button, SegmentedControl } from './components/ui'
+import { Button, PageLayout, SegmentedControl } from './components/ui'
 import PwaStatus from './components/PwaStatus'
 import {
   IconHome, IconCompass, IconActivity, IconTimer, IconUser,
@@ -614,8 +614,9 @@ export default function App() {
             aria-label="DepthViz — go to home"
             onClick={() => navigate('/')}
           >
-            <BrandLogo variant={routeTheme === 'light' ? 'full' : 'mark'} />
+            <BrandLogo variant="full" />
           </button>
+          <TopNav />
           <button
             type="button"
             className={user ? styles.authBtnAvatar : styles.authBtn}
@@ -626,8 +627,6 @@ export default function App() {
           </button>
         </div>
       </header>
-
-      <TopNav />
 
       <PwaStatus />
 
@@ -733,7 +732,7 @@ export default function App() {
               route and a thread link never resolves as a category slug. */}
           <Route path="/forum" element={
             <Suspense fallback={<RouteLoading />}>
-              <ForumIndex />
+              <ForumIndex user={user} />
             </Suspense>
           } />
           <Route path="/forum/thread/:id" element={
@@ -777,11 +776,13 @@ export default function App() {
 
           {/* Map / Dashboard */}
           <Route path="/map" element={
-            <div className={styles.mapRoute}>
-              <header className={styles.routeHeading}>
-                <p>Explore the coast</p>
-                <h1>UK dive spot map</h1>
-              </header>
+            <PageLayout
+              width="wide"
+              eyebrow="Explore the coast"
+              title="UK dive spot map"
+              subtitle="Browse entry points, saved places and the latest conditions along the coast."
+              className={styles.mapRoute}
+            >
               {(status === 'loading' || isRevalidating) && (
                 <div className={styles.loadingBar} role="status" aria-live="polite">{isRevalidating ? 'Fetching conditions...' : 'Reading conditions...'}</div>
               )}
@@ -814,7 +815,7 @@ export default function App() {
                   </>
                 </Suspense>
               )}
-            </div>
+            </PageLayout>
           } />
 
           {/* Best Visibility */}

@@ -7,7 +7,7 @@
 }
 
 .full {
-  height: clamp(58px, 8vw, 76px);
+  height: clamp(48px, 5.5vw, 58px);
 }
 
 .mark {

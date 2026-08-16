@@ -7,6 +7,7 @@ import {
 } from '../lib/api'
 import type { ForumCategory, ForumCategoryView, ForumThreadDetail } from '../types'
 import { IconChevronLeft, IconPlus } from './icons'
+import { PageLayout } from './ui'
 import styles from './ForumPage.module.css'
 
 function timeAgo(iso: string): string {
@@ -47,11 +48,12 @@ export function ForumIndex({ user }: ForumIndexProps) {
   const noThreadsAnywhere = !loading && cats.length > 0 && cats.every(c => c.thread_count === 0)
 
   return (
-    <div className={styles.container}>
-      <h1 className={styles.pageTitle}>Discussions</h1>
-      <p className={styles.intro}>
-        Swap notes on spots, gear, safety and catches with other spearos and freedivers.
-      </p>
+    <PageLayout
+      eyebrow="Community"
+      title="Discussions"
+      subtitle="Swap notes on spots, gear, safety and catches with other spearos and freedivers."
+      contentClassName={styles.container}
+    >
       {error && <p className={styles.error} role="alert">{error}</p>}
       {loading ? (
         <p className={styles.muted} role="status">Loading…</p>
@@ -86,7 +88,7 @@ export function ForumIndex({ user }: ForumIndexProps) {
           )}
         </>
       )}
-    </div>
+    </PageLayout>
   )
 }
 
@@ -132,17 +134,21 @@ export function ForumCategoryPage({ user, onShowAuth }: ForumProps) {
   }
 
   return (
-    <div className={styles.container}>
-      <button className={styles.back} onClick={() => navigate('/forum')}>
-        <IconChevronLeft width={14} height={14} /> All categories
-      </button>
-      <header className={styles.head}>
-        <h1 className={styles.pageTitle}>{view?.category.name ?? 'Loading…'}</h1>
+    <PageLayout
+      eyebrow={(
+        <button className={styles.back} onClick={() => navigate('/forum')}>
+          <IconChevronLeft width={14} height={14} /> All categories
+        </button>
+      )}
+      title={view?.category.name ?? 'Loading…'}
+      subtitle={view?.category.description ?? 'Local questions, knowledge and dive reports.'}
+      actions={(
         <button className={styles.primaryBtn} onClick={openComposer}>
           <IconPlus width={14} height={14} /> New thread
         </button>
-      </header>
-      {view?.category.description && <p className={styles.intro}>{view.category.description}</p>}
+      )}
+      contentClassName={styles.container}
+    >
       {error && <p className={styles.error} role="alert">{error}</p>}
 
       {composerOpen && (
@@ -203,7 +209,7 @@ export function ForumCategoryPage({ user, onShowAuth }: ForumProps) {
           ))}
         </ul>
       )}
-    </div>
+    </PageLayout>
   )
 }
 
