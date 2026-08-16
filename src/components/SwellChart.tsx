@@ -12,7 +12,7 @@ interface Props {
 }
 
 const H = 132
-const PAD = { top: 18, right: 10, bottom: 28, left: 44 }
+const PAD = { top: 18, right: 10, bottom: 28, left: 62 }
 const MIN_LABEL_SPACING = 54
 const FT_PER_M = 3.28084
 
@@ -157,7 +157,7 @@ export function SwellChart({ days, selectedIndex, onSelect, units = 'm' }: Props
           x1={PAD.left} x2={W - PAD.right} y1={y1} y2={y1}
           stroke="var(--ds-warn)" strokeOpacity={0.45} strokeWidth={1} strokeDasharray="3 3"
         />
-        <text x={PAD.left - 8} y={ref15LabelY} textAnchor="end" className={styles.refLabel}>{ref15Label}</text>
+        <text x={4} y={ref15LabelY} textAnchor="start" className={styles.refLabel}>{ref15Label}</text>
         <text x={PAD.left - 8} y={ref1LabelY} textAnchor="end" className={styles.refLabel}>{ref1Label}</text>
 
         {days.map((d, i) => {
