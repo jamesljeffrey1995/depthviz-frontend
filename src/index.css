@@ -100,9 +100,7 @@
      render on-system. Retire each as its screen is converted. */
   --paper: var(--surface);
   --paper-raised: var(--surface-raised);
-  --paper-dim: var(--surface-sunken);
   --rule: var(--surface-border);
-  --rule-strong: var(--surface-border-strong);
   /* Alert aliases point at the status ramp, never the clarity ramp: a warning
      and a murky forecast must not read as the same thing. */
   --danger: var(--ds-danger);
@@ -111,13 +109,7 @@
   --moderate: var(--ds-caution);
   /* Clarity aliases stay on the clarity ramp - they name clarity steps. */
   --good: var(--sev-good);
-  --excellent: var(--sev-excellent);
-  --decent: var(--sev-decent);
-  --blocked: var(--sev-blocked);
-  --ocean-deep: var(--ink);
   --ocean-mid: var(--surface-sunken);
-  --ocean-surface: var(--surface-raised);
-  --brine: var(--surface-border-strong);
   --text: var(--ink-dim);
   --text-bright: var(--ink);
 
