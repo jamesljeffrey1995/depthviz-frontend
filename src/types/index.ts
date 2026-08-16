@@ -181,6 +181,10 @@ export interface BestVisSpot {
 export interface BestVisResponse {
   spots: BestVisSpot[]
   failedCount?: number
+  /** Server date used to rank the forecasts. */
+  date?: string
+  /** True when the server returned before every spot finished. */
+  partial?: boolean
 }
 
 export type SeabedClass = 'rock' | 'gravel' | 'sand' | 'mixed' | 'mud'

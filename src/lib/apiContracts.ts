@@ -444,5 +444,7 @@ export function normalizeBestVisResponse(value: unknown): BestVisResponse {
   return {
     spots,
     failedCount: asNumber(rec.failedCount) ?? undefined,
+    date: asString(rec.date) ?? undefined,
+    partial: asBoolean(rec.partial) ?? undefined,
   }
 }

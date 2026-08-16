@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react'
 import { getBestVisibility } from '../lib/api'
 import { metresToFeet } from '../lib/units'
 import { safeColorClass } from '../lib/visibilityPalette'
+import { normalizeIsoDate } from '../lib/dateOnly'
 import type { BestVisSpot } from '../types'
 import styles from './BestVisibility.module.css'
 
 interface Props {
   onSelectSpot: (lat: number, lon: number, name: string) => void
   units: 'ft' | 'm'
+  totalSpotCount?: number
 }
 
 // Number of placeholder rows to render while the fan-out resolves (one
@@ -19,25 +21,33 @@ const SKELETON_COUNT = 7
 const PROGRESS_CAP = 92
 const PROGRESS_TIME_CONSTANT_MS = 18000
 
-export function BestVisibility({ onSelectSpot, units }: Props) {
+export function BestVisibility({ onSelectSpot, units, totalSpotCount = 0 }: Props) {
   const [spots, setSpots] = useState<BestVisSpot[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [failedCount, setFailedCount] = useState(0)
+  const [partial, setPartial] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [reloadKey, setReloadKey] = useState(0)
 
   // Compute today's date once at mount to avoid drift across midnight
   const [todayISO] = useState(() => new Date().toISOString().slice(0, 10))
-  const todayDisplay = new Date(todayISO + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
+  const [rankingDate, setRankingDate] = useState(todayISO)
+  const todayDisplay = new Date(rankingDate + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
 
   useEffect(() => {
     const controller = new AbortController()
+    setLoading(true)
+    setError('')
+    setProgress(0)
 
-    getBestVisibility()
+    getBestVisibility({ refresh: reloadKey > 0 })
       .then(response => {
         if (controller.signal.aborted) return
         setSpots(response.spots)
         setFailedCount(response.failedCount ?? 0)
+        setPartial(response.partial ?? false)
+        setRankingDate(normalizeIsoDate(response.date ?? '') ?? todayISO)
         setLoading(false)
       })
       .catch(() => {
@@ -48,7 +58,7 @@ export function BestVisibility({ onSelectSpot, units }: Props) {
       })
 
     return () => { controller.abort() }
-  }, [])
+  }, [reloadKey, todayISO])
 
   // Drive the bounded progress bar while loading.
   useEffect(() => {
@@ -66,6 +76,8 @@ export function BestVisibility({ onSelectSpot, units }: Props) {
   const rest = spots.slice(1)
   const unitLabel = units === 'ft' ? 'feet' : 'metres'
   const displayVisibility = (metres: number) => units === 'ft' ? metresToFeet(metres) : metres
+  const missingCount = totalSpotCount > 0 ? Math.max(0, totalSpotCount - spots.length) : failedCount
+  const incomplete = partial || failedCount > 0 || missingCount > 0
 
   return (
     <div className={styles.wrapper}>
@@ -113,7 +125,12 @@ export function BestVisibility({ onSelectSpot, units }: Props) {
         </div>
       )}
 
-      {error && <div className={styles.error}>{error}</div>}
+      {error && (
+        <div className={styles.error} role="alert">
+          <p>{error}. Your saved forecasts are unchanged.</p>
+          <button type="button" className={styles.retryBtn} onClick={() => setReloadKey(key => key + 1)}>Try again</button>
+        </div>
+      )}
 
       {!loading && !error && winner && (
         <>
@@ -126,13 +143,11 @@ export function BestVisibility({ onSelectSpot, units }: Props) {
             const vis = displayVisibility(winner.day.vis_corrected ?? winner.day.vis_estimate)
             const cc = safeColorClass(winner.day.color_class)
             return (
-              <div
+              <button
+                type="button"
                 className={styles.winnerCard}
-                role="button"
-                tabIndex={0}
                 aria-label={`View forecast for ${winner.name}, the best-visibility spot today at ${vis.toFixed(1)} ${unitLabel}`}
                 onClick={() => onSelectSpot(winner.lat, winner.lon, winner.name)}
-                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectSpot(winner.lat, winner.lon, winner.name) } }}
               >
                 <div className={styles.winnerBadge}>Best today</div>
                 <div className={styles.winnerBody}>
@@ -145,7 +160,7 @@ export function BestVisibility({ onSelectSpot, units }: Props) {
                     <div className={styles.winnerVisUnit}>{unitLabel}</div>
                   </div>
                 </div>
-              </div>
+              </button>
             )
           })()}
 
@@ -157,14 +172,12 @@ export function BestVisibility({ onSelectSpot, units }: Props) {
                   const vis = displayVisibility(spot.day.vis_corrected ?? spot.day.vis_estimate)
                   const cc = safeColorClass(spot.day.color_class)
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={`${spot.lat}-${spot.lon}`}
                       className={styles.spotRow}
-                      role="button"
-                      tabIndex={0}
                       aria-label={`View forecast for ${spot.name} at ${vis.toFixed(1)} ${unitLabel}`}
                       onClick={() => onSelectSpot(spot.lat, spot.lon, spot.name)}
-                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectSpot(spot.lat, spot.lon, spot.name) } }}
                     >
                       <div className={styles.rank}>{i + 2}</div>
                       <div className={styles.spotInfo}>
@@ -179,7 +192,7 @@ export function BestVisibility({ onSelectSpot, units }: Props) {
                         </div>
                         <div className={styles.visUnit}>{unitLabel}</div>
                       </div>
-                    </div>
+                    </button>
                   )
                 })}
               </div>
@@ -192,9 +205,14 @@ export function BestVisibility({ onSelectSpot, units }: Props) {
         <div className={styles.error}>No visibility data available for today</div>
       )}
 
-      {!loading && failedCount > 0 && (
-        <div className={styles.failedNote}>
-          {failedCount} spot{failedCount !== 1 ? 's' : ''} could not be loaded — try refreshing
+      {!loading && !error && incomplete && spots.length > 0 && (
+        <div className={styles.failedNote} role="status">
+          <span>
+            Ranked {spots.length}{totalSpotCount > 0 ? ` of ${totalSpotCount}` : ''} spots.
+            {missingCount > 0 && ` ${missingCount} forecast${missingCount !== 1 ? 's' : ''} did not finish within the service window.`}
+            {partial && missingCount === 0 && ' Some forecasts did not finish within the service window.'}
+          </span>
+          <button type="button" className={styles.retryBtn} onClick={() => setReloadKey(key => key + 1)}>Retry incomplete rankings</button>
         </div>
       )}
     </div>

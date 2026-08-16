@@ -818,7 +818,11 @@ export default function App() {
           {/* Best Visibility */}
           <Route path="/best" element={
             <Suspense fallback={<RouteLoading />}>
-              <BestVisibility onSelectSpot={handleSpotSelect} units={units} />
+              <BestVisibility
+                onSelectSpot={handleSpotSelect}
+                units={units}
+                totalSpotCount={locations.filter(location => location.is_predefined).length}
+              />
             </Suspense>
           } />
 
