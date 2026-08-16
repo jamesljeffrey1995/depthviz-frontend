@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getNews } from '../lib/api'
+import { newsPath } from '../lib/newsPath'
 import { startRouteTransition } from '../lib/viewTransition'
 import { visibilityInUnits } from '../lib/units'
 import type { Announcement, DayForecast, ForecastResponse } from '../types'
@@ -190,7 +191,7 @@ export function HomePage({ locationSearch, forecast, units, forecastPath }: Home
           <ul className={styles.newsList}>
             {news.map(item => (
               <li key={item.id}>
-                <button className={styles.newsItem} onClick={() => navigate('/news')}>
+                <button className={styles.newsItem} onClick={() => navigate(newsPath(item))}>
                   <div>
                     <strong>{item.title}</strong>
                     <p>{item.summary || `${item.body.slice(0, 160)}${item.body.length > 160 ? '…' : ''}`}</p>

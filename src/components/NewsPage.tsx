@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { getNews, createNews, updateNews, deleteNews } from '../lib/api'
+import { newsPath } from '../lib/newsPath'
 import type { Announcement } from '../types'
-import { IconChevronDown, IconChevronUp } from './icons'
 import styles from './NewsPage.module.css'
 
 function formatDate(iso: string): string {
@@ -25,19 +25,6 @@ export function NewsPage({ isAdmin }: Props) {
   const [saving, setSaving] = useState(false)
   // Client-side category filter. Empty string means "all".
   const [activeCategory, setActiveCategory] = useState('')
-  // Cards render as a scannable index (title + excerpt); the full body only
-  // expands on demand so the page never becomes a wall of text.
-  const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set())
-
-  function toggleExpanded(id: number) {
-    setExpandedIds(prev => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
-
   // Distinct categories present in the loaded posts, in first-seen order.
   const categories = Array.from(
     new Set(items.map(i => i.category).filter((c): c is string => !!c))
@@ -228,7 +215,6 @@ export function NewsPage({ isAdmin }: Props) {
       ) : (
         <ul className={styles.list}>
           {visibleItems.map(a => {
-            const expanded = expandedIds.has(a.id)
             const excerpt = a.summary || `${a.body.slice(0, 220)}${a.body.length > 220 ? '…' : ''}`
             return (
               <li key={a.id} className={styles.card}>
@@ -239,32 +225,12 @@ export function NewsPage({ isAdmin }: Props) {
                     {a.category && <span className={styles.badge}>{a.category}</span>}
                   </div>
                 )}
-                <h2 className={styles.cardTitle}>{a.title}</h2>
+                <h2 className={styles.cardTitle}><Link to={newsPath(a)}>{a.title}</Link></h2>
                 <div className={styles.meta}>
                   {a.author_name} · {formatDate(a.created_at)}
                 </div>
-                {expanded ? (
-                  <>
-                    {a.summary && <p className={styles.summary}>{a.summary}</p>}
-                    <p className={styles.body}>{a.body}</p>
-                  </>
-                ) : (
-                  <p className={styles.summary}>{excerpt}</p>
-                )}
-                <button
-                  type="button"
-                  className={styles.readBtn}
-                  onClick={() => toggleExpanded(a.id)}
-                  aria-expanded={expanded}
-                >
-                  {expanded ? <><IconChevronUp width={14} height={14} /> Show less</> : <><IconChevronDown width={14} height={14} /> Read article</>}
-                </button>
-                {expanded && (
-                  <div className={styles.articleActions} role="group" aria-label="Use this guide">
-                    <Link className={styles.primaryAction} to="/forecast">Check your forecast</Link>
-                    <Link className={styles.secondaryAction} to="/report">Log what you found</Link>
-                  </div>
-                )}
+                <p className={styles.summary}>{excerpt}</p>
+                <Link className={styles.readBtn} to={newsPath(a)}>Read article →</Link>
                 {isAdmin && (
                   <div className={styles.adminRow}>
                     <button className={styles.linkBtn} onClick={() => startEdit(a)}>Edit</button>
