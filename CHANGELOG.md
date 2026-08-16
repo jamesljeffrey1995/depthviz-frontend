@@ -1,3 +1,10 @@
+## [1.25.1](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.25.0...v1.25.1) (2026-08-16)
+
+
+### Bug Fixes
+
+* preserve keyboard focus ring on #main-content using :focus-visible ([57e5e26](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/57e5e264a0effa550c5aec76bf066bc8d2ac6fd2))
+
 # [1.25.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.24.10...v1.25.0) (2026-08-16)
 
 
