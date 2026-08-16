@@ -50,8 +50,10 @@ export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, 
     const strip = stripRef.current
     const activeDay = strip?.querySelector<HTMLElement>('[data-active="true"]')
     if (!strip || !activeDay) return
+    const stripRect = strip.getBoundingClientRect()
+    const activeDayRect = activeDay.getBoundingClientRect()
     strip.scrollTo({
-      left: activeDay.offsetLeft - (strip.clientWidth - activeDay.clientWidth) / 2,
+      left: strip.scrollLeft + (activeDayRect.left - stripRect.left) - (strip.clientWidth - activeDay.clientWidth) / 2,
       behavior: 'auto',
     })
   }, [selectedIndex])

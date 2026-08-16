@@ -5,11 +5,15 @@ export interface ForecastLocationParams {
   locationId?: number | null
 }
 
+function roundCoordinate(value: number): number {
+  return Number(value.toFixed(5))
+}
+
 /** Build a durable forecast URL without exposing more precision than the model uses. */
 export function buildForecastPath({ lat, lon, name, locationId }: ForecastLocationParams): string {
   const params = new URLSearchParams({
-    lat: lat.toFixed(5),
-    lon: lon.toFixed(5),
+    lat: roundCoordinate(lat).toFixed(5),
+    lon: roundCoordinate(lon).toFixed(5),
     name,
   })
   if (locationId != null) params.set('locationId', String(locationId))
@@ -33,5 +37,10 @@ export function parseForecastLocation(search: string): ForecastLocationParams | 
   if (!name) return null
   if (rawLocationId !== null && (!Number.isInteger(locationId) || (locationId ?? 0) <= 0)) return null
 
-  return { lat, lon, name, locationId }
+  return {
+    lat: roundCoordinate(lat),
+    lon: roundCoordinate(lon),
+    name,
+    locationId,
+  }
 }

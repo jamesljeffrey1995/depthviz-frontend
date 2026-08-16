@@ -164,12 +164,10 @@ export function TidesPage({ lat, lon, locationName, embedded = false }: Props) {
 
   // Current time marker
   const now = new Date()
-  const todayStr = new Date().toISOString().split('T')[0]
-  const isToday = activeDate === todayStr
   let nowX: number | null = null
   const firstPt = points[0]
   const lastPt = points[points.length - 1]
-  if (isToday && firstPt && lastPt) {
+  if (firstPt && lastPt) {
     const startTime = new Date(firstPt.time).getTime()
     const endTime = new Date(lastPt.time).getTime()
     const nowTime = now.getTime()

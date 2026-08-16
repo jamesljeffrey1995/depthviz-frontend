@@ -29,6 +29,15 @@ describe('shareable forecast URLs', () => {
     })
   })
 
+  test('normalises shared links to durable coordinate precision', () => {
+    expect(parseForecastLocation('?lat=50.1234567&lon=-3.9876543&name=Custom+coast')).toEqual({
+      lat: 50.12346,
+      lon: -3.98765,
+      name: 'Custom coast',
+      locationId: null,
+    })
+  })
+
   test('rejects incomplete and out-of-range URLs', () => {
     expect(parseForecastLocation('?lat=55&lon=-1')).toBeNull()
     expect(parseForecastLocation('?name=Missing+coordinates')).toBeNull()
