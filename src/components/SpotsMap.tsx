@@ -350,7 +350,6 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.label}>UK Dive Spots</div>
       <div className={`${styles.mapContainer} ${adding ? styles.mapAdding : ''}`}>
         <MapContainer
           center={center ?? UK_CENTER}

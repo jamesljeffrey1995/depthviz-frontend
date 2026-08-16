@@ -22,7 +22,7 @@
 .locationSearch,
 .forecastNav {
   width: 100%;
-  max-width: 720px;
+  max-width: 760px;
   margin-inline: auto;
 }
 
@@ -40,9 +40,16 @@
   width: 100%;
 }
 
-.main:focus:not(:focus-visible),
-.mainWide:focus:not(:focus-visible) {
+.main:focus,
+.mainWide:focus {
   outline: none;
+}
+
+@media (forced-colors: active) {
+  .main:focus,
+  .mainWide:focus {
+    outline: 1px solid transparent;
+  }
 }
 
 .srOnly {
@@ -184,6 +191,14 @@
   cursor: pointer;
   view-transition-name: depthviz-logo;
   border-radius: var(--radius-sm);
+}
+
+/* The supplied mark contains dark linework intended for pale backgrounds.
+   Render it as a calm monochrome signature on instrument-dark routes instead
+   of letting half the logo disappear into the shell. */
+.darkShell .logo img {
+  filter: brightness(0) invert(1);
+  opacity: 0.88;
 }
 
 .logoMark {
@@ -334,18 +349,22 @@
 
 /* ── Empty state ── */
 .empty {
+  display: grid;
+  justify-items: center;
   text-align: center;
-  padding: 64px var(--space-lg);
+  padding: 72px var(--space-lg);
 }
 
 .emptyIcon {
   width: 40px;
   height: 40px;
   color: var(--ink-faint);
-  margin-bottom: var(--space-md);
+  margin-bottom: var(--space-sm);
 }
 
 .emptyText {
+  max-width: 38ch;
+  margin-inline: auto;
   font-size: 14px;
   color: var(--ink-faint);
   line-height: 1.7;
