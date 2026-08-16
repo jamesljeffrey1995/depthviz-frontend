@@ -24,6 +24,8 @@
 .adminLink:hover { background: var(--accent); color: var(--accent-on); box-shadow: var(--shadow-glow); }
 .notes { color: var(--ink-dim); margin: var(--space-sm) 0; white-space: pre-wrap; line-height: 1.6; }
 .empty { padding: var(--space-xl) var(--space-md); text-align: center; color: var(--ink-faint); background: var(--surface-sunken); border-radius: var(--radius-md); }
+.emptyTitle { margin: 0 0 var(--space-xs); color: var(--ink); font-size: 1.1rem; }
+.emptyCopy { max-width: 34rem; margin: 0 auto var(--space-md); line-height: 1.55; }
 
 .error, .notice {
   margin: var(--space-sm) 0;

@@ -25,7 +25,7 @@ export function LegalPage({ page, onBack }: Props) {
 function Disclaimer() {
   return (
     <>
-      <div className={styles.title}>Disclaimer &amp; Liability</div>
+      <h1 className={styles.title}>Disclaimer &amp; Liability</h1>
       <div className={styles.updated}>Last updated: June 2026</div>
 
       <div className={styles.section}>
@@ -137,14 +137,14 @@ function Disclaimer() {
 function PrivacyPolicy() {
   return (
     <>
-      <div className={styles.title}>Privacy Policy</div>
+      <h1 className={styles.title}>Privacy Policy</h1>
       <div className={styles.updated}>Last updated: July 2026</div>
 
       <div className={styles.section}>
         <h3>What we collect</h3>
         <p>DepthViz collects only what is necessary to provide underwater visibility forecasts and community dive reports:</p>
         <ul>
-          <li><span className={styles.highlight}>Email address</span> — for authentication (Supabase Auth). It is stored only as a one-way cryptographic hash, never as plaintext.</li>
+          <li><span className={styles.highlight}>Email address</span> — Supabase Auth uses it to send sign-in links and manage your account.</li>
           <li><span className={styles.highlight}>Location searches</span> — coordinates you search for, to return forecast data</li>
           <li><span className={styles.highlight}>Saved locations</span> — dive sites you bookmark. Coordinates for spots you mark <em>private</em> are encrypted on your device before they reach us.</li>
           <li><span className={styles.highlight}>Dive reports &amp; catch logs</span> — observations you voluntarily submit</li>
@@ -158,8 +158,8 @@ function PrivacyPolicy() {
           If you register for a spearfishing competition, we collect the details needed to keep
           you safe in the water — your name, phone number, an emergency contact, and any medical
           notes you choose to share. This is used only for in-water safety accounting during the
-          event, is visible only to competition administrators, and is automatically purged a set
-          period after the event.
+          event and is visible only to competition administrators. We retain it only while it is
+          needed for event administration and applicable safety or legal obligations.
         </p>
       </div>
 
@@ -184,7 +184,7 @@ function PrivacyPolicy() {
 
       <div className={styles.section}>
         <h3>Data retention</h3>
-        <p>Your account data is retained as long as your account exists. Competition safety details (emergency contact and medical notes) are automatically purged a set period after each event. If you delete your account, your dive reports are kept but permanently anonymised — they help improve forecasts for everyone and can no longer be traced back to you.</p>
+        <p>Your account data is retained as long as your account exists. Competition safety details are retained only while needed for event administration and applicable safety or legal obligations. If you delete your account, your dive reports are kept but permanently anonymised — they help improve forecasts for everyone and can no longer be traced back to you.</p>
       </div>
 
       <div className={styles.section}>
@@ -203,7 +203,7 @@ function PrivacyPolicy() {
 function CookiePolicy() {
   return (
     <>
-      <div className={styles.title}>Cookie Policy</div>
+      <h1 className={styles.title}>Cookie Policy</h1>
       <div className={styles.updated}>Last updated: March 2026</div>
 
       <div className={styles.section}>
@@ -236,7 +236,7 @@ function CookiePolicy() {
 function TermsOfService() {
   return (
     <>
-      <div className={styles.title}>Terms of Service</div>
+      <h1 className={styles.title}>Terms of Service</h1>
       <div className={styles.updated}>Last updated: June 2026</div>
 
       <div className={styles.section}>
@@ -280,7 +280,7 @@ function TermsOfService() {
 function SecurityPolicy() {
   return (
     <>
-      <div className={styles.title}>Security Policy</div>
+      <h1 className={styles.title}>Security Policy</h1>
       <div className={styles.updated}>Last updated: March 2026</div>
 
       <div className={styles.section}>
@@ -319,18 +319,15 @@ function SecurityPolicy() {
 function ContactPage() {
   return (
     <>
-      <div className={styles.title}>Contact</div>
+      <h1 className={styles.title}>Contact</h1>
       <div className={styles.updated}>Last updated: March 2026</div>
 
       <div className={styles.section}>
         <h3>Business contact</h3>
         <div className={styles.contactCard}>
           <p>
-            {/* TODO: Replace with your real business details */}
             DepthViz<br />
-            [DepthViz]<br />
-            [Stratford Grove West]<br />
-            [Newcastle upon Tyne, United Kingdom]<br /><br />
+            Newcastle upon Tyne, United Kingdom<br /><br />
             General enquiries: <a href="mailto:hello@depthviz.uk">hello@depthviz.uk</a><br />
             Security issues: <a href="mailto:security@depthviz.uk">security@depthviz.uk</a><br />
             Abuse reports: <a href="mailto:abuse@depthviz.uk">abuse@depthviz.uk</a>
@@ -360,7 +357,7 @@ function ContactPage() {
 function AccessibilityStatement() {
   return (
     <>
-      <div className={styles.title}>Accessibility</div>
+      <h1 className={styles.title}>Accessibility</h1>
       <div className={styles.updated}>Last updated: March 2026</div>
 
       <div className={styles.section}>

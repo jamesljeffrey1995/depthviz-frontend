@@ -233,7 +233,12 @@ function fmtDate(iso: string): string {
   })
 }
 
-export function CompetitionRegister() {
+interface CompetitionRegisterProps {
+  signedIn: boolean
+  onShowAuth: () => void
+}
+
+export function CompetitionRegister({ signedIn, onShowAuth }: CompetitionRegisterProps) {
   const navigate = useNavigate()
   const [comps, setComps] = useState<OpenCompetition[] | null>(null)
   const [mine, setMine] = useState<MyCompetition[]>([])
@@ -248,6 +253,13 @@ export function CompetitionRegister() {
   const [notice, setNotice] = useState<string | null>(null)
 
   const loadList = useCallback(async () => {
+    if (!signedIn) {
+      setComps([])
+      setMine([])
+      setError(null)
+      setLoading(false)
+      return
+    }
     setLoading(true)
     setError(null)
     try {
@@ -262,15 +274,23 @@ export function CompetitionRegister() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [signedIn])
 
   useEffect(() => { loadList() }, [loadList])
+
+  useEffect(() => {
+    if (signedIn) return
+    setSelected(null)
+    setRegistration(null)
+    setProfile(null)
+  }, [signedIn])
 
   // Load the diver's saved profile once so the registration form can pre-fill
   // from it. Best-effort — a missing profile just leaves the form blank.
   useEffect(() => {
+    if (!signedIn) return
     getMyProfile().then(setProfile).catch(() => {})
-  }, [])
+  }, [signedIn])
 
   // While a registered event is live, refresh so the diver's own water status
   // (signed out / returned, set by the admin on the board) stays current.
@@ -376,6 +396,14 @@ export function CompetitionRegister() {
     return (
       <div className={styles.container}>
         <h1 className={styles.title}>Competitions</h1>
+        {!signedIn && (
+          <div className={styles.empty}>
+            <h2 className={styles.emptyTitle}>Sign in to view competitions</h2>
+            <p className={styles.emptyCopy}>See open events, manage your registrations, and check your live water status.</p>
+            <button className={styles.btnPrimary} onClick={onShowAuth}>Sign in</button>
+          </div>
+        )}
+        {signedIn && <>
         {profile?.is_admin && (
           <button className={styles.adminLink} onClick={() => navigate('/admin/competition')}>
             Open competition ops →
@@ -430,6 +458,7 @@ export function CompetitionRegister() {
             ))}
           </ul>
         )}
+        </>}
       </div>
     )
   }
