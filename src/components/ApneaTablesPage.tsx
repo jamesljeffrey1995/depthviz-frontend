@@ -88,8 +88,8 @@ export function ApneaTablesPage({ user, onShowAuth }: Props) {
 
   return (
     <PageLayout
-      title="Apnea Training Tables"
-      subtitle="Safety-first breath-hold tables with a cleaner mobile library, clearer difficulty signals, and shared controls."
+      title="Apnea training tables"
+      subtitle="Safety-first breath-hold tables with clear difficulty levels, guided timers and sharing."
       actions={
         <Button
           variant="primary"

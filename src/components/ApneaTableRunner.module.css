@@ -21,7 +21,7 @@
   font-size: 26px;
   letter-spacing: -0.025em;
   color: var(--ink);
-  margin-bottom: 4px;
+  margin: 0 0 4px;
 }
 
 .subtitle {
@@ -73,6 +73,7 @@
   letter-spacing: 0;
   text-transform: none;
   padding: 8px 12px;
+  min-height: 44px;
   cursor: pointer;
   transition: border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
 }
@@ -191,6 +192,7 @@
   letter-spacing: 0;
   text-transform: none;
   padding: 12px 24px;
+  min-height: 44px;
   cursor: pointer;
   transition: background var(--transition-fast), box-shadow var(--transition-fast);
 }

@@ -7,6 +7,7 @@ import {
   type SuitRegions,
   type WaterType,
 } from '../lib/weightCalc'
+import { formatDepth } from '../lib/units'
 import { BodySuitSelector } from './BodySuitSelector'
 import { Badge, Card, PageLayout, SegmentedControl } from './ui'
 import styles from './WeightCalculator.module.css'
@@ -59,6 +60,7 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
 
   const imperial = unitSystem === 'imperial'
   const fmt = (kg: number) => (imperial ? `${kgToLb(kg).toFixed(1)} lb` : `${kg.toFixed(1)} kg`)
+  const fmtDepth = (metres: number) => formatDepth(metres, imperial ? 'ft' : 'm')
 
   const heightInvalid = heightCm < HEIGHT_RANGE_CM.min || heightCm > HEIGHT_RANGE_CM.max
   const weightInvalid = weightKg < WEIGHT_RANGE_KG.min || weightKg > WEIGHT_RANGE_KG.max
@@ -75,7 +77,7 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
 
   return (
     <PageLayout
-      title="Weight Belt Calculator"
+      title="Weight belt calculator"
       subtitle="Freediving and spearfishing neutral-buoyancy estimate with safety guidance kept front and centre."
     >
       <Card className={styles.safety} padding="md" accent="var(--ds-warn)" role="note">
@@ -188,7 +190,7 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
           <div className={styles.field}>
             <div className={styles.sliderHeader}>
               <label className={styles.label} htmlFor="wc-depth">Target neutral depth</label>
-              <span className={styles.sliderValue}>{neutralDepthM} m</span>
+              <span className={styles.sliderValue}>{fmtDepth(neutralDepthM)}</span>
             </div>
             <input
               id="wc-depth"
@@ -198,10 +200,11 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
               max={30}
               step={1}
               value={neutralDepthM}
+              aria-valuetext={fmtDepth(neutralDepthM)}
               onChange={e => setNeutralDepthM(Number(e.target.value))}
             />
             <div className={styles.sliderHint}>
-              Most freedivers weight to be neutral at 8–12 m so they remain positively buoyant at the surface.
+              Most freedivers weight to be neutral at {imperial ? '26–39 ft' : '8–12 m'} so they remain positively buoyant at the surface.
             </div>
           </div>
         </div>
@@ -214,18 +217,18 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
             <div className={styles.resultValue}>{fmt(result.recommendedKg)}</div>
             <div className={styles.resultRange}>Try {fmt(result.minKg)}–{fmt(result.maxKg)} and fine-tune in shallow water.</div>
             <p className={styles.resultExplain}>
-              With this weight you should float at the surface after a relaxed breath and become neutral around {neutralDepthM} m.
+              With this weight you should float at the surface after a relaxed breath and become neutral around {fmtDepth(neutralDepthM)}.
             </p>
             <div className={styles.breakdown}>
               <div className={styles.breakdownRow}><span>Wetsuit buoyancy (surface)</span><span>{fmt(result.suitBuoyancySurface)}</span></div>
-              <div className={styles.breakdownRow}><span>Wetsuit buoyancy at {neutralDepthM} m</span><span>{fmt(result.suitBuoyancyAtDepth)}</span></div>
-              <div className={styles.breakdownRow}><span>Body buoyancy at {neutralDepthM} m</span><span>{fmt(result.bodyBuoyancyAtDepth)}</span></div>
+              <div className={styles.breakdownRow}><span>Wetsuit buoyancy at {fmtDepth(neutralDepthM)}</span><span>{fmt(result.suitBuoyancyAtDepth)}</span></div>
+              <div className={styles.breakdownRow}><span>Body buoyancy at {fmtDepth(neutralDepthM)}</span><span>{fmt(result.bodyBuoyancyAtDepth)}</span></div>
             </div>
             <div className={styles.resultAssumptions} aria-label="Based on your inputs">
               <Badge tone="neutral">{suitLabel}</Badge>
               <Badge tone="neutral">{buildLabel}</Badge>
               <Badge tone="neutral">{WATER_LABEL[water]}</Badge>
-              <Badge tone="accent">Neutral at {neutralDepthM} m</Badge>
+              <Badge tone="accent">Neutral at {fmtDepth(neutralDepthM)}</Badge>
             </div>
           </>
         ) : (
@@ -238,8 +241,8 @@ export function WeightCalculator({ onNavigateLegal }: Props) {
         <ol>
           <li>Enter shallow water with a buddy and your belt.</li>
           <li>Take a normal breath, stay still, and confirm you still float comfortably at the surface.</li>
-          <li>You should only start to sink once you exhale or duck-dive past a few metres.</li>
-          <li>Add or remove weight 0.5 kg at a time until you are positive at the surface and neutral near your target depth.</li>
+          <li>You should only start to sink once you exhale or duck-dive past {imperial ? 'several feet' : 'a few metres'}.</li>
+          <li>Add or remove weight {imperial ? '1.1 lb' : '0.5 kg'} at a time until you are positive at the surface and neutral near your target depth.</li>
         </ol>
         <p className={styles.howtoNote}>
           Always err on the side of <strong>less</strong> weight — being too heavy is a major contributor to shallow-water blackout fatalities.

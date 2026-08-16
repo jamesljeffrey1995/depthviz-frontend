@@ -148,6 +148,7 @@ export default function App() {
   const [currentLon, setCurrentLon] = useState<number | null>(null)
   const [currentName, setCurrentName] = useState('')
   const [showAuth, setShowAuth] = useState(false)
+  const authReturnFocusRef = useRef<HTMLElement | null>(null)
   const [uiError, setUiError] = useState('')
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null)
   const [units, setUnits] = useState<'ft' | 'm'>(() => {
@@ -242,7 +243,9 @@ export default function App() {
   // "access required" state during the round-trip.
   const [adminChecked, setAdminChecked] = useState(false)
 
-  const requestAuth = useCallback((intent?: AuthIntent) => {
+  const requestAuth = useCallback((intent?: AuthIntent, trigger?: HTMLElement | null) => {
+    const active = trigger ?? document.activeElement
+    authReturnFocusRef.current = active instanceof HTMLElement && active !== document.body ? active : null
     setPendingAuthIntent(intent ?? { type: 'route', path: currentPath })
     setShowAuth(true)
   }, [currentPath])
@@ -590,7 +593,17 @@ export default function App() {
       <a href="#main-content" className="skip-link">Skip to content</a>
 
       <Suspense fallback={null}>
-        {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+        {showAuth && (
+          <AuthModal
+            returnFocusTo={authReturnFocusRef.current}
+            onClose={() => { setPendingAuthIntent(null); setShowAuth(false) }}
+            onNavigateLegal={(page) => {
+              setPendingAuthIntent(null)
+              setShowAuth(false)
+              navigate(`/legal/${page}`)
+            }}
+          />
+        )}
       </Suspense>
 
       <header className={styles.header}>
@@ -606,7 +619,7 @@ export default function App() {
           <button
             type="button"
             className={user ? styles.authBtnAvatar : styles.authBtn}
-            onClick={() => { if (user) navigate('/profile'); else requestAuth({ type: 'route', path: '/profile' }) }}
+            onClick={(event) => { if (user) navigate('/profile'); else requestAuth({ type: 'route', path: '/profile' }, event.currentTarget) }}
             aria-label={user ? `View profile for ${user.email?.split('@')[0] ?? 'user'}` : 'Sign in to your account'}
           >
             {user ? (user.email?.[0] ?? 'U').toUpperCase() : (<><IconUser aria-hidden="true" /><span>Sign in</span></>)}

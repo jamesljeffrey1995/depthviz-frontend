@@ -31,6 +31,11 @@ export function visibilityInUnits(metres: number, units: Units): number {
   return units === 'ft' ? metresToFeet(metres) : metres
 }
 
+/** Human-readable whole-unit depth for controls and safety guidance. */
+export function formatDepth(metres: number, units: Units): string {
+  return units === 'ft' ? `${Math.round(metresToFeet(metres))} ft` : `${metres} m`
+}
+
 export interface WaterQuality {
   label: string
   color: string
