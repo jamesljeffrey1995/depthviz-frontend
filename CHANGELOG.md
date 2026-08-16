@@ -1,3 +1,16 @@
+# [1.26.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.25.2...v1.26.0) (2026-08-16)
+
+
+### Bug Fixes
+
+* **accessibility:** polish audited interactions ([5273038](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/527303886fb32ec878e9cae90eae26226146170f))
+* **best:** explain partial spot rankings ([5a5910d](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/5a5910dda2ba06d0ec49fbd70feeb4a3da990fc8))
+
+
+### Features
+
+* **guides:** add indexable article routes ([c450ec8](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/c450ec8f1d86d1357d26d6757d13831978a33aec))
+
 ## [1.25.2](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.25.1...v1.25.2) (2026-08-16)
 
 
