@@ -118,7 +118,13 @@ export function NewsPage({ isAdmin }: Props) {
   return (
     <div className={styles.container}>
       <header className={styles.head}>
-        <h1 className={styles.title}>News</h1>
+        <div>
+          <p className={styles.eyebrow}>DepthViz knowledge</p>
+          <h1 className={styles.title}>News &amp; guides</h1>
+          <p className={styles.intro}>
+            Practical visibility explainers, model updates and community knowledge for planning a better dive.
+          </p>
+        </div>
         {isAdmin && (
           <button className={styles.newBtn} onClick={startCreate}>+ New post</button>
         )}
@@ -252,6 +258,12 @@ export function NewsPage({ isAdmin }: Props) {
                 >
                   {expanded ? <><IconChevronUp width={14} height={14} /> Show less</> : <><IconChevronDown width={14} height={14} /> Read article</>}
                 </button>
+                {expanded && (
+                  <div className={styles.articleActions} aria-label="Use this guide">
+                    <a className={styles.primaryAction} href="/forecast">Check your forecast</a>
+                    <a className={styles.secondaryAction} href="/report">Log what you found</a>
+                  </div>
+                )}
                 {isAdmin && (
                   <div className={styles.adminRow}>
                     <button className={styles.linkBtn} onClick={() => startEdit(a)}>Edit</button>
