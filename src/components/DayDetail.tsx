@@ -49,10 +49,10 @@ interface Props {
   onSelectDay?: (index: number) => void
 }
 
-/** Secondary metrics default to expanded on desktop, collapsed on phones. */
+/** The primary marine readings are part of the first-pass forecast decision,
+ *  so they remain visible on every viewport. */
 function defaultConditionsOpen(): boolean {
-  if (typeof window === 'undefined' || !window.matchMedia) return true
-  return window.matchMedia('(min-width: 768px)').matches
+  return true
 }
 
 function getTurbidity(penalty: number): { label: string; color: string; spm: string; description: string } {

@@ -19,3 +19,33 @@ export function startDayTransition(update: () => void): void {
   }
   document.startViewTransition(() => flushSync(update))
 }
+
+/**
+ * Route changes use the same progressive enhancement as day changes, but the
+ * root snapshots are styled separately in index.css. The app shell, logo and
+ * bottom navigation keep stable view-transition names so a light/dark route
+ * change feels like one instrument changing register rather than two pages
+ * replacing one another.
+ */
+export type RouteTransitionDirection = 'same' | 'descend' | 'surface'
+
+export function startRouteTransition(
+  update: () => void,
+  direction: RouteTransitionDirection = 'same',
+): void {
+  const supportsViewTransition = typeof document !== 'undefined'
+    && typeof document.startViewTransition === 'function'
+  const prefersReduced = typeof window !== 'undefined' && !!window.matchMedia
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  if (!supportsViewTransition || prefersReduced) {
+    update()
+    return
+  }
+
+  document.documentElement.dataset.routeTransition = direction
+  const transition = document.startViewTransition(() => flushSync(update))
+  void transition.finished.finally(() => {
+    delete document.documentElement.dataset.routeTransition
+  })
+}

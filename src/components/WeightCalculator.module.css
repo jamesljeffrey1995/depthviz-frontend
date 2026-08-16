@@ -7,6 +7,9 @@
 }
 
 .safety {
+  padding: 14px 0;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--ds-warn) 28%, transparent);
   color: var(--ds-text-body);
   font-size: var(--ds-text-body);
   line-height: var(--ds-lh-body);
@@ -75,8 +78,8 @@
   width: 100%;
   min-height: 44px;
   padding: 0 var(--ds-space-4);
-  border: 1px solid var(--ds-hairline);
-  border-radius: var(--ds-radius-xs);
+  border: 0;
+  border-radius: 12px;
   background: var(--ds-surface-sunken);
   color: var(--ds-text-strong);
   font-size: var(--ds-text-body);
@@ -132,13 +135,24 @@
 .resultCard {
   text-align: center;
   margin-block: var(--ds-space-5);
-  padding-block: var(--ds-space-7);
-  border-block: 1px solid var(--ds-hairline);
+  padding: clamp(30px, 6vw, 58px) clamp(18px, 5vw, 52px);
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: #061c32;
+  color: #f4f1ea;
+  box-shadow: 0 20px 60px rgba(7, 53, 92, 0.14);
+}
+
+.resultCard .resultLabel,
+.resultCard .resultRange,
+.resultCard .resultExplain,
+.resultCard .breakdownRow {
+  color: #9bb0c8;
 }
 
 .resultValue {
   margin-top: var(--ds-space-2);
-  color: var(--ds-text-strong);
+  color: #f4f1ea;
   font-size: clamp(64px, 14vw, 96px);
   font-weight: var(--ds-fw-bold);
   line-height: 1;
@@ -175,7 +189,7 @@
 }
 
 .breakdownRow span:last-child {
-  color: var(--ds-text-strong);
+  color: #f4f1ea;
   font-weight: var(--ds-fw-semi);
   font-variant-numeric: tabular-nums;
 }

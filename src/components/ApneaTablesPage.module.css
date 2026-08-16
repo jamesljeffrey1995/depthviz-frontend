@@ -6,6 +6,12 @@
   background: transparent;
 }
 
+.warningCard {
+  padding: 16px 0;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--ds-warn) 24%, transparent);
+}
+
 .warningTitle,
 .groupHeading,
 .cardName,
@@ -152,6 +158,11 @@
   }
 
   .metaGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .metaItem strong {
+    font-size: clamp(18px, 5vw, 24px);
   }
 }

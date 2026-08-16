@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getNews } from '../lib/api'
-import type { Announcement } from '../types'
+import { startRouteTransition } from '../lib/viewTransition'
+import type { Announcement, DayForecast, ForecastResponse } from '../types'
 import { IconArrowRight } from './icons'
 import styles from './HomePage.module.css'
 
@@ -19,19 +20,46 @@ function timeAgo(iso: string): string {
 }
 
 const TOOLS = [
-  { ref: '01', label: 'Compare visibility', description: 'Rank nearby sites by forecast visibility and confidence.', path: '/best' },
-  { ref: '02', label: 'Read diver reports', description: 'Check what people actually found in the water.', path: '/feed' },
-  { ref: '03', label: 'Open the spot map', description: 'Browse the coast and inspect a specific entry point.', path: '/map' },
-  { ref: '04', label: 'Run an apnea table', description: 'Build and time dry training sessions.', path: '/training' },
-  { ref: '05', label: 'Calculate weighting', description: 'Estimate lead for your suit, body and water type.', path: '/weight' },
+  { label: 'Compare visibility', description: 'Rank nearby sites by forecast visibility and confidence.', path: '/best' },
+  { label: 'Read diver reports', description: 'Check what people actually found in the water.', path: '/feed' },
+  { label: 'Open the spot map', description: 'Browse the coast and inspect a specific entry point.', path: '/map' },
+  { label: 'Run an apnea table', description: 'Build and time dry training sessions.', path: '/training' },
+  { label: 'Calculate weighting', description: 'Estimate lead for your suit, body and water type.', path: '/weight' },
 ]
 
 interface HomePageProps {
   locationSearch: ReactNode
+  forecast?: ForecastResponse | null
+  units: 'ft' | 'm'
 }
 
-export function HomePage({ locationSearch }: HomePageProps) {
-  const navigate = useNavigate()
+function visibility(day: DayForecast): number {
+  return day.vis_corrected ?? day.vis_estimate
+}
+
+function formatVisibility(value: number, units: 'ft' | 'm'): string {
+  return `${value.toFixed(1)} ${units}`
+}
+
+function chartPoints(days: DayForecast[]): string {
+  if (!days.length) return ''
+  const values = days.map(visibility)
+  const max = Math.max(1, ...values)
+  return values.map((value, index) => {
+    const x = days.length === 1 ? 50 : (index / (days.length - 1)) * 100
+    const y = 38 - (value / max) * 30
+    return `${x},${Math.max(4, y)}`
+  }).join(' ')
+}
+
+export function HomePage({ locationSearch, forecast, units }: HomePageProps) {
+  const rawNavigate = useNavigate()
+  const navigate = (path: string) => startRouteTransition(
+    () => rawNavigate(path),
+    path.startsWith('/forecast') || path.startsWith('/map') || path.startsWith('/best') || path.startsWith('/training')
+      ? 'descend'
+      : 'same',
+  )
   const [news, setNews] = useState<Announcement[]>([])
   const [loadingNews, setLoadingNews] = useState(true)
 
@@ -44,80 +72,128 @@ export function HomePage({ locationSearch }: HomePageProps) {
     return () => { cancelled = true }
   }, [])
 
+  const previewDay = useMemo(() => {
+    if (!forecast?.days.length) return null
+    const today = new Date().toISOString().split('T')[0]
+    return forecast.days.find(day => day.date === today) ?? forecast.days[0] ?? null
+  }, [forecast])
+
+  const confidence = forecast?.model_confidence && forecast.model_confidence !== 'none'
+    ? `${forecast.model_confidence} confidence`
+    : 'Confidence building'
+
   return (
     <div className={styles.home}>
       <section className={styles.hero}>
-        <div>
-          <h1 className={styles.heroTitle}>Where are you diving?</h1>
+        <div className={styles.heroCopy}>
+          <p className={styles.eyebrow}>Underwater visibility forecasts</p>
+          <h1 className={styles.heroTitle}>Know the water before you enter it.</h1>
           <p className={styles.heroLead}>
-            Check underwater visibility, sea state and recent diver reports before you load the car.
+            Visibility forecasts, sea conditions and reports from divers on the coast.
           </p>
         </div>
 
-        <div className={styles.searchPanel}>
-          <div className={styles.searchHead}>
-            <div>
-              <span className={styles.searchLabel}>Find a dive spot</span>
-              <p>Town, beach, headland or coordinates</p>
+        <div className={styles.searchArea}>{locationSearch}</div>
+      </section>
+
+      <div className={styles.pulseLine} aria-hidden="true"><span /></div>
+
+      <section className={styles.preview} aria-labelledby="near-you-heading">
+        {forecast && previewDay ? (
+          <>
+            <div className={styles.previewHead}>
+              <div>
+                <p className={styles.eyebrow}>Your latest coast</p>
+                <h2 id="near-you-heading">{forecast.location_name}</h2>
+                <p className={styles.meta}>{new Date(`${previewDay.date}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })}</p>
+              </div>
+              <button className={styles.openForecast} onClick={() => navigate('/forecast')}>
+                Open forecast <IconArrowRight aria-hidden="true" />
+              </button>
             </div>
-            <button className={styles.textLink} onClick={() => navigate('/map')}>
-              Use map <span aria-hidden="true">→</span>
+
+            <div className={styles.verdictRow}>
+              <div>
+                <strong className={styles.visibility}>{formatVisibility(visibility(previewDay), forecast.units ?? units)}</strong>
+                <span className={styles.visibilityLabel}>predicted visibility</span>
+              </div>
+              <div className={styles.assessment}>
+                <strong>{previewDay.verdict}</strong>
+                <span>{confidence}</span>
+              </div>
+            </div>
+
+            <div className={styles.trend} aria-label="Seven day visibility outlook">
+              <div className={styles.trendLabel}>Seven day outlook</div>
+              <svg viewBox="0 0 100 42" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0 38H100" className={styles.chartGuide} />
+                <polyline points={chartPoints(forecast.days.slice(0, 7))} className={styles.chartAreaLine} />
+              </svg>
+            </div>
+
+            <div className={styles.conditions}>
+              <div><span>Swell</span><strong>{previewDay.swell_height.toFixed(1)} {forecast.units ?? units}</strong></div>
+              <div><span>Wind</span><strong>{Math.round(previewDay.wind_speed)} kt {previewDay.wind_dir_label}</strong></div>
+              <div><span>Water</span><strong>{previewDay.sea_temp == null ? '—' : `${previewDay.sea_temp.toFixed(0)}°C`}</strong></div>
+              <div><span>Algae</span><strong>{previewDay.algae.risk}</strong></div>
+            </div>
+          </>
+        ) : (
+          <div className={styles.emptyPreview}>
+            <div>
+              <p className={styles.eyebrow}>Start with a coast</p>
+              <h2 id="near-you-heading">Your forecast will appear here.</h2>
+              <p>Search a beach, headland or set of coordinates to see visibility, confidence and the conditions behind it.</p>
+            </div>
+            <button className={styles.openForecast} onClick={() => navigate('/map')}>
+              Explore the map <IconArrowRight aria-hidden="true" />
             </button>
           </div>
-          {locationSearch}
-        </div>
-        <p className={styles.caution}>
-          Forecasts support a decision; they do not make one. Check access, swell,
-          wind and local advice before entering the water.
-        </p>
+        )}
       </section>
 
       <nav className={styles.directory} aria-label="DepthViz tools">
-        <div className={styles.directoryHead}>
+        <div className={styles.sectionHead}>
           <div>
-            <span className={styles.sectionIndex}>Tools</span>
-            <h2>More dive tools</h2>
+            <p className={styles.eyebrow}>Planning tools</p>
+            <h2>From conditions to preparation</h2>
           </div>
-          <span>{TOOLS.length} to choose from</span>
         </div>
-        {TOOLS.map(({ ref, label, description, path }) => (
-          <button key={path} className={styles.tool} onClick={() => navigate(path)}>
-            <span className={styles.ref}>{ref}</span>
-            <strong>{label}</strong>
-            <span className={styles.description}>{description}</span>
-            <span className={styles.arrow} aria-hidden="true">→</span>
-          </button>
-        ))}
+        <div className={styles.toolGrid}>
+          {TOOLS.map(({ label, description, path }) => (
+            <button key={path} className={styles.tool} onClick={() => navigate(path)}>
+              <strong>{label}</strong>
+              <span>{description}</span>
+              <IconArrowRight aria-hidden="true" />
+            </button>
+          ))}
+        </div>
       </nav>
 
       <section className={styles.section} aria-labelledby="news-heading">
         <div className={styles.sectionHead}>
           <div>
-            <p className={styles.sectionIndex}>Updates</p>
-            <h2 id="news-heading" className={styles.sectionTitle}>From DepthViz</h2>
+            <p className={styles.eyebrow}>Latest updates</p>
+            <h2 id="news-heading">From DepthViz</h2>
           </div>
-          <button className={styles.textLink} onClick={() => navigate('/news')}>
-            View the full log <IconArrowRight aria-hidden="true" />
+          <button className={styles.quietLink} onClick={() => navigate('/news')}>
+            View all <IconArrowRight aria-hidden="true" />
           </button>
         </div>
         {loadingNews ? (
-          <p className={styles.muted}>Loading…</p>
+          <p className={styles.muted}>Loading updates…</p>
         ) : news.length === 0 ? (
           <p className={styles.muted}>No announcements yet — check back soon.</p>
         ) : (
           <ul className={styles.newsList}>
-            {news.map(n => (
-              <li key={n.id}>
+            {news.map(item => (
+              <li key={item.id}>
                 <button className={styles.newsItem} onClick={() => navigate('/news')}>
-                  <div className={styles.newsItemHead}>
-                    {n.is_pinned && <span className={styles.tag}>Pinned</span>}
-                    {n.category && <span className={styles.tag}>{n.category}</span>}
-                    <span className={styles.newsTitle}>{n.title}</span>
-                    <span className={styles.newsDate}>{timeAgo(n.created_at)}</span>
+                  <div>
+                    <strong>{item.title}</strong>
+                    <p>{item.summary || `${item.body.slice(0, 160)}${item.body.length > 160 ? '…' : ''}`}</p>
                   </div>
-                  <p className={styles.newsExcerpt}>
-                    {n.summary || `${n.body.slice(0, 160)}${n.body.length > 160 ? '…' : ''}`}
-                  </p>
+                  <time dateTime={item.created_at}>{timeAgo(item.created_at)}</time>
                 </button>
               </li>
             ))}

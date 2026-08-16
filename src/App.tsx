@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, lazy, Suspense } from 'react'
 import { Routes, Route, useNavigate, useLocation, useParams } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import { useConditions } from './hooks/useConditions'
@@ -11,6 +11,8 @@ import { DayDetail } from './components/DayDetail'
 import { SeabedEditor } from './components/SeabedEditor'
 import { CookieBanner } from './components/CookieBanner'
 import { TopNav } from './components/TopNav'
+import { BrandLogo } from './components/BrandLogo'
+import { Bathymetry } from './components/Bathymetry'
 import { Button, SegmentedControl } from './components/ui'
 import PwaStatus from './components/PwaStatus'
 import {
@@ -19,7 +21,8 @@ import {
 } from './components/icons'
 import { getLocations, createLocation, getMyProfile } from './lib/api'
 import { encryptCoords } from './lib/spotCrypto'
-import { startDayTransition } from './lib/viewTransition'
+import { startDayTransition, startRouteTransition } from './lib/viewTransition'
+import { getRouteTheme } from './lib/routeTheme'
 import { formatLocationName } from './types'
 import type { GeocodingResult, Location, ForecastResponse } from './types'
 import type { LegalPageType } from './components/LegalPage'
@@ -74,7 +77,7 @@ const MAP_GROUP_ROUTES = ['/map', '/forecast', '/tides', '/best']
 
 /** Location search belongs only to the dive-planning journey. Keeping it off
  *  community, training and utility pages gives those screens a clear purpose. */
-const LOCATION_SEARCH_ROUTES = ['/', '/map', '/forecast', '/tides', '/best']
+const LOCATION_SEARCH_ROUTES = ['/', '/map', '/tides', '/best']
 
 /** Footer labels for each legal page, in display order. */
 const LEGAL_LABELS: Record<LegalPageType, string> = {
@@ -140,6 +143,16 @@ export default function App() {
       return v === 'ft' || v === 'm' ? v : 'ft'
     } catch { return 'ft' }
   })
+  const [homePreview, setHomePreview] = useState<ForecastResponse | null>(() => {
+    try {
+      const raw = localStorage.getItem('dv_last_forecast')
+      if (!raw) return null
+      const stored = JSON.parse(raw) as { units?: string; forecast?: ForecastResponse }
+      return stored.units === units && stored.forecast ? stored.forecast : null
+    } catch {
+      return null
+    }
+  })
   const [weekView, setWeekView] = useState(false)
   const [diveDepth, setDiveDepth] = useState<number>(() => {
     const VALID_DEPTHS = [5, 10, 15, 20, 30]
@@ -152,9 +165,18 @@ export default function App() {
     }
   })
 
-  const navigate = useNavigate()
+  const rawNavigate = useNavigate()
   const location = useLocation()
   const currentPath = location.pathname
+  const routeTheme = getRouteTheme(currentPath)
+  const navigate = useCallback((target: string | number) => {
+    const nextTheme = typeof target === 'string' ? getRouteTheme(target) : routeTheme
+    const direction = routeTheme === nextTheme ? 'same' : routeTheme === 'light' ? 'descend' : 'surface'
+    startRouteTransition(() => {
+      if (typeof target === 'number') rawNavigate(target)
+      else rawNavigate(target)
+    }, direction)
+  }, [rawNavigate, routeTheme])
   const autoLoadedRef = useRef(false)
   const lastSelectedRef = useRef<{ lat: number; lon: number; name: string; locationId?: number }>({
     lat: 0, lon: 0, name: '',
@@ -162,6 +184,15 @@ export default function App() {
   const forecastLayoutRef = useRef<HTMLDivElement>(null)
   const [forecastPaneWide, setForecastPaneWide] = useState(false)
   const [pendingAuthIntent, setPendingAuthIntent] = useState<AuthIntent | null>(null)
+
+  useLayoutEffect(() => {
+    const root = document.documentElement
+    root.dataset.theme = routeTheme
+    root.dataset.dsTheme = routeTheme
+    root.dataset.routeTheme = routeTheme
+    const themeMeta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
+    themeMeta?.setAttribute('content', routeTheme === 'light' ? '#F7F4EE' : '#061C32')
+  }, [routeTheme])
 
   // Admin status is decided by the server (via /profile/me's is_admin), never
   // by a client flag or a value baked into the bundle. The backend also
@@ -291,6 +322,7 @@ export default function App() {
   // Persist last known forecast with its units so restore can reject a units mismatch
   useEffect(() => {
     if (!forecast) return
+    setHomePreview(forecast)
     try { localStorage.setItem('dv_last_forecast', JSON.stringify({ units, forecast, savedAt: Date.now() })) } catch {}
   }, [forecast, units])
 
@@ -464,7 +496,9 @@ export default function App() {
         if (target === 'home') navigate('/')
       }}
     >
-    <div className={styles.container}>
+    <div className={`${styles.container} ${routeTheme === 'light' ? styles.lightShell : styles.darkShell}`}>
+
+      {(['/', '/forecast', '/map'].includes(currentPath)) && <Bathymetry className={styles.shellContours} />}
 
       {/* Skip to main content — keyboard navigation */}
       <a href="#main-content" className="skip-link">Skip to content</a>
@@ -481,8 +515,7 @@ export default function App() {
             aria-label="DepthViz — go to home"
             onClick={() => navigate('/')}
           >
-            <IconGauge className={styles.logoMark} aria-hidden="true" />
-            DEPTH<span>VIZ</span>
+            <BrandLogo variant={routeTheme === 'light' ? 'full' : 'mark'} />
           </button>
           <button
             type="button"
@@ -493,7 +526,6 @@ export default function App() {
             {user ? (user.email?.[0] ?? 'U').toUpperCase() : (<><IconUser aria-hidden="true" /><span>Sign in</span></>)}
           </button>
         </div>
-        <div className={styles.tagline}>Underwater visibility forecast for spearfishers &amp; freedivers</div>
       </header>
 
       <TopNav />
@@ -511,82 +543,6 @@ export default function App() {
       )}
 
       {(uiError || error) && <div className={styles.error} role="alert">{uiError || error}</div>}
-
-      {status === 'success' && forecast && FORECAST_ROUTES.includes(currentPath) && (
-        <div className={styles.forecastNav}>
-          <div className={styles.forecastTabs} role="navigation" aria-label="Forecast views">
-            <button
-              className={`${styles.navBtn} ${currentPath === '/forecast' && !weekView ? styles.navActive : ''}`}
-              onClick={() => { navigate('/forecast'); setWeekView(false) }}
-              aria-current={currentPath === '/forecast' && !weekView ? 'page' : undefined}
-            >
-              Forecast
-            </button>
-            <button
-              className={`${styles.navBtn} ${currentPath === '/forecast' && weekView ? styles.navActive : ''}`}
-              onClick={() => { navigate('/forecast'); setWeekView(true) }}
-              aria-label="Weekly conditions overview"
-              aria-current={currentPath === '/forecast' && weekView ? 'page' : undefined}
-            >
-              Week
-            </button>
-            <button
-              className={`${styles.navBtn} ${currentPath === '/tides' ? styles.navActive : ''}`}
-              onClick={() => navigate('/tides')}
-              aria-current={currentPath === '/tides' ? 'page' : undefined}
-            >
-              Tides
-            </button>
-          </div>
-          <div className={styles.forecastActions} aria-label="Forecast actions">
-          <button
-            className={`${styles.navBtn} ${styles.navBtnPrimary} ${currentPath === '/report' ? styles.navActive : ''}`}
-            onClick={() => handleReportClick()}
-            aria-label={!user ? 'Log Dive (sign in required)' : 'Log Dive'}
-            aria-current={currentPath === '/report' ? 'page' : undefined}
-          >
-            Log Dive
-            {!user && <IconLock className={styles.lockIcon} aria-hidden="true" />}
-          </button>
-          <button
-            className={`${styles.navBtn} ${selectedLocationId ? styles.navActive : ''}`}
-            onClick={() => handleSaveLocation(false)}
-            disabled={!!selectedLocationId}
-            aria-label={selectedLocationId ? 'Location already saved' : !user ? 'Save this location (sign in required)' : 'Save this location'}
-          >
-            {selectedLocationId ? <><IconCheck className={styles.lockIcon} aria-hidden="true" /><span>Saved</span></> : <><IconPlus className={styles.lockIcon} aria-hidden="true" /><span>Save</span>{!user && <IconLock className={styles.lockIcon} aria-hidden="true" />}</>}
-          </button>
-          {!selectedLocationId && (
-            <button
-              className={styles.navBtn}
-              onClick={() => handleSaveLocation(true)}
-              aria-label={!user ? 'Save as private spot (sign in required)' : 'Save as private spot — coordinates encrypted'}
-            >
-              <IconLock className={styles.lockIcon} aria-hidden="true" /><span>Private</span>
-            </button>
-          )}
-          {selectedLocationId && (
-            <button
-              className={`${styles.navBtn} ${currentPath === '/history' ? styles.navActive : ''}`}
-              onClick={() => navigate('/history')}
-              aria-current={currentPath === '/history' ? 'page' : undefined}
-            >
-              Dive Logs
-            </button>
-          )}
-          {user && (
-            <button
-              className={`${styles.navBtn} ${currentPath === '/dispute' ? styles.navActive : ''}`}
-              onClick={() => navigate('/dispute')}
-              aria-label="Report incorrect forecast data"
-              aria-current={currentPath === '/dispute' ? 'page' : undefined}
-            >
-              Report Issue
-            </button>
-          )}
-          </div>
-        </div>
-      )}
 
       <main
         id="main-content"
@@ -648,7 +604,7 @@ export default function App() {
           {/* Home — website landing page (news + quick links) */}
           <Route path="/" element={
             <Suspense fallback={null}>
-              <HomePage locationSearch={locationSearch} />
+              <HomePage locationSearch={locationSearch} forecast={homePreview ?? forecast} units={units} />
             </Suspense>
           } />
 
@@ -804,6 +760,15 @@ export default function App() {
                         )}
                       </div>
                     )}
+                    <div className={styles.forecastHeading}>
+                      <p>Marine forecast</p>
+                      <h1>{forecast.location_name}</h1>
+                      <span>
+                        {forecast.days[selectedDay]
+                          ? new Date(`${forecast.days[selectedDay].date}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
+                          : 'Select a forecast day'}
+                      </span>
+                    </div>
                     <div className={styles.forecastControls}>
                       <SegmentedControl
                         ariaLabel="Forecast units"
@@ -1017,6 +982,27 @@ export default function App() {
           } />
         </Routes>
       </main>
+
+      {status === 'success' && forecast && FORECAST_ROUTES.includes(currentPath) && (
+        <div className={styles.forecastNav}>
+          <div className={styles.forecastTabs} role="navigation" aria-label="Forecast views">
+            <button className={`${styles.navBtn} ${currentPath === '/forecast' && !weekView ? styles.navActive : ''}`} onClick={() => { navigate('/forecast'); setWeekView(false) }} aria-current={currentPath === '/forecast' && !weekView ? 'page' : undefined}>Forecast</button>
+            <button className={`${styles.navBtn} ${currentPath === '/forecast' && weekView ? styles.navActive : ''}`} onClick={() => { navigate('/forecast'); setWeekView(true) }} aria-label="Weekly conditions overview" aria-current={currentPath === '/forecast' && weekView ? 'page' : undefined}>Week</button>
+            <button className={`${styles.navBtn} ${currentPath === '/tides' ? styles.navActive : ''}`} onClick={() => navigate('/tides')} aria-current={currentPath === '/tides' ? 'page' : undefined}>Tides</button>
+          </div>
+          <div className={styles.forecastActions} aria-label="Forecast actions">
+            <button className={`${styles.navBtn} ${styles.navBtnPrimary} ${currentPath === '/report' ? styles.navActive : ''}`} onClick={() => handleReportClick()} aria-label={!user ? 'Log Dive (sign in required)' : 'Log Dive'} aria-current={currentPath === '/report' ? 'page' : undefined}>
+              Log Dive {!user && <IconLock className={styles.lockIcon} aria-hidden="true" />}
+            </button>
+            <button className={`${styles.navBtn} ${selectedLocationId ? styles.navActive : ''}`} onClick={() => handleSaveLocation(false)} disabled={!!selectedLocationId} aria-label={selectedLocationId ? 'Location already saved' : !user ? 'Save this location (sign in required)' : 'Save this location'}>
+              {selectedLocationId ? <><IconCheck className={styles.lockIcon} aria-hidden="true" /><span>Saved</span></> : <><IconPlus className={styles.lockIcon} aria-hidden="true" /><span>Save</span>{!user && <IconLock className={styles.lockIcon} aria-hidden="true" />}</>}
+            </button>
+            {!selectedLocationId && <button className={styles.navBtn} onClick={() => handleSaveLocation(true)} aria-label={!user ? 'Save as private spot (sign in required)' : 'Save as private spot — coordinates encrypted'}><IconLock className={styles.lockIcon} aria-hidden="true" /><span>Private</span></button>}
+            {selectedLocationId && <button className={`${styles.navBtn} ${currentPath === '/history' ? styles.navActive : ''}`} onClick={() => navigate('/history')} aria-current={currentPath === '/history' ? 'page' : undefined}>Dive Logs</button>}
+            {user && <button className={`${styles.navBtn} ${currentPath === '/dispute' ? styles.navActive : ''}`} onClick={() => navigate('/dispute')} aria-label="Report incorrect forecast data" aria-current={currentPath === '/dispute' ? 'page' : undefined}>Report Issue</button>}
+          </div>
+        </div>
+      )}
 
       {/* Bottom Navigation Bar */}
       <nav className={styles.bottomNav} aria-label="Main navigation">

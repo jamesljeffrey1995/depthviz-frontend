@@ -1,8 +1,9 @@
 .wrap {
   margin: 0 0 28px;
-  background: transparent;
+  background: color-mix(in srgb, var(--surface-raised) 78%, transparent);
   border: 0;
-  padding: 0;
+  border-radius: var(--radius-lg);
+  padding: 16px 14px 8px;
 }
 
 .caption {
@@ -135,7 +136,7 @@
 .annotPanel {
   display: flex;
   align-items: center;
-  background: var(--paper-raised);
+  background: transparent;
   border-radius: var(--radius-md);
   padding: 5px 8px;
   margin-bottom: 4px;
@@ -144,19 +145,14 @@
 
 .annotDay {
   font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0;
   color: var(--accent);
   margin-right: 8px;
   flex-shrink: 0;
 }
 
 .annotSep {
-  width: 1px;
-  height: 16px;
-  background: var(--rule);
-  margin: 0 10px;
-  flex-shrink: 0;
+  display: none;
 }
 
 .annotItem {
@@ -167,7 +163,7 @@
 
 .annotKey {
   font-size: 10px;
-  letter-spacing: 0.1em;
+  letter-spacing: 0;
   color: var(--ink-faint);
   text-transform: uppercase;
 }
@@ -198,13 +194,12 @@
 .dayLabel {
   fill: var(--ink-faint);
   font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
 .dayLabelSelected {
   fill: var(--accent);
   font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  font-weight: 700;
 }

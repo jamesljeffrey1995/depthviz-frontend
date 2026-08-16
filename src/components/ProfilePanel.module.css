@@ -1,9 +1,9 @@
 .panel {
-  background: var(--surface-raised);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
-  padding: 20px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
   margin-bottom: 16px;
 }
 
@@ -24,7 +24,7 @@
 .userInfo { flex: 1; min-width: 0; }
 
 .displayName {
-  font-size: 14px; font-weight: 600; color: var(--ink); letter-spacing: -0.005em;
+  font-size: clamp(24px, 5vw, 34px); font-weight: 650; color: var(--ink); letter-spacing: -0.025em;
   cursor: pointer; margin-bottom: 3px;
 }
 .editHint { color: var(--ink-faint); font-size: 11px; }
@@ -43,7 +43,7 @@
   color: var(--accent-text); font-family: var(--font-sans); font-weight: 600; font-size: 11px; padding: 4px 10px; cursor: pointer;
 }
 
-.email { font-size: 11px; color: var(--ink-faint); letter-spacing: 0.02em; }
+.email { font-size: 13px; color: var(--ink-faint); letter-spacing: 0; }
 
 .signOut {
   background: none; border: 1px solid var(--surface-border);
@@ -55,15 +55,17 @@
 .signOut:hover { border-color: var(--sev-poor); }
 
 .statsRow {
-  display: flex; gap: 8px; margin-bottom: 20px;
+  display: flex; gap: 0; margin: 24px 0 28px;
+  padding: 18px 0;
+  border-block: 1px solid var(--surface-border);
 }
 .stat {
-  flex: 1; background: var(--surface-sunken); border: 1px solid var(--surface-border);
-  border-radius: var(--radius-md);
+  flex: 1; background: transparent; border: 0;
+  border-radius: 0;
   padding: 12px 10px; text-align: center;
 }
-.statVal { font-family: var(--font-sans); font-weight: 800; font-size: 20px; color: var(--ink); margin-bottom: 3px; }
-.statLbl { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; color: var(--ink-faint); }
+.statVal { font-family: var(--font-sans); font-weight: 650; font-size: clamp(22px, 5vw, 30px); color: var(--ink); margin-bottom: 3px; }
+.statLbl { font-size: 12px; letter-spacing: 0; text-transform: none; font-weight: 550; color: var(--ink-faint); }
 
 .friendsBtn {
   width: 100%;
@@ -80,9 +82,10 @@
 .reportList { display: flex; flex-direction: column; gap: 6px; }
 .reportRow {
   display: flex; align-items: center; gap: 8px;
-  background: var(--surface-sunken); border: 1px solid var(--surface-border);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
+  background: transparent; border: 0;
+  border-bottom: 1px solid var(--surface-border);
+  border-radius: 0;
+  padding: 13px 0;
   font-size: 12px;
 }
 .reportRow.quarantined { opacity: .5; }
@@ -147,9 +150,10 @@
    recessed relative to the panel so they read as secondary to the reports
    list above them. ── */
 .details {
-  background: var(--surface-sunken);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-md);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--surface-border);
+  border-radius: 0;
   margin-bottom: 12px;
   overflow: hidden;
 }
@@ -165,14 +169,14 @@
   font-family: var(--font-sans);
   font-weight: 600;
   font-size: 13px;
-  padding: 12px 14px;
+  padding: 16px 0;
   cursor: pointer;
 }
 
 .detailsHead svg { width: 14px; height: 14px; color: var(--ink-faint); flex-shrink: 0; }
 
 .detailsHint {
-  margin: 0 14px 12px;
+  margin: 0 0 16px;
   font-size: 12px;
   color: var(--ink-faint);
 }
@@ -181,7 +185,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  padding: 0 14px 14px;
+  padding: 0 0 18px;
 }
 
 .detailField {
@@ -195,9 +199,9 @@
 }
 
 .detailInput, .detailSelect, .detailTextarea {
-  background: var(--surface-raised);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  border: 0;
+  border-radius: 12px;
   color: var(--ink);
   font-family: var(--font-sans);
   font-size: 13px;
@@ -217,7 +221,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 14px 14px;
+  padding: 0 0 18px;
 }
 
 .detailsSave {

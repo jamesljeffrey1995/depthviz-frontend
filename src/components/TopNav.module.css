@@ -2,13 +2,14 @@
   margin: 0 0 var(--space-lg);
   display: flex;
   justify-content: flex-start;
-  border-bottom: 1px solid var(--surface-border);
+  border-bottom: 0;
+  view-transition-name: depthviz-top-navigation;
 }
 
 .list {
   display: inline-flex;
   flex-wrap: wrap;
-  gap: var(--space-lg);
+  gap: 4px;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -24,15 +25,16 @@
   font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 500;
-  padding: 10px 0 12px;
+  min-height: 42px;
+  padding: 9px 14px;
   cursor: pointer;
-  border-radius: 0;
+  border-radius: var(--radius-full);
   transition: color var(--transition-fast), background var(--transition-fast);
 }
 
 .link:hover {
   color: var(--ink);
-  background: transparent;
+  background: var(--surface-tint);
 }
 
 .link:focus-visible {
@@ -42,9 +44,9 @@
 
 .active {
   color: var(--accent);
-  background: transparent;
+  background: var(--accent-soft);
   font-weight: 600;
-  box-shadow: inset 0 -2px var(--accent);
+  box-shadow: none;
 }
 
 /* On narrow mobile the bottom tab bar is the primary navigation, so hide the

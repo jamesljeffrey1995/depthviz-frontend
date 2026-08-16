@@ -147,6 +147,13 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
   const [isPublic, setIsPublic] = useState(false)
   const [proximityError, setProximityError] = useState('')
   const [syncWarning, setSyncWarning] = useState('')
+  const [selectedSpot, setSelectedSpot] = useState<{
+    name: string
+    lat: number
+    lon: number
+    locationId?: number
+    kind: 'charted' | 'community' | 'private'
+  } | null>(null)
 
   // DB-backed vote state: keyed by location.id
   const makeDbVoteCounts = (locs: Location[]): Record<number, number> => {
@@ -367,6 +374,15 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
                 key={`db-${loc.id}`}
                 position={[loc.lat, loc.lon]}
                 icon={icon}
+                eventHandlers={{
+                  click: () => setSelectedSpot({
+                    name: loc.name,
+                    lat: loc.lat,
+                    lon: loc.lon,
+                    locationId: loc.id,
+                    kind: loc.is_predefined ? 'charted' : 'community',
+                  }),
+                }}
               >
                 <Popup>
                   <div className={styles.popup}>
@@ -408,6 +424,14 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
               key={spot.id ?? `priv-${spot.name}-${spot.lat}-${spot.lon}`}
               position={[spot.lat, spot.lon]}
               icon={privateSpotIcon}
+              eventHandlers={{
+                click: () => setSelectedSpot({
+                  name: spot.name,
+                  lat: spot.lat,
+                  lon: spot.lon,
+                  kind: 'private',
+                }),
+              }}
             >
               <Popup>
                 <div className={styles.popup}>
@@ -444,6 +468,33 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
           )}
         </MapContainer>
       </div>
+
+      {selectedSpot && (
+        <section className={styles.selectedPanel} aria-label={`Selected dive spot: ${selectedSpot.name}`}>
+          <div className={styles.selectedEyebrow}>
+            {selectedSpot.kind === 'private' ? 'Private spot' : selectedSpot.kind === 'community' ? 'Community spot' : 'Charted dive spot'}
+          </div>
+          <div className={styles.selectedContent}>
+            <div>
+              <h2 className={styles.selectedName}>{selectedSpot.name}</h2>
+              <p className={styles.selectedMeta}>
+                {selectedSpot.lat.toFixed(3)}, {selectedSpot.lon.toFixed(3)} · forecast calculated on opening
+              </p>
+            </div>
+            <button
+              className={styles.selectedAction}
+              onClick={() => onSelectSpot(
+                selectedSpot.lat,
+                selectedSpot.lon,
+                selectedSpot.name,
+                selectedSpot.locationId,
+              )}
+            >
+              Open forecast <span aria-hidden="true">→</span>
+            </button>
+          </div>
+        </section>
+      )}
 
       <div className={styles.controls}>
         {adding ? (
