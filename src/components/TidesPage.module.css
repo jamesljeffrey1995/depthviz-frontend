@@ -14,10 +14,10 @@
    bordered, shadowed) so it reads as the priority moment, the way the
    instrument face does on DayDetail. ── */
 .hero {
-  background: var(--surface-raised);
-  border: 1px solid var(--surface-border);
+  background: color-mix(in srgb, var(--surface-raised) 76%, transparent);
+  border: 0;
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
+  box-shadow: none;
   padding: var(--space-lg);
 }
 
@@ -38,8 +38,8 @@
 .locationLabel {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ink-faint);
   margin-bottom: 4px;
 }
@@ -57,7 +57,7 @@
 .currentBadge {
   font-family: var(--font-sans);
   font-size: 26px;
-  font-weight: 800;
+  font-weight: 650;
   letter-spacing: -0.02em;
   line-height: 1;
 }
@@ -138,9 +138,10 @@
 }
 
 .eventCard {
-  background: var(--surface-sunken);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-md);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--surface-border);
+  border-radius: 0;
   padding: var(--space-sm) var(--space-md);
   text-align: center;
 }
@@ -170,9 +171,9 @@
 
 /* ── Tertiary: tidal range — a small recessed strip, least visual weight ── */
 .rangeCard {
-  background: var(--surface-sunken);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  border: 0;
+  border-radius: var(--radius-lg);
   padding: var(--space-md);
 }
 

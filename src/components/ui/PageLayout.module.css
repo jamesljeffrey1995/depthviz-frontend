@@ -71,7 +71,7 @@
   }
 
   .title {
-    font-size: clamp(24px, 6vw, 28px);
+    font-size: clamp(32px, 9vw, 40px);
   }
 
   .subtitle {

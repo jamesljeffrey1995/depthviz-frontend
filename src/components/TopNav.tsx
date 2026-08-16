@@ -1,4 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom'
+import { startRouteTransition } from '../lib/viewTransition'
+import { getRouteTheme } from '../lib/routeTheme'
 import styles from './TopNav.module.css'
 
 interface NavItem {
@@ -23,8 +25,14 @@ const ITEMS: NavItem[] = [
  * the desktop experience reads like a website while mobile keeps its app feel.
  */
 export function TopNav() {
-  const navigate = useNavigate()
+  const rawNavigate = useNavigate()
   const { pathname } = useLocation()
+  const navigate = (path: string) => {
+    const from = getRouteTheme(pathname)
+    const to = getRouteTheme(path)
+    const direction = from === to ? 'same' : from === 'light' ? 'descend' : 'surface'
+    startRouteTransition(() => rawNavigate(path), direction)
+  }
 
   return (
     <nav className={styles.topNav} aria-label="Primary">

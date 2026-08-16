@@ -1,8 +1,9 @@
 .wrap {
   margin: 24px 0 28px;
-  background: transparent;
+  background: color-mix(in srgb, var(--surface-raised) 78%, transparent);
   border: 0;
-  padding: 0;
+  border-radius: var(--radius-lg);
+  padding: 16px 14px 6px;
 }
 
 .svg {
@@ -13,20 +14,20 @@
 
 .valueLabel {
   fill: var(--ink);
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   font-size: 10px;
 }
 
 .dayLabel {
   fill: var(--ink-faint);
   font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
 .dayLabelSelected {
   fill: var(--accent);
   font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  font-weight: 700;
 }

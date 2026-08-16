@@ -1,233 +1,175 @@
 .wrapper {
   position: relative;
-  display: flex;
-  align-items: stretch;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 52px;
   gap: 10px;
-  margin-bottom: 18px;
+  align-items: start;
+  width: 100%;
   container-type: inline-size;
 }
 
 .searchGroup {
-  min-width: 0;
-  /* Wide enough to hold the field and the submit button side by side; below
-     that the locate button wraps to its own line rather than being overlapped. */
-  flex: 1 1 260px;
+  position: relative;
   display: flex;
   align-items: stretch;
-  background: var(--surface-raised);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xs);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  min-width: 0;
+  height: 58px;
+  background: var(--surface-tint);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  transition: background var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
 }
 
 .searchGroup:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
+  background: var(--surface-raised);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
 }
 
 .inputRow {
   position: relative;
   display: flex;
   align-items: center;
-  min-width: 0;
   flex: 1;
+  min-width: 0;
 }
 
 .inputIcon {
   position: absolute;
-  left: 16px;
-  width: 18px;
-  height: 18px;
+  left: 17px;
+  width: 21px;
+  height: 21px;
   color: var(--ink-faint);
   pointer-events: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .input {
   width: 100%;
   min-width: 0;
+  height: 100%;
+  padding: 0 70px 0 51px;
+  border: 0;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+  outline: none;
   background: transparent;
-  border: none;
-  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
   color: var(--ink);
   font-family: var(--font-sans);
-  font-size: 15px;
-  padding: 12px 76px 12px 44px;
-  outline: none;
+  font-size: 16px;
+  font-weight: 450;
 }
 
-.input::placeholder {
-  color: var(--ink-faint);
-}
+.input::placeholder { color: var(--ink-faint); opacity: .92; }
 
 .clearBtn {
   position: absolute;
-  right: 10px;
+  right: 8px;
   top: 50%;
   transform: translateY(-50%);
-  border: none;
-  background: transparent;
-  color: var(--accent-text);
-  font-size: 12px;
-  font-weight: 600;
-  padding: 6px 8px;
+  min-height: 34px;
+  padding: 0 8px;
+  border: 0;
   border-radius: var(--radius-full);
-  cursor: pointer;
+  background: transparent;
+  color: var(--ink-faint);
+  font-size: 12px;
+  font-weight: 650;
 }
 
-.clearBtn:hover {
-  background: var(--accent-soft);
-  color: var(--ink);
-}
-
-.clearBtn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-.suggestions {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  right: 0;
-  background: var(--surface-raised);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  z-index: 10;
-  list-style: none;
-  overflow: hidden;
-  padding: 4px;
-}
-
-.suggestion {
-  padding: 10px 12px;
-  font-size: 14px;
-  cursor: pointer;
-  color: var(--ink-dim);
-  border-radius: var(--radius-sm);
-  transition: background var(--transition-fast);
-}
-
-.suggestion:hover,
-.suggestionActive {
-  background: var(--accent-soft);
-  color: var(--ink);
-}
-
-.btnDive:focus-visible,
-.btnLocate:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
+.clearBtn:hover { background: var(--accent-soft); color: var(--ink); }
 
 .btnDive,
 .btnLocate {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  font-weight: 600;
-  padding: 10px 14px;
-  min-height: 44px;
-  border: none;
+  min-width: 50px;
+  height: 52px;
+  border: 0;
   border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all var(--transition-base);
-}
-
-.btnDive svg,
-.btnLocate svg {
-  width: 16px;
-  height: 16px;
+  font-family: var(--font-sans);
+  transition: transform var(--transition-fast), background var(--transition-base), color var(--transition-base);
 }
 
 .btnDive {
-  flex-shrink: 0;
-  background: var(--accent-soft);
-  color: var(--accent-text);
-  border: 1px solid rgba(var(--accent-rgb), 0.35);
-  border-radius: var(--radius-md);
+  align-self: center;
   margin: 3px;
-  padding-inline: 12px;
+  padding: 0 13px;
+  background: var(--accent);
+  color: var(--accent-on);
 }
 
-.btnDive:hover {
-  background: rgba(var(--accent-rgb), 0.18);
-  border-color: var(--accent);
-}
+.btnDive span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.btnDive svg, .btnLocate svg { width: 21px; height: 21px; stroke-linecap: round; stroke-linejoin: round; }
+.btnDive:hover { background: var(--accent-strong); }
 
 .btnLocate {
   background: var(--surface-raised);
+  color: var(--accent);
+  box-shadow: 0 4px 18px rgba(7, 53, 92, .07);
+}
+
+.btnLocate span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.btnLocate:hover { background: var(--accent-soft); color: var(--accent-strong); }
+.btnDive:active, .btnLocate:active { transform: scale(.97); }
+.btnDive:focus-visible, .btnLocate:focus-visible, .clearBtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.suggestions {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: -54px;
+  z-index: 30;
+  max-height: 310px;
+  overflow: auto;
+  padding: 6px;
+  list-style: none;
+  background: var(--surface-raised);
   border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.suggestion {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
   color: var(--ink-dim);
-  white-space: nowrap;
-  padding-inline: 12px;
+  font-size: 14px;
+  cursor: pointer;
 }
 
-.btnLocate:hover {
-  border-color: var(--surface-border-strong);
-  color: var(--ink);
-}
-
-.btnDive:active,
-.btnLocate:active {
-  transform: scale(0.98);
-}
+.suggestion:hover, .suggestionActive { background: var(--accent-soft); color: var(--ink); }
 
 .meta {
-  flex: 1 0 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.helper,
-.status {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.5;
+  grid-column: 1 / -1;
+  min-height: 20px;
 }
 
 .helper {
-  color: var(--ink-faint);
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .status {
-  color: var(--ink-dim);
-  min-height: 1.5em;
+  margin: 0;
+  color: var(--ink-faint);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
-@container (max-width: 560px) {
-  .wrapper {
-    flex-direction: column;
-  }
-
-  .btnLocate {
-    align-self: flex-start;
-  }
-}
-
-@container (max-width: 390px) {
-  .btnDive {
-    padding-inline: 12px;
-  }
-
-  .btnDive span {
-    max-width: 64px;
-    line-height: 1.1;
-  }
-
-  .input {
-    font-size: 14px;
-    padding-left: 40px;
-    padding-right: 68px;
-  }
-
-  .inputIcon {
-    left: 14px;
-  }
+@container (max-width: 460px) {
+  .wrapper { grid-template-columns: minmax(0, 1fr) 48px; gap: 8px; }
+  .searchGroup { height: 56px; }
+  .btnLocate { width: 48px; height: 48px; }
+  .input { padding-left: 47px; padding-right: 54px; font-size: 14px; }
+  .inputIcon { left: 15px; width: 19px; height: 19px; }
+  .btnDive { min-width: 44px; padding: 0 10px; }
 }

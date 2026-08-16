@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { getFeed } from '../lib/api'
 import type { FeedItem } from '../types'
-import { Badge, Button, Card, FilterChip, PageLayout, SegmentedControl } from './ui'
+import { Button, FilterChip, PageLayout, SegmentedControl } from './ui'
 import styles from './FeedPage.module.css'
 
 interface FeedResponse {
@@ -103,9 +103,9 @@ export function FeedPage({ user }: Props) {
   return (
     <PageLayout
       title="Community"
-      subtitle="Recent diver reports and catches from the DepthViz community, with filters that stay thumb-friendly on mobile."
+      subtitle="Fresh observations from divers on the coast."
     >
-      <Card className={styles.controlsCard} padding="md">
+      <section className={styles.controlsCard} aria-label="Community filters">
         <div className={styles.controls}>
           <div className={styles.controlGroup}>
             <span className={styles.groupLabel}>View</span>
@@ -133,40 +133,37 @@ export function FeedPage({ user }: Props) {
             </div>
           </div>
         </div>
-      </Card>
+      </section>
 
-      {error && <Card className={styles.errorCard} padding="md">{error}</Card>}
+      {error && <div className={styles.errorCard}>{error}</div>}
 
       {loading && items.length === 0 ? (
-        <Card className={styles.stateCard} padding="lg">Loading community activity…</Card>
+        <div className={styles.stateCard}>Loading coastal reports…</div>
       ) : items.length === 0 && !error ? (
-        <Card className={styles.stateCard} padding="lg">
+        <div className={styles.stateCard}>
           <p className={styles.emptyTitle}>No activity yet.</p>
           <p className={styles.emptyText}>Be the first to submit a report or log a catch.</p>
-        </Card>
+        </div>
       ) : (
         <div className={styles.feedList}>
           {items.map(item => (
-            <Card key={`${item.type}-${item.id}`} className={styles.feedCard} padding="lg">
+            <article key={`${item.type}-${item.id}`} className={styles.feedCard}>
               <div className={styles.cardHeader}>
                 <div className={styles.cardIdentity}>
                   <div className={styles.identityRow}>
-                    <span className={styles.userName}>{item.user_name}</span>
-                    <Badge tone={item.type === 'report' ? 'accent' : 'success'}>
-                      {item.type === 'report' ? 'Dive report' : 'Catch'}
-                    </Badge>
+                    <span className={styles.locationRow}>{item.location_name}</span>
+                    <span className={styles.itemType}>{item.type === 'report' ? 'Dive report' : 'Catch log'}</span>
                   </div>
-                  <div className={styles.locationRow}>{item.location_name}</div>
+                  <div className={styles.userName}>Reported by {item.user_name}</div>
                 </div>
                 <span className={styles.timeAgo}>{timeAgo(item.created_at)}</span>
               </div>
 
               {item.type === 'report' && (
                 <div className={styles.cardBody}>
-                  <p className={styles.cardSummary}>Visibility logged at <strong>{item.location_name}</strong></p>
                   <div className={styles.observations}>
-                    <span><strong>{item.actual_vis}m</strong> observed</span>
-                    {item.predicted_vis != null && <span>{item.predicted_vis}m forecast</span>}
+                    <span className={styles.primaryObservation}><strong>{item.actual_vis}m</strong> visibility</span>
+                    {item.predicted_vis != null && <span>Forecast was {item.predicted_vis}m</span>}
                     {item.has_video && <span>Video attached</span>}
                   </div>
                   {item.notes && <p className={styles.notes}>{item.notes}</p>}
@@ -175,7 +172,7 @@ export function FeedPage({ user }: Props) {
 
               {item.type === 'catch' && (
                 <div className={styles.cardBody}>
-                  <p className={styles.cardSummary}>Caught <strong>{item.species}</strong> at <strong>{item.location_name}</strong></p>
+                  <p className={styles.cardSummary}>Caught <strong>{item.species}</strong></p>
                   <div className={styles.observations}>
                     {item.weight_kg != null && <span><strong>{item.weight_kg} kg</strong></span>}
                     {item.quantity != null && <span>Quantity {item.quantity}</span>}
@@ -184,7 +181,7 @@ export function FeedPage({ user }: Props) {
                   {item.notes && <p className={styles.notes}>{item.notes}</p>}
                 </div>
               )}
-            </Card>
+            </article>
           ))}
         </div>
       )}

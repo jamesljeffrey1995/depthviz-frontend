@@ -1,145 +1,68 @@
-/* Home page, Ripple pass.
-   What changed and why: the monospace uppercase eyebrows, the reference codes
-   and the hairline rules between every row were the four things the redesign
-   set out to remove, so they are gone rather than restyled. Rows became soft
-   cards, the corner-bracket panel became a rounded one, and the section
-   labels now read as words. Numbering is kept only where the content is
-   genuinely a sequence, which none of these lists are. */
+.home { display: flex; flex-direction: column; gap: clamp(48px, 8vw, 84px); width: 100%; max-width: 980px; margin-inline: auto; color: var(--ink-dim); }
+.hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 32px; padding: clamp(18px, 5vw, 54px) 0 0; position: relative; }
+.heroCopy { max-width: 780px; }
+.eyebrow { margin: 0 0 10px; color: var(--accent); font-size: 14px; font-weight: 700; letter-spacing: .01em; }
+.heroTitle { max-width: 820px; margin: 0; color: var(--ink); font-family: var(--font-display); font-size: clamp(46px, 8.2vw, 82px); font-weight: 650; letter-spacing: -.052em; line-height: 1.02; text-wrap: balance; }
+.heroLead { max-width: 650px; margin: 22px 0 0; color: var(--ink-dim); font-size: clamp(17px, 2vw, 21px); line-height: 1.55; }
+.searchArea { max-width: 760px; margin-top: 4px; }
+.pulseLine { position: relative; width: 100%; height: 18px; margin: -26px 0 -30px; color: var(--ink-faint); opacity: .55; }
+.pulseLine::before, .pulseLine::after, .pulseLine span::before, .pulseLine span::after { content: ''; position: absolute; top: 9px; height: 2px; border-radius: 999px; background: currentColor; }
+.pulseLine::before { left: 0; right: calc(50% + 18px); }
+.pulseLine::after { left: calc(50% + 18px); right: 0; }
+.pulseLine span::before { left: calc(50% - 18px); width: 18px; transform: rotate(-70deg); transform-origin: right; }
+.pulseLine span::after { left: 50%; width: 18px; transform: rotate(70deg); transform-origin: left; }
+.preview { position: relative; display: grid; gap: 26px; }
+.previewHead, .sectionHead, .emptyPreview { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
+.preview h2, .sectionHead h2, .emptyPreview h2 { margin: 0; color: var(--ink); font-size: clamp(28px, 5vw, 42px); font-weight: 650; letter-spacing: -.035em; line-height: 1.08; }
+.sectionHead h2 { font-size: clamp(26px, 4vw, 34px); }
+.meta { margin: 7px 0 0; color: var(--ink-faint); font-size: 15px; }
+.openForecast, .quietLink { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--accent-strong); font-size: 15px; font-weight: 700; white-space: nowrap; }
+.openForecast svg, .quietLink svg { width: 18px; height: 18px; stroke-linecap: round; }
+.verdictRow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(180px, .45fr); align-items: end; gap: 32px; }
+.visibility { display: block; color: var(--ink); font-size: clamp(68px, 13vw, 118px); font-weight: 560; line-height: .88; letter-spacing: -.06em; font-variant-numeric: tabular-nums; }
+.visibilityLabel { display: block; margin-top: 12px; color: var(--ink-dim); font-size: 15px; }
+.assessment { display: grid; gap: 5px; padding-bottom: 8px; }
+.assessment strong { color: var(--sev-poor); font-size: 24px; font-weight: 700; text-transform: capitalize; }
+.assessment span { color: var(--ink-faint); font-size: 15px; text-transform: capitalize; }
+.trend { display: grid; gap: 8px; padding: 18px 0 0; }
+.trendLabel { color: var(--ink-faint); font-size: 13px; font-weight: 650; }
+.trend svg { width: 100%; height: 116px; overflow: visible; }
+.chartGuide { stroke: var(--surface-border); stroke-width: 1; stroke-dasharray: 2 5; vector-effect: non-scaling-stroke; }
+.chartAreaLine { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.conditions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; padding: 20px 22px; background: var(--surface-tint); border-radius: var(--radius-lg); }
+.conditions div { min-width: 0; }
+.conditions span { display: block; color: var(--ink-faint); font-size: 13px; margin-bottom: 6px; }
+.conditions strong { color: var(--ink); font-size: 16px; font-weight: 650; text-transform: capitalize; font-variant-numeric: tabular-nums; }
+.emptyPreview { padding: 30px 0; }
+.emptyPreview > div { max-width: 680px; }
+.emptyPreview p:last-child { margin: 14px 0 0; max-width: 620px; color: var(--ink-dim); line-height: 1.6; }
+.directory, .section { display: grid; gap: 22px; }
+.toolGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 28px; }
+.tool { display: grid; grid-template-columns: minmax(0, 1fr) 20px; gap: 7px 16px; align-items: center; width: 100%; min-height: 98px; padding: 18px 0; border: 0; border-bottom: 1px solid var(--surface-border); background: transparent; color: var(--ink); text-align: left; }
+.tool strong { font-size: 17px; font-weight: 650; }
+.tool span { color: var(--ink-dim); font-size: 14px; line-height: 1.5; }
+.tool svg { grid-column: 2; grid-row: 1 / 3; width: 18px; color: var(--accent); }
+.muted { margin: 0; color: var(--ink-faint); }
+.newsList { list-style: none; margin: 0; padding: 0; }
+.newsItem { display: flex; justify-content: space-between; gap: 24px; width: 100%; padding: 20px 0; border: 0; border-bottom: 1px solid var(--surface-border); background: transparent; color: var(--ink); text-align: left; }
+.newsItem strong { font-size: 17px; }
+.newsItem p { margin: 7px 0 0; max-width: 680px; color: var(--ink-dim); line-height: 1.55; }
+.newsItem time { color: var(--ink-faint); font-size: 13px; white-space: nowrap; }
 
-.home { display: flex; flex-direction: column; gap: 56px; max-width: 920px; margin-inline: auto; }
-
-.hero {
-  display: grid;
-  gap: 24px;
-  padding: 48px 0 8px;
+@media (min-width: 880px) {
+  .hero { grid-template-columns: minmax(0, 1.2fr) minmax(330px, .8fr); align-items: end; }
+  .searchArea { padding-bottom: 6px; }
 }
 
-/* The old system line was a row of monospace codes: model area, window,
-   station. It reads as a status bar, so it now sits as one quiet sentence. */
-.systemLine {
-  display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0 0 26px;
-  color: var(--ink-faint); font-size: 14px; line-height: 1.5;
-}
-.systemLine span:first-child { color: var(--accent-text); font-weight: 600; }
-
-.sectionIndex {
-  margin: 0 0 12px; color: var(--accent-text);
-  font-size: 14px; font-weight: 600;
-}
-
-.heroTitle {
-  max-width: 760px; margin: 0; color: var(--ink); font-family: var(--font-display);
-  font-size: clamp(42px, 7vw, 74px); font-weight: 600; letter-spacing: -.045em;
-  line-height: 1.08; text-wrap: balance;
-}
-.heroLead { max-width: 650px; margin: 16px 0 0; color: var(--ink-dim); font-size: 17px; line-height: 1.6; }
-
-/* Safety copy stays prominent, but as a soft wash without radius or border. */
-.caution {
-  max-width: 680px; margin: 8px 0 0; padding: 10px 0 10px 16px;
-  border: 0; border-radius: 0;
-  border-left: 3px solid rgba(198, 177, 86, 0.35);
-  background: color-mix(in srgb, var(--sev-marginal) 8%, transparent);
-  color: var(--ink-dim); font-family: var(--font-sans); font-size: 14px; line-height: 1.6;
-}
-
-/* Search panel — no card surface; the search bar itself provides focus.
-   A bottom separator quietly closes off the hero section. */
-.searchPanel {
-  position: relative; padding: 20px 0 24px;
-  border: 0; border-radius: 0;
-  background: transparent; box-shadow: none;
-  border-bottom: 1px solid var(--surface-border);
-}
-
-/* .panelCode held "LOCATION INPUT / 01". The panel's own heading says what it
-   is, so the code line is redundant; the class stays for the markup that still
-   renders it and is simply not shown. */
-.panelCode { display: none; }
-
-.searchHead { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
-.searchLabel { display: block; color: var(--ink); font-family: var(--font-display); font-size: 23px; font-weight: 600; letter-spacing: -.015em; }
-.searchHead p {
-  margin: 4px 0 0; color: var(--ink-faint); font-family: var(--font-sans);
-  font-size: 14px; line-height: 1.5;
-}
-
-.textLink {
-  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 14px; border: 0; border-radius: var(--radius-full);
-  background: var(--accent-soft); color: var(--accent-text);
-  font-size: 14px; font-weight: 600;
-  transition: background var(--transition-fast), color var(--transition-fast);
-}
-.textLink:hover { background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--ink); }
-.textLink svg { width: 15px; height: 15px; }
-
-.directory { display: grid; gap: 0; }
-.directoryHead { display: flex; justify-content: space-between; align-items: end; gap: 16px; padding: 0; }
-.directoryHead .sectionIndex { display: block; margin-bottom: 6px; }
-.directoryHead h2 { margin: 0; color: var(--ink); font-family: var(--font-display); font-size: 26px; font-weight: 600; letter-spacing: -.02em; }
-.directoryHead > span { color: var(--ink-faint); font-family: var(--font-sans); font-size: 14px; }
-
-/* Each tool is an open row with a bottom separator — not a card. */
-.tool {
-  display: grid; grid-template-columns: minmax(150px, .65fr) minmax(220px, 1fr) 24px;
-  gap: 16px; align-items: center; width: 100%; min-height: 60px;
-  padding: 16px 0;
-  border: 0; border-bottom: 1px solid var(--surface-border);
-  background: transparent; box-shadow: none;
-  color: var(--ink); text-align: left;
-  transition: color var(--transition-fast);
-}
-.tool:hover, .newsItem:hover {
-  color: var(--ink);
-}
-.ref { display: none; }
-.tool strong { font-family: var(--font-display); font-size: 17px; font-weight: 600; }
-.description { color: var(--ink-dim); font-size: 14px; line-height: 1.5; }
-.arrow { justify-self: end; color: var(--accent-text); font-family: var(--font-sans); }
-
-.section { display: flex; flex-direction: column; gap: 16px; }
-.sectionHead { display: flex; align-items: end; justify-content: space-between; gap: 16px; }
-.sectionTitle { margin: 0; color: var(--ink); font-family: var(--font-display); font-size: 26px; font-weight: 600; letter-spacing: -.02em; }
-
-.muted {
-  margin: 0; padding: 20px; border: 0; border-radius: var(--radius-lg);
-  background: var(--surface-raised); color: var(--ink-faint); font-size: 14px;
-}
-
-.newsList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
-/* News items are open rows with separators — no card surfaces */
-.newsItem {
-  width: 100%; padding: 16px 0;
-  border: 0; border-bottom: 1px solid var(--surface-border);
-  background: transparent; box-shadow: none;
-  color: var(--ink); text-align: left;
-  transition: color var(--transition-fast);
-}
-.newsItemHead { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-
-/* Tag is a flat coloured label — no pill border */
-.tag {
-  padding: 2px 8px; border-radius: 3px;
-  background: var(--accent-soft); color: var(--accent-text);
-  font-family: var(--font-sans); font-size: 11px; font-weight: 600;
-}
-.newsTitle { color: var(--ink); font-family: var(--font-display); font-size: 17px; font-weight: 600; }
-.newsDate { margin-left: auto; color: var(--ink-faint); font-family: var(--font-sans); font-size: 13px; }
-.newsExcerpt { max-width: 760px; margin: 8px 0 0; color: var(--ink-dim); font-size: 14px; line-height: 1.55; }
-
-@media (max-width: 720px) {
-  .hero { grid-template-columns: 1fr; gap: 36px; padding: 28px 0 0; }
-  .tool { grid-template-columns: minmax(0, 1fr) 20px; }
-  .description { grid-column: 1 / 2; }
-  .arrow { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
-}
-@media (max-width: 480px) {
-  .home { gap: 44px; }
-  .heroTitle { font-size: 38px; }
-  .heroLead { font-size: 16px; }
-  .sectionHead { align-items: flex-start; }
-  .textLink { margin-top: 20px; }
-  .searchHead .textLink { margin-top: 0; }
-  .newsDate { width: 100%; margin-left: 0; }
+@media (max-width: 640px) {
+  .home { gap: 54px; }
+  .hero { gap: 28px; padding-top: 8px; }
+  .heroTitle { font-size: clamp(44px, 13vw, 58px); }
+  .previewHead, .sectionHead, .emptyPreview { flex-direction: column; }
+  .verdictRow { grid-template-columns: 1fr .7fr; gap: 14px; }
+  .visibility { font-size: clamp(68px, 22vw, 94px); }
+  .conditions { grid-template-columns: repeat(2, 1fr); padding: 18px; }
+  .toolGrid { grid-template-columns: 1fr; gap: 0; }
+  .newsItem { flex-direction: column; gap: 8px; }
+  .newsItem time { order: -1; }
 }

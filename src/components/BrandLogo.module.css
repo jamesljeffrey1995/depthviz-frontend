@@ -1,0 +1,15 @@
+.logo {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  user-select: none;
+}
+
+.full {
+  height: clamp(58px, 8vw, 76px);
+}
+
+.mark {
+  height: clamp(36px, 6vw, 48px);
+}

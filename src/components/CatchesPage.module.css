@@ -1,9 +1,9 @@
 .container {
-  background: var(--ds-surface-solid);
-  border: 1px solid var(--ds-hairline);
-  border-radius: var(--ds-radius-md);
-  box-shadow: var(--ds-shadow-2);
-  padding: 20px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
   margin-bottom: 16px;
 }
 
@@ -23,13 +23,14 @@
 }
 
 /* Catch cards */
-.catchList { display: flex; flex-direction: column; gap: 6px; }
+.catchList { display: flex; flex-direction: column; gap: 0; }
 
 .catchCard {
   display: flex; align-items: flex-start; gap: 12px;
-  background: var(--ds-surface-sunken); border: 1px solid var(--ds-hairline);
-  border-radius: var(--ds-radius-md);
-  padding: 12px 14px; font-size: 11px;
+  background: transparent; border: 0;
+  border-bottom: 1px solid var(--ds-hairline);
+  border-radius: 0;
+  padding: 18px 0; font-size: 11px;
 }
 
 .catchInfo { flex: 1; min-width: 0; }
@@ -115,8 +116,8 @@
   display: block;
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--ds-text-muted);
   margin-bottom: 8px;
 }
@@ -124,8 +125,8 @@
 .input, .select, .textarea {
   width: 100%;
   background: var(--ds-surface-solid);
-  border: 1px solid var(--ds-hairline);
-  border-radius: var(--ds-radius-md);
+  border: 0;
+  border-radius: 12px;
   color: var(--ds-text-strong);
   font-family: var(--ds-font-sans);
   font-size: 13px;
@@ -246,7 +247,7 @@
 
 /* Responsive */
 @media (max-width: 600px) {
-  .container { padding: 14px; }
+  .container { padding: 0; }
   .fieldRow { grid-template-columns: 1fr; gap: 0; }
   .catchCard { flex-direction: column; gap: 8px; }
   .btnDanger { align-self: flex-end; }

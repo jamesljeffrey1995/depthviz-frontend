@@ -1,0 +1,17 @@
+.contours {
+  position: absolute;
+  inset: 0 0 auto auto;
+  width: min(48vw, 420px);
+  height: min(82vh, 760px);
+  color: var(--bathymetry-ink);
+  opacity: 0.52;
+  pointer-events: none;
+  filter: blur(0.2px);
+}
+
+@media (max-width: 560px) {
+  .contours {
+    width: 58vw;
+    opacity: 0.38;
+  }
+}
