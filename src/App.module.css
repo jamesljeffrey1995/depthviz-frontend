@@ -40,8 +40,8 @@
   width: 100%;
 }
 
-.main:focus,
-.mainWide:focus {
+.main:focus:not(:focus-visible),
+.mainWide:focus:not(:focus-visible) {
   outline: none;
 }
 
