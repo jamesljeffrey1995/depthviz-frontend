@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { getBestVisibility } from '../lib/api'
+import { metresToFeet } from '../lib/units'
 import { safeColorClass } from '../lib/visibilityPalette'
 import type { BestVisSpot } from '../types'
 import styles from './BestVisibility.module.css'
 
 interface Props {
   onSelectSpot: (lat: number, lon: number, name: string) => void
+  units: 'ft' | 'm'
 }
 
 // Number of placeholder rows to render while the fan-out resolves (one
@@ -17,7 +19,7 @@ const SKELETON_COUNT = 7
 const PROGRESS_CAP = 92
 const PROGRESS_TIME_CONSTANT_MS = 18000
 
-export function BestVisibility({ onSelectSpot }: Props) {
+export function BestVisibility({ onSelectSpot, units }: Props) {
   const [spots, setSpots] = useState<BestVisSpot[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -62,6 +64,8 @@ export function BestVisibility({ onSelectSpot }: Props) {
 
   const winner = spots[0]
   const rest = spots.slice(1)
+  const unitLabel = units === 'ft' ? 'feet' : 'metres'
+  const displayVisibility = (metres: number) => units === 'ft' ? metresToFeet(metres) : metres
 
   return (
     <div className={styles.wrapper}>
@@ -119,14 +123,14 @@ export function BestVisibility({ onSelectSpot }: Props) {
               stronger elevation. Size/weight/elevation carry the "this one's
               the best" signal, not the instrument gauge. */}
           {(() => {
-            const vis = winner.day.vis_corrected ?? winner.day.vis_estimate
+            const vis = displayVisibility(winner.day.vis_corrected ?? winner.day.vis_estimate)
             const cc = safeColorClass(winner.day.color_class)
             return (
               <div
                 className={styles.winnerCard}
                 role="button"
                 tabIndex={0}
-                aria-label={`View forecast for ${winner.name}, the best-visibility spot today`}
+                aria-label={`View forecast for ${winner.name}, the best-visibility spot today at ${vis.toFixed(1)} ${unitLabel}`}
                 onClick={() => onSelectSpot(winner.lat, winner.lon, winner.name)}
                 onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectSpot(winner.lat, winner.lon, winner.name) } }}
               >
@@ -138,7 +142,7 @@ export function BestVisibility({ onSelectSpot }: Props) {
                   </div>
                   <div className={styles.winnerVisBlock}>
                     <div className={`${styles.winnerVisValue} ${styles[cc]}`}>{vis.toFixed(1)}</div>
-                    <div className={styles.winnerVisUnit}>metres</div>
+                    <div className={styles.winnerVisUnit}>{unitLabel}</div>
                   </div>
                 </div>
               </div>
@@ -150,7 +154,7 @@ export function BestVisibility({ onSelectSpot }: Props) {
               <div className={styles.sectionLabel}>Other spots</div>
               <div className={styles.list}>
                 {rest.map((spot, i) => {
-                  const vis = spot.day.vis_corrected ?? spot.day.vis_estimate
+                  const vis = displayVisibility(spot.day.vis_corrected ?? spot.day.vis_estimate)
                   const cc = safeColorClass(spot.day.color_class)
                   return (
                     <div
@@ -158,7 +162,7 @@ export function BestVisibility({ onSelectSpot }: Props) {
                       className={styles.spotRow}
                       role="button"
                       tabIndex={0}
-                      aria-label={`View forecast for ${spot.name}`}
+                      aria-label={`View forecast for ${spot.name} at ${vis.toFixed(1)} ${unitLabel}`}
                       onClick={() => onSelectSpot(spot.lat, spot.lon, spot.name)}
                       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectSpot(spot.lat, spot.lon, spot.name) } }}
                     >
@@ -173,7 +177,7 @@ export function BestVisibility({ onSelectSpot }: Props) {
                         <div className={`${styles.visValue} ${styles[cc]}`}>
                           {vis.toFixed(1)}
                         </div>
-                        <div className={styles.visUnit}>metres</div>
+                        <div className={styles.visUnit}>{unitLabel}</div>
                       </div>
                     </div>
                   )

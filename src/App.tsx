@@ -28,6 +28,7 @@ import type { GeocodingResult, Location, ForecastResponse } from './types'
 import type { LegalPageType } from './components/LegalPage'
 import { toUserFacingError } from './lib/frontendErrors'
 import { trackClientEvent } from './lib/telemetry'
+import { buildForecastPath, parseForecastLocation } from './lib/forecastUrl'
 import styles from './App.module.css'
 
 /** Find a DB location matching given coordinates within ~1km tolerance. */
@@ -109,7 +110,7 @@ function LegalRouteWrapper({ onBack }: { onBack: () => void }) {
 
 export default function App() {
   const { user, loading: authLoading } = useAuth()
-  const { status, forecast, error, isRevalidating, searchByCoords, init } = useConditions()
+  const { status, forecast, forecastUnits, error, isRevalidating, searchByCoords, init } = useConditions()
   const serviceStatus = useServiceStatus()
   const downServices = ([
     ['open_meteo', 'Open-Meteo'],
@@ -140,8 +141,8 @@ export default function App() {
   const [units, setUnits] = useState<'ft' | 'm'>(() => {
     try {
       const v = localStorage.getItem('dv_units')
-      return v === 'ft' || v === 'm' ? v : 'ft'
-    } catch { return 'ft' }
+      return v === 'ft' || v === 'm' ? v : 'm'
+    } catch { return 'm' }
   })
   const [homePreview, setHomePreview] = useState<ForecastResponse | null>(() => {
     try {
@@ -177,6 +178,17 @@ export default function App() {
       else rawNavigate(target)
     }, direction)
   }, [rawNavigate, routeTheme])
+
+  // A route is a new reading context. Always reset the document position and
+  // move keyboard/screen-reader focus to the new main content instead of
+  // preserving an arbitrary position from the previous, differently-sized page.
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById('main-content')?.focus({ preventScroll: true })
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [location.key])
   const autoLoadedRef = useRef(false)
   const lastSelectedRef = useRef<{ lat: number; lon: number; name: string; locationId?: number }>({
     lat: 0, lon: 0, name: '',
@@ -321,10 +333,13 @@ export default function App() {
 
   // Persist last known forecast with its units so restore can reject a units mismatch
   useEffect(() => {
-    if (!forecast) return
+    // The unit selector updates immediately, but the replacement forecast arrives
+    // asynchronously. Never relabel or cache the previous response as the newly
+    // requested unit while that revalidation is in flight.
+    if (!forecast || forecastUnits !== units || isRevalidating) return
     setHomePreview(forecast)
-    try { localStorage.setItem('dv_last_forecast', JSON.stringify({ units, forecast, savedAt: Date.now() })) } catch {}
-  }, [forecast, units])
+    try { localStorage.setItem('dv_last_forecast', JSON.stringify({ units: forecastUnits, forecast, savedAt: Date.now() })) } catch {}
+  }, [forecast, forecastUnits, units, isRevalidating])
 
   // Persist last searched location
   useEffect(() => {
@@ -345,6 +360,29 @@ export default function App() {
     if (authLoading || autoLoadedRef.current) return
     autoLoadedRef.current = true
     try {
+      const sharedLocation = FORECAST_ROUTES.includes(currentPath)
+        ? parseForecastLocation(location.search)
+        : null
+      if (sharedLocation) {
+        setCurrentLat(sharedLocation.lat)
+        setCurrentLon(sharedLocation.lon)
+        setCurrentName(sharedLocation.name)
+        setSelectedLocationId(sharedLocation.locationId ?? null)
+        lastSelectedRef.current = {
+          lat: sharedLocation.lat,
+          lon: sharedLocation.lon,
+          name: sharedLocation.name,
+          locationId: sharedLocation.locationId ?? undefined,
+        }
+        searchByCoords(
+          sharedLocation.lat,
+          sharedLocation.lon,
+          sharedLocation.name,
+          sharedLocation.locationId ?? undefined,
+          units,
+        )
+        return
+      }
       const locRaw = localStorage.getItem('dv_last_location')
       if (!locRaw) return
       const loc = JSON.parse(locRaw) as { lat: number; lon: number; name: string; locationId: number | null }
@@ -370,7 +408,7 @@ export default function App() {
       }
       searchByCoords(loc.lat, loc.lon, loc.name, loc.locationId ?? undefined, units)
     } catch {}
-    // init and searchByCoords are stable (useCallback []); units & currentPath captured once on mount
+    // init and searchByCoords are stable (useCallback []); route state is intentionally captured once on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading])
 
@@ -398,7 +436,7 @@ export default function App() {
       const matched = findLocationByCoords(coords.latitude, coords.longitude, locations)
       setSelectedLocationId(matched?.id ?? null)
       await searchByCoords(coords.latitude, coords.longitude, name, matched?.id, units)
-      navigate('/forecast')
+      navigate(buildForecastPath({ lat: coords.latitude, lon: coords.longitude, name, locationId: matched?.id }))
     } catch (e) {
       handleActionError(e, 'map')
     }
@@ -416,7 +454,7 @@ export default function App() {
       const matched = findLocationByCoords(loc.latitude, loc.longitude, locations)
       setSelectedLocationId(matched?.id ?? null)
       await searchByCoords(loc.latitude, loc.longitude, name, matched?.id, units)
-      navigate('/forecast')
+      navigate(buildForecastPath({ lat: loc.latitude, lon: loc.longitude, name, locationId: matched?.id }))
     }
   }
 
@@ -453,10 +491,19 @@ export default function App() {
     const resolvedId = locationId ?? findLocationByCoords(lat, lon, locations)?.id ?? null
     setSelectedLocationId(resolvedId)
     await searchByCoords(lat, lon, name, resolvedId ?? undefined, units)
-    navigate('/forecast')
+    navigate(buildForecastPath({ lat, lon, name, locationId: resolvedId }))
   }
 
   const todayIndex = forecast?.days.findIndex(d => d.date === new Date().toISOString().split('T')[0]) ?? -1
+  const displayUnits = forecastUnits ?? units
+  const currentForecastPath = currentLat !== null && currentLon !== null && currentName
+    ? buildForecastPath({
+        lat: currentLat,
+        lon: currentLon,
+        name: currentName,
+        locationId: selectedLocationId,
+      })
+    : '/forecast'
   const depthOptionsM = [5, 10, 15, 20, 30]
   const formatDepthOption = (metres: number) => {
     if (units === 'ft') return `${Math.round(metres * 3.28084)}ft${metres === 30 ? '+' : ''}`
@@ -483,7 +530,7 @@ export default function App() {
         const matched = findLocationByCoords(r.latitude, r.longitude, locations)
         setSelectedLocationId(matched?.id ?? null)
         await searchByCoords(r.latitude, r.longitude, name, matched?.id, units)
-        navigate('/forecast')
+        navigate(buildForecastPath({ lat: r.latitude, lon: r.longitude, name, locationId: matched?.id }))
       }}
     />
   )
@@ -604,7 +651,7 @@ export default function App() {
           {/* Home — website landing page (news + quick links) */}
           <Route path="/" element={
             <Suspense fallback={null}>
-              <HomePage locationSearch={locationSearch} forecast={homePreview ?? forecast} units={units} />
+              <HomePage locationSearch={locationSearch} forecast={homePreview ?? forecast} units={displayUnits} />
             </Suspense>
           } />
 
@@ -637,7 +684,10 @@ export default function App() {
           {/* Competitions */}
           <Route path="/competition" element={
             <Suspense fallback={<div className={styles.loadingText}>Loading competitions…</div>}>
-              <CompetitionRegister />
+              <CompetitionRegister
+                signedIn={!!user}
+                onShowAuth={() => requestAuth({ type: 'route', path: '/competition' })}
+              />
             </Suspense>
           } />
 
@@ -700,7 +750,7 @@ export default function App() {
           {/* Best Visibility */}
           <Route path="/best" element={
             <Suspense fallback={null}>
-              <BestVisibility onSelectSpot={handleSpotSelect} />
+              <BestVisibility onSelectSpot={handleSpotSelect} units={units} />
             </Suspense>
           } />
 
@@ -804,14 +854,14 @@ export default function App() {
                         <WeeklyOverview
                           days={forecast.days}
                           locationName={forecast.location_name}
-                          units={units}
+                          units={displayUnits}
                           selectedIndex={selectedDay}
                           onSelectDay={selectDayFromWeek}
                         />
                       </Suspense>
                     ) : (
                       <>
-                        <ForecastStrip days={forecast.days} selectedIndex={selectedDay} onSelect={selectDay} units={units} />
+                        <ForecastStrip days={forecast.days} selectedIndex={selectedDay} onSelect={selectDay} units={displayUnits} />
                         {forecast.days[selectedDay] && (
                           <>
                             <DayDetail
@@ -820,7 +870,7 @@ export default function App() {
                               lat={forecast.lat}
                               lon={forecast.lon}
                               reportCount={forecast.report_count}
-                              units={units}
+                              units={displayUnits}
                               isAdmin={isAdmin}
                               biasOffset={forecast.bias_offset}
                               globalBiasOffset={forecast.global_bias_offset}
@@ -890,9 +940,9 @@ export default function App() {
                   day={forecast.days[todayIndex] ?? forecast.days[selectedDay] ?? null}
                   allDays={forecast.days}
                   locations={locations}
-                  onSubmitted={() => navigate('/forecast')}
+                  onSubmitted={() => navigate(currentForecastPath)}
                   initialLocationId={selectedLocationId}
-                  units={units}
+                  units={displayUnits}
                   onAuthRequired={() => requestAuth({ type: 'route', path: '/report' })}
                 />
               </Suspense>
@@ -970,7 +1020,7 @@ export default function App() {
                   locations={locations}
                   defaultLocationId={selectedLocationId}
                   defaultDate={forecast?.days[selectedDay]?.date}
-                  onClose={() => navigate(forecast ? '/forecast' : '/')}
+                  onClose={() => navigate(forecast ? currentForecastPath : '/')}
                 />
               </Suspense>
             ) : (
@@ -986,8 +1036,8 @@ export default function App() {
       {status === 'success' && forecast && FORECAST_ROUTES.includes(currentPath) && (
         <div className={styles.forecastNav}>
           <div className={styles.forecastTabs} role="navigation" aria-label="Forecast views">
-            <button className={`${styles.navBtn} ${currentPath === '/forecast' && !weekView ? styles.navActive : ''}`} onClick={() => { navigate('/forecast'); setWeekView(false) }} aria-current={currentPath === '/forecast' && !weekView ? 'page' : undefined}>Forecast</button>
-            <button className={`${styles.navBtn} ${currentPath === '/forecast' && weekView ? styles.navActive : ''}`} onClick={() => { navigate('/forecast'); setWeekView(true) }} aria-label="Weekly conditions overview" aria-current={currentPath === '/forecast' && weekView ? 'page' : undefined}>Week</button>
+            <button className={`${styles.navBtn} ${currentPath === '/forecast' && !weekView ? styles.navActive : ''}`} onClick={() => { navigate(currentForecastPath); setWeekView(false) }} aria-current={currentPath === '/forecast' && !weekView ? 'page' : undefined}>Forecast</button>
+            <button className={`${styles.navBtn} ${currentPath === '/forecast' && weekView ? styles.navActive : ''}`} onClick={() => { navigate(currentForecastPath); setWeekView(true) }} aria-label="Weekly conditions overview" aria-current={currentPath === '/forecast' && weekView ? 'page' : undefined}>Week</button>
             <button className={`${styles.navBtn} ${currentPath === '/tides' ? styles.navActive : ''}`} onClick={() => navigate('/tides')} aria-current={currentPath === '/tides' ? 'page' : undefined}>Tides</button>
           </div>
           <div className={styles.forecastActions} aria-label="Forecast actions">

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getTides } from '../lib/api'
+import { shiftIsoDate } from '../lib/dateOnly'
 import type { TidesResponse, TideEvent } from '../types'
 import styles from './TidesPage.module.css'
 
@@ -15,7 +16,10 @@ function formatTime(iso: string): string {
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
+  // Parse at local noon so a date-only value always displays on its intended
+  // calendar day. YYYY-MM-DD alone is interpreted as midnight UTC and can
+  // display as the previous day west of Greenwich.
+  return new Date(`${iso}T12:00:00`).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
 function getCurrentStateColor(state: string): string {
@@ -107,13 +111,20 @@ export function TidesPage({ lat, lon, locationName, embedded = false }: Props) {
   const [tides, setTides] = useState<TidesResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10))
+  // Let the tide service resolve "today" for the requested location on first
+  // load. Browser UTC is not the same thing as the location's calendar date.
+  const locationKey = `${lat.toFixed(5)}:${lon.toFixed(5)}`
+  const [dateSelection, setDateSelection] = useState<{ locationKey: string; date: string | null }>({
+    locationKey,
+    date: null,
+  })
+  const selectedDate = dateSelection.locationKey === locationKey ? dateSelection.date : null
 
   useEffect(() => {
     let cancelled = false
     setLoading(true)
     setError(null)
-    getTides(lat, lon, locationName, selectedDate)
+    getTides(lat, lon, locationName, selectedDate ?? undefined)
       .then(data => { if (!cancelled) setTides(data) })
       .catch(e => { if (!cancelled) setError(e.message || 'Failed to load tide data') })
       .finally(() => { if (!cancelled) setLoading(false) })
@@ -121,9 +132,8 @@ export function TidesPage({ lat, lon, locationName, embedded = false }: Props) {
   }, [lat, lon, locationName, selectedDate])
 
   const handleDateChange = (offset: number) => {
-    const d = new Date(selectedDate)
-    d.setDate(d.getDate() + offset)
-    setSelectedDate(d.toISOString().slice(0, 10))
+    const activeDate = selectedDate ?? tides?.date
+    if (activeDate) setDateSelection({ locationKey, date: shiftIsoDate(activeDate, offset) })
   }
 
   if (loading) {
@@ -147,17 +157,17 @@ export function TidesPage({ lat, lon, locationName, embedded = false }: Props) {
 
   if (!tides) return null
 
+  const activeDate = selectedDate ?? tides.date
+
   const { path, fillPath, minH, maxH, points } = buildChartPath(tides.hourly)
   const eventPositions = findEventPositions(tides.events, points)
 
   // Current time marker
   const now = new Date()
-  const todayStr = new Date().toISOString().split('T')[0]
-  const isToday = selectedDate === todayStr
   let nowX: number | null = null
   const firstPt = points[0]
   const lastPt = points[points.length - 1]
-  if (isToday && firstPt && lastPt) {
+  if (firstPt && lastPt) {
     const startTime = new Date(firstPt.time).getTime()
     const endTime = new Date(lastPt.time).getTime()
     const nowTime = now.getTime()
@@ -204,7 +214,7 @@ export function TidesPage({ lat, lon, locationName, embedded = false }: Props) {
 
         <div className={styles.sectionLabel}>Tide Chart</div>
         <div className={styles.chartWrapper}>
-          <svg viewBox="0 0 600 200" className={styles.chart} preserveAspectRatio="none">
+          <svg viewBox="-12 0 624 200" className={styles.chart} preserveAspectRatio="none">
             <defs>
               <linearGradient id="tideFill" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="rgba(var(--accent-rgb), 0.25)" />
@@ -266,7 +276,7 @@ export function TidesPage({ lat, lon, locationName, embedded = false }: Props) {
           lower-priority lists it steps through */}
       <div className={styles.dateNav}>
         <button className={styles.dateBtn} onClick={() => handleDateChange(-1)} aria-label="Previous day">&larr;</button>
-        <div className={styles.dateLabel}>{formatDate(selectedDate)}</div>
+        <div className={styles.dateLabel}>{formatDate(activeDate)}</div>
         <button className={styles.dateBtn} onClick={() => handleDateChange(1)} aria-label="Next day">&rarr;</button>
       </div>
 

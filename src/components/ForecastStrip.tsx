@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, useEffect, useRef } from 'react'
 import type { DayForecast, VisibilityFactor } from '../types'
 import styles from './ForecastStrip.module.css'
 
@@ -44,8 +44,22 @@ function primaryDriver(factors: VisibilityFactor[]): string | null {
 }
 
 export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, onSelect, units = 'm' }: Props) {
+  const stripRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const strip = stripRef.current
+    const activeDay = strip?.querySelector<HTMLElement>('[data-active="true"]')
+    if (!strip || !activeDay) return
+    const stripRect = strip.getBoundingClientRect()
+    const activeDayRect = activeDay.getBoundingClientRect()
+    strip.scrollTo({
+      left: strip.scrollLeft + (activeDayRect.left - stripRect.left) - (strip.clientWidth - activeDay.clientWidth) / 2,
+      behavior: 'auto',
+    })
+  }, [selectedIndex])
+
   return (
-    <div className={styles.strip}>
+    <div className={styles.strip} ref={stripRef}>
       <div className={styles.row}>
         {days.map((day, i) => {
           const vis = day.vis_corrected ?? day.vis_estimate
@@ -61,6 +75,7 @@ export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, 
             <button
               key={day.date}
               className={cls}
+              data-active={i === selectedIndex}
               onClick={() => onSelect(i)}
               aria-pressed={i === selectedIndex}
               aria-label={`${formatDate(day.date)}: ${vis.toFixed(1)} ${units === 'ft' ? 'feet' : 'metres'} visibility, ${day.verdict}${day.algae.risk !== 'low' ? `, algae risk ${day.algae.risk}` : ''}${driver ? `, main factor: ${driver}` : ''}`}
