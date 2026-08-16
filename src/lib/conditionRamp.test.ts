@@ -159,3 +159,38 @@ describe('water-clarity ramp — separation from the alert ramp', () => {
     }
   })
 })
+
+describe('light theme text colours', () => {
+  const tokensCss = readFileSync(resolve(repoRoot, 'src/styles/tokens.css'), 'utf8')
+
+  function finalToken(css: string, name: string): string {
+    const matches = [...css.matchAll(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})\\s*;`, 'g'))]
+    const value = matches.at(-1)?.[1]
+    if (!value) throw new Error(`--${name} is not declared as a literal hex`)
+    return value
+  }
+
+  it('keeps accent controls and secondary text at WCAG AA contrast', () => {
+    const surfaces = ['#f7f4ee', '#f8faf9', '#edf2f3']
+    const textTokens = [
+      finalToken(indexCss, 'ink-faint'),
+      finalToken(tokensCss, 'ds-text-muted'),
+      finalToken(tokensCss, 'ds-text-faint'),
+      finalToken(tokensCss, 'ds-accent'),
+      finalToken(tokensCss, 'ds-interactive'),
+    ]
+
+    for (const text of textTokens) {
+      for (const surface of surfaces) {
+        expect(contrastRatio(text, surface), `${text} on ${surface}`).toBeGreaterThanOrEqual(
+          AA_CONTRAST,
+        )
+      }
+    }
+
+    expect(
+      contrastRatio(finalToken(tokensCss, 'ds-on-accent'), finalToken(tokensCss, 'ds-accent')),
+      'accent button text',
+    ).toBeGreaterThanOrEqual(AA_CONTRAST)
+  })
+})

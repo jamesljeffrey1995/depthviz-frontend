@@ -227,10 +227,10 @@
   --surface-border-strong: rgba(7, 53, 92, 0.17);
   --ink: #07355c;
   --ink-dim: #315c7d;
-  --ink-faint: #587793;
-  --accent: #078db3;
-  --accent-rgb: 7, 141, 179;
-  --accent-strong: #087696;
+  --ink-faint: #506f8b;
+  --accent: #076b88;
+  --accent-rgb: 7, 107, 136;
+  --accent-strong: #05556d;
   --accent-soft: rgba(16, 185, 229, 0.10);
   --accent-on: #ffffff;
   --bathymetry-ink: rgba(7, 53, 92, 0.12);
