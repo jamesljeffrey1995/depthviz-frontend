@@ -105,7 +105,7 @@ export function HomePage({ locationSearch, forecast, units }: HomePageProps) {
               <div>
                 <p className={styles.eyebrow}>Your latest coast</p>
                 <h2 id="near-you-heading">{forecast.location_name}</h2>
-                <p className={styles.meta}>{new Date(previewDay.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })}</p>
+                <p className={styles.meta}>{new Date(`${previewDay.date}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })}</p>
               </div>
               <button className={styles.openForecast} onClick={() => navigate('/forecast')}>
                 Open forecast <IconArrowRight aria-hidden="true" />
@@ -114,7 +114,7 @@ export function HomePage({ locationSearch, forecast, units }: HomePageProps) {
 
             <div className={styles.verdictRow}>
               <div>
-                <strong className={styles.visibility}>{formatVisibility(visibility(previewDay), units)}</strong>
+                <strong className={styles.visibility}>{formatVisibility(visibility(previewDay), forecast.units ?? units)}</strong>
                 <span className={styles.visibilityLabel}>predicted visibility</span>
               </div>
               <div className={styles.assessment}>

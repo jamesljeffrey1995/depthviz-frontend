@@ -1,7 +1,6 @@
 export type RouteTheme = 'light' | 'dark'
 
 const LIGHT_PREFIXES = [
-  '/',
   '/feed',
   '/catches',
   '/forum',
