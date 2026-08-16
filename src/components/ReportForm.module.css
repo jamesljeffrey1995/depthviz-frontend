@@ -3,33 +3,33 @@
    (space-xl) so "spot & date" / "what you saw" / "video analysis" read as
    distinct decisions, not one flat field list. ── */
 .card {
-  background: var(--surface-raised);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
-  padding: var(--space-lg);
+  background: var(--ds-surface-solid);
+  border: 1px solid var(--ds-hairline);
+  border-radius: var(--ds-radius-md);
+  box-shadow: var(--ds-shadow-2);
+  padding: var(--ds-space-5);
   display: flex;
   flex-direction: column;
-  gap: var(--space-xl);
+  gap: var(--ds-space-7);
 }
 
 .header {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: var(--ds-space-1);
 }
 
 .title {
   font-size: 20px;
   font-weight: 800;
   letter-spacing: -0.01em;
-  color: var(--ink);
+  color: var(--ds-text-strong);
 }
 
 .subtitle {
   font-size: 13px;
   line-height: 1.5;
-  color: var(--ink-dim);
+  color: var(--ds-text-body);
 }
 
 /* ── A section groups fields that answer one decision together; tight gap
@@ -37,7 +37,7 @@
 .section {
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
+  gap: var(--ds-space-4);
 }
 
 .sectionLabel {
@@ -45,62 +45,62 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--ink-faint);
+  color: var(--ds-text-muted);
 }
 
 .fieldRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-md);
+  gap: var(--ds-space-4);
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: var(--ds-space-1);
 }
 
 .label {
   font-size: 12px;
   font-weight: 600;
-  color: var(--ink-dim);
+  color: var(--ds-text-body);
 }
 
 .input, .select, .textarea {
   width: 100%;
-  background: var(--surface-sunken);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-md);
-  color: var(--ink);
-  font-family: var(--font-sans);
+  background: var(--ds-surface-sunken);
+  border: 1px solid var(--ds-hairline);
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-text-strong);
+  font-family: var(--ds-font-sans);
   font-size: 14px;
   padding: 12px 14px;
   outline: none;
-  transition: border-color var(--transition-fast);
+  transition: border-color var(--ds-dur-fast) var(--ds-ease);
 }
 
 .input:focus, .select:focus, .textarea:focus {
-  border-color: var(--accent-text);
+  border-color: var(--ds-interactive);
 }
 
-.select option { background: var(--surface-raised); }
+.select option { background: var(--ds-surface-solid); }
 .textarea { resize: vertical; }
 
 .hint {
   font-size: 12px;
-  color: var(--ink-faint);
+  color: var(--ds-text-muted);
 }
 
 .hintError {
-  color: var(--sev-poor);
+  color: var(--ds-danger);
 }
 
 .error {
   font-size: 13px;
-  color: var(--sev-poor);
-  background: rgba(189, 58, 58, 0.08);
-  border: 1px solid rgba(189, 58, 58, 0.25);
-  border-radius: var(--radius-md);
+  color: var(--ds-danger);
+  background: color-mix(in srgb, var(--ds-danger) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-danger) 25%, transparent);
+  border-radius: var(--ds-radius-md);
   padding: 10px 14px;
 }
 
@@ -108,41 +108,41 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-xl) var(--space-md);
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-7) var(--ds-space-4);
   text-align: center;
 }
 
 .successIcon {
   width: 32px;
   height: 32px;
-  color: var(--sev-good);
+  color: var(--ds-q-good);
 }
 
 .successText {
   font-size: 14px;
   font-weight: 600;
-  color: var(--ink);
+  color: var(--ds-text-strong);
 }
 
 /* ── Video analysis — a bounded, clearly-optional section. Recessed
    (surface-sunken, border only, no shadow) so it reads as secondary to the
    required fields above, per the card hierarchy in DESIGN.md. ── */
 .videoSection {
-  background: var(--surface-sunken);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-md);
+  background: var(--ds-surface-sunken);
+  border: 1px solid var(--ds-hairline);
+  border-radius: var(--ds-radius-md);
+  padding: var(--ds-space-4);
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  gap: var(--ds-space-2);
 }
 
 .videoSectionHead {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--space-sm);
+  gap: var(--ds-space-2);
 }
 
 .optionalTag {
@@ -150,31 +150,31 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--ink-faint);
-  background: var(--surface-raised);
-  border: 1px solid var(--surface-border);
+  color: var(--ds-text-muted);
+  background: var(--ds-surface-solid);
+  border: 1px solid var(--ds-hairline);
   padding: 2px 8px;
-  border-radius: var(--radius-full);
+  border-radius: var(--ds-radius-pill);
   flex-shrink: 0;
 }
 
 .btn {
   width: 100%;
-  background: var(--accent);
-  color: var(--accent-on);
-  border: 1px solid var(--accent);
-  border-radius: var(--radius-full);
-  font-family: var(--font-sans);
+  background: var(--ds-accent);
+  color: var(--ds-on-accent);
+  border: 1px solid var(--ds-accent);
+  border-radius: var(--ds-radius-pill);
+  font-family: var(--ds-font-sans);
   font-size: 14px;
   font-weight: 700;
   padding: 13px 22px;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all var(--ds-dur-base) var(--ds-ease);
 }
 
 .btn:hover:not(:disabled) {
-  background: var(--accent-strong);
-  box-shadow: var(--shadow-glow);
+  background: var(--ds-accent-strong);
+  box-shadow: var(--ds-shadow-1);
 }
 
 .btn:disabled {
@@ -184,12 +184,12 @@
 
 @media (max-width: 480px) {
   .card {
-    padding: var(--space-md);
-    gap: var(--space-lg);
+    padding: var(--ds-space-4);
+    gap: var(--ds-space-5);
   }
 
   .fieldRow {
     grid-template-columns: 1fr;
-    gap: var(--space-sm);
+    gap: var(--ds-space-2);
   }
 }
