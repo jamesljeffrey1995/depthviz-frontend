@@ -1,3 +1,10 @@
+## [1.25.2](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.25.1...v1.25.2) (2026-08-16)
+
+
+### Bug Fixes
+
+* **forecast:** guard missing tide dates ([6349982](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/6349982de34fef3b2c01c55d2e90f63dc5b456cf))
+
 ## [1.25.1](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.25.0...v1.25.1) (2026-08-16)
 
 
