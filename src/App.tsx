@@ -11,6 +11,7 @@ import { DayDetail } from './components/DayDetail'
 import { SeabedEditor } from './components/SeabedEditor'
 import { CookieBanner } from './components/CookieBanner'
 import { TopNav } from './components/TopNav'
+import { OfficialLogo } from './components/OfficialLogo'
 import { Button, SegmentedControl } from './components/ui'
 import PwaStatus from './components/PwaStatus'
 import {
@@ -75,6 +76,12 @@ const MAP_GROUP_ROUTES = ['/map', '/forecast', '/tides', '/best']
 /** Location search belongs only to the dive-planning journey. Keeping it off
  *  community, training and utility pages gives those screens a clear purpose. */
 const LOCATION_SEARCH_ROUTES = ['/', '/map', '/forecast', '/tides', '/best']
+
+const DARK_ROUTES = ['/map', '/forecast', '/tides', '/best', '/training', '/history', '/admin']
+
+function routeTheme(path: string): 'light' | 'dark' {
+  return DARK_ROUTES.some(route => path === route || path.startsWith(`${route}/`)) ? 'dark' : 'light'
+}
 
 /** Footer labels for each legal page, in display order. */
 const LEGAL_LABELS: Record<LegalPageType, string> = {
@@ -152,9 +159,21 @@ export default function App() {
     }
   })
 
-  const navigate = useNavigate()
+  const routerNavigate = useNavigate()
   const location = useLocation()
   const currentPath = location.pathname
+  const navigate = useCallback((to: string | number) => {
+    const run = () => {
+      if (typeof to === 'number') routerNavigate(to)
+      else routerNavigate(to)
+    }
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (!reduced && 'startViewTransition' in document) {
+      ;(document as Document & { startViewTransition: (callback: () => void) => void }).startViewTransition(run)
+    } else {
+      run()
+    }
+  }, [routerNavigate])
   const autoLoadedRef = useRef(false)
   const lastSelectedRef = useRef<{ lat: number; lon: number; name: string; locationId?: number }>({
     lat: 0, lon: 0, name: '',
@@ -162,6 +181,18 @@ export default function App() {
   const forecastLayoutRef = useRef<HTMLDivElement>(null)
   const [forecastPaneWide, setForecastPaneWide] = useState(false)
   const [pendingAuthIntent, setPendingAuthIntent] = useState<AuthIntent | null>(null)
+
+  useEffect(() => {
+    const theme = routeTheme(currentPath)
+    const root = document.documentElement
+    root.dataset.theme = theme
+    root.dataset.dsTheme = theme
+    root.style.colorScheme = theme
+    document.querySelector('meta[name="theme-color"]')?.setAttribute(
+      'content',
+      theme === 'dark' ? '#061c32' : '#f7f4ee',
+    )
+  }, [currentPath])
 
   // Admin status is decided by the server (via /profile/me's is_admin), never
   // by a client flag or a value baked into the bundle. The backend also
@@ -434,7 +465,7 @@ export default function App() {
 
   if (authLoading) return (
     <div className={styles.bootScreen}>
-      <IconGauge className={styles.bootMark} aria-hidden="true" />
+      <OfficialLogo compact className={styles.bootMark} />
     </div>
   )
 
@@ -481,8 +512,7 @@ export default function App() {
             aria-label="DepthViz — go to home"
             onClick={() => navigate('/')}
           >
-            <IconGauge className={styles.logoMark} aria-hidden="true" />
-            DEPTH<span>VIZ</span>
+            <OfficialLogo compact={currentPath !== '/'} />
           </button>
           <button
             type="button"
@@ -648,7 +678,7 @@ export default function App() {
           {/* Home — website landing page (news + quick links) */}
           <Route path="/" element={
             <Suspense fallback={null}>
-              <HomePage locationSearch={locationSearch} />
+              <HomePage locationSearch={locationSearch} forecast={forecast} currentName={currentName} />
             </Suspense>
           } />
 

@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getNews } from '../lib/api'
-import type { Announcement } from '../types'
-import { IconArrowRight } from './icons'
+import type { Announcement, ForecastResponse } from '../types'
+import { IconArrowRight, IconWaves, IconWind, IconThermometer } from './icons'
 import styles from './HomePage.module.css'
 
 function timeAgo(iso: string): string {
@@ -13,117 +13,118 @@ function timeAgo(iso: string): string {
   if (mins < 60) return `${mins}m ago`
   const hrs = Math.floor(mins / 60)
   if (hrs < 24) return `${hrs}h ago`
-  const days = Math.floor(hrs / 24)
-  if (days < 30) return `${days}d ago`
-  return new Date(iso).toLocaleDateString()
+  return `${Math.floor(hrs / 24)}d ago`
 }
-
-const TOOLS = [
-  { ref: '01', label: 'Compare visibility', description: 'Rank nearby sites by forecast visibility and confidence.', path: '/best' },
-  { ref: '02', label: 'Read diver reports', description: 'Check what people actually found in the water.', path: '/feed' },
-  { ref: '03', label: 'Open the spot map', description: 'Browse the coast and inspect a specific entry point.', path: '/map' },
-  { ref: '04', label: 'Run an apnea table', description: 'Build and time dry training sessions.', path: '/training' },
-  { ref: '05', label: 'Calculate weighting', description: 'Estimate lead for your suit, body and water type.', path: '/weight' },
-]
 
 interface HomePageProps {
   locationSearch: ReactNode
+  forecast: ForecastResponse | null
+  currentName: string
 }
 
-export function HomePage({ locationSearch }: HomePageProps) {
+function cachedForecast(): ForecastResponse | null {
+  try {
+    const raw = localStorage.getItem('dv_last_forecast')
+    return raw ? (JSON.parse(raw) as { forecast?: ForecastResponse }).forecast ?? null : null
+  } catch {
+    return null
+  }
+}
+
+export function HomePage({ locationSearch, forecast, currentName }: HomePageProps) {
   const navigate = useNavigate()
   const [news, setNews] = useState<Announcement[]>([])
-  const [loadingNews, setLoadingNews] = useState(true)
+  const preview = forecast ?? cachedForecast()
+  const day = preview?.days[0]
+  const unit = preview?.units ?? 'm'
+  const vis = day ? day.vis_corrected ?? day.vis_estimate : null
+
+  const trendPath = useMemo(() => {
+    if (!preview || preview.days.length < 2) return ''
+    const values = preview.days.slice(0, 7).map(item => item.vis_corrected ?? item.vis_estimate)
+    const max = Math.max(...values, 1)
+    const min = Math.min(...values, 0)
+    const range = Math.max(max - min, 1)
+    return values.map((value, index) => {
+      const x = 8 + (index / (values.length - 1)) * 284
+      const y = 92 - ((value - min) / range) * 68
+      return `${index === 0 ? 'M' : 'L'}${x.toFixed(1)} ${y.toFixed(1)}`
+    }).join(' ')
+  }, [preview])
 
   useEffect(() => {
     let cancelled = false
-    getNews({ limit: 3 })
+    getNews({ limit: 2 })
       .then(items => { if (!cancelled) setNews(items) })
       .catch(() => { if (!cancelled) setNews([]) })
-      .finally(() => { if (!cancelled) setLoadingNews(false) })
     return () => { cancelled = true }
   }, [])
 
   return (
     <div className={styles.home}>
       <section className={styles.hero}>
-        <div>
-          <h1 className={styles.heroTitle}>Where are you diving?</h1>
-          <p className={styles.heroLead}>
-            Check underwater visibility, sea state and recent diver reports before you load the car.
-          </p>
-        </div>
-
-        <div className={styles.searchPanel}>
-          <div className={styles.searchHead}>
-            <div>
-              <span className={styles.searchLabel}>Find a dive spot</span>
-              <p>Town, beach, headland or coordinates</p>
-            </div>
-            <button className={styles.textLink} onClick={() => navigate('/map')}>
-              Use map <span aria-hidden="true">→</span>
-            </button>
-          </div>
-          {locationSearch}
-        </div>
-        <p className={styles.caution}>
-          Forecasts support a decision; they do not make one. Check access, swell,
-          wind and local advice before entering the water.
-        </p>
+        <h1>Know the water<br />before you enter it.</h1>
+        <p>Visibility forecasts, sea conditions and reports from divers on the coast.</p>
+        <div className={styles.search}>{locationSearch}</div>
       </section>
 
-      <nav className={styles.directory} aria-label="DepthViz tools">
-        <div className={styles.directoryHead}>
-          <div>
-            <span className={styles.sectionIndex}>Tools</span>
-            <h2>More dive tools</h2>
-          </div>
-          <span>{TOOLS.length} to choose from</span>
-        </div>
-        {TOOLS.map(({ ref, label, description, path }) => (
-          <button key={path} className={styles.tool} onClick={() => navigate(path)}>
-            <span className={styles.ref}>{ref}</span>
-            <strong>{label}</strong>
-            <span className={styles.description}>{description}</span>
-            <span className={styles.arrow} aria-hidden="true">→</span>
-          </button>
-        ))}
-      </nav>
+      <div className={styles.pulse} aria-hidden="true"><span /><i /><span /></div>
 
-      <section className={styles.section} aria-labelledby="news-heading">
-        <div className={styles.sectionHead}>
+      <section className={styles.forecast} aria-labelledby="nearby-heading">
+        <header className={styles.forecastHead}>
           <div>
-            <p className={styles.sectionIndex}>Updates</p>
-            <h2 id="news-heading" className={styles.sectionTitle}>From DepthViz</h2>
+            <span>Nearby forecast</span>
+            <h2 id="nearby-heading">{preview?.location_name || currentName || 'Choose a coastal location'}</h2>
           </div>
-          <button className={styles.textLink} onClick={() => navigate('/news')}>
-            View the full log <IconArrowRight aria-hidden="true" />
-          </button>
-        </div>
-        {loadingNews ? (
-          <p className={styles.muted}>Loading…</p>
-        ) : news.length === 0 ? (
-          <p className={styles.muted}>No announcements yet — check back soon.</p>
+          <small>{preview ? 'Latest saved forecast' : 'Search to read live conditions'}</small>
+        </header>
+
+        {day && vis != null ? (
+          <>
+            <div className={styles.primaryReading}>
+              <div>
+                <span className={`${styles.status} ${styles[`status_${day.color_class}`]}`}>{day.verdict}</span>
+                <strong>{vis.toFixed(1)}<em>{unit}</em></strong>
+                <p>{preview.model_confidence === 'none' ? 'Regional estimate' : `${preview.model_confidence} confidence`} · {day.is_forecast ? 'Forecast' : 'Observed'}</p>
+              </div>
+              <div className={styles.trend}>
+                <span>Visibility trend</span>
+                <svg viewBox="0 0 300 110" role="img" aria-label="Seven day visibility trend">
+                  <path className={styles.area} d={`${trendPath} L292 104 L8 104 Z`} />
+                  <path className={styles.line} d={trendPath} />
+                  <circle cx="8" cy={trendPath ? trendPath.match(/^M[\d.]+ ([\d.]+)/)?.[1] : 0} r="4" />
+                </svg>
+              </div>
+            </div>
+            <div className={styles.conditions}>
+              <div><IconWaves /><span>Swell<strong>{day.swell_height.toFixed(1)}{unit}</strong></span></div>
+              <div><IconWind /><span>Wind<strong>{Math.round(day.wind_speed)} kn</strong></span></div>
+              <div><IconThermometer /><span>Water<strong>{day.sea_temp == null ? '—' : `${day.sea_temp.toFixed(1)}°`}</strong></span></div>
+              <div><span>Algae<strong>{day.algae.risk}</strong></span></div>
+            </div>
+            <button className={styles.openForecast} onClick={() => navigate('/forecast')}>
+              Open detailed forecast <IconArrowRight aria-hidden="true" />
+            </button>
+          </>
         ) : (
-          <ul className={styles.newsList}>
-            {news.map(n => (
-              <li key={n.id}>
-                <button className={styles.newsItem} onClick={() => navigate('/news')}>
-                  <div className={styles.newsItemHead}>
-                    {n.is_pinned && <span className={styles.tag}>Pinned</span>}
-                    {n.category && <span className={styles.tag}>{n.category}</span>}
-                    <span className={styles.newsTitle}>{n.title}</span>
-                    <span className={styles.newsDate}>{timeAgo(n.created_at)}</span>
-                  </div>
-                  <p className={styles.newsExcerpt}>
-                    {n.summary || `${n.body.slice(0, 160)}${n.body.length > 160 ? '…' : ''}`}
-                  </p>
-                </button>
-              </li>
-            ))}
-          </ul>
+          <div className={styles.emptyForecast}>
+            <p>Search a beach, headland or coordinates to see visibility, swell, wind and tide conditions.</p>
+            <button onClick={() => navigate('/map')}>Browse the map <IconArrowRight /></button>
+          </div>
         )}
       </section>
+
+      {news.length > 0 && (
+        <section className={styles.updates} aria-labelledby="updates-heading">
+          <header><span>Field notes</span><h2 id="updates-heading">From DepthViz</h2></header>
+          {news.map(item => (
+            <button key={item.id} onClick={() => navigate('/news')}>
+              <span><strong>{item.title}</strong>{item.summary || item.body.slice(0, 120)}</span>
+              <small>{timeAgo(item.created_at)}</small>
+            </button>
+          ))}
+        </section>
+      )}
     </div>
   )
 }

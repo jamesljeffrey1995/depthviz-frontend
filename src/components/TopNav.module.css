@@ -1,6 +1,5 @@
 .topNav {
-  margin: 0 0 var(--space-lg);
-  display: flex;
+  display: none;
   justify-content: flex-start;
   border-bottom: 1px solid var(--surface-border);
 }

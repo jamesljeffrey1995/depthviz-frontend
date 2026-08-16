@@ -1,0 +1,62 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.mark {
+  width: 68px;
+  height: 36px;
+  overflow: visible;
+  flex: none;
+}
+
+.d,
+.v {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 54px;
+  font-weight: 800;
+  font-style: italic;
+}
+
+.d { fill: #07355c; }
+.v { fill: #10b9e5; }
+
+.pulse {
+  fill: none;
+  stroke: #10b9e5;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.words {
+  display: grid;
+  gap: 4px;
+  color: var(--ink);
+}
+
+.words strong {
+  font-size: 16px;
+  letter-spacing: .08em;
+  font-weight: 750;
+}
+
+.words small {
+  color: var(--ink-faint);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  white-space: nowrap;
+}
+
+.compact .mark { width: 58px; }
+
+:global(:root[data-theme='dark']) .d { fill: #f4f1ea; }
+
+@media (max-width: 480px) {
+  .mark { width: 62px; }
+  .words strong { font-size: 14px; }
+}

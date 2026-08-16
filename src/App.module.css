@@ -2,9 +2,9 @@
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 1080px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 20px clamp(12px, 3vw, 20px) 108px;
+  padding: 18px clamp(16px, 4vw, 40px) 108px;
 }
 
 .main,
@@ -79,7 +79,7 @@
 
 /* ── Header ── */
 .header {
-  margin-bottom: var(--space-lg);
+  margin-bottom: 16px;
 }
 
 .headerRow {
@@ -117,10 +117,7 @@
 }
 
 .tagline {
-  font-family: var(--font-sans);
-  font-size: 12px;
-  color: var(--ink-faint);
-  margin-top: 4px;
+  display: none;
 }
 
 /* ── Forecast controls (unit toggle + depth select) ── */
@@ -523,7 +520,8 @@
   justify-content: center;
   align-items: stretch;
   gap: 0;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(18px);
   border-top: 1px solid var(--surface-border);
   box-shadow: none;
   padding: 0 0 env(safe-area-inset-bottom, 0px);
@@ -554,8 +552,9 @@
   font-family: var(--font-sans);
   font-size: 10px;
   font-weight: 500;
-  min-height: 52px;
-  padding: 8px 12px;
+  min-height: 62px;
+  max-width: 150px;
+  padding: 8px 18px;
   border-radius: 0;
   cursor: pointer;
   transition: color var(--transition-fast);
@@ -604,15 +603,9 @@
   flex-shrink: 0;
 }
 
-/* On wider screens the website-style top nav is the primary navigation, so the
-   mobile bottom tab bar is hidden to avoid duplicating it. */
 @media (min-width: 481px) {
-  .bottomNav {
-    display: none;
-  }
-
   .container {
-    padding-bottom: var(--space-xl);
+    padding-bottom: 100px;
   }
 }
 @container app-main (min-width: 1040px) {
@@ -631,7 +624,22 @@
 /* ── Responsive ── */
 @media (max-width: 480px) {
   .container {
-    padding: 14px 12px 80px;
+    padding: 14px 16px 88px;
+  }
+
+  .header,
+  .bottomNav {
+    view-transition-name: dv-shell;
+  }
+
+  ::view-transition-old(dv-shell),
+  ::view-transition-new(dv-shell) {
+    animation-duration: 220ms;
+  }
+
+  @media (min-width: 900px) {
+    .headerRow { min-height: 50px; }
+    .main { max-width: 780px; }
   }
 
   .header {

@@ -1,9 +1,9 @@
 .panel {
-  background: var(--surface-raised);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
-  padding: 20px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 20px 0;
   margin-bottom: 16px;
 }
 
@@ -55,12 +55,13 @@
 .signOut:hover { border-color: var(--sev-poor); }
 
 .statsRow {
-  display: flex; gap: 8px; margin-bottom: 20px;
+  display: flex; gap: 24px; margin-bottom: 20px;
 }
 .stat {
-  flex: 1; background: var(--surface-sunken); border: 1px solid var(--surface-border);
-  border-radius: var(--radius-md);
-  padding: 12px 10px; text-align: center;
+  flex: 1; background: transparent; border: 0;
+  border-bottom: 1px solid var(--surface-border);
+  border-radius: 0;
+  padding: 12px 0; text-align: left;
 }
 .statVal { font-family: var(--font-sans); font-weight: 800; font-size: 20px; color: var(--ink); margin-bottom: 3px; }
 .statLbl { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; color: var(--ink-faint); }
@@ -80,9 +81,10 @@
 .reportList { display: flex; flex-direction: column; gap: 6px; }
 .reportRow {
   display: flex; align-items: center; gap: 8px;
-  background: var(--surface-sunken); border: 1px solid var(--surface-border);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
+  background: transparent; border: 0;
+  border-bottom: 1px solid var(--surface-border);
+  border-radius: 0;
+  padding: 12px 0;
   font-size: 12px;
 }
 .reportRow.quarantined { opacity: .5; }
@@ -147,8 +149,8 @@
    recessed relative to the panel so they read as secondary to the reports
    list above them. ── */
 .details {
-  background: var(--surface-sunken);
-  border: 1px solid var(--surface-border);
+  background: var(--surface-raised);
+  border: 0;
   border-radius: var(--radius-md);
   margin-bottom: 12px;
   overflow: hidden;

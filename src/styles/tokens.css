@@ -196,11 +196,11 @@
      Neutral near-black surfaces with a restrained elevation step between
      canvas, base surface, and raised states. Text tokens are calibrated to
      preserve clear contrast across all dark surfaces. */
-  --ds-bg:            #0d0f10;                  /* color-surface-canvas */
-  --ds-surface:       #151819f2;                /* card over the ground */
-  --ds-surface-solid: #151819;                  /* color-surface-base */
-  --ds-surface-raised:#1c2021;                  /* color-surface-raised */
-  --ds-surface-sunken:#080a0b;
+  --ds-bg:            #061c32;
+  --ds-surface:       #0d2946f2;
+  --ds-surface-solid: #0d2946;
+  --ds-surface-raised:#133552;
+  --ds-surface-sunken:#041626;
   /* Hairlines are no longer the separator of record: shadow and surface lift
      do that work. These stay for the few places a real boundary is needed
      (table rows, input outlines) and are quieter than before. */
@@ -209,16 +209,16 @@
   /* Named separator — a ready-made 1px divider token for open-row layouts */
   --ds-divider: 1px solid rgba(234, 245, 242, 0.07);
 
-  --ds-text-strong:  #f2f1ec; /* 14.5:1 minimum on dark application surfaces */
-  --ds-text-body:    #b6b8b5; /* 8.2:1 minimum */
-  --ds-text-muted:   #858986; /* 4.6:1 minimum, clears AA for body text */
-  --ds-text-faint:   #737774; /* non-essential/decorative text only */
+  --ds-text-strong:  #f4f1ea;
+  --ds-text-body:    #9bb0c8;
+  --ds-text-muted:   #7f99b3;
+  --ds-text-faint:   #708ba6;
 
-  --ds-accent:       #5fd6c8;                   /* Ripple aquamarine, 8.4:1 */
-  --ds-accent-strong:#8ceadd;
-  --ds-accent-edge:  #5fd6c8;
-  --ds-on-accent:    #062226;
-  --ds-accent-wash:  rgba(95, 214, 200, 0.12);
+  --ds-accent:       #10b9e5;
+  --ds-accent-strong:#5dd6f5;
+  --ds-accent-edge:  #10b9e5;
+  --ds-on-accent:    #061c32;
+  --ds-accent-wash:  rgba(16, 185, 229, 0.13);
 
   /* Interactive: links, active controls, focus. Bright Shallow Blue reads
      clearly on dark (5.92:1 on canvas) and stays distinct from the brand fill. */
@@ -254,22 +254,22 @@
 
 /* ── 4b. Light theme ──────────────────────────────────────────────────── */
 :root[data-ds-theme='light'] {
-  --ds-bg:            #eef3f1;             /* porcelain, a green-biased neutral */
-  --ds-surface:       #fbfdfcf2;
-  --ds-surface-solid: #fbfdfc;
-  --ds-surface-raised:#edf4f2;
-  --ds-surface-sunken:#e2ebe8;
-  --ds-hairline:      rgba(16, 47, 45, 0.10);
-  --ds-hairline-strong: rgba(16, 47, 45, 0.18);
+  --ds-bg:            #f7f4ee;
+  --ds-surface:       #f7f4eef2;
+  --ds-surface-solid: #f7f4ee;
+  --ds-surface-raised:#edf2f3;
+  --ds-surface-sunken:#e3eaec;
+  --ds-hairline:      rgba(7, 53, 92, 0.10);
+  --ds-hairline-strong: rgba(7, 53, 92, 0.18);
 
-  --ds-text-strong:  #102f2d;              /* 13.6:1 on the panel */
-  --ds-text-body:    #43635f;              /* 7.1:1 */
-  --ds-text-muted:   #5c7a76;              /* 4.9:1 */
-  --ds-text-faint:   #6e8c88;
+  --ds-text-strong:  #07355c;
+  --ds-text-body:    #587793;
+  --ds-text-muted:   #6c849a;
+  --ds-text-faint:   #7890a5;
 
-  --ds-accent:       #0b7f7a;              /* darkened to hold contrast on light */
-  --ds-accent-strong:#096863;
-  --ds-accent-edge:  #0b7f7a;
+  --ds-accent:       #079bc4;
+  --ds-accent-strong:#067b9c;
+  --ds-accent-edge:  #079bc4;
   --ds-on-accent:    #ffffff;
   --ds-accent-wash:  rgba(11, 127, 122, 0.10);
 

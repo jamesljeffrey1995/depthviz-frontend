@@ -174,7 +174,7 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
             value={query}
             onChange={e => handleInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Search a place"
+            placeholder="Search beach, headland or coordinates"
             autoComplete="off"
           />
           {query && (
@@ -209,13 +209,13 @@ export function SearchBar({ onSearch, onLocate, getSuggestions, onSelectSuggesti
           )}
         </div>
         <button type="button" className={styles.btnDive} onClick={handleSubmit} aria-label="Show forecast">
-          <span>Show forecast</span>
+          <span className={styles.submitText}>Show forecast</span>
           <IconArrowRight aria-hidden="true" />
         </button>
       </div>
       <button type="button" className={styles.btnLocate} onClick={onLocate} aria-label="Use my current GPS location">
         <IconLocate aria-hidden="true" />
-        <span>Use my current location</span>
+        <span className={styles.locateText}>Use my current location</span>
       </button>
       <div className={styles.meta}>
         <p id={helpId} className={styles.helper}>Search by town, beach, headland, or coordinates.</p>

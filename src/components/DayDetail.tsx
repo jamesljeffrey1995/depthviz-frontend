@@ -9,7 +9,6 @@ import { SwellChart } from './SwellChart'
 import { KelpVisibilityNote } from './KelpVisibilityNote'
 import { SatelliteImageryCard } from './SatelliteImageryCard'
 import { type GaugeConfidence } from './InstrumentGauge'
-import { RippleGauge } from './RippleGauge'
 import {
   IconChevronDown, IconChevronUp, IconAlertTriangle,
   IconThermometer, IconWaves, IconCompass, IconWind, IconDroplet,
@@ -223,14 +222,6 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
   const confidence = gaugeConfidence(day)
   const confidenceFill = { high: 1, medium: 0.66, low: 0.33, none: 0 }[confidence]
 
-  // The rings are laid out on a metre scale, so the gauge always takes metres
-  // and formats back into whatever unit the screen is showing.
-  const visM = units === 'ft' ? vis / FT_PER_M : vis
-  const formatRange = (metres: number) => {
-    if (units === 'ft') return `${Math.round(metres * FT_PER_M)} ft`
-    return `${Number.isInteger(metres) ? metres : metres.toFixed(1)} m`
-  }
-
   return (
     <div className={styles.card}>
       <div className={styles.stationHeader}>
@@ -242,16 +233,9 @@ export function DayDetail({ day, locationName, lat, lon, reportCount, units = 'm
         {day.is_forecast && <div className={styles.forecastBadge}>Forecast</div>}
       </div>
 
-      {/* The signature reading. Every mark is a real value: a ring every 2 m
-          drawn at the contrast a target would actually keep at that range, and
-          the solid ring sitting where contrast reaches the 5% threshold that
-          the visibility figure is defined at (see contrastAtRange). */}
+      {/* The signature reading is intentionally direct: one dominant number,
+          followed by its decision status and confidence. */}
       <div className={styles.face}>
-        <RippleGauge
-          vis={visM}
-          format={formatRange}
-          className={styles[`band_${day.color_class}`]}
-        />
         <div className={styles.reading}>
           <div className={`${styles.visNumber} ${styles[`band_${day.color_class}`]}`}>
             {vis.toFixed(1)}

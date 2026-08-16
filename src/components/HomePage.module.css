@@ -1,145 +1,135 @@
-/* Home page, Ripple pass.
-   What changed and why: the monospace uppercase eyebrows, the reference codes
-   and the hairline rules between every row were the four things the redesign
-   set out to remove, so they are gone rather than restyled. Rows became soft
-   cards, the corner-bracket panel became a rounded one, and the section
-   labels now read as words. Numbering is kept only where the content is
-   genuinely a sequence, which none of these lists are. */
+.home {
+  position: relative;
+  display: grid;
+  gap: clamp(56px, 8vw, 96px);
+  max-width: 1040px;
+  margin-inline: auto;
+  padding-bottom: 32px;
+}
 
-.home { display: flex; flex-direction: column; gap: 56px; max-width: 920px; margin-inline: auto; }
+.home::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: 180px;
+  right: -18vw;
+  width: 520px;
+  height: 520px;
+  opacity: .2;
+  background: repeating-radial-gradient(ellipse at center, transparent 0 36px, rgba(7,53,92,.12) 38px 39px);
+  transform: rotate(-14deg);
+  pointer-events: none;
+}
 
 .hero {
-  display: grid;
-  gap: 24px;
-  padding: 48px 0 8px;
+  max-width: 780px;
+  padding: clamp(42px, 8vw, 100px) 0 0;
 }
 
-/* The old system line was a row of monospace codes: model area, window,
-   station. It reads as a status bar, so it now sits as one quiet sentence. */
-.systemLine {
-  display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0 0 26px;
-  color: var(--ink-faint); font-size: 14px; line-height: 1.5;
-}
-.systemLine span:first-child { color: var(--accent-text); font-weight: 600; }
-
-.sectionIndex {
-  margin: 0 0 12px; color: var(--accent-text);
-  font-size: 14px; font-weight: 600;
-}
-
-.heroTitle {
-  max-width: 760px; margin: 0; color: var(--ink); font-family: var(--font-display);
-  font-size: clamp(42px, 7vw, 74px); font-weight: 600; letter-spacing: -.045em;
-  line-height: 1.08; text-wrap: balance;
-}
-.heroLead { max-width: 650px; margin: 16px 0 0; color: var(--ink-dim); font-size: 17px; line-height: 1.6; }
-
-/* Safety copy stays prominent, but as a soft wash without radius or border. */
-.caution {
-  max-width: 680px; margin: 8px 0 0; padding: 10px 0 10px 16px;
-  border: 0; border-radius: 0;
-  border-left: 3px solid rgba(198, 177, 86, 0.35);
-  background: color-mix(in srgb, var(--sev-marginal) 8%, transparent);
-  color: var(--ink-dim); font-family: var(--font-sans); font-size: 14px; line-height: 1.6;
-}
-
-/* Search panel — no card surface; the search bar itself provides focus.
-   A bottom separator quietly closes off the hero section. */
-.searchPanel {
-  position: relative; padding: 20px 0 24px;
-  border: 0; border-radius: 0;
-  background: transparent; box-shadow: none;
-  border-bottom: 1px solid var(--surface-border);
-}
-
-/* .panelCode held "LOCATION INPUT / 01". The panel's own heading says what it
-   is, so the code line is redundant; the class stays for the markup that still
-   renders it and is simply not shown. */
-.panelCode { display: none; }
-
-.searchHead { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
-.searchLabel { display: block; color: var(--ink); font-family: var(--font-display); font-size: 23px; font-weight: 600; letter-spacing: -.015em; }
-.searchHead p {
-  margin: 4px 0 0; color: var(--ink-faint); font-family: var(--font-sans);
-  font-size: 14px; line-height: 1.5;
-}
-
-.textLink {
-  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 14px; border: 0; border-radius: var(--radius-full);
-  background: var(--accent-soft); color: var(--accent-text);
-  font-size: 14px; font-weight: 600;
-  transition: background var(--transition-fast), color var(--transition-fast);
-}
-.textLink:hover { background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--ink); }
-.textLink svg { width: 15px; height: 15px; }
-
-.directory { display: grid; gap: 0; }
-.directoryHead { display: flex; justify-content: space-between; align-items: end; gap: 16px; padding: 0; }
-.directoryHead .sectionIndex { display: block; margin-bottom: 6px; }
-.directoryHead h2 { margin: 0; color: var(--ink); font-family: var(--font-display); font-size: 26px; font-weight: 600; letter-spacing: -.02em; }
-.directoryHead > span { color: var(--ink-faint); font-family: var(--font-sans); font-size: 14px; }
-
-/* Each tool is an open row with a bottom separator — not a card. */
-.tool {
-  display: grid; grid-template-columns: minmax(150px, .65fr) minmax(220px, 1fr) 24px;
-  gap: 16px; align-items: center; width: 100%; min-height: 60px;
-  padding: 16px 0;
-  border: 0; border-bottom: 1px solid var(--surface-border);
-  background: transparent; box-shadow: none;
-  color: var(--ink); text-align: left;
-  transition: color var(--transition-fast);
-}
-.tool:hover, .newsItem:hover {
+.hero h1 {
   color: var(--ink);
-}
-.ref { display: none; }
-.tool strong { font-family: var(--font-display); font-size: 17px; font-weight: 600; }
-.description { color: var(--ink-dim); font-size: 14px; line-height: 1.5; }
-.arrow { justify-self: end; color: var(--accent-text); font-family: var(--font-sans); }
-
-.section { display: flex; flex-direction: column; gap: 16px; }
-.sectionHead { display: flex; align-items: end; justify-content: space-between; gap: 16px; }
-.sectionTitle { margin: 0; color: var(--ink); font-family: var(--font-display); font-size: 26px; font-weight: 600; letter-spacing: -.02em; }
-
-.muted {
-  margin: 0; padding: 20px; border: 0; border-radius: var(--radius-lg);
-  background: var(--surface-raised); color: var(--ink-faint); font-size: 14px;
+  font-size: clamp(48px, 7.2vw, 76px);
+  font-weight: 620;
+  line-height: 1.02;
+  letter-spacing: -.055em;
+  text-wrap: balance;
 }
 
-.newsList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
-/* News items are open rows with separators — no card surfaces */
-.newsItem {
-  width: 100%; padding: 16px 0;
-  border: 0; border-bottom: 1px solid var(--surface-border);
-  background: transparent; box-shadow: none;
-  color: var(--ink); text-align: left;
-  transition: color var(--transition-fast);
+.hero > p {
+  max-width: 590px;
+  margin-top: 24px;
+  color: var(--ink-dim);
+  font-size: clamp(17px, 2vw, 20px);
+  line-height: 1.55;
 }
-.newsItemHead { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 
-/* Tag is a flat coloured label — no pill border */
-.tag {
-  padding: 2px 8px; border-radius: 3px;
-  background: var(--accent-soft); color: var(--accent-text);
-  font-family: var(--font-sans); font-size: 11px; font-weight: 600;
+.search {
+  max-width: 680px;
+  margin-top: 34px;
 }
-.newsTitle { color: var(--ink); font-family: var(--font-display); font-size: 17px; font-weight: 600; }
-.newsDate { margin-left: auto; color: var(--ink-faint); font-family: var(--font-sans); font-size: 13px; }
-.newsExcerpt { max-width: 760px; margin: 8px 0 0; color: var(--ink-dim); font-size: 14px; line-height: 1.55; }
 
-@media (max-width: 720px) {
-  .hero { grid-template-columns: 1fr; gap: 36px; padding: 28px 0 0; }
-  .tool { grid-template-columns: minmax(0, 1fr) 20px; }
-  .description { grid-column: 1 / 2; }
-  .arrow { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+.pulse { display: flex; align-items: center; width: min(100%, 620px); height: 20px; color: var(--accent); opacity: .7; }
+.pulse span { height: 1px; flex: 1; background: currentColor; opacity: .28; }
+.pulse i { width: 72px; height: 18px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 18'%3E%3Cpath d='M0 9h22l5-6 7 12 7-15 7 9h24' fill='none' stroke='%2310b9e5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat; }
+
+.forecast { max-width: 920px; }
+.forecastHead { display: flex; align-items: end; justify-content: space-between; gap: 24px; }
+.forecastHead span, .updates header span, .trend > span { color: var(--ink-faint); font-size: 14px; font-weight: 650; }
+.forecastHead h2, .updates h2 { margin-top: 5px; color: var(--ink); font-size: clamp(28px, 4vw, 38px); font-weight: 620; letter-spacing: -.035em; }
+.forecastHead small { color: var(--ink-faint); font-size: 13px; }
+
+.primaryReading {
+  display: grid;
+  grid-template-columns: .8fr 1.2fr;
+  gap: clamp(30px, 7vw, 80px);
+  align-items: end;
+  margin-top: 32px;
 }
-@media (max-width: 480px) {
-  .home { gap: 44px; }
-  .heroTitle { font-size: 38px; }
-  .heroLead { font-size: 16px; }
-  .sectionHead { align-items: flex-start; }
-  .textLink { margin-top: 20px; }
-  .searchHead .textLink { margin-top: 0; }
-  .newsDate { width: 100%; margin-left: 0; }
+.status { display: block; margin-bottom: 8px; color: var(--ink-dim); font-size: 16px; font-weight: 700; }
+.status_poor { color: var(--sev-poor); }
+.status_marginal { color: var(--sev-marginal); }
+.status_decent, .status_good, .status_excellent { color: #078c8a; }
+.primaryReading strong { display: block; color: var(--ink); font-size: clamp(74px, 12vw, 108px); font-weight: 520; line-height: .9; letter-spacing: -.07em; font-variant-numeric: tabular-nums; }
+.primaryReading em { margin-left: 7px; color: var(--ink-dim); font-size: 24px; font-style: normal; letter-spacing: 0; }
+.primaryReading p { margin-top: 14px; color: var(--ink-faint); font-size: 14px; }
+.trend { min-width: 0; }
+.trend svg { display: block; width: 100%; margin-top: 12px; overflow: visible; }
+.line { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.area { fill: color-mix(in srgb, var(--accent) 13%, transparent); stroke: none; }
+.trend circle { fill: var(--surface); stroke: var(--accent); stroke-width: 3; }
+
+.conditions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  margin-top: 30px;
+  padding: 18px 22px;
+  border-radius: 15px;
+  background: var(--surface-raised);
+}
+.conditions > div { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.conditions svg { width: 20px; color: var(--ink-faint); }
+.conditions span { display: grid; gap: 3px; color: var(--ink-faint); font-size: 12px; text-transform: capitalize; }
+.conditions strong { color: var(--ink); font-size: 17px; font-weight: 650; font-variant-numeric: tabular-nums; }
+
+.openForecast, .emptyForecast button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 22px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent-text);
+  font-size: 15px;
+  font-weight: 700;
+}
+.openForecast svg, .emptyForecast svg { width: 18px; }
+.emptyForecast { margin-top: 28px; padding: 24px; border-radius: 15px; background: var(--surface-raised); color: var(--ink-dim); line-height: 1.6; }
+
+.updates { max-width: 780px; }
+.updates h2 { font-size: 26px; }
+.updates > button {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+  padding: 18px 0;
+  border: 0;
+  border-bottom: 1px solid var(--surface-border);
+  background: transparent;
+  color: var(--ink-dim);
+  text-align: left;
+  line-height: 1.5;
+}
+.updates button span { display: grid; gap: 4px; }
+.updates strong { color: var(--ink); font-size: 17px; }
+.updates small { white-space: nowrap; color: var(--ink-faint); }
+
+@media (max-width: 640px) {
+  .home { gap: 58px; }
+  .hero { padding-top: 34px; }
+  .primaryReading { grid-template-columns: 1fr; }
+  .conditions { grid-template-columns: repeat(2, 1fr); gap: 20px 16px; }
+  .forecastHead { align-items: start; flex-direction: column; gap: 8px; }
 }

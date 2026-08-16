@@ -4,7 +4,7 @@
   align-items: stretch;
   flex-wrap: wrap;
   gap: 10px;
-  margin-bottom: 18px;
+  margin-bottom: 0;
   container-type: inline-size;
 }
 
@@ -16,9 +16,10 @@
   display: flex;
   align-items: stretch;
   background: var(--surface-raised);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xs);
+  min-height: 56px;
+  border: 0;
+  border-radius: 15px;
+  box-shadow: none;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
@@ -147,11 +148,11 @@
 
 .btnDive {
   flex-shrink: 0;
-  background: var(--accent-soft);
+  background: transparent;
   color: var(--accent-text);
-  border: 1px solid rgba(var(--accent-rgb), 0.35);
-  border-radius: var(--radius-md);
-  margin: 3px;
+  border: 0;
+  border-radius: 50%;
+  margin: 6px;
   padding-inline: 12px;
 }
 
@@ -161,11 +162,13 @@
 }
 
 .btnLocate {
+  width: 56px;
+  min-height: 56px;
+  padding: 0;
   background: var(--surface-raised);
-  border: 1px solid var(--surface-border);
-  color: var(--ink-dim);
+  border: 0;
+  color: var(--accent-text);
   white-space: nowrap;
-  padding-inline: 12px;
 }
 
 .btnLocate:hover {
@@ -179,7 +182,7 @@
 }
 
 .meta {
-  flex: 1 0 100%;
+  display: none;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -203,12 +206,19 @@
 
 @container (max-width: 560px) {
   .wrapper {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: nowrap;
   }
 
   .btnLocate {
-    align-self: flex-start;
+    align-self: stretch;
   }
+}
+
+@container (max-width: 500px) {
+  .submitText,
+  .locateText { display: none; }
+  .btnDive { width: 44px; padding: 0; }
 }
 
 @container (max-width: 390px) {
