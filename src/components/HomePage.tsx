@@ -175,8 +175,8 @@ export function HomePage({ locationSearch, forecast, units, forecastPath }: Home
       <section className={styles.section} aria-labelledby="news-heading">
         <div className={styles.sectionHead}>
           <div>
-            <p className={styles.eyebrow}>Latest updates</p>
-            <h2 id="news-heading">From DepthViz</h2>
+            <p className={styles.eyebrow}>Latest knowledge</p>
+            <h2 id="news-heading">News &amp; practical guides</h2>
           </div>
           <button className={styles.quietLink} onClick={() => navigate('/news')}>
             View all <IconArrowRight aria-hidden="true" />
