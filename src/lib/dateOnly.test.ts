@@ -11,6 +11,12 @@ describe('normalizeIsoDate', () => {
     expect(normalizeIsoDate('not-a-date')).toBeNull()
     expect(normalizeIsoDate('2026-02-31T00:00:00Z')).toBeNull()
   })
+
+  test('treats missing legacy API dates as unavailable instead of throwing', () => {
+    expect(normalizeIsoDate(undefined)).toBeNull()
+    expect(normalizeIsoDate(null)).toBeNull()
+    expect(normalizeIsoDate({ date: '2026-08-16' })).toBeNull()
+  })
 })
 
 describe('shiftIsoDate', () => {

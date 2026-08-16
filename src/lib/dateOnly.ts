@@ -1,5 +1,10 @@
 /** Return a validated YYYY-MM-DD from a date-only value or ISO timestamp. */
-export function normalizeIsoDate(value: string): string | null {
+export function normalizeIsoDate(value: unknown): string | null {
+  // API responses and persisted snapshots can outlive the TypeScript contract.
+  // Treat a missing/non-string date as unavailable instead of letting a stale
+  // response crash the forecast route at `.trim()`.
+  if (typeof value !== 'string') return null
+
   const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value.trim())
   if (!match) return null
   const candidate = `${match[1]}-${match[2]}-${match[3]}`
