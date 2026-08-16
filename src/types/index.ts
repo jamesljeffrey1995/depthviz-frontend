@@ -356,7 +356,8 @@ export interface TidesResponse {
   location_name: string
   lat: number
   lon: number
-  date: string
+  /** Optional for compatibility with older tide responses and cached data. */
+  date?: string
   datum: string
   events: TideEvent[]
   hourly: HourlyTide[]
