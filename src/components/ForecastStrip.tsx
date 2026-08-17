@@ -52,8 +52,10 @@ export const ForecastStrip = memo(function ForecastStrip({ days, selectedIndex, 
   const updateScrollState = useCallback(() => {
     const strip = stripRef.current
     if (!strip) return
-    setCanScrollBack(strip.scrollLeft > 2)
-    setCanScrollForward(strip.scrollLeft + strip.clientWidth < strip.scrollWidth - 2)
+    const back = strip.scrollLeft > 2
+    const forward = strip.scrollLeft + strip.clientWidth < strip.scrollWidth - 2
+    setCanScrollBack(prev => prev === back ? prev : back)
+    setCanScrollForward(prev => prev === forward ? prev : forward)
   }, [])
 
   useEffect(() => {

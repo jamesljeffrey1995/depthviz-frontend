@@ -143,8 +143,8 @@ export function BestVisibility({ onSelectSpot, units, totalSpotCount = 0 }: Prop
           <div className={styles.dateLabel}>{todayDisplay}</div>
 
           {incomplete && (
-            <div className={styles.coverageNotice} role="status">
-              <div>
+            <div className={styles.coverageNotice}>
+              <div role="status">
                 <strong>Partial ranking</strong>
                 <span>
                   {spots.length}{totalSpotCount > 0 ? ` of ${totalSpotCount}` : ''} spots returned.

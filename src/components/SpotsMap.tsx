@@ -478,7 +478,7 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
             </Marker>
           )}
         </MapContainer>
-        <div className={styles.mapLegend} aria-label="Map marker key">
+        <div className={styles.mapLegend} role="img" aria-label="Map marker key">
           <span><i className={styles.legendCharted} aria-hidden="true" />Charted</span>
           <span><i className={styles.legendCommunity} aria-hidden="true" />Community</span>
           {privateSpots.length > 0 && <span><i className={styles.legendPrivate} aria-hidden="true" />Private</span>}
