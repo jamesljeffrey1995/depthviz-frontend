@@ -1,3 +1,17 @@
+# [1.27.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.26.0...v1.27.0) (2026-08-17)
+
+
+### Bug Fixes
+
+* address code review feedback on scroll state, map legend, and live-region ([3df82ee](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/3df82eea6fd3712573733864a718683ff5ef97eb))
+* separate swell threshold labels ([769aae5](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/769aae5109e712fffc818b1be5fc60248eaf8b70))
+* simplify ForecastStrip scroll setters — React bails out for same primitive values ([4e4fa74](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/4e4fa746aa0ca7f99b4adafece8d09bc10005aad))
+
+
+### Features
+
+* improve data-forward forecast experience ([05d6c13](https://github.com/jamesljeffrey1995/depthviz-frontend/commit/05d6c13874c3aa9cd9cb5fd84892ce7872e81511))
+
 # [1.26.0](https://github.com/jamesljeffrey1995/depthviz-frontend/compare/v1.25.2...v1.26.0) (2026-08-16)
 
 
