@@ -138,21 +138,21 @@
   padding: clamp(30px, 6vw, 58px) clamp(18px, 5vw, 52px);
   border: 0;
   border-radius: var(--radius-lg);
-  background: #061c32;
-  color: #f4f1ea;
-  box-shadow: 0 20px 60px rgba(7, 53, 92, 0.14);
+  background: var(--ds-surface-sunken);
+  color: var(--ds-text-strong);
+  box-shadow: var(--shadow-card);
 }
 
 .resultCard .resultLabel,
 .resultCard .resultRange,
 .resultCard .resultExplain,
 .resultCard .breakdownRow {
-  color: #9bb0c8;
+  color: var(--ds-text-muted);
 }
 
 .resultValue {
   margin-top: var(--ds-space-2);
-  color: #f4f1ea;
+  color: var(--ds-text-strong);
   font-size: clamp(64px, 14vw, 96px);
   font-weight: var(--ds-fw-bold);
   line-height: 1;
@@ -189,7 +189,7 @@
 }
 
 .breakdownRow span:last-child {
-  color: #f4f1ea;
+  color: var(--ds-text-strong);
   font-weight: var(--ds-fw-semi);
   font-variant-numeric: tabular-nums;
 }

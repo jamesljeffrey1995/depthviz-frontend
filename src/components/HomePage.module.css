@@ -1,11 +1,11 @@
-.home { display: flex; flex-direction: column; gap: clamp(48px, 8vw, 84px); width: 100%; max-width: 980px; margin-inline: auto; color: var(--ink-dim); }
-.hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 32px; padding: clamp(18px, 5vw, 54px) 0 0; position: relative; }
+.home { display: flex; flex-direction: column; gap: clamp(44px, 6vw, 68px); width: 100%; max-width: 980px; margin-inline: auto; color: var(--ink-dim); }
+.hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; padding: clamp(10px, 3vw, 32px) 0 0; position: relative; }
 .heroCopy { max-width: 780px; }
 .eyebrow { margin: 0 0 10px; color: var(--accent); font-size: 14px; font-weight: 700; letter-spacing: .01em; }
-.heroTitle { max-width: 820px; margin: 0; color: var(--ink); font-family: var(--font-display); font-size: clamp(46px, 8.2vw, 82px); font-weight: 650; letter-spacing: -.052em; line-height: 1.02; text-wrap: balance; }
-.heroLead { max-width: 650px; margin: 22px 0 0; color: var(--ink-dim); font-size: clamp(17px, 2vw, 21px); line-height: 1.55; }
+.heroTitle { max-width: 780px; margin: 0; color: var(--ink); font-family: var(--font-display); font-size: clamp(44px, 6.5vw, 68px); font-weight: 650; letter-spacing: -.048em; line-height: 1.02; text-wrap: balance; }
+.heroLead { max-width: 650px; margin: 16px 0 0; color: var(--ink-dim); font-size: clamp(17px, 2vw, 20px); line-height: 1.5; }
 .searchArea { max-width: 760px; margin-top: 4px; }
-.pulseLine { position: relative; width: 100%; height: 18px; margin: -26px 0 -30px; color: var(--ink-faint); opacity: .55; }
+.pulseLine { position: relative; width: 100%; height: 18px; margin: -20px 0 -24px; color: var(--ink-faint); opacity: .55; }
 .pulseLine::before, .pulseLine::after, .pulseLine span::before, .pulseLine span::after { content: ''; position: absolute; top: 9px; height: 2px; border-radius: 999px; background: currentColor; }
 .pulseLine::before { left: 0; right: calc(50% + 18px); }
 .pulseLine::after { left: calc(50% + 18px); right: 0; }
@@ -32,7 +32,8 @@
 .conditions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; padding: 20px 22px; background: var(--surface-tint); border-radius: var(--radius-lg); }
 .conditions div { min-width: 0; }
 .conditions span { display: block; color: var(--ink-faint); font-size: 13px; margin-bottom: 6px; }
-.conditions strong { color: var(--ink); font-size: 16px; font-weight: 650; text-transform: capitalize; font-variant-numeric: tabular-nums; }
+.conditions strong { color: var(--ink); font-size: 16px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.conditions .conditionWord { text-transform: capitalize; }
 .emptyPreview { padding: 30px 0; }
 .emptyPreview > div { max-width: 680px; }
 .emptyPreview p:last-child { margin: 14px 0 0; max-width: 620px; color: var(--ink-dim); line-height: 1.6; }
@@ -50,7 +51,7 @@
 .newsItem time { color: var(--ink-faint); font-size: 13px; white-space: nowrap; }
 
 @media (max-width: 640px) {
-  .home { gap: 54px; }
+  .home { gap: 48px; }
   .hero { gap: 28px; padding-top: 8px; }
   .heroTitle { font-size: clamp(44px, 13vw, 58px); }
   .previewHead, .sectionHead, .emptyPreview { flex-direction: column; }

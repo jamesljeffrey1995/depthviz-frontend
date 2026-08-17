@@ -138,6 +138,19 @@
   letter-spacing: -0.05em;
 }
 
+.forecastComparison {
+  display: grid;
+  gap: 3px;
+  padding-left: var(--ds-space-4);
+  border-left: 2px solid var(--ds-accent);
+}
+
+.forecastComparison strong {
+  color: var(--ds-text-strong);
+  font-size: var(--ds-text-meta);
+  font-weight: var(--ds-fw-semi);
+}
+
 .notes {
   color: var(--ds-text-muted);
   font-size: var(--ds-text-body);

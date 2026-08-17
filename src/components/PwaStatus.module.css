@@ -5,7 +5,7 @@
   border: 1px solid var(--accent);
   border-radius: var(--radius-sm);
   color: var(--accent);
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 10px;
   letter-spacing: 0.08em;
   padding: var(--space-sm) var(--space-md);
@@ -44,32 +44,20 @@
   letter-spacing: 0.08em;
 }
 
-.actions {
-  display: flex;
-  gap: var(--space-sm);
-  flex-shrink: 0;
-}
-
-.reloadBtn,
-.dismissBtn {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 6px 12px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-}
-
-.reloadBtn {
+.updatePulse {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: var(--radius-full);
   background: var(--accent);
-  color: var(--face);
-  border: 1px solid var(--accent);
-  font-weight: 700;
+  animation: update-pulse 0.8s ease-in-out infinite alternate;
 }
 
-.dismissBtn {
-  background: transparent;
-  color: var(--ink-faint);
-  border: 1px solid var(--border, rgba(255, 255, 255, 0.15));
+@keyframes update-pulse {
+  from { opacity: 0.35; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .updatePulse { animation: none; }
 }

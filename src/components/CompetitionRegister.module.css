@@ -24,6 +24,19 @@
 }
 .emptyTitle { margin: 0 0 var(--space-xs); color: var(--ink); font-size: 1.25rem; }
 .emptyCopy { max-width: 34rem; margin: 0 0 var(--space-md); line-height: 1.55; }
+.signedOutIntro {
+  display: grid;
+  gap: var(--space-lg);
+  padding: var(--space-lg) 0 var(--space-xl);
+  border-block: 1px solid var(--surface-border);
+}
+.signedOutIntro .emptyCopy { margin-bottom: 0; }
+.introEyebrow { margin: 0 0 var(--space-xs); color: var(--accent-text); font-size: .78rem; font-weight: 700; }
+.eventFlow { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-md); margin: 0; padding: 0; counter-reset: event-stage; }
+.eventFlow li { display: grid; gap: 6px; min-width: 0; padding-top: var(--space-sm); border-top: 2px solid var(--accent-soft); }
+.eventFlow span { color: var(--accent-text); font-size: .76rem; font-weight: 700; }
+.eventFlow strong { color: var(--ink); font-size: .92rem; font-weight: 650; line-height: 1.45; }
+.signedOutIntro .btnPrimary { justify-self: start; }
 
 .error, .notice {
   margin: var(--space-sm) 0;
@@ -115,6 +128,7 @@
 .speciesList strong { color: var(--ink); }
 
 @media (max-width: 480px) {
+  .eventFlow { grid-template-columns: 1fr; }
   .actions { flex-direction: column; }
   .actions button { width: 100%; }
 }

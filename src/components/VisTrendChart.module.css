@@ -6,10 +6,36 @@
   padding: 16px 14px 6px;
 }
 
+.caption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--ink-faint);
+  font-family: var(--font-display);
+  font-size: 14px;
+}
+
+.referenceKey {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  text-align: right;
+}
+
+.chart {
+  width: 100%;
+  min-width: 0;
+}
+
 .svg {
   display: block;
   width: 100%;
-  height: auto;
+  height: 132px;
+}
+
+.refLabel {
+  fill: var(--ink-faint);
+  font-size: 12px;
 }
 
 .valueLabel {
@@ -30,4 +56,22 @@
   font-size: 12px;
   letter-spacing: 0;
   font-weight: 700;
+}
+
+.svg line,
+.svg path,
+.svg circle {
+  vector-effect: non-scaling-stroke;
+}
+
+@media (max-width: 420px) {
+  .caption {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .referenceKey {
+    text-align: left;
+  }
 }

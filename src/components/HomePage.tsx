@@ -138,7 +138,7 @@ export function HomePage({ locationSearch, forecast, units, forecastPath }: Home
               <div><span>Swell</span><strong>{previewDay.swell_height.toFixed(1)} {forecast.units ?? units}</strong></div>
               <div><span>Wind</span><strong>{Math.round(previewDay.wind_speed)} kt {previewDay.wind_dir_label}</strong></div>
               <div><span>Water</span><strong>{previewDay.sea_temp == null ? '—' : `${previewDay.sea_temp.toFixed(0)}°C`}</strong></div>
-              <div><span>Algae</span><strong>{previewDay.algae.risk}</strong></div>
+              <div><span>Algae</span><strong className={styles.conditionWord}>{previewDay.algae.risk}</strong></div>
             </div>
           </>
         ) : (

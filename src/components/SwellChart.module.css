@@ -100,8 +100,8 @@
   height: 10px;
   margin-top: 2px;
   border-radius: var(--radius-sm);
-  background: rgba(35, 119, 68, 0.2);
-  border: 1px solid rgba(35, 119, 68, 0.4);
+  background: color-mix(in srgb, var(--ds-success) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-success) 40%, transparent);
 }
 
 .infoColorScale {
@@ -180,10 +180,15 @@
 }
 
 /* SVG elements */
+.chart {
+  width: 100%;
+  min-width: 0;
+}
+
 .svg {
   display: block;
   width: 100%;
-  height: auto;
+  height: 132px;
 }
 
 .refLabel {
@@ -202,4 +207,9 @@
   font-size: 12px;
   letter-spacing: 0;
   font-weight: 700;
+}
+
+.svg line,
+.svg rect {
+  vector-effect: non-scaling-stroke;
 }

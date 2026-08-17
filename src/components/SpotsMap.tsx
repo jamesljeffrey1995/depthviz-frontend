@@ -8,6 +8,7 @@ import { createLocation, voteLocation, removeVote } from '../lib/api'
 import type { Location } from '../types'
 import { toUserFacingError } from '../lib/frontendErrors'
 import { trackClientEvent } from '../lib/telemetry'
+import { useMediaQuery } from '../hooks/useMediaQuery'
 
 /** Shape of a private user spot stored in localStorage. */
 interface PrivateSpot {
@@ -139,6 +140,7 @@ function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lon: number
 }
 
 export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [], onLocationCreated }: Props) {
+  const compactMap = useMediaQuery('(max-width: 720px)')
   const [privateSpots, setPrivateSpots] = useState<PrivateSpot[]>(loadPrivateSpots)
   const [adding, setAdding] = useState(false)
   const [pendingPos, setPendingPos] = useState<{ lat: number; lon: number } | null>(null)
@@ -153,6 +155,7 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
     lon: number
     locationId?: number
     kind: 'charted' | 'community' | 'private'
+    privateSpot?: PrivateSpot
   } | null>(null)
 
   // DB-backed vote state: keyed by location.id
@@ -385,6 +388,7 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
                   }),
                 }}
               >
+                {!compactMap && (
                 <Popup>
                   <div className={styles.popup}>
                     {!loc.is_predefined && (
@@ -416,6 +420,7 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
                     </button>
                   </div>
                 </Popup>
+                )}
               </Marker>
             )
           })}
@@ -433,9 +438,11 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
                   lat: spot.lat,
                   lon: spot.lon,
                   kind: 'private',
+                  privateSpot: spot,
                 }),
               }}
             >
+              {!compactMap && (
               <Popup>
                 <div className={styles.popup}>
                   <div className={styles.popupUserBadge}>My Spot (private)</div>
@@ -455,6 +462,7 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
                   </button>
                 </div>
               </Popup>
+              )}
             </Marker>
           ))}
           {pendingPos && (
@@ -470,9 +478,14 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
             </Marker>
           )}
         </MapContainer>
+        <div className={styles.mapLegend} role="img" aria-label="Map marker key">
+          <span><i className={styles.legendCharted} aria-hidden="true" />Charted</span>
+          <span><i className={styles.legendCommunity} aria-hidden="true" />Community</span>
+          {privateSpots.length > 0 && <span><i className={styles.legendPrivate} aria-hidden="true" />Private</span>}
+        </div>
       </div>
 
-      {selectedSpot && (
+      {compactMap && selectedSpot && (
         <section className={styles.selectedPanel} aria-label={`Selected dive spot: ${selectedSpot.name}`}>
           <div className={styles.selectedEyebrow}>
             {selectedSpot.kind === 'private' ? 'Private spot' : selectedSpot.kind === 'community' ? 'Community spot' : 'Charted dive spot'}
@@ -484,17 +497,45 @@ export function SpotsMap({ onSelectSpot, center, user, onShowAuth, locations = [
                 {selectedSpot.lat.toFixed(3)}, {selectedSpot.lon.toFixed(3)} · forecast calculated on opening
               </p>
             </div>
-            <button
-              className={styles.selectedAction}
-              onClick={() => onSelectSpot(
-                selectedSpot.lat,
-                selectedSpot.lon,
-                selectedSpot.name,
-                selectedSpot.locationId,
+            <div className={styles.selectedActions}>
+              {selectedSpot.locationId != null && (
+                <div className={styles.selectedVotes} aria-label={`${dbVoteCounts[selectedSpot.locationId] ?? 0} community votes`}>
+                  <button
+                    className={`${styles.voteBtn} ${dbUserVotes[selectedSpot.locationId] === 'up' ? styles.voteBtnActive : ''}`}
+                    onClick={() => handleDbVote(selectedSpot.locationId!, 'up')}
+                    aria-label="Upvote this spot"
+                  >👍</button>
+                  <span className={styles.voteCount}>{dbVoteCounts[selectedSpot.locationId] ?? 0}</span>
+                  <button
+                    className={`${styles.voteBtn} ${dbUserVotes[selectedSpot.locationId] === 'down' ? styles.voteBtnActive : ''}`}
+                    onClick={() => handleDbVote(selectedSpot.locationId!, 'down')}
+                    aria-label="Downvote this spot"
+                  >👎</button>
+                </div>
               )}
-            >
-              Open forecast <span aria-hidden="true">→</span>
-            </button>
+              <button
+                className={styles.selectedAction}
+                onClick={() => onSelectSpot(
+                  selectedSpot.lat,
+                  selectedSpot.lon,
+                  selectedSpot.name,
+                  selectedSpot.locationId,
+                )}
+              >
+                Open forecast <span aria-hidden="true">→</span>
+              </button>
+              {selectedSpot.privateSpot && (
+                <button
+                  className={styles.selectedRemove}
+                  onClick={() => {
+                    handleRemovePrivateSpot(selectedSpot.privateSpot!)
+                    setSelectedSpot(null)
+                  }}
+                >
+                  Remove private spot
+                </button>
+              )}
+            </div>
           </div>
         </section>
       )}

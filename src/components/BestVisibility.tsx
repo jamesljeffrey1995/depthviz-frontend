@@ -79,12 +79,17 @@ export function BestVisibility({ onSelectSpot, units, totalSpotCount = 0 }: Prop
   const displayVisibility = (metres: number) => units === 'ft' ? metresToFeet(metres) : metres
   const missingCount = totalSpotCount > 0 ? Math.max(0, totalSpotCount - spots.length) : failedCount
   const incomplete = partial || failedCount > 0 || missingCount > 0
+  const leaderLabel = incomplete ? `Top of ${spots.length} returned` : 'Best today'
 
   return (
     <PageLayout
       eyebrow="Today’s coast"
       title="Best visibility"
-      subtitle="Compare forecast clarity across UK dive spots, ranked with model confidence."
+      subtitle={loading
+        ? 'Comparing forecast clarity across UK dive spots.'
+        : incomplete
+          ? 'Partial ranking — compare the forecasts that returned within the service window.'
+          : 'Compare forecast clarity across UK dive spots, ranked with model confidence.'}
       contentClassName={styles.content}
     >
       {loading && (
@@ -137,6 +142,20 @@ export function BestVisibility({ onSelectSpot, units, totalSpotCount = 0 }: Prop
         <>
           <div className={styles.dateLabel}>{todayDisplay}</div>
 
+          {incomplete && (
+            <div className={styles.coverageNotice}>
+              <div role="status">
+                <strong>Partial ranking</strong>
+                <span>
+                  {spots.length}{totalSpotCount > 0 ? ` of ${totalSpotCount}` : ''} spots returned.
+                  {missingCount > 0 && ` ${missingCount} forecast${missingCount !== 1 ? 's' : ''} did not finish in time.`}
+                  {partial && missingCount === 0 && ' Some forecasts did not finish in time.'}
+                </span>
+              </div>
+              <button type="button" className={styles.retryBtn} onClick={() => setReloadKey(key => key + 1)}>Retry missing spots</button>
+            </div>
+          )}
+
           {/* The winner — clear visual priority through type and spacing rather
               than another elevated dashboard card. */}
           {(() => {
@@ -146,10 +165,10 @@ export function BestVisibility({ onSelectSpot, units, totalSpotCount = 0 }: Prop
               <button
                 type="button"
                 className={styles.winnerCard}
-                aria-label={`View forecast for ${winner.name}, the best-visibility spot today at ${vis.toFixed(1)} ${unitLabel}`}
+                aria-label={`View forecast for ${winner.name}, ${incomplete ? 'the top returned spot' : 'the best-visibility spot today'} at ${vis.toFixed(1)} ${unitLabel}`}
                 onClick={() => onSelectSpot(winner.lat, winner.lon, winner.name)}
               >
-                <div className={styles.winnerBadge}>Best today</div>
+                <div className={styles.winnerBadge}>{leaderLabel}</div>
                 <div className={styles.winnerBody}>
                   <div className={styles.winnerInfo}>
                     <div className={styles.winnerName}>{winner.name}</div>
@@ -205,16 +224,6 @@ export function BestVisibility({ onSelectSpot, units, totalSpotCount = 0 }: Prop
         <div className={styles.error}>No visibility data available for today</div>
       )}
 
-      {!loading && !error && incomplete && spots.length > 0 && (
-        <div className={styles.failedNote} role="status">
-          <span>
-            Ranked {spots.length}{totalSpotCount > 0 ? ` of ${totalSpotCount}` : ''} spots.
-            {missingCount > 0 && ` ${missingCount} forecast${missingCount !== 1 ? 's' : ''} did not finish within the service window.`}
-            {partial && missingCount === 0 && ' Some forecasts did not finish within the service window.'}
-          </span>
-          <button type="button" className={styles.retryBtn} onClick={() => setReloadKey(key => key + 1)}>Retry incomplete rankings</button>
-        </div>
-      )}
     </PageLayout>
   )
 }

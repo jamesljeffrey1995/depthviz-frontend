@@ -74,6 +74,42 @@
   background: var(--surface-sunken);
 }
 
+.mapLegend {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 700;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px 10px;
+  max-width: calc(100% - 88px);
+  padding: 7px 9px;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface-raised) 92%, transparent);
+  box-shadow: var(--shadow-xs);
+  color: var(--ink-dim);
+  font-size: 10px;
+  backdrop-filter: blur(10px);
+}
+
+.mapLegend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.mapLegend i {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+}
+
+.legendCharted { background: var(--accent); }
+.legendCommunity { background: var(--sev-good); }
+.legendPrivate { background: var(--sev-marginal); }
+
 @media (max-width: 480px) {
   .map {
     height: 52dvh;
@@ -138,6 +174,29 @@
   cursor: pointer;
 }
 
+.selectedActions {
+  display: grid;
+  gap: 8px;
+  min-width: 150px;
+}
+
+.selectedVotes {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.selectedRemove {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid color-mix(in srgb, var(--sev-poor) 42%, transparent);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--sev-poor);
+  font: 650 12px/1 var(--font-sans);
+}
+
 .hint {
   font-size: 12px;
   letter-spacing: 0;
@@ -189,6 +248,14 @@
 
   .selectedAction {
     width: 100%;
+  }
+
+  .selectedActions {
+    width: 100%;
+  }
+
+  .selectedVotes {
+    justify-content: flex-start;
   }
 }
 

@@ -41,7 +41,7 @@ export default function PwaStatus() {
   const online = useOnlineStatus()
   const {
     offlineReady: [offlineReady, setOfflineReady],
-    needRefresh: [needRefresh, setNeedRefresh],
+    needRefresh: [needRefresh],
     updateServiceWorker,
   } = useRegisterSW()
 
@@ -51,6 +51,17 @@ export default function PwaStatus() {
     const id = setTimeout(() => setOfflineReady(false), 6000)
     return () => clearTimeout(id)
   }, [offlineReady, setOfflineReady])
+
+  // A stale app shell can contain route code that no longer matches the live
+  // API. Apply an installed update promptly instead of letting the user defer
+  // it and continue navigating through an incompatible build.
+  useEffect(() => {
+    if (!needRefresh) return
+    const id = setTimeout(() => {
+      void updateServiceWorker(true)
+    }, 1000)
+    return () => clearTimeout(id)
+  }, [needRefresh, updateServiceWorker])
 
   const savedAt = !online ? lastForecastSavedAt() : null
 
@@ -66,25 +77,9 @@ export default function PwaStatus() {
       )}
 
       {needRefresh && (
-        <div className={styles.updateToast} role="alert">
-          <span>A new version of DepthViz is available.</span>
-          <div className={styles.actions}>
-            <button
-              type="button"
-              className={styles.reloadBtn}
-              onClick={() => updateServiceWorker(true)}
-            >
-              Reload
-            </button>
-            <button
-              type="button"
-              className={styles.dismissBtn}
-              onClick={() => setNeedRefresh(false)}
-              aria-label="Dismiss update notification"
-            >
-              Later
-            </button>
-          </div>
+        <div className={styles.updateToast} role="status" aria-live="polite">
+          <span className={styles.updatePulse} aria-hidden="true" />
+          <span>Updating DepthViz to the latest forecast build…</span>
         </div>
       )}
 

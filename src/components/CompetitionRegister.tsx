@@ -402,11 +402,19 @@ export function CompetitionRegister({ signedIn, onShowAuth }: CompetitionRegiste
         contentClassName={styles.container}
       >
         {!signedIn && (
-          <div className={styles.empty}>
-            <h2 className={styles.emptyTitle}>Sign in to view competitions</h2>
-            <p className={styles.emptyCopy}>See open events, manage your registrations, and check your live water status.</p>
-            <button className={styles.btnPrimary} onClick={onShowAuth}>Sign in</button>
-          </div>
+          <section className={styles.signedOutIntro} aria-labelledby="competition-intro-title">
+            <div>
+              <p className={styles.introEyebrow}>What you can manage</p>
+              <h2 className={styles.emptyTitle} id="competition-intro-title">Competition day, in one place</h2>
+              <p className={styles.emptyCopy}>Sign in to see open events and any competitions you have joined.</p>
+            </div>
+            <ol className={styles.eventFlow}>
+              <li><span>Before</span><strong>Register and confirm your buddy pairing</strong></li>
+              <li><span>On the day</span><strong>Check the briefing, schedule and live water status</strong></li>
+              <li><span>After</span><strong>Return to your event record and published results</strong></li>
+            </ol>
+            <button className={styles.btnPrimary} onClick={onShowAuth}>Sign in to view events</button>
+          </section>
         )}
         {signedIn && <>
         {profile?.is_admin && (

@@ -41,8 +41,9 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      // Service worker auto-updates in the background; the app shows a small
-      // "update available" affordance via the virtual:pwa-register hook.
+      // The React registration hook detects an installed update and applies it
+      // promptly (see PwaStatus) so a stale shell cannot keep navigating
+      // against routes or API contracts from a newer deployment.
       registerType: 'prompt',
       // The SW is registered via useRegisterSW() in src/components/PwaStatus.tsx
       // (virtual:pwa-register/react), not via an injected inline <script> — the
