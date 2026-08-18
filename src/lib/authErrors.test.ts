@@ -17,4 +17,8 @@ describe('getAuthErrorMessage', () => {
   it('preserves other authentication errors', () => {
     expect(getAuthErrorMessage(new Error('Invalid email'))).toBe('Invalid email')
   })
+
+  it('falls back for unknown errors', () => {
+    expect(getAuthErrorMessage(null)).toBe('Failed to send link')
+  })
 })
