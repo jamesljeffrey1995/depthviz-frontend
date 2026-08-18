@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useDialog } from '../hooks/useDialog'
+import { getAuthErrorMessage } from '../lib/authErrors'
 import { IconClose, IconMail } from './icons'
 import styles from './AuthModal.module.css'
 
@@ -16,19 +17,22 @@ export function AuthModal({ onClose, onNavigateLegal, returnFocusTo }: Props) {
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const submittingRef = useRef(false)
   // ESC-to-close, focus trap, scroll lock and focus restoration.
   const modalRef = useDialog<HTMLDivElement>(onClose, returnFocusTo)
 
   const handleSubmit = async () => {
-    if (!email.trim()) return
+    if (!email.trim() || submittingRef.current) return
+    submittingRef.current = true
     setLoading(true)
     setError('')
     try {
       await signInWithEmail(email.trim())
       setSent(true)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to send link')
+      setError(getAuthErrorMessage(e))
     } finally {
+      submittingRef.current = false
       setLoading(false)
     }
   }
