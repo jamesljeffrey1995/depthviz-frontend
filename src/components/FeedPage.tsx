@@ -1,14 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import type { User } from '@supabase/supabase-js'
-import { getFeed } from '../lib/api'
+import { getFeedPage } from '../lib/feedApi'
 import type { FeedItem } from '../types'
 import { Button, FilterChip, PageLayout, SegmentedControl } from './ui'
 import styles from './FeedPage.module.css'
-
-interface FeedResponse {
-  items: FeedItem[]
-  total: number
-}
 
 type Scope = 'all' | 'friends'
 type FilterType = 'all' | 'reports' | 'catches'
@@ -50,28 +45,30 @@ export function FeedPage({ user }: Props) {
   const [filterType, setFilterType] = useState<FilterType>('all')
   const [items, setItems] = useState<FeedItem[]>([])
   const [total, setTotal] = useState(0)
+  const [hasMore, setHasMore] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const offsetRef = useRef(0)
+  const cursorRef = useRef<string | null>(null)
   const requestSeq = useRef(0)
 
   const fetchFeed = useCallback(async (reset: boolean) => {
     const requestId = ++requestSeq.current
     setLoading(true)
     setError('')
-    const startOffset = reset ? 0 : offsetRef.current
+    const cursor = reset ? null : cursorRef.current
     try {
-      const data: FeedResponse = await getFeed({
+      const data = await getFeedPage({
         scope,
         filter_type: filterType,
         limit: LIMIT,
-        offset: startOffset,
+        cursor,
       })
       if (requestId !== requestSeq.current) return
       setItems(prev => (reset ? data.items : [...prev, ...data.items]))
       setTotal(data.total)
-      offsetRef.current = startOffset + data.items.length
+      cursorRef.current = data.next_cursor
+      setHasMore(Boolean(data.next_cursor))
     } catch (err) {
       if (requestId !== requestSeq.current) return
       setError(err instanceof Error ? err.message : 'Failed to load feed')
@@ -86,9 +83,10 @@ export function FeedPage({ user }: Props) {
 
   function resetForReload() {
     requestSeq.current++
-    offsetRef.current = 0
+    cursorRef.current = null
     setItems([])
     setTotal(0)
+    setHasMore(false)
   }
 
   function handleScopeChange(newScope: Scope) {
@@ -104,7 +102,6 @@ export function FeedPage({ user }: Props) {
     setFilterType(newFilter)
   }
 
-  const hasMore = items.length < total
   const newestItem = items.reduce<FeedItem | null>((latest, item) => (
     !latest || new Date(item.created_at).getTime() > new Date(latest.created_at).getTime() ? item : latest
   ), null)
@@ -207,6 +204,10 @@ export function FeedPage({ user }: Props) {
         <Button variant="secondary" block onClick={() => fetchFeed(false)} disabled={loading}>
           {loading ? 'Loading…' : 'Load more'}
         </Button>
+      )}
+
+      {!hasMore && items.length > 0 && items.length < total && (
+        <div className={styles.stateCard}>No more activity is available in this feed window.</div>
       )}
     </PageLayout>
   )

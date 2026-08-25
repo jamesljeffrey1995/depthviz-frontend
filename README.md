@@ -38,7 +38,12 @@ put secrets here (the anon key is public by design; never the service key):
 |--------------------------|----------|----------------------------------------------------------------|
 | `VITE_SUPABASE_URL`      | yes      | Supabase project URL (auth)                                    |
 | `VITE_SUPABASE_ANON_KEY` | yes      | Supabase anon/public key                                       |
-| `VITE_API_URL`           | no       | Base URL of the depthviz-api backend. Defaults to `/api` (use a dev proxy or reverse-proxy in production). |
+| `VITE_API_URL`           | no       | Deployment mount/base URL for depthviz-api. Defaults to `/api`; the client adds the canonical `/api/v1` namespace itself. |
+
+`VITE_API_URL` is deliberately the **deployment mount**, not an API-version
+setting. For the normal same-origin production setup it remains `/api`, while a
+local direct-backend setup can use `http://localhost:8000`. The client transport
+normalizes both forms onto the backend's `/api/v1` routes.
 
 > `src/lib/supabase.ts` throws at import time if the two Supabase variables are
 > missing, so the app will not start without them. Admin access is **not** an
@@ -70,14 +75,32 @@ src/
 ├── components/     # ~50 feature components (forecast, feed, catches, friends,
 │                   #   spot map, apnea tables, competitions, admin, legal, …)
 ├── hooks/          # useConditions, useDialog, … data + UI hooks
-├── lib/            # api.ts (backend client), visibility.ts (client-side model
-│                   #   mirror), spotCrypto.ts, cache.ts, units, and more
+├── lib/            # api.ts (backend client), apiV1Transport.ts (versioning,
+│                   #   canonical paths + idempotent POST retries), feedApi.ts
+│                   #   (cursor feed), visibility.ts, spotCrypto.ts, cache.ts, …
 ├── styles/         # tokens.css design system
 ├── types/          # shared TypeScript types
 ├── workers/        # opencv.worker.ts (video analysis off the main thread)
 ├── App.tsx         # top-level routing / shell
 └── main.tsx        # entry point
 ```
+
+## API client conventions
+
+`src/lib/apiV1Transport.ts` is installed before the React tree renders. It keeps
+existing feature clients compatible while enforcing the backend's current API
+contract at the transport boundary:
+
+- first-party backend calls are routed through `/api/v1`
+- deprecated aliases are rewritten to canonical resource paths
+- JSON `POST` requests receive an `Idempotency-Key`
+- a keyed `POST` may be retried once after a network failure or 5xx, reusing the
+  exact same key so the backend can replay the original result safely
+- third-party traffic such as Supabase and Open-Meteo is never rewritten
+
+The community activity feed uses the API's cursor pagination (`next_cursor`)
+rather than offset paging so inserting new activity at the head cannot shift
+later pages and create duplicates/skips.
 
 ## Forecast model
 
@@ -93,8 +116,11 @@ of truth.
 ## Deployment
 
 `npm run build` emits a static `dist/`. In production the client needs the
-backend reachable at `VITE_API_URL` (commonly `/api` behind a reverse proxy that
-routes `/api` to depthviz-api and serves the SPA for everything else).
+backend reachable at the deployment mount in `VITE_API_URL` (commonly `/api`
+behind a reverse proxy that routes `/api` to depthviz-api and serves the SPA for
+everything else). Do not put `/api/v1` into `VITE_API_URL`; the frontend transport
+adds the version namespace consistently for both proxied and direct-backend
+configurations.
 
 ### Cloudflare Pages / Netlify
 
