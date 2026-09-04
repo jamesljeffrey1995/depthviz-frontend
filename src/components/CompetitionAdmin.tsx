@@ -1906,8 +1906,15 @@ function TeamsTab({ cid }: { cid: number }) {
     if (!confirm('Randomly pair every competitor who still has no buddy?\n\nLocked teams stay untouched, and the pairer tries to avoid two-beginner buddies where possible.')) return
     try {
       const r = await autoPairBuddies(cid)
-      setError('')
-      alert(`Paired ${r.competitors_paired} competitor(s) into ${r.teams_created} buddy team(s).`)
+      if (r.leftover_solo_id != null) {
+        const name = `Competitor #${r.leftover_solo_id}`
+        const message = `${name} still has no buddy. Add another competitor, unlock an existing pair, or assign them to a team before starting the competition.`
+        setError(message)
+        alert(message)
+      } else {
+        setError('')
+        alert(`Assigned buddy teams to ${r.competitors_paired} competitor(s), creating ${r.teams_created} new team(s).`)
+      }
       load()
     } catch (e) { setError(errMsg(e)) }
   }
