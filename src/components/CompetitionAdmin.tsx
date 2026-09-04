@@ -1907,8 +1907,7 @@ function TeamsTab({ cid }: { cid: number }) {
     try {
       const r = await autoPairBuddies(cid)
       if (r.leftover_solo_id != null) {
-        const leftover = competitors.find(c => c.id === r.leftover_solo_id)
-        const name = leftover?.full_name ?? `Competitor #${r.leftover_solo_id}`
+        const name = `Competitor #${r.leftover_solo_id}`
         const message = `${name} still has no buddy. Add another competitor, unlock an existing pair, or assign them to a team before starting the competition.`
         setError(message)
         alert(message)
